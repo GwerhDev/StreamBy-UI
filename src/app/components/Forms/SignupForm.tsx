@@ -1,8 +1,6 @@
-"use client"
-
 import { FormEvent, useState } from 'react';
 import s from './SignupForm.module.css';
-import Loading from '@/app/loading';
+import Loader from '../Loader';
 
 export const SignupForm = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +45,7 @@ export const SignupForm = () => {
     <div>
       {
         showLoader ?
-          <Loading />
+          <Loader />
           :
           <form onSubmit={handleSubmit}>
             <h1>Sign up</h1>

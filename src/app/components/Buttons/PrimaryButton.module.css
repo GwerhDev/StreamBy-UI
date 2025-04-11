@@ -3,6 +3,10 @@
   color: black;
   text-wrap: nowrap;
   background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
 }
 
 .container:hover {

@@ -1,4 +1,5 @@
 import s from './ProjectButton.module.css';
+import defaultImg from '../../../assets/default-img.png';
 
 export const ProjectButton = (props: any) => {
   const { action, project } = props || null;
@@ -10,7 +11,7 @@ export const ProjectButton = (props: any) => {
 
   return (
     <button onClick={handleOnClick} className={s.container}>
-      <img src={project?.img || "default-img.png"} alt="" width={"100%"} />
+      <img src={project?.img || defaultImg} alt="" width={"100%"} />
     </button>
   )
 }

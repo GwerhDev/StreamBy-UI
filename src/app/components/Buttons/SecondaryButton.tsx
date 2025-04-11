@@ -1,14 +1,16 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import s from './SecondaryButton.module.css';
 
 export const SecondaryButton = (props: any) => {
-  const { text, onClick, type } = props || null;
+  const { text, icon, onClick, type } = props || {};
 
-  function handleOnClick() {
-    onClick && onClick();
-  }
+  const handleOnClick = () => {
+    return onClick && onClick();
+  };
 
   return (
     <button className={s.container} onClick={handleOnClick} type={type || "button"} >
+      {icon && <FontAwesomeIcon icon={icon} />}
       {text}
     </button>
   )

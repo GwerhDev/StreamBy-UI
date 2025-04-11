@@ -4,6 +4,10 @@
   text-wrap: nowrap;
   background-color: transparent;
   border: solid 2px var(--color-light-grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
 }
 
 .container:hover {

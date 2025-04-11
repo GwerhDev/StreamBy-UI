@@ -1,4 +1,5 @@
 import s from './AddProjectButton.module.css';
+import addIcon from '../../../assets/add-icon.svg';
 
 export const AddProjectButton = (props: any) => {
   const { onClick } = props || null;
@@ -10,7 +11,7 @@ export const AddProjectButton = (props: any) => {
 
   return (
     <button onClick={handleOnClick} className={s.container}>
-      <img src="add-icon.svg" alt="" width={40} />
+      <img src={addIcon} alt="" width={40} />
     </button>
   )
 }

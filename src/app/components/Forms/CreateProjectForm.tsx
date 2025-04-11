@@ -1,18 +1,21 @@
+import s from './CreateProjectForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import s from './CreateProjectForm.module.css';
+import { FormEvent } from 'react';
+import { faDiagramProject, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 export const CreateProjectForm = (props: any) => {
   const { createAction, cancelAction } = props || null;
 
-  function handleOnSubmit(e: any) {
+  const handleOnSubmit = (e: FormEvent) => {
     e.preventDefault();
     console.log('submit');
+    return createAction && createAction();
   };
 
-  function handleCancel() {
-    cancelAction();
-  }
+  const handleCancel = () => {
+    return cancelAction && cancelAction();
+  };
 
   return (
     <form className={s.container} onSubmit={handleOnSubmit}>
@@ -30,9 +33,10 @@ export const CreateProjectForm = (props: any) => {
         <label htmlFor="name-input">Description (optional)</label>
         <input type="text" />
       </span>
+
       <span className={s.buttonContainer}>
-        <ActionButton text='Create' type='submit' />
-        <SecondaryButton onClick={handleCancel} text='Cancel' />
+        <ActionButton icon={faDiagramProject  } text='Create' type='submit' />
+        <SecondaryButton icon={faXmark} onClick={handleCancel} text='Cancel' />
       </span>
     </form>
   )

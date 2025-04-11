@@ -29,10 +29,10 @@ export const Navigator = () => {
           <Link to={'/home'} className={s.logo}>
             <img src="streamby-logo.svg" alt="logo" width={"110px"} />
           </Link>
-          <>
+          <span>
             <NavMenu />
             <NavAuth />
-          </>
+          </span>
         </nav>
       }
     </div>

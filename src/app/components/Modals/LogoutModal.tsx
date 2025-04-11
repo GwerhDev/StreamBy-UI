@@ -2,13 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import s from './LogoutModal.module.css';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { faRightFromBracket, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 export const LogoutModal = () => {
   const navigate = useNavigate();
 
   function handleLogout() {
-    localStorage.removeItem('userToken');
-    navigate('/'); // reemplaza router.push('/')
+    navigate('/');
   }
 
   function handleCancelLogout() {
@@ -24,8 +24,8 @@ export const LogoutModal = () => {
         <h1>Are you leaving already?</h1>
         <p>Confirm that you want to log out</p>
         <ul>
-          <PrimaryButton onClick={handleLogout} text='Logout' type='button' />
-          <SecondaryButton onClick={handleCancelLogout} text='Cancel' type='button' />
+          <PrimaryButton icon={faRightFromBracket} onClick={handleLogout} text='Logout' type='button' />
+          <SecondaryButton icon={faXmark} onClick={handleCancelLogout} text='Cancel' type='button' />
         </ul>
       </form>
     </div>

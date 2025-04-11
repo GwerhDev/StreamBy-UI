@@ -1,6 +1,8 @@
 import s from './LateralTab.module.css';
 import { ProjectButton } from '../Buttons/ProjectButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
+import streambyIcon from '../../../assets/streamby-icon.svg';
+import logaoutIcon from '../../../assets/logout-icon.svg';
 
 export const LateralTab = (props: any) => {
   const { projectList, action, setCreateProject } = props || null;
@@ -18,7 +20,7 @@ export const LateralTab = (props: any) => {
 
   return (
     <div className={s.container}>
-      <img src="streamby-icon.svg" alt="StreamBy Icon" height={25} />
+      <img src={streambyIcon} alt="StreamBy Icon" height={25} />
       <ul className={s.projects}>
         {
           projectList?.map((project: any, index: number) => (
@@ -30,7 +32,7 @@ export const LateralTab = (props: any) => {
         <AddProjectButton onClick={handleOnclick} />
       </ul>
       <span className={s.logout} onClick={handleLogoutModal}>
-        <img src="logout-icon.svg" alt="Logout Icon" width={40} />
+        <img src={logaoutIcon} alt="Logout Icon" width={40} />
       </span>
     </div>
   );
