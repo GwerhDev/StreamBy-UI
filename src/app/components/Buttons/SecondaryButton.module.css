@@ -1,0 +1,12 @@
+.container {
+  border-radius: var(--size-4);
+  color: var(--color-light-grey);
+  text-wrap: nowrap;
+  background-color: transparent;
+  border: solid 2px var(--color-light-grey);
+}
+
+.container:hover {
+  color: black;
+  background-color: var(--color-light-grey);
+}

@@ -1,0 +1,18 @@
+.container {
+  margin: 0;
+  padding: 5px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  transition-duration: .1s;
+  background-color: rgb(202, 205, 205);
+}
+
+.container:hover {
+  border: solid;
+  border-color: var(--color-primary);
+}

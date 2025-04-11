@@ -1,0 +1,30 @@
+.container {
+  width: 100vw;
+  padding-bottom: var(--size-12);
+  display: flex;
+  justify-content: center;
+  background: var(--background-color-dark-transparency);
+}
+
+.innerContainer {
+  gap: var(--size-6);
+  padding: var(--size-6);
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+}
+
+.cardContainer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.card {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--size-1);
+  background: var(--color-light-grey);
+}

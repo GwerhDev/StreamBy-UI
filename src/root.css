@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --color-primary: #38B6FF;
+  --color-secondary: #54c0ff;
+  --color-light-grey: #BEBEBE;
+  --color-button-primary: #38B6FF;
+  --color-button-primary-hover: #54c0ff;
+
+  --background-color-dark: #1a1a1c;
+  --background-color-light: #2f2f2f;
+  --background-color-dark-transparency: #1e1e1ead;
+  --background-gradient-color: linear-gradient(to right top, var(--background-color-dark), var(--background-color-light));
+
+  --size-1: 4px;
+  --size-2: 8px;
+  --size-3: 12px;
+  --size-4: 16px;
+  --size-5: 20px;
+  --size-6: 24px;
+  --size-7: 28px;
+  --size-8: 32px;
+  --size-9: 36px;
+  --size-10: 40px;
+  --size-11: 44px;
+  --size-12: 48px;
+
+  --max-width: 1440px;
+
+  background: var(--background-gradient-color);
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: Manrope;
+  min-height: 100vh;
+}

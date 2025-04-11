@@ -1,0 +1,27 @@
+.container {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--size-12);
+  padding-left: var(--size-6);
+  padding-right: var(--size-6);
+  background: var(--background-color-dark-transparency);
+}
+
+.innerContainer {
+  gap: var(--size-2);
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  text-align: left;
+}
+
+.innerContainer ul {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}

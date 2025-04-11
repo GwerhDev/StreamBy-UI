@@ -1,0 +1,22 @@
+.container {
+  top: 0;
+  left: 0;
+  z-index: 999;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  position: fixed;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem;
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.496);
+}
+
+.modalForm {
+  width: 100%;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  text-align: center;
+  background-color: rgb(20, 20, 20);
+}

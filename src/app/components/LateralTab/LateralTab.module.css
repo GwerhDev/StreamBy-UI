@@ -1,0 +1,26 @@
+.container {
+  gap: 1rem;
+  height: 100%;
+  min-height: 100vh;
+  padding: .6rem;
+  padding-top: .25rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.projects {
+  flex-direction: column;
+  height: 100%;
+}
+
+.logout {
+  border-top: solid #c7c7c7 1px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.logout:hover {
+  cursor: pointer;
+}

@@ -1,0 +1,18 @@
+.container {
+  flex-direction: column;
+}
+
+.inputContainer {
+  justify-content: space-between;
+}
+
+.inputContainer label {
+  width: 120px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+.inputContainer input {
+  width: 100%;
+}

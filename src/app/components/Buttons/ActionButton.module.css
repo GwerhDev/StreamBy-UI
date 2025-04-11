@@ -1,0 +1,9 @@
+.container {
+  border-radius: var(--size-4);
+  text-wrap: nowrap;
+  background: var(--color-button-primary);
+}
+
+.container:hover {
+  background: var(--color-button-primary-hover);
+}

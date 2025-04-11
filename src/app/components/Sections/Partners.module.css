@@ -1,0 +1,15 @@
+.container {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  padding: var(--size-12);
+  background: var(--background-color-dark-transparency);
+}
+
+.innerContainer {
+  gap: var(--size-2);
+  max-width: 1440px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
