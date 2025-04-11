@@ -1,19 +1,18 @@
-import { useState } from 'react';
-import { ActionButton } from '../Buttons/ActionButton';
 import s from './EmptyBrowser.module.css';
+import { ActionButton } from '../Buttons/ActionButton';
 import { CreateProjectForm } from '../Forms/CreateProjectForm';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 export const EmptyBrowser = (props: any) => {
-  const { createProject, setCreateProject } = props || null;
+  const { createProject, setCreateProject } = props || {};
 
-  function handleOnClick() {
+  const handleOnClick = () => {
     setCreateProject(true);
-  }
+  };
 
-  function handleCancel() {
+  const handleCancel = () => {
     setCreateProject(false);
-  }
+  };
 
   return (
     <div className={s.container}>

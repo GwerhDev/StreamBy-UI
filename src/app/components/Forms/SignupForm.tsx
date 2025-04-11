@@ -33,7 +33,7 @@ export const SignupForm = () => {
           'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
+      await response.json();
       setShowLoader(false);
 
     } catch (error) {
