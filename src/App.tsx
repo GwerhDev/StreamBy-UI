@@ -7,6 +7,7 @@ import NotFound from './app/pages/NotFound';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import { useSession } from './hooks/useSession';
 import { CLIENT_BASE, REDIRECT_LOGIN } from './config/api';
+import Loader from './app/components/Loader';
 
 function App() {
   const session = useSession();
@@ -15,7 +16,7 @@ function App() {
     window.location.href = REDIRECT_LOGIN + "?callback=" + encodeURIComponent(CLIENT_BASE);
   }
 
-  if (session === null) return <p>Loading session...</p>;
+  if (!session || session && !session.logged) return <Loader />;
 
   return (
     <Routes>
