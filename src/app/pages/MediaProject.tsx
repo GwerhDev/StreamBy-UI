@@ -6,6 +6,7 @@ export default function MediaProject() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [files, setFiles] = useState([]);
+  console.log(files);
 
   useEffect(() => {
     if (!id) return;
@@ -25,14 +26,7 @@ export default function MediaProject() {
 
   return (
     <div>
-      <h1>{project.name}</h1>
-      <ul>
-        {
-          files.map(file => (
-            <li key={file.key}>{file.key}</li>
-          ))
-        }
-      </ul>
+
     </div>
   );
 }
