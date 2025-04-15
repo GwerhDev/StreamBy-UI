@@ -1,6 +1,38 @@
 import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { fetchProject, fetchFiles } from '../../services/streamby';
 
 export default function MediaProject() {
   const { id } = useParams();
-  return <div className="text-center text-white">Media Project ID: {id}</div>;
+  const [project, setProject] = useState(null);
+  const [files, setFiles] = useState([]);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const proj = await fetchProject(id);
+        const fileList = await fetchFiles(id);
+        setProject(proj);
+        setFiles(fileList);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [id]);
+
+  if (!project) return <p>Loading...</p>;
+
+  return (
+    <div>
+      <h1>{project.name}</h1>
+      <ul>
+        {
+          files.map(file => (
+            <li key={file.key}>{file.key}</li>
+          ))
+        }
+      </ul>
+    </div>
+  );
 }
