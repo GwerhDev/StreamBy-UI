@@ -7,7 +7,7 @@ import NotFound from './app/pages/NotFound';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import { useSession } from './hooks/useSession';
 import { CLIENT_BASE, REDIRECT_LOGIN } from './config/api';
-import Loader from './app/components/Loader';
+import { Loader } from './app/components/Loader';
 
 function App() {
   const session = useSession();
