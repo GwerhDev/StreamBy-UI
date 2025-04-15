@@ -19,6 +19,8 @@
   border-top: solid #c7c7c7 1px;
   padding-top: 1rem;
   padding-bottom: 1rem;
+  border-radius: 100%;
+  background: var(--background-gradient-color);
 }
 
 .logout:hover {
