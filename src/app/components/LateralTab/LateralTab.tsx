@@ -5,7 +5,7 @@ import streambyIcon from '../../../assets/streamby-icon.svg';
 import logaoutIcon from '../../../assets/logout-icon.svg';
 
 export const LateralTab = (props: any) => {
-  const { projectList, action, setCreateProject } = props || null;
+  const { projectList, action, setCreateProject, profilePic } = props || null;
 
   function handleOnclick() {
     setCreateProject(true);
@@ -32,7 +32,7 @@ export const LateralTab = (props: any) => {
         <AddProjectButton onClick={handleOnclick} />
       </ul>
       <span className={s.logout} onClick={handleLogoutModal}>
-        <img src={logaoutIcon} alt="Logout Icon" width={40} />
+        <img src={profilePic} alt="Profile picture" width={40} />
       </span>
     </div>
   );

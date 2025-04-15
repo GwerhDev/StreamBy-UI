@@ -7,7 +7,8 @@ import { LogoutModal } from "../components/Modals/LogoutModal";
 import { LateralMenu } from "../components/LateralMenu/LateralMenu";
 import { EmptyBrowser } from "../components/Browser/EmptyBrowser";
 
-export default function DashboardPage() {
+export default function DashboardPage(props: any) {
+  const { profilePic } = props || {};
   const projectList: any[] = [];
   const [createProject, setCreateProject] = useState(false);
   const [currentProject, setCurrentProject] = useState(null);
@@ -18,7 +19,7 @@ export default function DashboardPage() {
 
   return (
     <div className='dashboard-container'>
-      <LateralTab projectList={projectList} action={handleCurrentProject} setCreateProject={setCreateProject} />
+      <LateralTab profilePic={profilePic} projectList={projectList} action={handleCurrentProject} setCreateProject={setCreateProject} />
       {
         currentProject
           ?
