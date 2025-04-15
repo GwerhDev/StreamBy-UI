@@ -23,7 +23,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route element={<DefaultLayout />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard profilePic={session.profilePic} />} />
         <Route path="/project/:id" element={<MediaProject />} />
       </Route>
       <Route path="*" element={<NotFound />} />

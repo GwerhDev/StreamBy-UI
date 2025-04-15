@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchAuth } from '../services/auth';
 
 export function useSession() {
-  const [session, setSession] = useState<null | { logged: boolean; userId?: string; role?: string; projects?: string[] }>(null);
+  const [session, setSession] = useState<null | { logged: boolean; userId?: string; role?: string; projects?: string[]; profilePic?: string }>(null);
 
   useEffect(() => {
     (async () => {
