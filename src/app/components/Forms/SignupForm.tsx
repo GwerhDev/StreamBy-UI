@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import s from './SignupForm.module.css';
-import Loader from '../Loader';
+import { Loader } from '../Loader';
 
 export const SignupForm = () => {
   const [email, setEmail] = useState('');
