@@ -32,7 +32,7 @@ export const LateralTab = (props: any) => {
         <AddProjectButton onClick={handleOnclick} />
       </ul>
       <span className={s.logout} onClick={handleLogoutModal}>
-        <img src={profilePic || logoutIcon} alt="Profile picture" width={40} />
+        <img src={profilePic || logoutIcon} alt="Profile picture" />
       </span>
     </div>
   );
