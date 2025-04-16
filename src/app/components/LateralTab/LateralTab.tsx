@@ -5,7 +5,8 @@ import streambyIcon from '../../../assets/streamby-icon.svg';
 import logoutIcon from '../../../assets/logout-icon.svg';
 
 export const LateralTab = (props: any) => {
-  const { projectList, action, setCreateProject, profilePic } = props || null;
+  const { projectList, action, setCreateProject, profilePic } = props || {};
+  const version = __APP_VERSION__;
 
   function handleOnclick() {
     setCreateProject(true);
@@ -36,7 +37,7 @@ export const LateralTab = (props: any) => {
         <img src={profilePic || logoutIcon} alt="Profile picture" width="100%" />
       </li>
       <li className={s.version}>
-        <small>v1.0.0</small>
+        <small>{version}</small>
       </li>
       </ul>
     </div>
