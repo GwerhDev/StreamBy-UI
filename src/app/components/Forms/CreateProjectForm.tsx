@@ -45,7 +45,7 @@ export const CreateProjectForm = (props: any) => {
           ) : (
             <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
           )}
-          <span className={s.plusContainer}><FontAwesomeIcon color="var(--color-light)" icon={faPlus} /></span>
+          <span className={s.plusContainer}><FontAwesomeIcon color="var(--color-lighter)" icon={faPlus} /></span>
         </li>
         <li>
           <input
