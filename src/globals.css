@@ -62,11 +62,11 @@ h1 {
 }
 
 h2 {
-  font-size: var(--size-10);
+  font-size: var(--size-9);
 }
 
 h3 {
-  font-size: var(--size-8);
+  font-size: var(--size-6);
 }
 
 form {
