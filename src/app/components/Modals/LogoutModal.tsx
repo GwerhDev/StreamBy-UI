@@ -28,7 +28,7 @@ export const LogoutModal = () => {
   return (
     <div className={s.container} id='logout-modal'>
       <form className={s.modalForm} action="">
-        <h1>Are you leaving already?</h1>
+        <h2>Are you leaving already?</h2>
         <p>Confirm that you want to log out</p>
         <ul>
           <PrimaryButton icon={faRightFromBracket} onClick={handleLogout} text='Logout' type='button' />
