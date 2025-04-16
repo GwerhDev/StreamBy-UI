@@ -99,6 +99,8 @@ label {
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   padding-inline: 1rem;
+  padding-top: .2rem;
+  padding-bottom: .2rem;
   font-weight: bold;
 }
 
