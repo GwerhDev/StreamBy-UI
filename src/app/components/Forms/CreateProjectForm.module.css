@@ -1,4 +1,9 @@
+.container {
+  width: 100%;
+}
+
 .container ul {
+  width: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -6,23 +11,23 @@
 
 .buttonContainer {
   gap: 1rem;
-  display: flex;
   width: 100%;
+  display: flex;
 }
 
 .imgContainer {
   width: 10rem;
   height: 10rem;
-  background-color: var(--background-color-dark);
   border-radius: 100%;
-  border: dashed;
-  border-color: var(--color-dark);
+  transition-duration: .3s;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  border: dashed;
   cursor: pointer;
   position: relative;
-  transition-duration: .3s;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--color-dark);
+  background-color: var(--background-color-dark);
 }
 
 .imgContainer:hover {
