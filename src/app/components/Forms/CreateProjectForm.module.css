@@ -18,6 +18,7 @@
 .imgContainer {
   width: 10rem;
   height: 10rem;
+  padding: 1rem;
   border-radius: 100%;
   transition-duration: .3s;
   display: flex;

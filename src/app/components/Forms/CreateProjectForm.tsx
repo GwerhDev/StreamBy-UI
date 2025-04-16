@@ -41,13 +41,15 @@ export const CreateProjectForm = (props: any) => {
       <p>Fill the form to create a new project</p>
       <ul>
         <li className={s.imgContainer} onClick={handleImageClick}>
-          {preview ? (
-            <span className={s.previewImageContainer}>
-              <img src={preview} alt="preview" className={s.previewImage} />
-            </span>
-          ) : (
-            <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
-          )}
+          {
+            preview
+              ?
+              <span className={s.previewImageContainer}>
+                <img src={preview} alt="preview" className={s.previewImage} />
+              </span>
+              :
+              <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
+          }
           <span className={s.plusContainer}><FontAwesomeIcon color="var(--color-lighter)" icon={faPlus} /></span>
         </li>
         <li>
