@@ -1,4 +1,7 @@
 .container {
+  gap: .5rem;
+  width: 100%;
+  max-width: 500px;
   border-radius: var(--size-4);
   color: var(--color-light-grey);
   text-wrap: nowrap;
@@ -7,8 +10,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
-  width: 100%;
 }
 
 .container:hover {

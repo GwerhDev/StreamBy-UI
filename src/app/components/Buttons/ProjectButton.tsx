@@ -2,12 +2,11 @@ import s from './ProjectButton.module.css';
 import defaultImg from '../../../assets/default-img.png';
 
 export const ProjectButton = (props: any) => {
-  const { action, project } = props || null;
+  const { action, project } = props || {};
 
-  function handleOnClick() {
-    action(project);
-    console.log(project);
-  }
+  const handleOnClick = () => {
+    return action && project && action(project);
+  };
 
   return (
     <button onClick={handleOnClick} className={s.container}>
