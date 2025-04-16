@@ -42,8 +42,6 @@
 }
 
 .previewImage {
-  width: 80px;
-  height: 80px;
+  width: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
