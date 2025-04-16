@@ -23,6 +23,7 @@
   cursor: pointer;
   position: relative;
   transition-duration: .3s;
+  overflow: hidden;
 }
 
 .imgContainer:hover {
