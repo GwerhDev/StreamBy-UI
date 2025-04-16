@@ -73,7 +73,6 @@ form {
   width: 100%;
   max-width: 500px;
   gap: var(--size-3);
-  padding: var(--size-6);
   border-radius: var(--size-1);
   display: flex;
   align-items: center;
