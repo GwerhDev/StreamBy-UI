@@ -58,8 +58,15 @@ ul {
 }
 
 h1 {
-  color: var();
   font-size: var(--size-12);
+}
+
+h2 {
+  font-size: var(--size-10);
+}
+
+h3 {
+  font-size: var(--size-8);
 }
 
 form {

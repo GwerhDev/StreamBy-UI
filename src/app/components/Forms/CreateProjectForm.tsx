@@ -37,7 +37,7 @@ export const CreateProjectForm = (props: any) => {
 
   return (
     <form className={s.container} onSubmit={handleOnSubmit}>
-      <h2>New Project</h2>
+      <h3>New Project</h3>
       <p>Fill the form to create a new project</p>
       <ul>
         <li className={s.imgContainer} onClick={handleImageClick}>
