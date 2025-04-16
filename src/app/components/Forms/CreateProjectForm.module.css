@@ -47,7 +47,8 @@
 }
 
 .previewImageContainer {
-  width: 100%;
+  width: 10rem;
+  height: 10rem;
   border-radius: 100%;
   object-fit: cover;
   overflow: hidden;
