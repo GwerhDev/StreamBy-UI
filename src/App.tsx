@@ -18,17 +18,23 @@ function App() {
     }
   }, [session, navigate]);
 
-  if (!session) return <Loader />;
-
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={<DefaultLayout />}>
-        <Route path="/" element={<Dashboard profilePic={session.profilePic} />} />
-        <Route path="/project/:id" element={<MediaProject />} />
-      </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      {
+        session && session.logged
+          ?
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route element={<DefaultLayout />}>
+              <Route path="/" element={<Dashboard profilePic={session.profilePic} />} />
+              <Route path="/project/:id" element={<MediaProject />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          :
+          <Loader />
+      }
+    </>
   );
 }
 
