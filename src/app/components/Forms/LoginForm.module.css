@@ -5,22 +5,6 @@
   justify-content: flex-start;
 }
 
-.inputContainer {
-  gap: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.inputContainer label {
-  width: 100%;
-  display: flex;
-}
-
-.inputContainer input {
-  width: 100%;
-}
-
 .container p {
   font-weight: 200;
 }
