@@ -2,7 +2,7 @@ import { API_BASE } from '../config/api';
 
 export async function fetchAuth() {
   try {
-    const res = await fetch(`${API_BASE}/auth`, {
+    const res = await fetch(`${API_BASE}/streamby/auth`, {
       credentials: 'include',
     });
   
@@ -12,5 +12,20 @@ export async function fetchAuth() {
   } catch (error) {
     console.error(error);
     return { logged: false };
+  }
+}
+
+export async function fetchLogout() {
+  try {
+    const res = await fetch(`${API_BASE}/logout`, {
+      credentials: 'include',
+    });
+
+    if (!res.ok) return { logged: false };
+    return await res.json();
+
+  } catch (error) {
+    console.error(error);
+    return { logged: true };
   }
 }

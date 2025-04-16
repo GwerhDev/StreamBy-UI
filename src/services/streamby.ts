@@ -1,7 +1,7 @@
 import { API_BASE } from '../config/api';
 
 export async function fetchProject(projectId: string) {
-  const res = await fetch(`${API_BASE}/projects/${projectId}`, {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     credentials: 'include',
   });
 
@@ -11,7 +11,7 @@ export async function fetchProject(projectId: string) {
 }
 
 export async function fetchFiles(projectId: string) {
-  const res = await fetch(`${API_BASE}/files?projectId=${projectId}`, {
+  const res = await fetch(`${API_BASE}/streamby/files?projectId=${projectId}`, {
     credentials: 'include',
   });
 

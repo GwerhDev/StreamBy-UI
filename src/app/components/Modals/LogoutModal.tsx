@@ -3,20 +3,27 @@ import s from './LogoutModal.module.css';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faRightFromBracket, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { fetchLogout } from '../../../services/auth';
 
 export const LogoutModal = () => {
   const navigate = useNavigate();
 
-  function handleLogout() {
-    navigate('/');
-  }
+  const handleLogout = async () => {
+    await fetchLogout().then(() => {
+      const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
+      if (logoutModal) {
+        logoutModal.style.display = 'none';
+      }
+      navigate('/login');
+    });
+  };
 
-  function handleCancelLogout() {
+  const handleCancelLogout = () => {
     const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
     if (logoutModal) {
       logoutModal.style.display = 'none';
     }
-  }
+  };
 
   return (
     <div className={s.container} id='logout-modal'>
