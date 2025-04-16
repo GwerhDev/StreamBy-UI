@@ -46,3 +46,9 @@
   border-radius: 100%;
   object-fit: cover;
 }
+
+.inputContainer {
+  gap: 0;
+  display: flex;
+  flex-direction: column;
+}

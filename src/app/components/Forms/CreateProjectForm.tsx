@@ -58,12 +58,12 @@ export const CreateProjectForm = (props: any) => {
         </li>
       </ul>
 
-      <span>
+      <span className={s.inputContainer}>
         <label htmlFor="name-input">Project's name</label>
         <input type="text" id="name-input" />
       </span>
 
-      <span>
+      <span className={s.inputContainer}>
         <label htmlFor="description-input">Description (optional)</label>
         <input type="text" id="description-input" />
       </span>
