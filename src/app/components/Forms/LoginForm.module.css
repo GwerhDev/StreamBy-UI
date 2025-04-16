@@ -20,3 +20,7 @@
 .inputContainer input {
   width: 100%;
 }
+
+.container p {
+  font-weight: 300;
+}
