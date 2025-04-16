@@ -58,6 +58,7 @@ ul {
 }
 
 h1 {
+  color: var();
   font-size: var(--size-12);
 }
 
@@ -86,6 +87,11 @@ li {
   justify-content: center;
 }
 
+a {
+  cursor: pointer;
+  font-weight: bolder;
+}
+
 label {
   color: var(--color-light);
   font-size: small;
@@ -99,8 +105,9 @@ label {
 input {
   width: 100%;
   padding: .5rem;
-  border-radius: 5px;
   border: none;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
   color: var(--color-light);
   background-color: var(--color-dark);
   border-bottom: 1px solid var(--color-button-primary);

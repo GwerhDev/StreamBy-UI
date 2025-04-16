@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FormEvent, useState } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { Loader } from '../Loader';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { REDIRECT_LOGIN } from '../../../config/api';
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -71,8 +73,10 @@ export const LoginForm = () => {
                 <input onInput={handlePassword} type="password" placeholder='********' />
               </li>
             </ul>
-            <ActionButton text='Log in' type='submit' />
+            <ActionButton icon={faUser} text='Log in' type='submit' />
             <span><small>{error}</small></span>
+
+            <p>or login with <a href={REDIRECT_LOGIN}>Nhexa Accounts</a></p>
           </form>
       }
     </div>
