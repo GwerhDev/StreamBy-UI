@@ -21,11 +21,11 @@ export const EmptyBrowser = (props: any) => {
           ?
           <CreateProjectForm cancelAction={handleCancel} />
           :
-          <>
+          <div className={s.createContainer}>
             <h1>Born to Dev</h1>
             <p>Get started by creating a new project</p>
             <ActionButton icon={faPlus} text='Create project' onClick={handleOnClick} />
-          </>
+          </div>
       }
     </div>
   )

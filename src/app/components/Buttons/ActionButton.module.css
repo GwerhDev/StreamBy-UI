@@ -1,4 +1,5 @@
 .container {
+  width: 100%;
   border-radius: var(--size-4);
   text-wrap: nowrap;
   background: var(--color-button-primary);
