@@ -6,7 +6,6 @@ import logoutIcon from '../../../assets/logout-icon.svg';
 
 export const LateralTab = (props: any) => {
   const { projectList, action, setCreateProject, profilePic } = props || {};
-  const version = __APP_VERSION__;
 
   function handleOnclick() {
     setCreateProject(true);
@@ -37,7 +36,7 @@ export const LateralTab = (props: any) => {
         <img src={profilePic || logoutIcon} alt="Profile picture" width="100%" />
       </li>
       <li className={s.version}>
-        <small>{version}</small>
+        <small>{ "v" + __APP_VERSION__}</small>
       </li>
       </ul>
     </div>
