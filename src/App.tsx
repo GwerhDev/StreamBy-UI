@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Login from './app/pages/Login';
 import Dashboard from './app/pages/Dashboard';
 import MediaProject from './app/pages/MediaProject';
@@ -6,22 +6,14 @@ import NotFound from './app/pages/NotFound';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import { useSession } from './hooks/useSession';
 import { Loader } from './app/components/Loader';
-import { useEffect } from 'react';
 
 function App() {
   const session = useSession();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (session && !session.logged) {
-      navigate('/login');
-    }
-  }, [session, navigate]);
 
   return (
     <>
       {
-        session && session.logged
+        session
           ?
           <Routes>
             <Route path="/login" element={<Login />} />
