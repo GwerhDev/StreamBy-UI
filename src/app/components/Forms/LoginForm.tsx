@@ -4,7 +4,7 @@ import { FormEvent, useState } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { Loader } from '../Loader';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { CLIENT_BASE, REDIRECT_LOGIN } from '../../../config/api';
+import { CLIENT_BASE, CLIENT_NAME, REDIRECT_LOGIN, REDIRECT_SIGNUP } from '../../../config/api';
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -62,8 +62,9 @@ export const LoginForm = () => {
           <Loader />
           :
           <form onSubmit={handleSubmit}>
-            <h1>Log in</h1>
-            <ul className={s.container}>
+            <h1>User is not authenticated</h1>
+            <p>Please, log in to access {CLIENT_NAME} to continue</p>
+            {/*             <ul className={s.container}>
               <li className={s.inputContainer}>
                 <label htmlFor="">Email</label>
                 <input onInput={handleEmail} type="email" placeholder='example@mail.com' />
@@ -72,11 +73,11 @@ export const LoginForm = () => {
                 <label htmlFor="">Password</label>
                 <input onInput={handlePassword} type="password" placeholder='********' />
               </li>
-            </ul>
-            <ActionButton icon={faUser} text='Log in' type='submit' />
+            </ul> */}
+            <ActionButton onClick={() => window.location.href = REDIRECT_LOGIN + "?callback=" + encodeURIComponent(CLIENT_BASE)} icon={faUser} text={'Log in with ' + CLIENT_NAME} type='submit' />
             <span><small>{error}</small></span>
 
-            <p>or login with <a href={REDIRECT_LOGIN + "?callback=" + encodeURIComponent(CLIENT_BASE) }>Nhexa Accounts</a></p>
+            <p> Don't have an account? <a href={REDIRECT_SIGNUP + "?callback=" + encodeURIComponent(CLIENT_BASE)}>Register</a></p>
           </form>
       }
     </div>
