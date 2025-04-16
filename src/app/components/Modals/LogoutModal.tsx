@@ -30,7 +30,7 @@ export const LogoutModal = () => {
       <form className={s.modalForm} action="">
         <h2>Are you leaving already?</h2>
         <p>Confirm that you want to log out</p>
-        <ul>
+        <ul className={s.buttonContainer}>
           <PrimaryButton icon={faRightFromBracket} onClick={handleLogout} text='Logout' type='button' />
           <SecondaryButton icon={faXmark} onClick={handleCancelLogout} text='Cancel' type='button' />
         </ul>
