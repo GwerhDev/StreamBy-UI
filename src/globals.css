@@ -98,9 +98,9 @@ label {
   background-color: var(--color-dark  );
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-  padding-inline: 1rem;
   padding-top: .1rem;
   padding-bottom: .1rem;
+  padding-inline: .5rem;
   font-weight: bold;
 }
 
