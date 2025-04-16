@@ -9,8 +9,8 @@ export function useSession() {
   useEffect(() => {
     (async () => {
       const data = await fetchAuth();
-      setSession(data);
       if (!data.logged) navigate('/login');
+      setSession(data);
     })();
   }, [navigate]);
 
