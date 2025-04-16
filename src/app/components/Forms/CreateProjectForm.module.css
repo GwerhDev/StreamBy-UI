@@ -18,7 +18,7 @@
 .imgContainer {
   width: 10rem;
   height: 10rem;
-  padding: .1rem;
+  padding: .2rem;
   border-radius: 100%;
   transition-duration: .3s;
   display: flex;
@@ -36,15 +36,15 @@
 }
 
 .plusContainer {
-  position: absolute;
   bottom: 0;
   right: 1rem;
-  background-color: var(--color-primary);
+  padding: .3rem;
   border-radius: 100%;
   display: flex;
+  position: absolute;
   align-items: center;
   justify-content: center;
-  padding: .3rem;
+  background-color: var(--color-primary);
 }
 
 .previewImageContainer {
@@ -58,6 +58,7 @@
 }
 
 .previewImage {
+  width: 100%;
   object-fit: cover;
   aspect-ratio: 1/1;
 }
