@@ -42,7 +42,9 @@ export const CreateProjectForm = (props: any) => {
       <ul>
         <li className={s.imgContainer} onClick={handleImageClick}>
           {preview ? (
-            <img src={preview} alt="preview" className={s.previewImage} />
+            <span className={s.previewImageContainer}>
+              <img src={preview} alt="preview" className={s.previewImage} />
+            </span>
           ) : (
             <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
           )}

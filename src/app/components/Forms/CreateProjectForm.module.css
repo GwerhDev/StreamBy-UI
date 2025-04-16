@@ -46,9 +46,16 @@
   padding: .3rem;
 }
 
-.previewImage {
+.previewImageContainer {
   width: 100%;
   border-radius: 100%;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.previewImage {
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: cover;
 }
 
@@ -60,6 +67,7 @@
 }
 
 .inputContainer label {
+  width: 100%;
   display: flex;
 }
 
