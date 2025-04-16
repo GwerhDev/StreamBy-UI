@@ -16,7 +16,7 @@ function App() {
         session
           ?
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login logged={session.logged} />} />
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Dashboard profilePic={session.profilePic} />} />
               <Route path="/project/:id" element={<MediaProject />} />
