@@ -2,7 +2,7 @@
   border-radius: var(--size-4);
   color: black;
   text-wrap: nowrap;
-  background-color: white;
+  background-color: var(--color-light);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -17,7 +17,6 @@
 
 .logout {
   width: 40px;
-  height: 40px;
   display: flex;
   overflow: hidden;
   align-items: center;
@@ -25,8 +24,22 @@
   border-top: solid #c7c7c7 1px;
   border-radius: 100%;
   background: var(--background-gradient-color);
+  border: solid .15rem;
+  border-color: var(--color-button-primary-hover);
 }
 
 .logout:hover {
   cursor: pointer;
+  border-color: var(--color-button-primary-hover);
+}
+
+.version {
+  color: var(--color-light);
+  font-weight: 600;
+  border: solid 1px var(--color-light);
+  border-radius: 30px;
+  width: 38px;
+  font-size: 11px;
+  display: flex;
+  justify-content: center;
 }
