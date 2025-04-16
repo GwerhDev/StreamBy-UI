@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FormEvent, useState } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { Loader } from '../Loader';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { CLIENT_BASE, CLIENT_NAME, REDIRECT_LOGIN, REDIRECT_SIGNUP } from '../../../config/api';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export const LoginForm = () => {
             <ActionButton onClick={() => window.location.href = REDIRECT_LOGIN + "?callback=" + encodeURIComponent(CLIENT_BASE)} icon={faUser} text={'Log in with ' + CLIENT_NAME} type='submit' />
             <span><small>{error}</small></span>
 
-            <p> Don't have an account? <a href={REDIRECT_SIGNUP + "?callback=" + encodeURIComponent(CLIENT_BASE)}>Register</a></p>
+            <p>Don't have an account? <a href={REDIRECT_SIGNUP + "?callback=" + encodeURIComponent(CLIENT_BASE)}><FontAwesomeIcon icon={faUserPlus} /> Register</a></p>
           </form>
       }
     </div>
