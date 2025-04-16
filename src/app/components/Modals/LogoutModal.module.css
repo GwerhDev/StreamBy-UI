@@ -15,8 +15,6 @@
 
 .modalForm {
   width: 100%;
-  padding-left: 3rem;
-  padding-right: 3rem;
+  padding-inline: 2rem;
   text-align: center;
-  background-color: rgb(20, 20, 20);
 }
