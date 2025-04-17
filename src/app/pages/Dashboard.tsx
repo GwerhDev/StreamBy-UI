@@ -8,7 +8,7 @@ import { LateralMenu } from "../components/LateralMenu/LateralMenu";
 import { EmptyBrowser } from "../components/Browser/EmptyBrowser";
 
 export default function DashboardPage(props: any) {
-  const { profilePic } = props || {};
+  const { userData } = props || {};
   const projectList: any[] = [];
   const [createProject, setCreateProject] = useState(false);
   const [currentProject, setCurrentProject] = useState(null);
@@ -19,7 +19,7 @@ export default function DashboardPage(props: any) {
 
   return (
     <div className='dashboard-container'>
-      <LateralTab profilePic={profilePic} projectList={projectList} action={handleCurrentProject} setCreateProject={setCreateProject} />
+      <LateralTab userData={userData} projectList={projectList} action={handleCurrentProject} setCreateProject={setCreateProject} />
       {
         currentProject
           ?

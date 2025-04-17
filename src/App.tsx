@@ -18,7 +18,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login logged={session.logged} />} />
             <Route element={<DefaultLayout />}>
-              <Route path="/" element={<Dashboard profilePic={session.profilePic} />} />
+              <Route path="/" element={<Dashboard userData={session} />} />
               <Route path="/project/:id" element={<MediaProject />} />
             </Route>
             <Route path="*" element={<NotFound />} />

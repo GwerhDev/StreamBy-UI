@@ -2,21 +2,14 @@ import s from './LateralTab.module.css';
 import { ProjectButton } from '../Buttons/ProjectButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
 import streambyIcon from '../../../assets/streamby-icon.svg';
-import logoutIcon from '../../../assets/logout-icon.svg';
+import { ProfileButton } from '../Buttons/ProfileButton';
 
 export const LateralTab = (props: any) => {
-  const { projectList, action, setCreateProject, profilePic } = props || {};
+  const { projectList, action, setCreateProject, userData } = props || {};
 
   function handleOnclick() {
     setCreateProject(true);
   }
-
-  const handleLogoutModal = () => {
-    const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
-    if (logoutModal) {
-      logoutModal.style.display = 'flex';
-    }
-  };
 
   return (
     <div className={s.container}>
@@ -31,14 +24,13 @@ export const LateralTab = (props: any) => {
         }
         <AddProjectButton onClick={handleOnclick} />
       </ul>
-      <ul>
-      <li className={s.logout} onClick={handleLogoutModal}>
-        <img src={profilePic || logoutIcon} alt="Profile picture" width="100%" />
-      </li>
-      <li className={s.version}>
-        <small>{ "v" + __APP_VERSION__}</small>
-      </li>
-      </ul>
+      <div className={s.account}>
+        <ProfileButton userData={userData} />
+      </div>
+
+      <div className={s.versionContainer}>
+        <small className={s.version}>{"v" + __APP_VERSION__}</small>
+      </div>
     </div>
   );
 };
