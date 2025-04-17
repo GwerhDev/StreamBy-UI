@@ -4,6 +4,7 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faDiagramProject, faFileImage, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { LabeledInput } from '../Inputs/LabeledInput';
 
 export const CreateProjectForm = (props: any) => {
   const { createAction, cancelAction } = props || {};
@@ -63,15 +64,8 @@ export const CreateProjectForm = (props: any) => {
         </li>
       </ul>
 
-      <span className={s.inputContainer}>
-        <label htmlFor="name-input">Project's name</label>
-        <input type="text" id="name-input" />
-      </span>
-
-      <span className={s.inputContainer}>
-        <label htmlFor="description-input">Description (optional)</label>
-        <input type="text" id="description-input" />
-      </span>
+      <LabeledInput label="Project's name" type='text' placeholder='' id='name-input' htmlFor='name-input' />
+      <LabeledInput label="Description (optional)" type='text' placeholder='' id='description-input' htmlFor='description-input' />
 
       <span className={s.buttonContainer}>
         <ActionButton icon={faDiagramProject} text='Create' type='submit' />

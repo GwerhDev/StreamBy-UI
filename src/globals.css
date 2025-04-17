@@ -103,19 +103,33 @@ label {
 
 input {
   width: 100%;
-  padding: .5rem;
-  padding-top: .8rem;
-  padding-bottom: .8rem;
-  border: none;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  padding-inline: .5rem;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
+  transition-duration: .4s;
   color: var(--color-light);
+  border: none;
   background-color: var(--color-dark);
-  border-bottom: 1px solid var(--color-button-primary);
+  border-bottom: 1px solid var(--color-light);
 }
 
 input[type="file"] {
   cursor: pointer;
+}
+
+input:hover,
+input:active,
+input:focus,
+input:focus-visible {
+  outline: none;
+  background-color: var(--color-darker);
+  color: var(--color-light);
+}
+
+input:focus {
+  border-bottom: 1px solid var(--color-button-primary);
 }
 
 button {
@@ -131,15 +145,6 @@ button {
 button:hover {
   cursor: pointer;
   background-color: var(--color-button-primary-hover);
-}
-
-input:hover,
-input:active,
-input:focus,
-input:focus-visible {
-  outline: none;
-  background-color: var(--color-darker);
-  color: var(--color-light);
 }
 
 main {

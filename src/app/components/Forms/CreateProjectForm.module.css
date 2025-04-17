@@ -1,5 +1,7 @@
 .container {
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .container ul {
@@ -11,6 +13,8 @@
 
 .buttonContainer {
   gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
   width: 100%;
   display: flex;
 }
@@ -61,20 +65,4 @@
   width: 100%;
   object-fit: cover;
   aspect-ratio: 1/1;
-}
-
-.inputContainer {
-  gap: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.inputContainer label {
-  width: 100%;
-  display: flex;
-}
-
-.inputContainer input {
-  width: 100%;
 }
