@@ -3,6 +3,7 @@ import s from "./ProfileButton.module.css";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear, faRightFromBracket, faUser } from "@fortawesome/free-solid-svg-icons";
+import { ACCOUNT_BASE } from "../../../config/api";
 
 export const ProfileButton = (props: any) => {
   const { userData } = props || {};
@@ -43,7 +44,7 @@ export const ProfileButton = (props: any) => {
           <div className={s.profileButtonContainer}>
             {showCanvas && (
               <ul className={s.accountActionsContainer}>
-                <button>
+                <button onClick={() => window.location.href = ACCOUNT_BASE}>
                   <FontAwesomeIcon size="xs" icon={faUser} />
                 </button>
                 <button>
