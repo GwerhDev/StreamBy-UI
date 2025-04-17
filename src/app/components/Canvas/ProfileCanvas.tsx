@@ -7,9 +7,9 @@ export const ProfileCanvas = (props: any) => {
   return (
     <ul className={s.container}>
       <li>
-        <h4>
+        <h3>
           {username}
-        </h4>
+        </h3>
       </li>
       <li>
         <small>{role}</small>
