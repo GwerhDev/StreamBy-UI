@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { fetchProject, fetchFiles } from '../../services/streamby';
+import { fetchProject } from '../../services/streamby';
 
 export default function MediaProject() {
   const { id } = useParams();
@@ -8,7 +8,7 @@ export default function MediaProject() {
   const [files, setFiles] = useState([]);
   console.log(files);
 
-  useEffect(() => {
+/*   useEffect(() => {
     if (!id) return;
     (async () => {
       try {
@@ -20,7 +20,7 @@ export default function MediaProject() {
         console.error(e);
       }
     })();
-  }, [id]);
+  }, [id]); */
 
   if (!project) return <p>Loading...</p>;
 
