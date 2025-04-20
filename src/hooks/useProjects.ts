@@ -5,7 +5,7 @@ import { fetchProjects } from '../services/streamby';
 
 export function useProjects() {
   const dispatch = useDispatch();
-  const projectList = useSelector((state: RootState) => state.projects.list);
+  const projectList = useSelector((state: RootState) => state.projects);
 
   const loadProjects = (projects: any[]) => {
     dispatch(setProjects(projects));
@@ -15,5 +15,6 @@ export function useProjects() {
     const newList = await fetchProjects();
     dispatch(setProjects(newList));
   };
+
   return { projectList, loadProjects, refreshProjects };
 }
