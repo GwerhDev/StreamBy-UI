@@ -44,7 +44,7 @@
 .deleteButton {
   gap: 1rem;
   display: flex;
-  color: #8f2424;
+  color: var(--color-darker);
   align-items: center;
   justify-content: center;
   transition-duration: .4s;
