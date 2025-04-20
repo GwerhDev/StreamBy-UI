@@ -19,9 +19,7 @@ export const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
-    setProjects: (state, action: PayloadAction<Project[]>) => {
-      return action.payload;
-    },
+    setProjects: (_, action) => action.payload,
     addProject: (state, action: PayloadAction<Project>) => {
       state.push(action.payload);
     },
