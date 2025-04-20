@@ -1,32 +1,22 @@
 import s from './EmptyBrowser.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
-import { CreateProjectForm } from '../Forms/CreateProjectForm';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
-export const EmptyBrowser = (props: any) => {
-  const { createProject, setCreateProject } = props || {};
+export const EmptyBrowser = () => {
+  const navigate = useNavigate();
 
   const handleOnClick = () => {
-    setCreateProject(true);
-  };
-
-  const handleCancel = () => {
-    setCreateProject(false);
+    navigate('/project/create');
   };
 
   return (
     <div className={s.container}>
-      {
-        createProject
-          ?
-          <CreateProjectForm cancelAction={handleCancel} />
-          :
-          <div className={s.createContainer}>
-            <h1>Born to Dev</h1>
-            <p>Get started by creating a new project</p>
-            <ActionButton icon={faPlus} text='Create project' onClick={handleOnClick} />
-          </div>
-      }
+      <div className={s.createContainer}>
+        <h1>Born to Dev</h1>
+        <p>Get started by creating a new project</p>
+        <ActionButton icon={faPlus} text='Create project' onClick={handleOnClick} />
+      </div>
     </div>
   )
 }

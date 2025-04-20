@@ -1,16 +1,20 @@
 import s from './ProjectButton.module.css';
 import defaultImg from '../../../assets/default-img.png';
+import { useNavigate } from 'react-router-dom';
 
 export const ProjectButton = (props: any) => {
-  const { action, project } = props || {};
+  const { project } = props || {};
+  const navigate = useNavigate();
 
   const handleOnClick = () => {
-    return action && project && action(project);
+    navigate(`/project/${project.id}`);
   };
 
   return (
     <button onClick={handleOnClick} className={s.container}>
-      <img src={project?.img || defaultImg} alt="" width={"100%"} />
+      <span>
+        <img src={project?.image || defaultImg} alt="" />
+      </span>
     </button>
   )
 }

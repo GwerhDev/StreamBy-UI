@@ -3,13 +3,15 @@ import { ProjectButton } from '../Buttons/ProjectButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 import { ProfileButton } from '../Buttons/ProfileButton';
+import { useNavigate } from 'react-router-dom';
 
 export const LateralTab = (props: any) => {
-  const { projectList, action, setCreateProject, userData } = props || {};
+  const { projectList, userData } = props || {};
+  const navigate = useNavigate();
 
-  function handleOnclick() {
-    setCreateProject(true);
-  }
+  const  handleOnclick = () => {
+    navigate('/project/create');
+  };
 
   return (
     <div className={s.container}>
@@ -18,7 +20,7 @@ export const LateralTab = (props: any) => {
         {
           projectList?.map((project: any, index: number) => (
             <li key={index}>
-              <ProjectButton project={project} action={action} />
+              <ProjectButton project={project} />
             </li>
           ))
         }

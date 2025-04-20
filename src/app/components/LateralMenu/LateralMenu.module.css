@@ -40,3 +40,17 @@
   color: rgb(222, 222, 222);
   background-color: rgb(77, 77, 77);
 }
+
+.deleteButton {
+  gap: 1rem;
+  display: flex;
+  color: #8f2424;
+  align-items: center;
+  justify-content: center;
+  transition-duration: .4s;
+}
+
+.deleteButton:hover {
+  color: var(--color-darker);
+  background-color: #8f2424;
+}

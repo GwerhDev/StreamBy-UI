@@ -51,3 +51,35 @@ export async function updateProjectImage(projectId: string, imageKey: string) {
   if (!res.ok) throw new Error('Failed to update project image');
   return await res.json();
 }
+
+export async function fetchProjects() {
+  const res = await fetch(`${API_BASE}/streamby/projects`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch projects');
+  const { projects } = await res.json() || {};
+  return projects;
+}
+
+export async function fetchProject(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch project');
+  const { project } = await res.json();
+  return project;
+}
+
+export async function deleteProject(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  if (!res.ok) throw new Error('Failed to delete project');
+  return await res.json();
+}

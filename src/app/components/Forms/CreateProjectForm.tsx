@@ -11,16 +11,17 @@ import {
   uploadToPresignedUrl,
   updateProjectImage,
 } from '../../../services/streamby';
+import { useNavigate } from 'react-router-dom';
+import { useProjects } from '../../../hooks/useProjects';
 
-export const CreateProjectForm = (props: any) => {
-  const { createAction, cancelAction } = props || {};
+export const CreateProjectForm = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  console.log(name)
+  const navigate = useNavigate();
+  const { refreshProjects } = useProjects();
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,21 +31,20 @@ export const CreateProjectForm = (props: any) => {
 
       if (imageFile && project?.id) {
         const contentType = imageFile.type;
-        const { url, key } = await getUploadUrl(project.id, imageFile.name, contentType);
+        const { url, publicUrl } = await getUploadUrl(project.id, imageFile.name, contentType);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(project.id, key);
+        await updateProjectImage(project.id, publicUrl);
       }
+      await refreshProjects();
+      navigate(`/project/${project.id}`);
 
-      if (project?.id) {
-        return createAction && createAction(project);
-      }
     } catch (err) {
       alert((err as Error).message);
     }
   };
 
   const handleCancel = () => {
-    return cancelAction && cancelAction();
+    navigate('/');
   };
 
   const handleImageClick = () => {
@@ -63,7 +63,7 @@ export const CreateProjectForm = (props: any) => {
     }
   };
 
-  const handleInput = (e: any) => {
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target || {};
     if (name === 'name-input') {
       setName(value);
@@ -73,60 +73,62 @@ export const CreateProjectForm = (props: any) => {
   };
 
   return (
-    <form className={s.container} onSubmit={handleOnSubmit}>
-      <h3>New Project</h3>
-      <p>Fill the form to create a new project</p>
+    <div className={s.divContainer}>
+      <form className={s.container} onSubmit={handleOnSubmit}>
+        <h3>New Project</h3>
+        <p>Fill the form to create a new project</p>
 
-      <ul>
-        <li className={s.imgContainer} onClick={handleImageClick}>
-          {preview ? (
-            <span className={s.previewImageContainer}>
-              <img src={preview} alt="preview" className={s.previewImage} />
+        <ul>
+          <li className={s.imgContainer} onClick={handleImageClick}>
+            {preview ? (
+              <span className={s.previewImageContainer}>
+                <img src={preview} alt="preview" className={s.previewImage} />
+              </span>
+            ) : (
+              <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
+            )}
+            <span className={s.plusContainer}>
+              <FontAwesomeIcon color="var(--color-lighter)" icon={faPlus} />
             </span>
-          ) : (
-            <FontAwesomeIcon color="var(--color-dark)" size="4x" icon={faFileImage} />
-          )}
-          <span className={s.plusContainer}>
-            <FontAwesomeIcon color="var(--color-lighter)" icon={faPlus} />
-          </span>
-        </li>
-        <li>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </li>
-      </ul>
+          </li>
+          <li>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </li>
+        </ul>
 
-      <LabeledInput
-        label="Project's name"
-        type="text"
-        placeholder=""
-        id="name-input"
-        name="name-input"
-        htmlFor="name-input"
-        value={name}
-        onChange={handleInput}
-      />
+        <LabeledInput
+          label="Project's name"
+          type="text"
+          placeholder=""
+          id="name-input"
+          name="name-input"
+          htmlFor="name-input"
+          value={name}
+          onChange={handleInput}
+        />
 
-      <LabeledInput
-        label="Description (optional)"
-        type="text"
-        placeholder=""
-        id="description-input"
-        name="description-input"
-        htmlFor="description-input"
-        value={description}
-        onChange={handleInput}
-      />
+        <LabeledInput
+          label="Description (optional)"
+          type="text"
+          placeholder=""
+          id="description-input"
+          name="description-input"
+          htmlFor="description-input"
+          value={description}
+          onChange={handleInput}
+        />
 
-      <span className={s.buttonContainer}>
-        <ActionButton icon={faDiagramProject} text="Create" type="submit" />
-        <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
-      </span>
-    </form>
+        <span className={s.buttonContainer}>
+          <ActionButton icon={faDiagramProject} text="Create" type="submit" />
+          <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
+        </span>
+      </form>
+    </div>
   );
 };

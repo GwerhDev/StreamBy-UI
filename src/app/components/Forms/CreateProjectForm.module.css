@@ -1,3 +1,16 @@
+.divContainer {
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  border-top-left-radius: 10px;
+  display: flex;
+  overflow-y: auto;
+  align-items: center;
+  flex-direction: column;
+  background-color: rgb(38, 38, 38); 
+}
+
 .container {
   width: 100%;
   display: flex;

@@ -12,7 +12,7 @@ export function useSession() {
       if (!data.logged) navigate('/login');
       setSession(data);
     })();
-  }, [navigate]);
+  }, []);
 
   return session;
 }

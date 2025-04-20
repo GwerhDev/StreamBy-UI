@@ -1,7 +1,14 @@
 import s from './LateralMenu.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export const LateralMenu = (props: any) => {
-  const { project } = props || null;
+  const { project } = props || {};
+
+  const handleDeleteProjectModal = () => {
+    const deleteProjectModal = document.getElementById("delete-project-modal") as HTMLDivElement | null;
+    if (deleteProjectModal) deleteProjectModal.style.display = "flex";
+  };
 
   return (
     <div className={s.container}>
@@ -39,6 +46,10 @@ export const LateralMenu = (props: any) => {
           Permissions
         </li>
       </ul>
+      <button onClick={handleDeleteProjectModal} className={s.deleteButton}>
+        <FontAwesomeIcon icon={faTrash} />
+        Delete this project
+      </button>
     </div>
   )
 }

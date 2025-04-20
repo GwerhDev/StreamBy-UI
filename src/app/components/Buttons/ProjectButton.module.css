@@ -1,19 +1,33 @@
 .container {
   max-width: 500px;
   margin: 0;
-  padding: 5px;
+  padding: .1rem;
   width: 50px;
   height: 50px;
   border: none;
   display: flex;
+  overflow: hidden;
   align-items: center;
   justify-content: center;
   border-radius: 100%;
   transition-duration: .1s;
-  background-color: rgb(202, 205, 205);
+  background-color: var(--color-darker);
 }
 
 .container:hover {
-  border: solid;
+  border: solid .2rem;
   border-color: var(--color-primary);
+}
+
+.container span {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 100%;
+}
+
+.container span img {
+  height: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
 }
