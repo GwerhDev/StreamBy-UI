@@ -9,7 +9,7 @@ type Session = {
   profilePic?: string;
 };
 
-const initialState: Session = { logged: false, loader: false };
+const initialState: Session = { logged: false, loader: true };
 
 export const sessionSlice = createSlice({
   name: 'session',
