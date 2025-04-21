@@ -9,8 +9,8 @@ import { RootState } from '../../store';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
-  const { projectList, loadProjects } = useProjects();
   const { logged } = session;
+  const { projectList, loadProjects } = useProjects();
 
   useEffect(() => {
     (async () => {

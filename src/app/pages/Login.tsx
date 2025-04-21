@@ -1,9 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/Forms/LoginForm';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
-export default function LoginPage(props: any) {
-  const { logged } = props || {};
+export default function LoginPage() {
+  const session = useSelector((state: RootState) => state.session);
+  const { logged } = session;
   const navigate = useNavigate();
 
   useEffect(() => {
