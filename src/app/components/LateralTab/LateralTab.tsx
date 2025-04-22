@@ -3,12 +3,16 @@ import { ProjectButton } from '../Buttons/ProjectButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
 import { ProfileButton } from '../Buttons/ProfileButton';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { clearCurrentProject } from '../../../store/currentProjectSlice';
 
 export const LateralTab = (props: any) => {
   const { projectList, userData } = props || {};
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const  handleOnclick = () => {
+  const handleOnclick = () => {
+    dispatch(clearCurrentProject());
     navigate('/project/create');
   };
 
