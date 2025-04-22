@@ -54,14 +54,22 @@ ul {
 
 h1 {
   font-size: var(--size-12);
+  color: var(--color-light-grey);
 }
 
 h2 {
   font-size: var(--size-9);
+  color: var(--color-light-grey);
 }
 
 h3 {
   font-size: var(--size-6);
+  color: var(--color-light-grey);
+}
+
+h4 {
+  font-size: var(--size-4);
+  color: var(--color-light-grey);
 }
 
 form {
@@ -151,10 +159,35 @@ main {
   margin: 0;
   padding: 0;
   width: 100vw;
+  height: 100vh;
   max-width: var(--max-width);
   display: flex;
-  align-items: center;
+  align-items: start;
   flex-direction: column;
+  background: var(--background-color-light);
+}
+
+.icon-container {
+  width: 3.8rem;
+  display: flex;
+  justify-content: center;
+}
+
+.icon-container img {
+  cursor: pointer;
+}
+
+.header-app {
+  display: flex;
+  width: 100%;
+}
+
+.title-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  color: var(--color-light-grey);
+  font-weight: bold;
 }
 
 i {
@@ -231,7 +264,6 @@ a:hover {
 .dashboard-sections {
   width: 100%;
   height: 100%;
-  padding-top: 1.8rem;
   display: flex;
 }
 

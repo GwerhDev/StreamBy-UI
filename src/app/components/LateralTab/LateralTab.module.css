@@ -12,6 +12,7 @@
 
 .projects {
   padding: 0;
+  padding-top: .5rem;
   padding-inline: .3rem;
   height: 100%;
   flex-direction: column;

@@ -2,8 +2,7 @@ import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
-export const LateralMenu = (props: any) => {
-  const { project } = props || {};
+export const LateralMenu = () => {
 
   const handleDeleteProjectModal = () => {
     const deleteProjectModal = document.getElementById("delete-project-modal") as HTMLDivElement | null;
@@ -12,7 +11,6 @@ export const LateralMenu = (props: any) => {
 
   return (
     <div className={s.container}>
-      <h2>{project.name}</h2>
       <div className={s.mainMenu}>
         <h6>MAIN MENU</h6>
         <h4>DASHBOARD</h4>

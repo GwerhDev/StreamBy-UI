@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
 import s from "./ProfileButton.module.css";
+import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear, faHome, faRightFromBracket, faUser } from "@fortawesome/free-solid-svg-icons";
 import { ACCOUNT_BASE } from "../../../config/api";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearCurrentProject } from "../../../store/currentProjectSlice";
 
 export const ProfileButton = (props: any) => {
   const { userData } = props || {};
@@ -12,6 +14,7 @@ export const ProfileButton = (props: any) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleProfileButton = () => {
     setShowCanvas((prev) => !prev);
@@ -20,6 +23,12 @@ export const ProfileButton = (props: any) => {
   const handleLogoutModal = () => {
     const logoutModal = document.getElementById("logout-modal") as HTMLDivElement | null;
     if (logoutModal) logoutModal.style.display = "flex";
+  };
+
+  const handleGoHome = () => {
+    dispatch(clearCurrentProject());
+    setShowCanvas(false);
+    navigate("/");
   };
 
   useEffect(() => {
@@ -46,7 +55,7 @@ export const ProfileButton = (props: any) => {
           <div className={s.profileButtonContainer}>
             {showCanvas && (
               <ul className={s.accountActionsContainer}>
-                <button onClick={() => navigate("/") }>
+                <button onClick={handleGoHome}>
                   <FontAwesomeIcon icon={faHome} />
                 </button>
                 <button onClick={() => window.location.href = ACCOUNT_BASE}>

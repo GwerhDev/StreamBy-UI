@@ -11,9 +11,9 @@ import { RootState } from './store';
 import { Loader } from './app/components/Loader';
 
 function App() {
-  useInitSession();
   const session = useSelector((state: RootState) => state.session);
   const { loader } = session;
+  useInitSession();
 
   return (
     <>

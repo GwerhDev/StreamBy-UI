@@ -1,7 +1,6 @@
 import s from './LateralTab.module.css';
 import { ProjectButton } from '../Buttons/ProjectButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
-import streambyIcon from '../../../assets/streamby-icon.svg';
 import { ProfileButton } from '../Buttons/ProfileButton';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +14,6 @@ export const LateralTab = (props: any) => {
 
   return (
     <div className={s.container}>
-      <img src={streambyIcon} alt="StreamBy Icon" height={25} />
       <ul className={s.projects}>
         {
           projectList?.map((project: any, index: number) => (

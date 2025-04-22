@@ -7,13 +7,13 @@ import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 
 export const DeleteProjectModal = (props: any) => {
-  const { project } = props || {};
+  const { currentProject } = props || {};
   const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
   const handleDeleteProject = async () => {
     try {
-      await deleteProject(project.id);
+      await deleteProject(currentProject?.id);
     } catch (error) {
       console.error('Error deleting project:', error);
     }
@@ -34,7 +34,7 @@ export const DeleteProjectModal = (props: any) => {
   return (
     <div className={s.container} id='delete-project-modal'>
       <form className={s.modalForm} action="">
-        <h2>Delete {project.name}?</h2>
+        <h2>Delete {currentProject?.name}?</h2>
         <p>Confirm that you want to delete this project</p>
         <ul className={s.buttonContainer}>
           <PrimaryButton icon={faRightFromBracket} onClick={handleDeleteProject} text='Delete' type='button' />
