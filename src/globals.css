@@ -162,7 +162,6 @@ main {
   height: 100vh;
   max-width: var(--max-width);
   display: flex;
-  align-items: start;
   flex-direction: column;
   background: var(--background-color-light);
 }
@@ -179,6 +178,7 @@ main {
 
 .header-app {
   display: flex;
+  align-items: center;
   width: 100%;
 }
 

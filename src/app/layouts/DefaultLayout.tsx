@@ -34,22 +34,20 @@ export default function DefaultLayout() {
   }, [logged]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="p-4">
-        <div className="header-app">
-          <span className="icon-container">
-            <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
-          </span>
-          <span className="title-container">
-            <small className="font-bold">{title}</small>
-          </span>
-        </div>
-        <div className='dashboard-container'>
-          <LateralTab userData={session} projectList={projectList} />
-          <Outlet />
-        </div>
-      </main>
+    <main>
+      <div className="header-app">
+        <span className="icon-container">
+          <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
+        </span>
+        <span className="title-container">
+          <small className="font-bold">{title}</small>
+        </span>
+      </div>
+      <div className='dashboard-container'>
+        <LateralTab userData={session} projectList={projectList} />
+        <Outlet />
+      </div>
       <LogoutModal />
-    </div>
+    </main>
   );
 }

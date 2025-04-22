@@ -3,8 +3,6 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-
   --color-primary: #38B6FF;
   --color-secondary: #54c0ff;
   --color-light-grey: #BEBEBE;
@@ -33,11 +31,9 @@
   --size-11: 44px;
   --size-12: 48px;
 
-  --max-width: 1440px;
 
   background: var(--background-gradient-color);
   background-position: center;
   background-repeat: no-repeat;
   font-family: Manrope;
-  min-height: 100vh;
 }
