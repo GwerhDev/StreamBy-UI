@@ -12,10 +12,12 @@ import { clearCurrentProject } from '../../store/currentProjectSlice';
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { name } = currentProject || {};
   const { projectList, loadProjects } = useProjects();
   const { logged } = session;
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const title = name || "StreamBy";
 
   const handleGoHome = () => {
     dispatch(clearCurrentProject());
@@ -39,7 +41,7 @@ export default function DefaultLayout() {
             <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
           </span>
           <span className="title-container">
-            <small className="font-bold">{currentProject ? currentProject?.name : "StreamBy"}</small>
+            <small className="font-bold">{title}</small>
           </span>
         </div>
         <div className='dashboard-container'>

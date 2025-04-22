@@ -13,14 +13,14 @@ type Project = {
   };
 };
 
-const initialState: Project | null = null;
+const initialState: Project | null = { id: "", name: "" };
 
 const currentProjectSlice = createSlice({
   name: 'currentProject',
   initialState,
   reducers: {
     setCurrentProject: (_, action) => action.payload,
-    clearCurrentProject: () => null,
+    clearCurrentProject: () => initialState,
   },
 });
 

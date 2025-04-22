@@ -5,9 +5,9 @@ import projectsReducer from './projectsSlice';
 
 export const store = configureStore({
   reducer: {
-    currentProject: currentProjectReducer,
     session: sessionReducer,
     projects: projectsReducer,
+    currentProject: currentProjectReducer,
   },
 });
 
