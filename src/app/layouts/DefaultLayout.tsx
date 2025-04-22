@@ -39,7 +39,7 @@ export default function DefaultLayout() {
             <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
           </span>
           <span className="title-container">
-            <small className="font-bold">{currentProject ? currentProject.name : "StreamBy"}</small>
+            <small className="font-bold">{currentProject ? currentProject?.name : "StreamBy"}</small>
           </span>
         </div>
         <div className='dashboard-container'>
