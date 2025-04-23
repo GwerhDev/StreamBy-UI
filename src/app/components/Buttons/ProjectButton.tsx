@@ -1,5 +1,5 @@
 import s from './ProjectButton.module.css';
-import defaultImg from '../../../assets/default-img.png';
+import defaultImg from '../../../assets/streamby-icon.svg';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
