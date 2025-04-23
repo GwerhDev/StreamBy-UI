@@ -29,10 +29,10 @@ function App() {
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/project/create" element={<ProjectCreate />} />
-            </Route>
-            <Route element={<ProjectLayout />}>
-              <Route path="/project/:id" element={<Project />} />
-              <Route path="/project/:id/dashboard/overview" element={<Overview />} />
+              <Route element={<ProjectLayout />}>
+                <Route path="/project/:id" element={<Project />} />
+                <Route path="/project/:id/dashboard/overview" element={<Overview />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
