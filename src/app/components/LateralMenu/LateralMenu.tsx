@@ -53,7 +53,7 @@ export const LateralMenu = () => {
             </li>
             <li>
               <FontAwesomeIcon icon={faCubes} />
-              3D Models
+              3D Model
             </li>
           </ul>
           <span className={s.section}>
