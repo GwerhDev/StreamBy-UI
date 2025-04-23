@@ -5,6 +5,7 @@ import { ProfileButton } from '../Buttons/ProfileButton';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 export const LateralTab = (props: any) => {
   const { projectList, userData } = props || {};
@@ -16,8 +17,16 @@ export const LateralTab = (props: any) => {
     navigate('/project/create');
   };
 
+  const handleGoHome = () => {
+    dispatch(clearCurrentProject());
+    navigate("/");
+  };
+
   return (
     <div className={s.container}>
+      <span className={s.iconContainer}>
+        <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
+      </span>
       <ul className={s.projects}>
         {
           projectList?.map((project: any, index: number) => (

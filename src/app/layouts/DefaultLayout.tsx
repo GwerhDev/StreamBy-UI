@@ -1,28 +1,19 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { useEffect } from 'react';
 import { fetchProjects } from '../../services/streamby';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import streambyIcon from '../../assets/streamby-icon.svg';
-import { clearCurrentProject } from '../../store/currentProjectSlice';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { name } = currentProject || {};
+  const { name, image } = currentProject || {};
   const { projectList, loadProjects } = useProjects();
   const { logged } = session;
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const title = name || "StreamBy";
-
-  const handleGoHome = () => {
-    dispatch(clearCurrentProject());
-    navigate("/");
-  };
 
   useEffect(() => {
     (async () => {
@@ -35,17 +26,20 @@ export default function DefaultLayout() {
 
   return (
     <main>
-      <div className="header-app">
-        <span className="icon-container">
-          <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
-        </span>
-        <span className="title-container">
-          <small className="font-bold">{title}</small>
-        </span>
-      </div>
       <div className='dashboard-container'>
         <LateralTab userData={session} projectList={projectList} />
-        <Outlet />
+        <div className="project-viewer">
+          <div className="header-app">
+            <span className="title-container">
+              {
+                image &&
+                <img src={image} alt="" />
+              }
+              <small className="font-bold">{title}</small>
+            </span>
+          </div>
+          <Outlet />
+        </div>
       </div>
       <LogoutModal />
     </main>

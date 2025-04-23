@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--size-4);
-  background-color: var(--color-light);
+  background-color: var(--color-light-300);
 }
 
 .container:hover {

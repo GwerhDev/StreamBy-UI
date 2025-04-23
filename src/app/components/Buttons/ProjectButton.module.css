@@ -11,11 +11,11 @@
   justify-content: center;
   border-radius: 100%;
   transition-duration: .1s;
-  background-color: var(--color-darker);
+  background-color: var(--color-dark-800);
 }
 
 .container:hover {
-  border: solid .2rem;
+  border: solid .1rem;
   border-color: var(--color-primary);
 }
 

@@ -3,10 +3,10 @@
   width: 100%;
   max-width: 500px;
   border-radius: var(--size-4);
-  color: var(--color-light-grey);
+  color: var(--color-light-200);
   text-wrap: nowrap;
   background-color: transparent;
-  border: solid 2px var(--color-light-grey);
+  border: solid 2px var(--color-light-200);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,5 +14,5 @@
 
 .container:hover {
   color: black;
-  background-color: var(--color-light-grey);
+  background-color: var(--color-light-200);
 }

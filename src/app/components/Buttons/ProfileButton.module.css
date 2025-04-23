@@ -6,16 +6,16 @@
   padding: 0;
   left: 0;
   bottom: 0;
-  border: solid .1rem var(--color-dark);
+  border: solid .1rem var(--color-dark-400);
   border-radius: .6rem;
   padding: .3rem;
   position: absolute;
-  background-color: var(--color-dark);
+  background-color: var(--color-dark-400);
   transition-duration: .4s;
 }
 
 .canvas:hover {
-  box-shadow: 0 0 20px var(--color-darker);
+  box-shadow: 0 0 20px var(--color-dark-800);
 }
 
 .canvas div {

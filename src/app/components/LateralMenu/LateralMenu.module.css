@@ -1,13 +1,43 @@
 .container {
   gap: 1rem;
-  height: 100%;
-  padding: 1rem;
   min-width: 250px;
   border-top-left-radius: 10px;
+  background-color: rgb(38, 38, 38);
+  border-right: solid .5px var(--color-dark-300);
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.titleButton {
+  width: 100%;
+  font-size: .8rem;
+  font-weight: 800;
+  border-radius: 0;
+  padding-inline: 1rem;
+  display: flex;
+  justify-content: space-between;
+  background-color: transparent;
+  border-bottom: solid .5px var(--color-dark-300);
+  color: var(--color-light-300);
+}
+
+.titleButton:hover {
+  background-color: var(--color-dark-100);
+}
+
+.outterMenuContainer {
+  height: 100%;
+  padding-bottom: 2.1rem;
+}
+
+.menuContainer {
+  gap: 1rem;
+  height: 100%;
+  padding: 1rem;
+  padding-inline: 1rem;
   display: flex;
   overflow-y: auto;
   flex-direction: column;
-  background-color: rgb(38, 38, 38); 
 }
 
 .mainMenu {
@@ -30,7 +60,6 @@
   border-radius: 5px;
   padding-left: 1rem;
   padding-right: 1rem;
-  padding-top: .2rem;
   padding-bottom: .2rem;
   color: rgb(199, 199, 199);
 }
@@ -44,13 +73,13 @@
 .deleteButton {
   gap: 1rem;
   display: flex;
-  color: var(--color-darker);
+  color: var(--color-dark-800);
   align-items: center;
   justify-content: center;
   transition-duration: .4s;
 }
 
 .deleteButton:hover {
-  color: var(--color-darker);
+  color: var(--color-dark-800);
   background-color: #8f2424;
 }
