@@ -1,6 +1,6 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBox, faChevronDown, faCubes, faDiagramProject, faFingerprint, faGear, faHeadphones, faImage, faShield, faTableColumns, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { faBarsProgress, faBox, faBoxesStacked, faChevronDown, faCubes, faDatabase, faDiagramProject, faFingerprint, faGear, faHeadphones, faImage, faNetworkWired, faShareNodes, faShield, faTableColumns, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 
@@ -34,6 +34,7 @@ export const LateralMenu = () => {
               Overview
             </li>
           </ul>
+
           <span className={s.section}>
             <h4>STORAGE</h4>
             <FontAwesomeIcon icon={faBox} />
@@ -41,21 +42,45 @@ export const LateralMenu = () => {
           <ul className={s.menuList}>
             <li>
               <FontAwesomeIcon icon={faImage} />
-              Image
+              Images
             </li>
             <li>
               <FontAwesomeIcon icon={faHeadphones} />
-              Audio
+              Audios
             </li>
             <li>
               <FontAwesomeIcon icon={faVideo} />
-              Video
+              Videos
             </li>
             <li>
               <FontAwesomeIcon icon={faCubes} />
-              3D Model
+              3D Models
             </li>
           </ul>
+
+          <span className={s.section}>
+            <h4>DATABASE</h4>
+            <FontAwesomeIcon icon={faDatabase} />
+          </span>
+          <ul className={s.menuList}>
+            <li>
+              <FontAwesomeIcon icon={faBoxesStacked} />
+              Collections
+            </li>
+            <li>
+              <FontAwesomeIcon icon={faBarsProgress} />
+              Records
+            </li>
+            <li>
+              <FontAwesomeIcon icon={faShareNodes} />
+              Integrations
+            </li>
+            <li>
+              <FontAwesomeIcon icon={faNetworkWired} />
+              Connections
+            </li>
+          </ul>
+
           <span className={s.section}>
             <h4>SETTINGS</h4>
             <FontAwesomeIcon icon={faGear} />
