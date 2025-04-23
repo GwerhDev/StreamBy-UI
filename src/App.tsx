@@ -11,6 +11,10 @@ import { Project } from './app/pages/Project';
 import { Overview } from './app/pages/Overview';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import ProjectLayout from './app/layouts/PorjectLayout';
+import { Images } from './app/pages/Images';
+import { Videos } from './app/pages/Videos';
+import { Audios } from './app/pages/Audios';
+import { ThreeDModels } from './app/pages/ThreeDModels';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -32,6 +36,10 @@ function App() {
               <Route element={<ProjectLayout />}>
                 <Route path="/project/:id" element={<Project />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
+                <Route path="/project/:id/storage/images" element={<Images />} />
+                <Route path="/project/:id/storage/videos" element={<Videos />} />
+                <Route path="/project/:id/storage/audios" element={<Audios />} />
+                <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

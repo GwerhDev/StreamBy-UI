@@ -43,22 +43,33 @@ export const LateralMenu = () => {
             <FontAwesomeIcon icon={faBox} />
           </span>
           <ul className={s.menuList}>
-            <li>
-              <FontAwesomeIcon icon={faImage} />
-              Images
-            </li>
-            <li>
-              <FontAwesomeIcon icon={faHeadphones} />
-              Audios
-            </li>
-            <li>
-              <FontAwesomeIcon icon={faVideo} />
-              Videos
-            </li>
-            <li>
-              <FontAwesomeIcon icon={faCubes} />
-              3D Models
-            </li>
+            <Link to={`/project/${id}/storage/images`}>
+              <li>
+                <FontAwesomeIcon icon={faImage} />
+                Images
+              </li>
+            </Link>
+
+            <Link to={`/project/${id}/storage/audios`}>
+              <li>
+                <FontAwesomeIcon icon={faHeadphones} />
+                Audios
+              </li>
+            </Link>
+
+            <Link to={`/project/${id}/storage/videos`}>
+              <li>
+                <FontAwesomeIcon icon={faVideo} />
+                Videos
+              </li>
+            </Link>
+
+            <Link to={`/project/${id}/storage/3dmodels`}>
+              <li>
+                <FontAwesomeIcon icon={faCubes} />
+                3D Models
+              </li>
+            </Link>
           </ul>
 
           <span className={s.section}>
