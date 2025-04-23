@@ -17,9 +17,7 @@ export const ProjectButton = (props: any) => {
     navigate(`/project/${id}`);
   };
 
-  const imageContainerClass = currentProjectId === id 
-    ? `${s.imageContainer} ${s.selected}` 
-    : s.imageContainer;
+  const imageContainerClass = currentProjectId === id ? `${s.imageContainer} ${s.selected}` : s.imageContainer;
 
   return (
     <button title={name} onClick={handleOnClick} className={s.container}>
