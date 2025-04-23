@@ -55,16 +55,16 @@ export const ProfileButton = (props: any) => {
           <div className={s.profileButtonContainer}>
             {showCanvas && (
               <ul className={s.accountActionsContainer}>
-                <button onClick={handleGoHome}>
+                <button title="Home" onClick={handleGoHome}>
                   <FontAwesomeIcon icon={faHome} />
                 </button>
-                <button onClick={() => window.location.href = ACCOUNT_BASE}>
+                <button title="Account" onClick={() => window.location.href = ACCOUNT_BASE}>
                   <FontAwesomeIcon icon={faUser} />
                 </button>
-                <button>
+                <button title="Settings">
                   <FontAwesomeIcon icon={faGear} />
                 </button>
-                <button onClick={handleLogoutModal}>
+                <button title="Logout" onClick={handleLogoutModal}>
                   <FontAwesomeIcon icon={faRightFromBracket} />
                 </button>
               </ul>
