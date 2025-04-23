@@ -73,7 +73,7 @@ export const LateralMenu = () => {
             </li>
             <li>
               <FontAwesomeIcon icon={faTowerBroadcast} />
-              Connection Status
+              Connections
             </li>
           </ul>
 
