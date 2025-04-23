@@ -30,12 +30,12 @@ export const LateralMenu = () => {
             </span>
           </div>
           <ul className={s.menuList}>
-            <li>
-              <Link to={`/project/${id}/dashboard/overview`}>
+            <Link to={`/project/${id}/dashboard/overview`}>
+              <li>
                 <FontAwesomeIcon icon={faDiagramProject} />
                 Overview
-              </Link>
-            </li>
+              </li>
+            </Link>
           </ul>
 
           <span className={s.section}>
