@@ -6,19 +6,20 @@ import { setCurrentProject } from '../../../store/currentProjectSlice';
 
 export const ProjectButton = (props: any) => {
   const { project } = props || {};
+  const { name, image, id } = project || {};
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleOnClick = () => {
     dispatch(setCurrentProject(project));
-    navigate(`/project/${project.id}`);
+    navigate(`/project/${id}`);
   };
 
   return (
-    <button onClick={handleOnClick} className={s.container}>
+    <button title={name} onClick={handleOnClick} className={s.container}>
       <span>
         {
-          project?.image ? <img className={s.image} src={project?.image} alt="" /> : <img className={s.defaultImage} height={30} src={defaultImg} alt="" />
+          image ? <img className={s.image} src={image} alt="" /> : <img className={s.defaultImage} height={30} src={defaultImg} alt="" />
         }
       </span>
     </button>
