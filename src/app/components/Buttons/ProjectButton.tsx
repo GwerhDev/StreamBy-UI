@@ -18,7 +18,7 @@ export const ProjectButton = (props: any) => {
     <button onClick={handleOnClick} className={s.container}>
       <span>
         {
-          project?.image ? <img src={project?.image} alt="" /> : <img height={30} src={defaultImg} alt="" />
+          project?.image ? <img className={s.image} src={project?.image} alt="" /> : <img height={30} src={defaultImg} alt="" />
         }
       </span>
     </button>
