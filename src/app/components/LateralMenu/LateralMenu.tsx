@@ -1,6 +1,6 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBarsProgress, faBox, faBoxesStacked, faChevronDown, faCubes, faDatabase, faDiagramProject, faFingerprint, faGear, faHeadphones, faImage, faNetworkWired, faShareNodes, faShield, faTableColumns, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { faBarsProgress, faBox, faBoxesStacked, faChevronDown, faCubes, faDatabase, faDiagramProject, faFingerprint, faGear, faHeadphones, faImage, faShield, faTableColumns, faTowerBroadcast, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 
@@ -72,12 +72,8 @@ export const LateralMenu = () => {
               Records
             </li>
             <li>
-              <FontAwesomeIcon icon={faShareNodes} />
-              Integrations
-            </li>
-            <li>
-              <FontAwesomeIcon icon={faNetworkWired} />
-              Connections
+              <FontAwesomeIcon icon={faTowerBroadcast} />
+              Connection Status
             </li>
           </ul>
 
