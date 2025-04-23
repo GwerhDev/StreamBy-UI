@@ -1,6 +1,6 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faCubes, faDiagramProject, faFileAudio, faFingerprint, faHeadphones, faImage, faShield, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 
@@ -27,30 +27,37 @@ export const LateralMenu = () => {
           </div>
           <ul className={s.menuList}>
             <li>
+              <FontAwesomeIcon icon={faDiagramProject} />
               Overview
             </li>
           </ul>
           <h4>STORAGE</h4>
           <ul className={s.menuList}>
             <li>
+              <FontAwesomeIcon icon={faImage} />
               Image
             </li>
             <li>
+              <FontAwesomeIcon icon={faHeadphones} />
               Audio
             </li>
             <li>
+              <FontAwesomeIcon icon={faVideo} />
               Video
             </li>
             <li>
+              <FontAwesomeIcon icon={faCubes} />
               3D Models
             </li>
           </ul>
           <h4>SETTINGS</h4>
           <ul className={s.menuList}>
             <li>
+              <FontAwesomeIcon icon={faFingerprint} />
               Credentials
             </li>
             <li>
+              <FontAwesomeIcon icon={faShield} />
               Permissions
             </li>
           </ul>

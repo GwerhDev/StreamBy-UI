@@ -2,7 +2,7 @@ import s from './DeleteProjectModal.module.css';
 import { useNavigate } from 'react-router-dom';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faRightFromBracket, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 
@@ -37,7 +37,7 @@ export const DeleteProjectModal = (props: any) => {
         <h2>Delete {currentProject?.name}?</h2>
         <p>Confirm that you want to delete this project</p>
         <ul className={s.buttonContainer}>
-          <PrimaryButton icon={faRightFromBracket} onClick={handleDeleteProject} text='Delete' type='button' />
+          <PrimaryButton icon={faTrash} onClick={handleDeleteProject} text='Delete' type='button' />
           <SecondaryButton icon={faXmark} onClick={handleCancel} text='Cancel' type='button' />
         </ul>
       </form>

@@ -51,17 +51,19 @@
 }
 
 .menuList {
-  gap: 0;
+  gap: .3rem;
   display: flex;
   flex-direction: column;
 }
 
 .menuList li {
+  gap: 1rem;
   border-radius: 5px;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-bottom: .2rem;
+  padding: .3rem;
+  padding-inline: 1rem;
   color: rgb(199, 199, 199);
+  display: flex;
+  align-items: center;
 }
 
 .menuList li:hover {
@@ -80,6 +82,6 @@
 }
 
 .deleteButton:hover {
-  color: var(--color-dark-800);
-  background-color: #8f2424;
+  color: var(--color-danger-500);
+  background-color: var(--color-danger-100);
 }

@@ -15,10 +15,18 @@
   --color-dark-600: #232323;
   --color-dark-700: #1b1b1b;
   --color-dark-800: #1a1a1c;
+
   --color-light-100: #e4e4e4;
   --color-light-200: #BEBEBE;
   --color-light-300: #adadad;
   --color-light-400: #7b7b7b;
+
+  --color-danger-100: rgb(157, 86, 86);
+  --color-danger-200: rgb(157, 57, 57);
+  --color-danger-300: rgb(147, 63, 63);
+  --color-danger-400: rgb(147, 63, 63);
+  --color-danger-500: rgb(74, 33, 33);
+
 
   --background-color-dark: #1a1a1c;
   --background-color-light: #2f2f2f;
