@@ -15,21 +15,23 @@ import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
 
 export const CreateProjectForm = () => {
+  const [name, setName] = useState<string>("");
+  const [loader, setLoader] = useState<boolean>(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [name, setName] = useState('');
-  const [disabled, setDisabled] = useState(true);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
   const { refreshProjects } = useProjects();
+  const navigate = useNavigate();
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
+      setLoader(true);
       const response = await createProject({ name, description });
       const { project } = response || {};
-
+      
       if (imageFile && project?.id) {
         const contentType = imageFile.type;
         const { url, publicUrl } = await getUploadUrl(project.id, imageFile.name, contentType);
@@ -38,8 +40,10 @@ export const CreateProjectForm = () => {
       }
       await refreshProjects();
       navigate(`/project/${project.id}`);
-
+      setLoader(false);
+      
     } catch (err) {
+      setLoader(false);
       alert((err as Error).message);
     }
   };
@@ -73,7 +77,7 @@ export const CreateProjectForm = () => {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     setDisabled(!name);
   }, [name]);
 
@@ -130,8 +134,8 @@ export const CreateProjectForm = () => {
         />
 
         <span className={s.buttonContainer}>
-          <ActionButton disabled={disabled} icon={faDiagramProject} text="Create" type="submit" />
-          <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
+          <ActionButton disabled={disabled || loader} icon={faDiagramProject} text="Create" type="submit" />
+          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
       </form>
     </div>
