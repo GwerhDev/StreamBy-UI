@@ -19,6 +19,11 @@
   border-color: var(--color-primary);
 }
 
+.selected {
+  border: solid .1rem;
+  border-color: var(--color-primary);
+}
+
 .container span {
   width: 100%;
   height: 100%;
