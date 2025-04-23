@@ -1,12 +1,29 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
+import { useEffect } from 'react';
+import { fetchProject } from '../../services/streamby';
+import { setCurrentProject } from '../../store/currentProjectSlice';
 
 export default function ProjectLayout() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { id } = useParams() || {};
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const data = await fetchProject(id);
+        dispatch(setCurrentProject(data));
+      } catch (err) {
+        console.error('Error loading project:', err);
+      }
+    })();
+  }, [id, dispatch]);
 
   return (
     <>
