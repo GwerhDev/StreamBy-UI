@@ -1,6 +1,6 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faCubes, faDiagramProject, faFileAudio, faFingerprint, faHeadphones, faImage, faShield, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faCubes, faDiagramProject, faFingerprint, faHeadphones, faImage, faShield, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 
