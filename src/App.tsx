@@ -10,6 +10,7 @@ import { Loader } from './app/components/Loader';
 import { Project } from './app/pages/Project';
 import { Overview } from './app/pages/Overview';
 import { ProjectCreate } from './app/pages/ProjectCreate';
+import ProjectLayout from './app/layouts/PorjectLayout';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -28,6 +29,8 @@ function App() {
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/project/create" element={<ProjectCreate />} />
+            </Route>
+            <Route element={<ProjectLayout />}>
               <Route path="/project/:id" element={<Project />} />
               <Route path="/project/:id/dashboard/overview" element={<Overview />} />
             </Route>
