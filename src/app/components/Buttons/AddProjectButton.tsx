@@ -9,7 +9,7 @@ export const AddProjectButton = (props: any) => {
   };
 
   return (
-    <button onClick={handleOnClick} className={s.container}>
+    <button title="Add project" onClick={handleOnClick} className={s.container}>
       <img src={addIcon} alt="" width={40} />
     </button>
   )
