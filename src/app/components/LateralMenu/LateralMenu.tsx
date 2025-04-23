@@ -3,10 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBarsProgress, faBox, faBoxesStacked, faChevronDown, faCubes, faDatabase, faDiagramProject, faFingerprint, faGear, faHeadphones, faImage, faShield, faTableColumns, faTowerBroadcast, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import { Link } from 'react-router-dom';
 
 export const LateralMenu = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { name } = currentProject || {};
+  const { name, id } = currentProject || {};
 
   const handleDeleteProjectModal = () => {
     const deleteProjectModal = document.getElementById("delete-project-modal") as HTMLDivElement | null;
@@ -30,8 +31,10 @@ export const LateralMenu = () => {
           </div>
           <ul className={s.menuList}>
             <li>
-              <FontAwesomeIcon icon={faDiagramProject} />
-              Overview
+              <Link to={`/project/${id}/dashboard/overview`}>
+                <FontAwesomeIcon icon={faDiagramProject} />
+                Overview
+              </Link>
             </li>
           </ul>
 

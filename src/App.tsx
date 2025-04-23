@@ -3,12 +3,13 @@ import Login from './app/pages/Login';
 import Dashboard from './app/pages/Dashboard';
 import NotFound from './app/pages/NotFound';
 import DefaultLayout from './app/layouts/DefaultLayout';
-import { useInitSession } from './hooks/useInitSession';
-import { ProjectCreate } from './app/pages/ProjectCreate';
-import { Project } from './app/pages/Project';
-import { useSelector } from 'react-redux';
 import { RootState } from './store';
+import { useSelector } from 'react-redux';
+import { useInitSession } from './hooks/useInitSession';
 import { Loader } from './app/components/Loader';
+import { Project } from './app/pages/Project';
+import { Overview } from './app/pages/Overview';
+import { ProjectCreate } from './app/pages/ProjectCreate';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -28,6 +29,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/project/create" element={<ProjectCreate />} />
               <Route path="/project/:id" element={<Project />} />
+              <Route path="/project/:id/dashboard/overview" element={<Overview />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
