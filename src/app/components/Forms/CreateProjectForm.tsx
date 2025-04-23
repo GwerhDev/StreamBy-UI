@@ -1,5 +1,5 @@
 import s from './CreateProjectForm.module.css';
-import { useRef, useState, FormEvent } from 'react';
+import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faDiagramProject, faFileImage, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -18,6 +18,7 @@ export const CreateProjectForm = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [name, setName] = useState('');
+  const [disabled, setDisabled] = useState(true);
   const [description, setDescription] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -72,6 +73,10 @@ export const CreateProjectForm = () => {
     }
   };
 
+  useEffect(()=>{
+    setDisabled(!name);
+  }, [name]);
+
   return (
     <div className={s.divContainer}>
       <form className={s.container} onSubmit={handleOnSubmit}>
@@ -125,7 +130,7 @@ export const CreateProjectForm = () => {
         />
 
         <span className={s.buttonContainer}>
-          <ActionButton icon={faDiagramProject} text="Create" type="submit" />
+          <ActionButton disabled={disabled} icon={faDiagramProject} text="Create" type="submit" />
           <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
       </form>

@@ -158,6 +158,14 @@ button:hover {
   background-color: var(--color-button-primary-hover);
 }
 
+button:disabled {
+  opacity: .5;
+}
+
+button:hover:disabled {
+  cursor: not-allowed;
+}
+
 main {
   margin: 0;
   padding: 0;
