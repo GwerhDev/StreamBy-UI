@@ -34,13 +34,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  color: rgb(var(--foreground-rgb));
-}
-
-#root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  color: var(--color-light-300);
 }
 
 ul {
