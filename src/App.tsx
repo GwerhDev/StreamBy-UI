@@ -42,6 +42,7 @@ function App() {
                 <Route path="/project/:id/storage/audios" element={<Audios />} />
                 <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
               </Route>
+              <Route path="/project/*" element={<NotFound />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
