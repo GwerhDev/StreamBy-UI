@@ -55,8 +55,8 @@ export const DeleteProjectModal = (props: any) => {
           <p>Confirm that you want to delete this project entering <strong>{currentProject?.name}</strong></p>
           <input type="text" onInput={handleInput} />
 
-          <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' type='button' />
-          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' type='button' />
+          <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />
+          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' />
         </form>
       </form>
     </div>
