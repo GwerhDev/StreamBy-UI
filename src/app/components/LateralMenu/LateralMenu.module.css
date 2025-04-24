@@ -1,6 +1,6 @@
 .container {
   gap: 1rem;
-  width: 300px;
+  width: 350px;
   border-top-left-radius: 10px;
   background-color: rgb(38, 38, 38);
   border-right: solid .5px var(--color-dark-300);
