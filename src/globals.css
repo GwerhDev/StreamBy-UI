@@ -74,6 +74,11 @@ h4 {
   color: var(--color-light-300);
 }
 
+h5 {
+  font-size: var(--size-2);
+  color: var(--color-light-300);
+}
+
 form {
   width: 100%;
   max-width: 500px;
