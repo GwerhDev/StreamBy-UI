@@ -9,12 +9,13 @@ import { useState } from 'react';
 
 export const DeleteProjectModal = (props: any) => {
   const [loader, setLoader] = useState<boolean>(false);
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(true);
   const { currentProject } = props || {};
   const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
-  const handleDeleteProject = async () => {
+  const handleDeleteProject = async (e: any) => {
+    e.preventDefault();
     try {
       setLoader(true);
       await deleteProject(currentProject?.id);
