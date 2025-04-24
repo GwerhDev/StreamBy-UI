@@ -5,7 +5,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 export const DeleteProjectModal = (props: any) => {
   const [loader, setLoader] = useState<boolean>(false);
@@ -14,7 +14,7 @@ export const DeleteProjectModal = (props: any) => {
   const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
-  const handleDeleteProject = async (e: any) => {
+  const handleDeleteProject = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
@@ -49,13 +49,13 @@ export const DeleteProjectModal = (props: any) => {
 
   return (
     <div className={s.container} id='delete-project-modal'>
-      <form className={s.modalForm} action="">
+      <form onSubmit={handleDeleteProject} className={s.modalForm} action="">
         <h2>Delete {currentProject?.name}?</h2>
         <form className={s.buttonContainer}>
           <p>Confirm that you want to delete this project entering <strong>{currentProject?.name}</strong></p>
           <input type="text" onInput={handleInput} />
 
-          <PrimaryButton disabled={disabled || loader} icon={faTrash} onClick={handleDeleteProject} text='Delete' type='button' />
+          <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' type='button' />
           <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' type='button' />
         </form>
       </form>
