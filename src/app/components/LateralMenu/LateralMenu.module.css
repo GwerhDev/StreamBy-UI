@@ -15,6 +15,7 @@
   border-radius: 0;
   padding-inline: 1rem;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   background-color: transparent;
   border-bottom: solid .5px var(--color-dark-300);
