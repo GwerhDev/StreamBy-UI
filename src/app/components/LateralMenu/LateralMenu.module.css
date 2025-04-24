@@ -1,6 +1,6 @@
 .container {
   gap: 1rem;
-  min-width: 250px;
+  width: 250px;
   border-top-left-radius: 10px;
   background-color: rgb(38, 38, 38);
   border-right: solid .5px var(--color-dark-300);
@@ -20,6 +20,13 @@
   background-color: transparent;
   border-bottom: solid .5px var(--color-dark-300);
   color: var(--color-light-300);
+}
+
+.titleButton h4 {
+  max-width: 150px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .titleButton:hover {
