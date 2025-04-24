@@ -10,8 +10,6 @@
 
 .titleButton {
   width: 100%;
-  font-size: .8rem;
-  font-weight: 900;
   border-radius: 0;
   padding-inline: 1rem;
   display: flex;
@@ -24,6 +22,8 @@
 
 .titleButton h4 {
   max-width: 150px;
+  font-size: 1rem;
+  font-weight: 900;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
