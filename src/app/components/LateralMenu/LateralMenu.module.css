@@ -58,8 +58,9 @@
 
 .menuList li {
   gap: 1rem;
-  border-radius: 5px;
   padding: .3rem;
+  font-weight: 300;
+  border-radius: 5px;
   padding-inline: 1rem;
   color: rgb(199, 199, 199);
   display: flex;
