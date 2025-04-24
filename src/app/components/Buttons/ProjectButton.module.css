@@ -30,7 +30,7 @@
 }
 
 .selected {
-  border: solid .1rem;
+  border: solid .2rem;
   border-color: var(--color-primary);
 }
 
