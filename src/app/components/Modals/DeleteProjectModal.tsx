@@ -5,16 +5,22 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
+import { useState } from 'react';
 
 export const DeleteProjectModal = (props: any) => {
+  const [loader, setLoader] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(false);
   const { currentProject } = props || {};
   const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
   const handleDeleteProject = async () => {
     try {
+      setLoader(true);
       await deleteProject(currentProject?.id);
+      setLoader(false);
     } catch (error) {
+      setLoader(false);
       console.error('Error deleting project:', error);
     }
     const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
@@ -31,15 +37,26 @@ export const DeleteProjectModal = (props: any) => {
     }
   };
 
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    if (value === currentProject?.name) {
+      setDisabled(false);
+    } else {
+      setDisabled(true);
+    }
+  };
+
   return (
     <div className={s.container} id='delete-project-modal'>
       <form className={s.modalForm} action="">
         <h2>Delete {currentProject?.name}?</h2>
-        <p>Confirm that you want to delete this project</p>
-        <ul className={s.buttonContainer}>
-          <PrimaryButton icon={faTrash} onClick={handleDeleteProject} text='Delete' type='button' />
-          <SecondaryButton icon={faXmark} onClick={handleCancel} text='Cancel' type='button' />
-        </ul>
+        <form className={s.buttonContainer}>
+          <p>Confirm that you want to delete this project entering <strong>{currentProject?.name}</strong></p>
+          <input type="text" onInput={handleInput} />
+
+          <PrimaryButton disabled={disabled || loader} icon={faTrash} onClick={handleDeleteProject} text='Delete' type='button' />
+          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' type='button' />
+        </form>
       </form>
     </div>
   );
