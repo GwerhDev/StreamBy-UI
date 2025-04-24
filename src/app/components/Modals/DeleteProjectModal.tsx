@@ -6,6 +6,7 @@ import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 import { FormEvent, useState } from 'react';
+import { LabeledInput } from '../Inputs/LabeledInput';
 
 export const DeleteProjectModal = (props: any) => {
   const [loader, setLoader] = useState<boolean>(false);
@@ -51,8 +52,8 @@ export const DeleteProjectModal = (props: any) => {
     <div className={s.container} id='delete-project-modal'>
       <form onSubmit={handleDeleteProject} className={s.modalForm} action="">
         <h2>Delete {currentProject?.name}?</h2>
-        <p>Confirm that you want to delete this project entering <b>{currentProject?.name}</b></p>
-        <input type="text" onInput={handleInput} />
+        <p>Confirm that you want to delete this project </p>
+        <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.name}" to submit`} />
 
         <div className={s.buttonContainer}>
           <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />
