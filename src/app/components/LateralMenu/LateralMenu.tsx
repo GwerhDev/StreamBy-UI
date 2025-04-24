@@ -17,9 +17,9 @@ export const LateralMenu = () => {
   return (
     <div className={s.container}>
       <button className={s.titleButton}>
-        <h4>
-          {name}
-        </h4>
+        <strong>
+          <h4>{name}</h4>
+        </strong>
         <FontAwesomeIcon icon={faChevronDown} />
       </button>
       <div className={s.outterMenuContainer}>
