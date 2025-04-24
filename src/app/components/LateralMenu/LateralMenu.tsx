@@ -23,7 +23,7 @@ export const LateralMenu = () => {
       <div className={s.outterMenuContainer}>
         <div className={s.menuContainer}>
           <div className={s.mainMenu}>
-            <h6>MAIN MENU</h6>
+            <h5>MAIN MENU</h5>
             <span className={s.section}>
               <h4>DASHBOARD</h4>
               <FontAwesomeIcon icon={faTableColumns} />
