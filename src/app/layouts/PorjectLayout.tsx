@@ -1,4 +1,4 @@
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -12,12 +12,13 @@ export default function ProjectLayout() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id } = useParams() || {};
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
     (async () => {
       try {
-        const data = await fetchProject(id);
+        const data = await fetchProject(id, navigate);
         dispatch(setCurrentProject(data));
       } catch (err) {
         console.error('Error loading project:', err);

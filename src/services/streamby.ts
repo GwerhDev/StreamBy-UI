@@ -63,13 +63,16 @@ export async function fetchProjects() {
   return projects;
 }
 
-export async function fetchProject(projectId: string) {
+export async function fetchProject(projectId: string, navigate: any) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     method: 'GET',
     credentials: 'include',
   });
 
-  if (!res.ok) throw new Error('Failed to fetch project');
+  if (!res.ok) {
+    navigate('/project/not-found');
+    throw new Error('Failed to fetch project');
+  };
   const { project } = await res.json();
   return project;
 }

@@ -35,6 +35,7 @@ function App() {
               <Route path="/project/create" element={<ProjectCreate />} />
               <Route element={<ProjectLayout />}>
                 <Route path="/project/:id" element={<Project />} />
+                <Route path="/project/not-found" element={<NotFound />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />
                 <Route path="/project/:id/storage/videos" element={<Videos />} />
