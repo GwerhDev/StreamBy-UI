@@ -49,15 +49,14 @@ export const DeleteProjectModal = (props: any) => {
 
   return (
     <div className={s.container} id='delete-project-modal'>
-      <form onSubmit={handleDeleteProject} className={s.modalForm} action="">
+      <form onSubmit={handleDeleteProject} className={s.modalForm}>
         <h2>Delete {currentProject?.name}?</h2>
-        <form className={s.buttonContainer}>
-          <p>Confirm that you want to delete this project entering <strong>{currentProject?.name}</strong></p>
+        <div className={s.buttonContainer}>
+          <p>Confirm that you want to delete this project entering <b>{currentProject?.name}</b></p>
           <input type="text" onInput={handleInput} />
-
           <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />
           <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' />
-        </form>
+        </div>
       </form>
     </div>
   );
