@@ -7,9 +7,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
   createProject,
-  getUploadUrl,
   uploadToPresignedUrl,
   updateProjectImage,
+  uploadProjectImage,
 } from '../../../services/streamby';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
@@ -34,7 +34,7 @@ export const CreateProjectForm = () => {
       
       if (imageFile && project?.id) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await getUploadUrl(project.id, imageFile.name, contentType);
+        const { url, publicUrl } = await uploadProjectImage(project.id);
         await uploadToPresignedUrl(url, imageFile, contentType);
         await updateProjectImage(project.id, publicUrl);
       }

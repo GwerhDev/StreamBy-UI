@@ -28,6 +28,19 @@ export async function getUploadUrl(projectId: string, filename: string, contentT
   return await res.json();
 }
 
+export async function uploadProjectImage(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/upload-project-image-url/${projectId}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+
+  if (!res.ok) throw new Error('Failed to get presigned URL');
+  return await res.json();
+}
+
 export async function uploadToPresignedUrl(url: string, file: File, contentType: string) {
   const res = await fetch(url, {
     method: 'PUT',
