@@ -1,7 +1,6 @@
 import s from './ProjectPresentation.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
-import { faEdit, faFileImage } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
