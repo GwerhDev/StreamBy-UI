@@ -7,6 +7,7 @@ import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
 import { useEffect } from 'react';
 import { fetchProject } from '../../services/streamby';
 import { setCurrentProject } from '../../store/currentProjectSlice';
+import { Browser } from '../components/Browser/Browser';
 
 export default function ProjectLayout() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -30,7 +31,9 @@ export default function ProjectLayout() {
     <>
       <div className="dashboard-sections">
         <LateralMenu />
-        <Outlet />
+        <Browser>
+          <Outlet />
+        </Browser>
       </div>
       <LogoutModal />
       <DeleteProjectModal currentProject={currentProject} />

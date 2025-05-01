@@ -2,7 +2,7 @@
   gap: 1rem;
   min-width: 250px;
   border-top-left-radius: 10px;
-  background-color: rgb(38, 38, 38);
+  background-color: var(--color-dark-900);
   border-right: solid .5px var(--color-dark-300);
   border-bottom: none;
   overflow: hidden;

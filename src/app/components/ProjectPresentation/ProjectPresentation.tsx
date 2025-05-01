@@ -15,9 +15,6 @@ export const ProjectPresentation = () => {
 
   return (
     <div className={s.container}>
-      <h3>Overview</h3>
-      <p>Dev inside</p>
-
       <div className={s.detailsContainer}>
         <ul>
           <li className={s.imgContainer}>
