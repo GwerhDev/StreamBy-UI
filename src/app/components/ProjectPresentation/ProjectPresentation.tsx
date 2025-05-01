@@ -10,7 +10,7 @@ export const ProjectPresentation = () => {
   const navigate = useNavigate();
 
   const handleEdit = async () => {
-    navigate(`/project/${currentProject.id}/edit`)
+    navigate(`/project/${currentProject.id}/dashboard/overview/edit`)
   };
 
   return (

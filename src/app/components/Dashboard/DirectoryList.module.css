@@ -1,0 +1,26 @@
+.container {
+  padding: 1rem;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.article {
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  background-color: var(--color-dark-900);
+}
+
+.article:hover {
+  background-color: var(--color-dark-100);
+  color: var(--color-primary);
+}
