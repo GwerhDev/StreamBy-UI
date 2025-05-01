@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 
-export default function LoginPage() {
+export const Login = () => {
   const session = useSelector((state: RootState) => state.session);
   const { logged } = session;
   const navigate = useNavigate();

@@ -27,7 +27,9 @@ export const LateralMenu = () => {
           <div className={s.mainMenu}>
             <h5>MAIN MENU</h5>
             <span className={s.section}>
-              <h4>DASHBOARD</h4>
+              <Link to={`/project/${id}/dashboard`}>
+                <h4>DASHBOARD</h4>
+              </Link>
               <FontAwesomeIcon icon={faTableColumns} />
             </span>
           </div>
@@ -41,7 +43,9 @@ export const LateralMenu = () => {
           </ul>
 
           <span className={s.section}>
-            <h4>STORAGE</h4>
+            <Link to={`/project/${id}/storage`}>
+              <h4>STORAGE</h4>
+            </Link>
             <FontAwesomeIcon icon={faBox} />
           </span>
           <ul className={s.menuList}>
@@ -75,7 +79,9 @@ export const LateralMenu = () => {
           </ul>
 
           <span className={s.section}>
-            <h4>DATABASE</h4>
+            <Link to={`/project/${id}/database`}>
+              <h4>DATABASE</h4>
+            </Link>
             <FontAwesomeIcon icon={faDatabase} />
           </span>
           <ul className={s.menuList}>
@@ -94,7 +100,9 @@ export const LateralMenu = () => {
           </ul>
 
           <span className={s.section}>
-            <h4>SETTINGS</h4>
+            <Link to={`/project/${id}/settings`}>
+              <h4>SETTINGS</h4>
+            </Link>
             <FontAwesomeIcon icon={faGear} />
           </span>
           <ul className={s.menuList}>

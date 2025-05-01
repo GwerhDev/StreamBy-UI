@@ -1,9 +1,9 @@
-import s from './EmptyBrowser.module.css';
+import s from './Start.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 
-export const EmptyBrowser = () => {
+export const Start = () => {
   const navigate = useNavigate();
 
   const handleOnClick = () => {

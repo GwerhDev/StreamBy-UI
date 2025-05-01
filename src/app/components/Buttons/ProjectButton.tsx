@@ -14,7 +14,7 @@ export const ProjectButton = (props: any) => {
 
   const handleOnClick = () => {
     dispatch(setCurrentProject(project));
-    navigate(`/project/${id}`);
+    navigate(`/project/${id}/dashboard`);
   };
 
   const imageContainerClass = currentProjectId === id ? `${s.imageContainer} ${s.selected}` : s.imageContainer;

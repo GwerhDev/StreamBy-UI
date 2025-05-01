@@ -1,20 +1,21 @@
 import { Routes, Route } from 'react-router-dom';
-import Login from './app/pages/Login';
-import Dashboard from './app/pages/Dashboard';
-import NotFound from './app/pages/NotFound';
-import DefaultLayout from './app/layouts/DefaultLayout';
 import { RootState } from './store';
 import { useSelector } from 'react-redux';
 import { useInitSession } from './hooks/useInitSession';
-import { Loader } from './app/components/Loader';
-import { Project } from './app/pages/Project';
-import { Overview } from './app/pages/Overview';
-import { ProjectCreate } from './app/pages/ProjectCreate';
+import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/PorjectLayout';
+import { Loader } from './app/components/Loader';
+import { Login } from './app/pages/Login';
 import { Images } from './app/pages/Images';
 import { Videos } from './app/pages/Videos';
 import { Audios } from './app/pages/Audios';
+import { Project } from './app/pages/Project';
+import { Overview } from './app/pages/Overview';
+import { NotFound } from './app/pages/NotFound';
+import { Dashboard } from './app/pages/Dashboard';
 import { ThreeDModels } from './app/pages/ThreeDModels';
+import { ProjectCreate } from './app/pages/ProjectCreate';
+import { Home } from './app/pages/Home';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -31,10 +32,11 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<DefaultLayout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />
               <Route element={<ProjectLayout />}>
                 <Route path="/project/:id" element={<Project />} />
+                <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />
                 <Route path="/project/:id/storage/videos" element={<Videos />} />
