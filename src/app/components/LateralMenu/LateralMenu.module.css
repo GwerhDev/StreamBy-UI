@@ -92,6 +92,7 @@
   align-items: center;
   justify-content: center;
   transition-duration: .4s;
+  font-weight: bold;
 }
 
 .deleteButton:hover {
