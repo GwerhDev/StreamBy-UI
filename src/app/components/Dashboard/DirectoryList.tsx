@@ -12,7 +12,7 @@ export const DirectoryList = (props: any) => {
     <div className={s.container}>
       <ul className={s.list}>
         {
-          list?.map((e: any, index) => (
+          list?.map((e: any, index: number) => (
             <Link key={index} to={`/project/${currentProject.id}/${e.path}`} >
               <li className={s.article} key={e}>
                 {
