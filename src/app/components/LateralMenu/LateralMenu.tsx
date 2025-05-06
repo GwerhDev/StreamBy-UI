@@ -36,8 +36,8 @@ export const LateralMenu = () => {
           </div>
           <ul className={s.menuList}>
             {
-              dashboardDirectoryList.map(({ name, icon, path }) =>
-                <Link to={`/project/${id}/${path}`}>
+              dashboardDirectoryList.map(({ name, icon, path }, index) =>
+                <Link key={index} to={`/project/${id}/${path}`}>
                   <li>
                     {icon && <FontAwesomeIcon icon={icon} />}
                     {name}
@@ -55,8 +55,8 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              storageDirectoryList.map(({ name, icon, path }) =>
-                <Link to={`/project/${id}/${path}`}>
+              storageDirectoryList.map(({ name, icon, path }, index) =>
+                <Link key={index} to={`/project/${id}/${path}`}>
                   <li>
                     {icon && <FontAwesomeIcon icon={icon} />}
                     {name}
@@ -74,8 +74,8 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              databaseDirectoryList.map(({ name, icon, path }) =>
-                <Link to={`/project/${id}/${path}`}>
+              databaseDirectoryList.map(({ name, icon, path }, index) =>
+                <Link key={index} to={`/project/${id}/${path}`}>
                   <li>
                     {icon && <FontAwesomeIcon icon={icon} />}
                     {name}
@@ -93,8 +93,8 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              settingsDirectoryList.map(({ name, icon, path }) =>
-                <Link to={`/project/${id}/${path}`}>
+              settingsDirectoryList.map(({ name, icon, path }, index) =>
+                <Link key={index} to={`/project/${id}/${path}`}>
                   <li>
                     {icon && <FontAwesomeIcon icon={icon} />}
                     {name}

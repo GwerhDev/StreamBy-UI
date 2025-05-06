@@ -16,7 +16,6 @@ import { Dashboard } from './app/pages/Dashboard';
 import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import { Home } from './app/pages/Home';
-import { OverviewEdit } from './app/pages/OverviewEdit';
 import { Storage } from './app/pages/Storage';
 import { Database } from './app/pages/Database';
 import { Settings } from './app/pages/Settings';
@@ -42,7 +41,6 @@ function App() {
                 <Route path="/project/:id" element={<Project />} />
                 <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
-                <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
 
                 <Route path="/project/:id/storage" element={<Storage />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />

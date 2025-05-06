@@ -1,16 +1,16 @@
 import s from './ProjectPresentation.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 export const ProjectPresentation = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const navigate = useNavigate();
 
   const handleEdit = async () => {
-    navigate(`/project/${currentProject.id}/dashboard/overview/edit`)
+    const editProjectModal = document.getElementById("edit-project-modal") as HTMLDivElement | null;
+    if (editProjectModal) editProjectModal.style.display = "flex";
   };
 
   return (
@@ -22,7 +22,7 @@ export const ProjectPresentation = () => {
               {
                 currentProject.image
                   ? <img src={currentProject.image} alt="Project image" className={s.image} />
-                  : <img src='' />
+                  : <img src={streambyIcon} className={s.defaultImage} />
               }
             </span>
           </li>

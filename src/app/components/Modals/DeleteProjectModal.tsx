@@ -1,12 +1,9 @@
 import s from './DeleteProjectModal.module.css';
 import { useNavigate } from 'react-router-dom';
-import { PrimaryButton } from '../Buttons/PrimaryButton';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 import { FormEvent, useState } from 'react';
-import { LabeledInput } from '../Inputs/LabeledInput';
+import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
 
 export const DeleteProjectModal = (props: any) => {
   const [loader, setLoader] = useState<boolean>(false);
@@ -50,16 +47,14 @@ export const DeleteProjectModal = (props: any) => {
 
   return (
     <div className={s.container} id='delete-project-modal'>
-      <form onSubmit={handleDeleteProject} className={s.modalForm} action="">
-        <h2>Delete {currentProject?.name}?</h2>
-        <p>Confirm that you want to delete this project </p>
-        <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.name}" to submit`} />
-
-        <div className={s.buttonContainer}>
-          <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />
-          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text='Cancel' />
-        </div>
-      </form>
+      <DeleteProjectForm
+        currentProject={currentProject}
+        handleDeleteProject={handleDeleteProject}
+        handleCancel={handleCancel}
+        handleInput={handleInput}
+        disabled={disabled}
+        loader={loader}
+      />
     </div>
   );
 };

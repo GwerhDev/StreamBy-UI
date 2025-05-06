@@ -1,25 +1,14 @@
 .container {
-  gap: 1rem;
   width: 100%;
-  height: 100%;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.container ul {
+  width: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
-  border-top-left-radius: 10px;
-}
-
-.detailsContainer {
-  gap: 3rem;
-  width: 100%;
-  padding: 2rem;
-  border-radius: 10px;
-  background-color: var(--color-dark-300);
-  display: flex;
-}
-
-.details {
-  display: flex;
 }
 
 .buttonContainer {
@@ -37,12 +26,17 @@
   border-radius: 100%;
   transition-duration: .3s;
   display: flex;
-  border: solid;
+  border: dashed;
+  cursor: pointer;
   position: relative;
   align-items: center;
   justify-content: center;
-  border-color: var(--color-primary);
+  border-color: var(--color-dark-400);
   background-color: var(--background-color-dark);
+}
+
+.imgContainer:hover {
+  border-color: var(--color-primary);
 }
 
 .plusContainer {
@@ -57,7 +51,7 @@
   background-color: var(--color-primary);
 }
 
-.imageContainer {
+.previewImageContainer {
   width: 100%;
   height: 100%;
   border-radius: 100%;
@@ -67,21 +61,8 @@
   justify-content: center;
 }
 
-.image {
+.previewImage {
   width: 100%;
   object-fit: cover;
   aspect-ratio: 1/1;
-}
-
-.defaultImage {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  background: var(--background-color-dark);
-}
-
-.title {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
 }
