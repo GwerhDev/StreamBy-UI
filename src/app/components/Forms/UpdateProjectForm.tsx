@@ -89,8 +89,8 @@ export const UpdateProjectForm = (props: any) => {
 
   return (
     <form className={s.container} onSubmit={handleOnSubmit}>
-      <h3>New Project</h3>
-      <p>Fill the form to create a new project</p>
+      <h3>Udapte Project</h3>
+      <p>Fill the form to update your project</p>
 
       <ul>
         <li className={s.imgContainer} onClick={handleImageClick}>
