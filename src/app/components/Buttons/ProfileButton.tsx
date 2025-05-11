@@ -50,29 +50,27 @@ export const ProfileButton = (props: any) => {
   return (
     <div className={s.container} ref={containerRef}>
       <span className={s.canvas}>
-        <div>
-          {showCanvas && <ProfileCanvas userData={userData} />}
-          <div className={s.profileButtonContainer}>
-            {showCanvas && (
-              <ul className={s.accountActionsContainer}>
-                <button title="Home" onClick={handleGoHome}>
-                  <FontAwesomeIcon icon={faHome} />
-                </button>
-                <button title="Account" onClick={() => window.location.href = ACCOUNT_BASE}>
-                  <FontAwesomeIcon icon={faUser} />
-                </button>
-                <button title="Settings">
-                  <FontAwesomeIcon icon={faGear} />
-                </button>
-                <button title="Logout" onClick={handleLogoutModal}>
-                  <FontAwesomeIcon icon={faRightFromBracket} />
-                </button>
-              </ul>
-            )}
-            <span className={s.profileButton} onClick={handleProfileButton}>
-              <img src={profilePic} alt="Profile picture" width="100%" />
-            </span>
-          </div>
+        {showCanvas && <ProfileCanvas userData={userData} />}
+        <div className={s.profileButtonContainer}>
+          {showCanvas && (
+            <ul className={s.accountActionsContainer}>
+              <button title="Home" onClick={handleGoHome}>
+                <FontAwesomeIcon icon={faHome} />
+              </button>
+              <button title="Account" onClick={() => window.location.href = ACCOUNT_BASE}>
+                <FontAwesomeIcon icon={faUser} />
+              </button>
+              <button title="Settings">
+                <FontAwesomeIcon icon={faGear} />
+              </button>
+              <button title="Logout" onClick={handleLogoutModal}>
+                <FontAwesomeIcon icon={faRightFromBracket} />
+              </button>
+            </ul>
+          )}
+          <span className={s.profileButton} onClick={handleProfileButton}>
+            <img src={profilePic} alt="Profile picture" width="100%" />
+          </span>
         </div>
       </span>
     </div>

@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
 import streambyIcon from '../../../assets/streamby-icon.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArchive } from '@fortawesome/free-solid-svg-icons';
 
 export const LateralTab = (props: any) => {
   const { projectList, userData } = props || {};
@@ -37,13 +39,22 @@ export const LateralTab = (props: any) => {
         }
         <AddProjectButton onClick={handleOnclick} />
       </ul>
-      <div className={s.account}>
-        <ProfileButton userData={userData} />
-      </div>
 
-      <div className={s.versionContainer}>
-        <small className={s.version}>{"v" + __APP_VERSION__}</small>
-      </div>
+      <ul className={s.user}>
+        <li>
+          <FontAwesomeIcon icon={faArchive} />
+        </li>
+
+        <li>
+          <ProfileButton userData={userData} />
+        </li>
+
+        <li>
+          <div className={s.versionContainer}>
+            <small className={s.version}>{"v" + __APP_VERSION__}</small>
+          </div>
+        </li>
+      </ul>
     </div>
   );
 };
