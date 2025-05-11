@@ -84,4 +84,5 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  text-wrap: nowrap;
 }

@@ -6,10 +6,10 @@ import { faFileImage, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-so
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
-  createProject,
   uploadToPresignedUrl,
   updateProjectImage,
   uploadProjectImage,
+  updateProject,
 } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 
@@ -35,14 +35,14 @@ export const UpdateProjectForm = (props: any) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description });
-      const { project } = response || {};
+      const payload = { name, description };
+      await updateProject(currentProject.id, payload);
 
-      if (imageFile && project?.id) {
+      if (imageFile && currentProject?.id) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await uploadProjectImage(project.id);
+        const { url, publicUrl } = await uploadProjectImage(currentProject.id);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(project.id, publicUrl);
+        await updateProjectImage(currentProject.id, publicUrl);
       }
       await refreshProjects();
       closeModal();

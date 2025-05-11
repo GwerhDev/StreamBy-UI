@@ -11,6 +11,7 @@ import { Browser } from '../components/Browser/Browser';
 import { EditProjectModal } from '../components/Modals/EditProjectModal';
 
 export default function ProjectLayout() {
+  const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id } = useParams() || {};
   const dispatch = useDispatch();
@@ -26,7 +27,7 @@ export default function ProjectLayout() {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch]);
+  }, [id, dispatch, projects]);
 
   return (
     <>

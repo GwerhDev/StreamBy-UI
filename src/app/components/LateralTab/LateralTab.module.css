@@ -52,7 +52,7 @@
   align-items: center;
   justify-content: center;
   border-top: solid 1px var(--color-light-400);
-  border-radius: .3rem;
+  border-radius: .2rem;
 }
 
 .user li {

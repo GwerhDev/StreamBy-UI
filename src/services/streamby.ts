@@ -53,6 +53,20 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   return true;
 }
 
+export async function updateProject(projectId: string, payload: { name: string; description?: string }) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) throw new Error('Failed to update project');
+  return await res.json();
+}
+
 export async function updateProjectImage(projectId: string, imageKey: string) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     method: 'PATCH',
