@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import s from './CustomCanvas.module.css';
 
 export const CustomCanvas = (props: any) => {
