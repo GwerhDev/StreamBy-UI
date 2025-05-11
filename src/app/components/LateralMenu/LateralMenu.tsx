@@ -1,13 +1,16 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBox, faChevronDown, faDatabase, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faDatabase, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { Link } from 'react-router-dom';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
+import { CustomCanvas } from '../Canvas/CustomCanvas';
+import { useState } from 'react';
 
 export const LateralMenu = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const [showCanvas, setShowCanvas] = useState(false);
   const { name, id } = currentProject || {};
 
   const handleDeleteProjectModal = () => {
@@ -17,12 +20,28 @@ export const LateralMenu = () => {
 
   return (
     <div className={s.container}>
-      <button className={s.titleButton}>
-        <h4>
-          {name}
-        </h4>
-        <FontAwesomeIcon icon={faChevronDown} />
-      </button>
+      <div className={s.titleButton}>
+        <span className={s.title} onClick={() => setShowCanvas(true)}>
+          <h4>
+            {name}
+          </h4>
+          <FontAwesomeIcon icon={faChevronDown} />
+        </span>
+        <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
+          <ul className={s.projectActionsContainer}>
+            <li className={s.listButton}>
+              <FontAwesomeIcon icon={faArchive} />
+              Archive this project
+            </li>
+            <li>
+              <button onClick={handleDeleteProjectModal} className={s.deleteButton}>
+                <FontAwesomeIcon icon={faTrash} />
+                Delete this project
+              </button>
+            </li>
+          </ul>
+        </CustomCanvas>
+      </div>
       <div className={s.outterMenuContainer}>
         <div className={s.menuContainer}>
           <div className={s.mainMenu}>
@@ -103,10 +122,6 @@ export const LateralMenu = () => {
               )
             }
           </ul>
-          <button onClick={handleDeleteProjectModal} className={s.deleteButton}>
-            <FontAwesomeIcon icon={faTrash} />
-            Delete this project
-          </button>
         </div>
       </div>
     </div >

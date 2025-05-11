@@ -39,7 +39,7 @@ export const CreateProjectForm = () => {
         await updateProjectImage(project.id, publicUrl);
       }
       await refreshProjects();
-      navigate(`/project/${project.id}/dashboard`);
+      navigate(`/project/${project.id}/dashboard/overview`);
       setLoader(false);
       
     } catch (err) {

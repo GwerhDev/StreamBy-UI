@@ -10,6 +10,14 @@
 
 .titleButton {
   width: 100%;
+  height: 2rem;
+  display: flex;
+  position: relative;
+}
+
+.title {
+  width: 100%;
+  height: 100%;
   border-radius: 0;
   padding-inline: 1rem;
   display: flex;
@@ -18,6 +26,29 @@
   background-color: transparent;
   border-bottom: solid .5px var(--color-dark-300);
   color: var(--color-light-300);
+  cursor: pointer;;
+}
+
+.projectActionsContainer {
+  gap: .3rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.listButton {
+  gap: 1rem;
+  padding: .3rem;
+  font-weight: 400;
+  border-radius: 5px;
+  padding-inline: 1rem;
+  color: rgb(199, 199, 199);
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+}
+
+.listButton:hover {
+  background-color: var(--color-dark-100);
 }
 
 .titleButton h4 {
@@ -29,7 +60,7 @@
   text-overflow: ellipsis;
 }
 
-.titleButton:hover {
+.title:hover {
   background-color: var(--color-dark-100);
 }
 
@@ -87,12 +118,13 @@
 
 .deleteButton {
   gap: 1rem;
+  width: 100%;
   display: flex;
-  color: var(--color-dark-800);
+  font-weight: bold;
   align-items: center;
   justify-content: center;
   transition-duration: .4s;
-  font-weight: bold;
+  color: var(--color-dark-800);
 }
 
 .deleteButton:hover {
