@@ -4,11 +4,10 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import streambyIcon from '../../../assets/streamby-icon.svg';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
 
 export const ProjectPresentation = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { image, name, description, url } = currentProject || {};
+  const { image, name, description } = currentProject || {};
 
   const handleEdit = async () => {
     const editProjectModal = document.getElementById("edit-project-modal") as HTMLDivElement | null;
@@ -38,18 +37,9 @@ export const ProjectPresentation = () => {
             <p>{description}</p>
           </li>
           <li>
-            {
-              url
-                ?
-                <span className={s.buttonContainer}>
-                  <ActionButton text="View" href={url} />
-                  <SecondaryButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
-                </span>
-                : 
-                <span className={s.buttonContainer}>
-                  <ActionButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
-                </span>
-            }
+            <span className={s.buttonContainer}>
+              <ActionButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
+            </span>
           </li>
         </ul>
       </div>

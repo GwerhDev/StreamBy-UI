@@ -32,7 +32,9 @@ export default function ProjectLayout() {
   return (
     <>
       <div className="dashboard-sections">
-        <LateralMenu />
+        <div className="lateral-menu">
+          <LateralMenu />
+        </div>
         <Browser>
           <Outlet />
         </Browser>

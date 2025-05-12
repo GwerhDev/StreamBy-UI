@@ -23,7 +23,7 @@ export const Browser = (props: any) => {
   return (
     <div className={s.container}>
       <section className={s.location}>
-        <span className={s.folder}>
+        <span className={s.breadcrumb}  onClick={() => navigate(basePath)}>
           <FontAwesomeIcon icon={faFolder} />
         </span>
         {
