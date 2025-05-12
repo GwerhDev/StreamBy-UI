@@ -12,14 +12,24 @@
 .detailsContainer {
   gap: 3rem;
   width: 100%;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 10px;
   background-color: var(--color-dark-300);
   display: flex;
   overflow: auto;
 }
 
+@media screen and (max-width: 1024px) {
+  .detailsContainer {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
 .details {
+  width: 100%;
   display: flex;
 }
 
@@ -28,7 +38,9 @@
   padding-top: 1rem;
   padding-bottom: 1rem;
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
 }
 
 .imgContainer {
@@ -82,8 +94,10 @@
 }
 
 .title {
-  display: flex;
   gap: 1rem;
+  max-width: 100%;
+  display: flex;
+  overflow: hidden;
   align-items: center;
-  text-wrap: nowrap;
+  text-overflow: ellipsis;
 }

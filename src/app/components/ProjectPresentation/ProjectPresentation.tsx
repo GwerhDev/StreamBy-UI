@@ -4,9 +4,11 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import streambyIcon from '../../../assets/streamby-icon.svg';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 
 export const ProjectPresentation = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { image, name, description, url } = currentProject || {};
 
   const handleEdit = async () => {
     const editProjectModal = document.getElementById("edit-project-modal") as HTMLDivElement | null;
@@ -20,8 +22,8 @@ export const ProjectPresentation = () => {
           <li className={s.imgContainer}>
             <span className={s.imageContainer}>
               {
-                currentProject.image
-                  ? <img src={currentProject.image} alt="Project image" className={s.image} />
+                image
+                  ? <img src={image} alt="Project image" className={s.image} />
                   : <img src={streambyIcon} className={s.defaultImage} />
               }
             </span>
@@ -29,14 +31,25 @@ export const ProjectPresentation = () => {
         </ul>
         <ul className={s.details}>
           <li className={s.title}>
-            <h1>{currentProject.name}</h1>
-            <span className={s.buttonContainer}>
-              <ActionButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
-            </span>
+            <h1>{name}</h1>
           </li>
 
           <li>
-            <p>{currentProject.description}</p>
+            <p>{description}</p>
+          </li>
+          <li>
+            {
+              url
+                ?
+                <span className={s.buttonContainer}>
+                  <ActionButton text="View" href={url} />
+                  <SecondaryButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
+                </span>
+                : 
+                <span className={s.buttonContainer}>
+                  <ActionButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
+                </span>
+            }
           </li>
         </ul>
       </div>
