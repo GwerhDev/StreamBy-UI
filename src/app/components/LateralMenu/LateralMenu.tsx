@@ -1,6 +1,6 @@
 import s from './LateralMenu.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faDatabase, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { Link } from 'react-router-dom';
@@ -32,6 +32,10 @@ export const LateralMenu = () => {
             <li className={s.listButton}>
               <FontAwesomeIcon icon={faArchive} />
               Archive this project
+            </li>
+            <li className={s.listButton}>
+              <FontAwesomeIcon icon={faDoorOpen} />
+              Abandon this project
             </li>
             <li>
               <button onClick={handleDeleteProjectModal} className={s.deleteButton}>
