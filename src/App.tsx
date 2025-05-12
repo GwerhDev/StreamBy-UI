@@ -56,9 +56,11 @@ function App() {
                   <Route path="/project/:id/*" element={<NotFound />} />
 
                 </Route>
-                <Route path="/project/not-found" element={<NotFound />} />
-                <Route path="/project/*" element={<NotFound />} />
+                <Route path="/project/:id/not-found" element={<NotFound />} />
+                <Route path="/project/:id/*" element={<NotFound />} />
               </Route>
+              <Route path="/project/not-found" element={<NotFound />} />
+              <Route path="/project/*" element={<NotFound />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
