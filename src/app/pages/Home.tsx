@@ -2,6 +2,8 @@ import { Start } from "../components/Start/Start"
 
 export const Home = () => {
   return (
-    <Start />
+    <div className="dashboard-sections">
+      <Start />
+    </div>
   )
 }
