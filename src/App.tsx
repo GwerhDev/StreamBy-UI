@@ -9,7 +9,6 @@ import { Login } from './app/pages/Login';
 import { Images } from './app/pages/Images';
 import { Videos } from './app/pages/Videos';
 import { Audios } from './app/pages/Audios';
-import { Project } from './app/pages/Project';
 import { Overview } from './app/pages/Overview';
 import { NotFound } from './app/pages/NotFound';
 import { Dashboard } from './app/pages/Dashboard';
