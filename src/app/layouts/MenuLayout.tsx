@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchProject } from '../../services/streamby';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 import { EditProjectModal } from '../components/Modals/EditProjectModal';
@@ -12,13 +12,18 @@ import { EditProjectModal } from '../components/Modals/EditProjectModal';
 export default function MenuLayout() {
   const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const [shouldHideMenu, setShouldHideMenu] = useState(false);
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const isSmallScreen = window.innerWidth < 1024;
-  const shouldHideMenu = isSmallScreen && location.pathname !== `/project/${id}`;
+  useEffect(() => {
+    const isSmallScreen = window.innerWidth < 1024;
+
+    setShouldHideMenu(isSmallScreen && location.pathname !== `/project/${id}`);
+  }, [location.pathname, id]);
+
 
   useEffect(() => {
     if (!id) return;
@@ -35,7 +40,7 @@ export default function MenuLayout() {
   return (
     <>
       <div className="dashboard-sections">
-      {!shouldHideMenu && <LateralMenu />}
+        {!shouldHideMenu && <LateralMenu />}
         <Outlet />
       </div>
       <LogoutModal />
