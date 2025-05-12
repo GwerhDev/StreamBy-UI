@@ -52,9 +52,9 @@ function App() {
                   <Route path="/project/:id/database" element={<Database />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
+                  <Route path="/project/not-found" element={<NotFound />} />
+                  <Route path="/project/*" element={<NotFound />} />
                 </Route>
-                <Route path="/project/not-found" element={<NotFound />} />
-                <Route path="/project/*" element={<NotFound />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
