@@ -12,18 +12,21 @@ import { EditProjectModal } from '../components/Modals/EditProjectModal';
 export default function MenuLayout() {
   const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const [shouldHideMenu, setShouldHideMenu] = useState(false);
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
+  const shouldHideMenu = isSmallScreen && location.pathname !== `/project/${id}`;
 
   useEffect(() => {
-    const isSmallScreen = window.innerWidth < 1024;
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 1024);
+    };
 
-    setShouldHideMenu(isSmallScreen && location.pathname !== `/project/${id}`);
-  }, [location.pathname, id]);
-
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
