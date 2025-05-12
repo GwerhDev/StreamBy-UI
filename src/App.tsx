@@ -19,6 +19,7 @@ import { Home } from './app/pages/Home';
 import { Storage } from './app/pages/Storage';
 import { Database } from './app/pages/Database';
 import { Settings } from './app/pages/Settings';
+import MenuLayout from './app/layouts/MenuLayout';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -37,23 +38,25 @@ function App() {
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />
-              <Route path="/project/:id" element={<Project />} />
-              <Route element={<ProjectLayout />}>
-                <Route path="/project/:id/dashboard" element={<Dashboard />} />
-                <Route path="/project/:id/dashboard/overview" element={<Overview />} />
 
-                <Route path="/project/:id/storage" element={<Storage />} />
-                <Route path="/project/:id/storage/images" element={<Images />} />
-                <Route path="/project/:id/storage/videos" element={<Videos />} />
-                <Route path="/project/:id/storage/audios" element={<Audios />} />
-                <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
+              <Route path="/project/:id" element={<MenuLayout />}>
+                <Route element={<ProjectLayout />}>
+                  <Route path="/project/:id/dashboard" element={<Dashboard />} />
+                  <Route path="/project/:id/dashboard/overview" element={<Overview />} />
 
-                <Route path="/project/:id/database" element={<Database />} />
+                  <Route path="/project/:id/storage" element={<Storage />} />
+                  <Route path="/project/:id/storage/images" element={<Images />} />
+                  <Route path="/project/:id/storage/videos" element={<Videos />} />
+                  <Route path="/project/:id/storage/audios" element={<Audios />} />
+                  <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
 
-                <Route path="/project/:id/settings" element={<Settings />} />
+                  <Route path="/project/:id/database" element={<Database />} />
+
+                  <Route path="/project/:id/settings" element={<Settings />} />
+                </Route>
+                <Route path="/project/not-found" element={<NotFound />} />
+                <Route path="/project/*" element={<NotFound />} />
               </Route>
-              <Route path="/project/not-found" element={<NotFound />} />
-              <Route path="/project/*" element={<NotFound />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

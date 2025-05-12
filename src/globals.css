@@ -298,32 +298,6 @@ a:hover {
   animation: fadeInOut 3s ease-in-out infinite;
 }
 
-.lateral-menu {
-  gap: 1rem;
-  min-width: 250px;
-  background-color: var(--color-dark-900);
-  border-right: solid .5px var(--color-dark-300);
-  border-bottom: none;
-  overflow: hidden;
-  display: flex;
-}
-
-.lateral-menu-route {
-  gap: 1rem;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-dark-900);
-  border-bottom: none;
-  overflow: hidden;
-  display: flex;
-}
-
-@media screen and (max-width: 1024px) {
-  .lateral-menu {
-    display: none;
-  }
-}
-
 @keyframes fadeInOut {
   0% {
     opacity: .5;

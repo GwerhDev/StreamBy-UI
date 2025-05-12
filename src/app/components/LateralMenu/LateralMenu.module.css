@@ -1,5 +1,11 @@
+@media screen and (min-width: 1024px) {
+  .container {
+    max-width: 250px;
+  }
+}
+
 .container {
-  min-width: 100%;
+  width: 100%;
   gap: 1rem;
   background-color: var(--color-dark-900);
   overflow: hidden;
