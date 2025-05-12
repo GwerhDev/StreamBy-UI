@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -12,9 +12,13 @@ import { EditProjectModal } from '../components/Modals/EditProjectModal';
 export default function MenuLayout() {
   const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { id } = useParams() || {};
+  const { id } = useParams();
+  const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const isSmallScreen = window.innerWidth < 1024;
+  const shouldHideMenu = isSmallScreen && location.pathname !== `/project/${id}`;
 
   useEffect(() => {
     if (!id) return;
@@ -31,7 +35,7 @@ export default function MenuLayout() {
   return (
     <>
       <div className="dashboard-sections">
-        <LateralMenu />
+      {!shouldHideMenu && <LateralMenu />}
         <Outlet />
       </div>
       <LogoutModal />
