@@ -13,7 +13,6 @@ export const LogoutModal = () => {
       if (logoutModal) logoutModal.style.display = 'none';
     }).finally(() => {
       dispatch(clearSession());
-      window.location.href = '/login';
     });
   };
 
