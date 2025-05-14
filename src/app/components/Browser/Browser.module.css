@@ -1,9 +1,11 @@
 .container {
   width: 100%;
+  height: 100%;
   background-color: var(--color-dark-400);
 }
 
 .content {
+  height: 100%;
   overflow-y: auto;
 }
 
