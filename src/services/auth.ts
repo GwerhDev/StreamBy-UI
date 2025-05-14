@@ -15,9 +15,8 @@ export async function fetchAuth() {
   }
 }
 
-export async function fetchLogout(setLoader: any) {
+export async function fetchLogout() {
   try {
-    if (setLoader) setLoader(true);
     const res = await fetch(`${API_BASE}/logout`, {
       credentials: 'include',
     });
