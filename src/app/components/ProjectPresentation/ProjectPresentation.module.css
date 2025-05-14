@@ -23,7 +23,7 @@
 @media screen and (max-width: 1024px) {
   .detailsContainer {
     flex-direction: column;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
     gap: 1rem;
   }
