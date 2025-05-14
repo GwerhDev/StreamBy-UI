@@ -17,6 +17,7 @@
   background-color: var(--color-dark-300);
   display: flex;
   overflow: auto;
+  justify-content: center;
 }
 
 @media screen and (max-width: 1024px) {
