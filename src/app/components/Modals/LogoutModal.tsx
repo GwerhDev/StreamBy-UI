@@ -1,18 +1,20 @@
 import s from './LogoutModal.module.css';
 import { fetchLogout } from '../../../services/auth';
 import { useDispatch } from 'react-redux';
-import { clearSession } from '../../../store/sessionSlice';
+import { clearSession, setLoader } from '../../../store/sessionSlice';
 import { LogoutForm } from '../Forms/LogoutForm';
 
 export const LogoutModal = () => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    await fetchLogout().then(() => {
+    await fetchLogout(setLoader).then(() => {
       const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
       if (logoutModal) logoutModal.style.display = 'none';
+    }).finally(() => {
       dispatch(clearSession());
-    }).finally(() => window.location.href = '/login');
+      window.location.href = '/login';
+    });
   };
 
   const handleCancelLogout = () => {
