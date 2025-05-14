@@ -10,11 +10,11 @@ export const LogoutModal = () => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    await fetchLogout()
-    const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
-    if (logoutModal) logoutModal.style.display = 'none';
-    dispatch(clearSession());
-    navigate('/login');
+    await fetchLogout().then(() => {
+      const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
+      if (logoutModal) logoutModal.style.display = 'none';
+      dispatch(clearSession());
+    }).finally(() => navigate('/login'));
   };
 
   const handleCancelLogout = () => {
