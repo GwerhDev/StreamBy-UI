@@ -14,7 +14,7 @@ export const LogoutModal = () => {
       const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
       if (logoutModal) logoutModal.style.display = 'none';
       dispatch(clearSession());
-    }).finally(() => navigate('/login'));
+    }).finally(() => window.location.href = '/login');
   };
 
   const handleCancelLogout = () => {
