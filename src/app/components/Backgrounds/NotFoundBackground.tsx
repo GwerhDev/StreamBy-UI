@@ -6,7 +6,7 @@ export const NotFoundBackground = () => {
   return (
     <div className={s.container}>
       <FontAwesomeIcon icon={faBan} size="2xl" />
-      <h2>Not Found</h2>
+      <h2>404 - Not Found</h2>
     </div>
   );
 };
