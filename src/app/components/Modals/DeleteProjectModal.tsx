@@ -24,9 +24,7 @@ export const DeleteProjectModal = (props: any) => {
     }
     const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
     if (logoutModal) logoutModal.style.display = 'none';
-    const projects = await fetchProjects();
-    loadProjects(projects);
-    navigate('/');
+    await fetchProjects().then((response) => loadProjects(response)).finally(() => navigate('/'));
   };
 
   const handleCancel = () => {
