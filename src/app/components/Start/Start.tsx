@@ -38,9 +38,9 @@ export const Start = () => {
                         <span className={s.projectImageContainer}>
                           <img className={s.projectImage} src={project.image || defaultImage} alt="" />
                         </span>
-                        <h5>
+                        <h4>
                           {project.name}
-                        </h5>
+                        </h4>
                       </span>
                       <FontAwesomeIcon icon={faRocket} />
                     </li>

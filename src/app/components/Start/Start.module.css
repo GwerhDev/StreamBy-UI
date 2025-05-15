@@ -57,7 +57,7 @@
 
 .projectImageContainer {
   border-radius: 100%;
-  width: 28px;
+  width: 32px;
   aspect-ratio: 1/1;
   border: solid 3px;
   border-color: var(--color-button-primary-hover);
