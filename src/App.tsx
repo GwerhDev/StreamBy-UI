@@ -19,6 +19,7 @@ import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import { Loader } from './app/components/Loader';
 import { EmptyBackground } from './app/components/Backgrounds/EmptyBackground';
+import { OverviewEdit } from './app/pages/OverviewEdit';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/project/:id" element={<EmptyBackground />} />
                 <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
+                <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
 
                 <Route path="/project/:id/storage" element={<Storage />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />

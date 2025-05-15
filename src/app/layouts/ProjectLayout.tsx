@@ -7,7 +7,6 @@ import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
 import { useEffect, useState } from 'react';
 import { fetchProject } from '../../services/streamby';
 import { setCurrentProject } from '../../store/currentProjectSlice';
-import { EditProjectModal } from '../components/Modals/EditProjectModal';
 import { Browser } from '../components/Browser/Browser';
 
 export default function ProjectLayout() {
@@ -54,7 +53,6 @@ export default function ProjectLayout() {
         }
       </div >
       <LogoutModal />
-      <EditProjectModal currentProject={currentProject} />
       <DeleteProjectModal currentProject={currentProject} />
     </>
   );

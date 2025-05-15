@@ -3,8 +3,6 @@ import { DirectoryList } from "../components/Dashboard/DirectoryList"
 
 export const Dashboard = () => {
   return (
-    <div>
-      <DirectoryList list={dashboardDirectoryList} />
-    </div>
+    <DirectoryList list={dashboardDirectoryList} />
   )
 }

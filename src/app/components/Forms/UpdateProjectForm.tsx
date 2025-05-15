@@ -1,4 +1,4 @@
-import s from './CreateProjectForm.module.css';
+import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -12,10 +12,13 @@ import {
   updateProject,
 } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
+import { useNavigate } from 'react-router-dom';
 
-export const UpdateProjectForm = (props: any) => {
-  const { currentProject, closeModal } = props || {};
-
+export const UpdateProjectForm = () => {
+  const currentProject = useSelector((state: RootState) => state.currentProject);
+  const navigate = useNavigate();
   const [name, setName] = useState<string>("");
   const [loader, setLoader] = useState<boolean>(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -45,7 +48,7 @@ export const UpdateProjectForm = (props: any) => {
         await updateProjectImage(currentProject.id, publicUrl);
       }
       await refreshProjects();
-      closeModal();
+      navigate('/project/' + currentProject.id + '/dashboard/overview');
       setLoader(false);
 
     } catch (err) {
@@ -55,7 +58,7 @@ export const UpdateProjectForm = (props: any) => {
   };
 
   const handleCancel = () => {
-    closeModal();
+    navigate('/project/' + currentProject.id + '/dashboard/overview');
   };
 
   const handleImageClick = () => {
@@ -88,60 +91,62 @@ export const UpdateProjectForm = (props: any) => {
   }, [name]);
 
   return (
-    <form className={s.container} onSubmit={handleOnSubmit}>
-      <h3>Udapte Project</h3>
-      <p>Fill the form to update your project</p>
+    <div  className={s.container}>
+      <form onSubmit={handleOnSubmit}>
+        <h3>Udapte Project</h3>
+        <p>Fill the form to update your project</p>
 
-      <ul>
-        <li className={s.imgContainer} onClick={handleImageClick}>
-          {preview ? (
-            <span className={s.previewImageContainer}>
-              <img src={preview} alt="preview" className={s.previewImage} />
+        <ul className={s.formContainer}>
+          <li className={s.imgContainer} onClick={handleImageClick}>
+            {preview ? (
+              <span className={s.previewImageContainer}>
+                <img src={preview} alt="preview" className={s.previewImage} />
+              </span>
+            ) : (
+              <FontAwesomeIcon color="var(--color-dark-400)" size="4x" icon={faFileImage} />
+            )}
+            <span className={s.plusContainer}>
+              <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
             </span>
-          ) : (
-            <FontAwesomeIcon color="var(--color-dark-400)" size="4x" icon={faFileImage} />
-          )}
-          <span className={s.plusContainer}>
-            <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
-          </span>
-        </li>
-        <li>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </li>
-      </ul>
+          </li>
+          <li>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </li>
+        </ul>
 
-      <LabeledInput
-        label="Project's name"
-        type="text"
-        placeholder=""
-        id="name-input"
-        name="name-input"
-        htmlFor="name-input"
-        value={name}
-        onChange={handleInput}
-      />
+        <LabeledInput
+          label="Project's name"
+          type="text"
+          placeholder=""
+          id="name-input"
+          name="name-input"
+          htmlFor="name-input"
+          value={name}
+          onChange={handleInput}
+        />
 
-      <LabeledInput
-        label="Description (optional)"
-        type="text"
-        placeholder=""
-        id="description-input"
-        name="description-input"
-        htmlFor="description-input"
-        value={description}
-        onChange={handleInput}
-      />
+        <LabeledInput
+          label="Description (optional)"
+          type="text"
+          placeholder=""
+          id="description-input"
+          name="description-input"
+          htmlFor="description-input"
+          value={description}
+          onChange={handleInput}
+        />
 
-      <span className={s.buttonContainer}>
-        <ActionButton disabled={disabled || loader} icon={faFloppyDisk} text="Update" type="submit" />
-        <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
-      </span>
-    </form>
+        <span className={s.buttonContainer}>
+          <ActionButton disabled={disabled || loader} icon={faFloppyDisk} text="Update" type="submit" />
+          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
+        </span>
+      </form>
+    </div>
   );
 };

@@ -7,8 +7,11 @@
 
 .content {
   height: 100%;
+  padding: 1rem;
+  display: flex;
   overflow-y: auto;
-  padding-bottom: 1rem;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .location {
