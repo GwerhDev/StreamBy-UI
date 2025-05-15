@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { fetchProject } from '../../services/streamby';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 import { EditProjectModal } from '../components/Modals/EditProjectModal';
+import { Browser } from '../components/Browser/Browser';
 
 export default function MenuLayout() {
   const projects = useSelector((state: RootState) => state.projects);
@@ -18,6 +19,7 @@ export default function MenuLayout() {
   const navigate = useNavigate();
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const shouldHideMenu = isSmallScreen && location.pathname !== `/project/${id}`;
+  const shouldHideBrowser = !isSmallScreen || location.pathname !== `/project/${id}`;
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,8 +46,13 @@ export default function MenuLayout() {
     <>
       <div className="dashboard-sections">
         {!shouldHideMenu && <LateralMenu />}
-        <Outlet />
-      </div>
+        {
+          shouldHideBrowser &&
+          <Browser>
+            <Outlet />
+          </Browser >
+        }
+      </div >
       <LogoutModal />
       <EditProjectModal currentProject={currentProject} />
       <DeleteProjectModal currentProject={currentProject} />

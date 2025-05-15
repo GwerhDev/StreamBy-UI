@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import s from './Browser.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { faChevronRight, faFolder } from '@fortawesome/free-solid-svg-icons';
 
@@ -37,7 +37,6 @@ export const Browser = (props: any) => {
           ))
         }
       </section>
-
       <section className={s.content}>
         {children}
       </section>
