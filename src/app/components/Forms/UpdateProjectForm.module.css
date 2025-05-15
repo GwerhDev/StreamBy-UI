@@ -20,8 +20,8 @@
   width: 100%;
   padding-top: 1rem;
   padding-bottom: 1rem;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .imgContainer {

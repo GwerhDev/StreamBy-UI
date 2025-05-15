@@ -27,7 +27,8 @@
   padding-top: 1rem;
   padding-bottom: 1rem;
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .imgContainer {
