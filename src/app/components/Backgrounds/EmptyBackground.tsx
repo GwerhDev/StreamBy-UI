@@ -1,14 +1,14 @@
-import s from './EmptyBackground.module.css';
-import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import s from './Background.module.css';
+import { faBan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const EmptyBackground = () => {
   return (
     <div className={s.container}>
       <span>
-        <FontAwesomeIcon icon={faFolderOpen} size="10x" />
+        <FontAwesomeIcon icon={faBan} size="10x" />
       </span>
-      <small><strong>Watch me freak</strong></small>
+      <h4>Emptiness is filling me</h4>
     </div>
   );
 };

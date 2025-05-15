@@ -15,11 +15,12 @@ import { NotFound } from './app/pages/NotFound';
 import { Database } from './app/pages/Database';
 import { Settings } from './app/pages/Settings';
 import { Dashboard } from './app/pages/Dashboard';
+import { UserArchive } from './app/pages/UserArchive';
+import { OverviewEdit } from './app/pages/OverviewEdit';
 import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import { Loader } from './app/components/Loader';
-import { EmptyBackground } from './app/components/Backgrounds/EmptyBackground';
-import { OverviewEdit } from './app/pages/OverviewEdit';
+import { RootBackground } from './app/components/Backgrounds/RootBackground';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -38,9 +39,10 @@ function App() {
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />
+              <Route path="/user/archive" element={<UserArchive />} />
 
               <Route path="/project/:id" element={<ProjectLayout />}>
-                <Route path="/project/:id" element={<EmptyBackground />} />
+                <Route path="/project/:id" element={<RootBackground />} />
                 <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                 <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />

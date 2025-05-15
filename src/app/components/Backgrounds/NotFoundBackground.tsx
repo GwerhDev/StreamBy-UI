@@ -1,4 +1,4 @@
-import s from './NotFoundBackground.module.css';
+import s from './Background.module.css';
 import { faBan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 

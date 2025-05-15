@@ -24,6 +24,11 @@ export const LateralTab = (props: any) => {
     navigate("/");
   };
 
+  const handleGoArchive = () => {
+    dispatch(clearCurrentProject());
+    navigate("/user/archive");
+  };
+
   return (
     <div className={s.container}>
       <span className={s.iconContainer}>
@@ -41,7 +46,7 @@ export const LateralTab = (props: any) => {
       </ul>
 
       <ul className={s.user}>
-        <li>
+        <li className={s.archive} onClick={handleGoArchive}>
           <FontAwesomeIcon icon={faArchive} />
         </li>
 
