@@ -17,14 +17,15 @@ export const DeleteProjectModal = (props: any) => {
     try {
       setLoader(true);
       await deleteProject(currentProject?.id);
-      await fetchProjects().then((response) => loadProjects(response)).finally(() => navigate('/'));
+      await fetchProjects().then((response) => loadProjects(response));
       setLoader(false);
+      navigate('/');
+      const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
+      if (logoutModal) logoutModal.style.display = 'none';
     } catch (error) {
       setLoader(false);
       console.error('Error deleting project:', error);
     }
-    const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
-    if (logoutModal) logoutModal.style.display = 'none';
   };
 
   const handleCancel = () => {
