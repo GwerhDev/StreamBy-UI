@@ -28,7 +28,7 @@ export const Start = () => {
           :
           <div className={s.createContainer}>
             <h1>Seek and deploy</h1>
-            <p>Get started by creating a new project</p>
+            <p>Choose a project</p>
             <ul>
               {
                 projects.map((project: any) => {
