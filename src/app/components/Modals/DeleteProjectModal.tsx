@@ -17,6 +17,7 @@ export const DeleteProjectModal = (props: any) => {
     try {
       setLoader(true);
       await deleteProject(currentProject?.id);
+      await fetchProjects().then((response) => loadProjects(response)).finally(() => navigate('/'));
       setLoader(false);
     } catch (error) {
       setLoader(false);
@@ -24,7 +25,6 @@ export const DeleteProjectModal = (props: any) => {
     }
     const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
     if (logoutModal) logoutModal.style.display = 'none';
-    await fetchProjects().then((response) => loadProjects(response)).finally(() => navigate('/'));
   };
 
   const handleCancel = () => {
