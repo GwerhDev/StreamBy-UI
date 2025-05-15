@@ -8,6 +8,7 @@ export const EmptyBackground = () => {
       <span>
         <FontAwesomeIcon icon={faFolderOpen} size="10x" />
       </span>
+      <small><strong>Watch me freak</strong></small>
     </div>
   );
 };
