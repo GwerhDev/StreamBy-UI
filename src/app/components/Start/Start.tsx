@@ -27,7 +27,7 @@ export const Start = () => {
           </div>
           :
           <div className={s.createContainer}>
-            <h1>Seek and deploy</h1>
+            <h2>Seek and deploy</h2>
             <p>Choose a project</p>
             <ul>
               {
