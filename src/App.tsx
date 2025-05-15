@@ -21,6 +21,7 @@ import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import { Loader } from './app/components/Loader';
 import { RootBackground } from './app/components/Backgrounds/RootBackground';
+import { UserAccount } from './app/pages/UserAccount';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -39,6 +40,7 @@ function App() {
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />
+              <Route path="/user" element={<UserAccount />} />
               <Route path="/user/archive" element={<UserArchive />} />
 
               <Route path="/project/:id" element={<ProjectLayout />}>

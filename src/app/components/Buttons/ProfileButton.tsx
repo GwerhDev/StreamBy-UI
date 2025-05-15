@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear, faHome, faRightFromBracket, faUser } from "@fortawesome/free-solid-svg-icons";
-import { ACCOUNT_BASE } from "../../../config/api";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearCurrentProject } from "../../../store/currentProjectSlice";
@@ -29,6 +28,12 @@ export const ProfileButton = (props: any) => {
     dispatch(clearCurrentProject());
     setShowCanvas(false);
     navigate("/");
+  };
+
+  const handleAccount = () => {
+    dispatch(clearCurrentProject());
+    setShowCanvas(false);
+    navigate("/user");
   };
 
   useEffect(() => {
@@ -57,7 +62,7 @@ export const ProfileButton = (props: any) => {
               <button title="Home" onClick={handleGoHome}>
                 <FontAwesomeIcon icon={faHome} />
               </button>
-              <button title="Account" onClick={() => window.location.href = ACCOUNT_BASE}>
+              <button title="Account" onClick={handleAccount}>
                 <FontAwesomeIcon icon={faUser} />
               </button>
               <button title="Settings">

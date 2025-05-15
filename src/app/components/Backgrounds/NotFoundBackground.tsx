@@ -8,7 +8,7 @@ export const NotFoundBackground = () => {
       <span>
         <FontAwesomeIcon icon={faBan} size="10x" />
       </span>
-      <h2>404 - Not Found</h2>
+      <h2>404 - Trapped under code</h2>
     </div>
   );
 };
