@@ -4,8 +4,9 @@ import { deleteProject, fetchProjects } from '../../../services/streamby';
 import { useProjects } from '../../../hooks/useProjects';
 import { FormEvent, useState } from 'react';
 import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
+import { RootState } from '../../../store';
 
-export const DeleteProjectModal = (props: any) => {
+export const DeleteProjectModal = (props: RootState) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const { currentProject } = props || {};
