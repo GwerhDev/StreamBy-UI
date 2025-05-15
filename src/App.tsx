@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { RootState } from './store';
 import { useSelector } from 'react-redux';
 import { useInitSession } from './hooks/useInitSession';
-import MenuLayout from './app/layouts/MenuLayout';
+import ProjectLayout from './app/layouts/ProjectLayout';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import { Home } from './app/pages/Home';
 import { Login } from './app/pages/Login';
@@ -38,7 +38,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />
 
-              <Route path="/project/:id" element={<MenuLayout />}>
+              <Route path="/project/:id" element={<ProjectLayout />}>
                 <Route path="/project/:id" element={<EmptyBackground />} />
                 <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />

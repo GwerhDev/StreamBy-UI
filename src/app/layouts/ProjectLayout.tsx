@@ -10,7 +10,7 @@ import { setCurrentProject } from '../../store/currentProjectSlice';
 import { EditProjectModal } from '../components/Modals/EditProjectModal';
 import { Browser } from '../components/Browser/Browser';
 
-export default function MenuLayout() {
+export default function ProjectLayout() {
   const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id } = useParams();
