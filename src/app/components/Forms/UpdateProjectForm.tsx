@@ -93,7 +93,7 @@ export const UpdateProjectForm = () => {
   return (
     <div  className={s.container}>
       <form onSubmit={handleOnSubmit}>
-        <h3>Udapte Project</h3>
+        <h3>Update Project</h3>
         <p>Fill the form to update your project</p>
 
         <ul className={s.formContainer}>
