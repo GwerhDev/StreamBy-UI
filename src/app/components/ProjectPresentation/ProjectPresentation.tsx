@@ -3,7 +3,6 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import streambyIcon from '../../../assets/streamby-icon.svg';
 import { useNavigate } from 'react-router-dom';
 
 export const ProjectPresentation = () => {
