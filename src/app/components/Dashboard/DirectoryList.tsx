@@ -21,14 +21,14 @@ export const DirectoryList = (props: any) => {
                 <h3>
                   {e.name}
                 </h3>
-                <p>
-                  {e.description}
-                </p>
+                {
+                  e.description && <p> {e.description}</p>
+                }
               </li>
             </Link>
           ))
         }
       </ul>
-    </div>
+    </div >
   )
 }
