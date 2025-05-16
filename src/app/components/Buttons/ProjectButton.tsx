@@ -20,7 +20,7 @@ export const ProjectButton = (props: any) => {
 
   return (
     <button title={name} onClick={handleOnClick} className={container}>
-      <span className={s.imageContainer}>
+      <span>
         {
           image
             ? <img className={s.image} src={image} alt="" />
