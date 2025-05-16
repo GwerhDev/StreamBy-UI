@@ -18,7 +18,7 @@
   flex-direction: column;
   justify-content: center;
   cursor: pointer;
-  background-color: var(--color-dark-900);
+  background-color: var(--color-dark-300);
 }
 
 .article:hover {
