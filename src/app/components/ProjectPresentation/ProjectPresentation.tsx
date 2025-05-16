@@ -23,7 +23,7 @@ export const ProjectPresentation = () => {
             {
               image
                 ? <img src={image} alt="Project image" className={s.image} />
-                : <img src={streambyIcon} className={s.defaultImage} />
+                : <span>{name[0]}</span>
             }
           </span>
         </li>

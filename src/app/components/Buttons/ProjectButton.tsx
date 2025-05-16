@@ -1,5 +1,4 @@
 import s from './ProjectButton.module.css';
-import defaultImg from '../../../assets/streamby-icon.svg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
@@ -17,15 +16,15 @@ export const ProjectButton = (props: any) => {
     navigate(`/project/${id}/dashboard/overview`);
   };
 
-  const imageContainerClass = currentProjectId === id ? `${s.imageContainer} ${s.selected}` : s.imageContainer;
+  const container = currentProjectId === id ? `${s.container} ${s.selected}` : s.container;
 
   return (
-    <button title={name} onClick={handleOnClick} className={s.container}>
-      <span className={imageContainerClass}>
+    <button title={name} onClick={handleOnClick} className={container}>
+      <span className={s.imageContainer}>
         {
-          image 
-            ? <img className={s.image} src={image} alt="" /> 
-            : <img className={s.defaultImage} height={30} src={defaultImg} alt="" />
+          image
+            ? <img className={s.image} src={image} alt="" />
+            : <span className={s.defaultImage}>{project.name[0]}</span>
         }
       </span>
     </button>

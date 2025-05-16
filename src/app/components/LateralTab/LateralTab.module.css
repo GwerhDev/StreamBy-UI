@@ -25,6 +25,7 @@
   height: 100%;
   flex-direction: column;
   overflow-y: auto;
+  align-items: center;
 }
 
 .versionContainer {

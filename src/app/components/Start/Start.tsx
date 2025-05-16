@@ -4,14 +4,13 @@ import { faPlus, faRocket } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import defaultImage from '../../../assets/streamby-icon.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const Start = () => {
   const projects = useSelector((state: RootState) => state.projects);
   const navigate = useNavigate();
 
-  const handleOnClick = () => {
+  const handleCreateProject = () => {
     navigate('/project/create');
   };
 
@@ -23,7 +22,7 @@ export const Start = () => {
           <div className={s.createContainer}>
             <h1>Born to Dev</h1>
             <p>Get started by creating a new project</p>
-            <ActionButton icon={faPlus} text='Create project' onClick={handleOnClick} />
+            <ActionButton icon={faPlus} text='Create project' onClick={handleCreateProject} />
           </div>
           :
           <div className={s.createContainer}>
@@ -36,7 +35,11 @@ export const Start = () => {
                     <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
                       <span className={s.box}>
                         <span className={s.projectImageContainer}>
-                          <img className={s.projectImage} src={project.image || defaultImage} alt="" />
+                          {
+                            project.image
+                              ? <img className={s.projectImage} src={project.image} alt="" />
+                              : <span>{project.name[0]}</span>
+                          }
                         </span>
                         <h4>
                           {project.name}
@@ -47,6 +50,12 @@ export const Start = () => {
                   )
                 })
               }
+              <li className={s.createProject} onClick={handleCreateProject}>
+                <FontAwesomeIcon icon={faPlus} />
+                <h4>
+                  Create a new Project
+                </h4>
+              </li>
             </ul>
           </div>
       }

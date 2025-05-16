@@ -49,7 +49,6 @@
   align-items: center;
   justify-content: center;
   border-color: var(--color-primary);
-  background-color: var(--background-color-dark);
 }
 
 .plusContainer {
@@ -72,19 +71,16 @@
   overflow: hidden;
   align-items: center;
   justify-content: center;
+  font-weight: 900;
+  font-size: 5rem;
+  color: white;
+  opacity: .7;
 }
 
 .image {
   width: 100%;
   object-fit: cover;
   aspect-ratio: 1/1;
-}
-
-.defaultImage {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  background: var(--background-color-dark);
 }
 
 .title {
