@@ -75,48 +75,7 @@
 }
 
 .createContainer ul .createProject {
-  position: relative;
   background-color: transparent;
-  border: dashed 0.2rem transparent;
+  border: dashed .2rem;
   justify-content: center;
-}
-
-.createContainer ul .createProject::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 0.2rem dashed transparent;
-  border-image: repeating-linear-gradient(
-    90deg,
-    black 0 10px,
-    transparent 10px 20px
-  );
-  border-image-slice: 1;
-  pointer-events: none;
-  z-index: 1;
-  animation: dash 2s linear infinite paused;
-}
-
-.createContainer ul .createProject:hover::before {
-  animation-play-state: running;
-}
-
-@keyframes dash {
-  0% {
-    border-image-source: repeating-linear-gradient(
-      90deg,
-      black 0 10px,
-      transparent 10px 20px
-    );
-  }
-  100% {
-    border-image-source: repeating-linear-gradient(
-      90deg,
-      black 20px 30px,
-      transparent 30px 40px
-    );
-  }
 }
