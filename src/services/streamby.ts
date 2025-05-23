@@ -16,20 +16,6 @@ export async function createProject(payload: { name: string; description?: strin
   return response;
 }
 
-export async function getUploadUrl(projectId: string, filename: string, contentType: string) {
-  const res = await fetch(`${API_BASE}/streamby/upload-url`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ filename, contentType, projectId })
-  });
-
-  if (!res.ok) throw new Error('Failed to get presigned URL');
-  return await res.json();
-}
-
 export async function uploadProjectImage(projectId: string) {
   const res = await fetch(`${API_BASE}/streamby/upload-project-image-url/${projectId}`, {
     method: 'GET',
