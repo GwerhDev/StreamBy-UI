@@ -13,4 +13,10 @@
   aspect-ratio: 1/1;
   border: solid;
   border-color: var(--color-button-primary-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-size: 5rem;
 }

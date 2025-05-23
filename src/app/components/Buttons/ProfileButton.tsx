@@ -9,7 +9,7 @@ import { clearCurrentProject } from "../../../store/currentProjectSlice";
 
 export const ProfileButton = (props: any) => {
   const { userData } = props || {};
-  const { profilePic } = userData || {};
+  const { profilePic, username } = userData || {};
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -74,7 +74,11 @@ export const ProfileButton = (props: any) => {
             </ul>
           )}
           <span className={s.profileButton} onClick={handleProfileButton}>
-            <img src={profilePic} alt="Profile picture" width="100%" />
+            {
+              profilePic
+                ? <img src={profilePic} alt="Profile picture" width="100%" />
+                : <span>{username[0]}</span>
+            }
           </span>
         </div>
       </span>

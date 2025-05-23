@@ -70,4 +70,24 @@
   border: solid .15rem;
   border-color: var(--color-button-primary-hover);
   cursor: pointer;
+  aspect-ratio: 1/1;
+}
+
+.profileButton span {
+  display: flex;
+  width: 100%;
+  max-width: 2.2rem;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border-top: solid #c7c7c7 1px;
+  border-radius: 100%;
+  background: var(--background-gradient-color);
+  border: solid .15rem;
+  border-color: var(--color-button-primary-hover);
+  cursor: pointer;
+  text-transform: uppercase;
+  padding: 1rem;
+  font-weight: 800;
 }

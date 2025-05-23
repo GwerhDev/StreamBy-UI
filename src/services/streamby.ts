@@ -1,3 +1,4 @@
+import { NavigateFunction } from "react-router-dom";
 import { API_BASE } from "../config/api";
 
 export async function createProject(payload: { name: string; description?: string }) {
@@ -11,7 +12,8 @@ export async function createProject(payload: { name: string; description?: strin
   });
 
   if (!res.ok) throw new Error('Failed to create project');
-  return await res.json();
+  const response = await res.json();
+  return response;
 }
 
 export async function getUploadUrl(projectId: string, filename: string, contentType: string) {
@@ -90,7 +92,7 @@ export async function fetchProjects() {
   return projects;
 }
 
-export async function fetchProject(projectId: string, navigate: any) {
+export async function fetchProject(projectId: string, navigate: NavigateFunction) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     method: 'GET',
     credentials: 'include',
@@ -105,11 +107,15 @@ export async function fetchProject(projectId: string, navigate: any) {
 }
 
 export async function deleteProject(projectId: string) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  });
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
 
-  if (!res.ok) throw new Error('Failed to delete project');
-  return await res.json();
+    if (!res.ok) throw new Error('Failed to delete project');
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+  }
 }
