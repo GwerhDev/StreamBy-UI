@@ -1,7 +1,9 @@
-import { EmptyBackground } from "../components/Backgrounds/EmptyBackground"
+import { ProjectArchive } from "../components/Archives/ProjectArchive"
 
 export const UserArchive = () => {
   return (
-    <EmptyBackground />
+    <div className="dashboard-sections">
+      <ProjectArchive />
+    </div>
   )
 }

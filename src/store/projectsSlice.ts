@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  image?: string;
-  members: { userId: string; role: string }[];
-  rootFolders?: any[];
-  settings?: {
-    allowUpload?: boolean;
-    allowSharing?: boolean;
-  };
-}
+import { Project } from '../interfaces';
 
 const initialState: Project[] = [];
 

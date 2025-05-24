@@ -1,26 +1,42 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import { LateralTab } from '../components/LateralTab/LateralTab';
-import { useEffect } from 'react';
-import { fetchProjects } from '../../services/streamby';
+import { useEffect, useState } from 'react';
+import { fetchArchivedProjects, fetchProjects } from '../../services/streamby';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import { clearCurrentProject } from '../../store/currentProjectSlice';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { name, image } = currentProject || {};
-  const { projectList, loadProjects } = useProjects();
+  const { projectList, loadProjects, loadArchivedProjects } = useProjects();
   const { logged } = session;
-  const title = name || "StreamBy";
+  const [title, setTitle] = useState("StreamBy");
+  const params = useParams();
+  const dispatch = useDispatch();
+  const { id } = params;
+
+  useEffect(() => {
+    if (id) {
+      setTitle(name || "StreamBy");
+    } else {
+      setTitle("StreamBy");
+      dispatch(clearCurrentProject());
+    }
+  }, [id, name, dispatch]);
 
   useEffect(() => {
     (async () => {
       loadProjects([]);
+      loadArchivedProjects([]);
       if (!logged) return;
       const projects = await fetchProjects();
       loadProjects(projects);
+      const archivedProjects = await fetchArchivedProjects();
+      loadArchivedProjects(archivedProjects);
     })();
   }, [logged]);
 

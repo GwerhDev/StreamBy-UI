@@ -1,13 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-type Session = {
-  logged: boolean;
-  loader: boolean;
-  userId?: string;
-  role?: string;
-  username?: string;
-  profilePic?: string;
-};
+import { Session } from '../interfaces';
 
 const initialState: Session = { logged: false, loader: true };
 

@@ -1,14 +1,20 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { setProjects } from '../store/projectsSlice';
-import { RootState } from '../store';
 import { fetchProjects } from '../services/streamby';
+import { RootState } from '../store';
+import { setProjects } from '../store/projectsSlice';
+import { setArchivedProjects } from '../store/archivedProjectsSlice';
+import { Project } from '../interfaces';
 
 export function useProjects() {
   const dispatch = useDispatch();
   const projectList = useSelector((state: RootState) => state.projects);
 
-  const loadProjects = (projects: any[]) => {
+  const loadProjects = (projects: Project[]) => {
     dispatch(setProjects(projects));
+  };
+
+  const loadArchivedProjects = (projects: Project[]) => {
+    dispatch(setArchivedProjects(projects));
   };
 
   const refreshProjects = async () => {
@@ -16,5 +22,5 @@ export function useProjects() {
     dispatch(setProjects(newList));
   };
 
-  return { projectList, loadProjects, refreshProjects };
+  return { projectList, loadProjects, loadArchivedProjects, refreshProjects };
 }

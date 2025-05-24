@@ -105,3 +105,40 @@ export async function deleteProject(projectId: string) {
     console.error(error);
   }
 }
+
+export async function fetchArchivedProjects() {
+  const res = await fetch(`${API_BASE}/streamby/projects/archived`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch archived projects');
+  const { projects } = await res.json() || {};
+  return projects;
+}
+
+export async function archiveProject(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/archive`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+  
+  if (!res.ok) throw new Error('Failed to archive project');
+  return await res.json();
+}
+
+export async function unarchiveProject(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/unarchive`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+
+  if (!res.ok) throw new Error('Failed to unarchive project');
+  return await res.json();
+}

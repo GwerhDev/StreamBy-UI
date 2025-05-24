@@ -1,10 +1,12 @@
 import s from './Start.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
-import { faPlus, faRocket } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ProjectCard } from '../Cards/ProjectCard';
+import { Project } from '../../../interfaces';
 
 export const Start = () => {
   const projects = useSelector((state: RootState) => state.projects);
@@ -30,22 +32,10 @@ export const Start = () => {
             <p>Choose a project</p>
             <ul>
               {
-                projects.map((project: any) => {
+                projects.map((project: Project) => {
                   return (
                     <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
-                      <span className={s.box}>
-                        <span className={s.projectImageContainer}>
-                          {
-                            project.image
-                              ? <img className={s.projectImage} src={project.image} alt="" />
-                              : <span>{project.name[0]}</span>
-                          }
-                        </span>
-                        <h4>
-                          {project.name}
-                        </h4>
-                      </span>
-                      <FontAwesomeIcon icon={faRocket} />
+                      <ProjectCard project={project} />
                     </li>
                   )
                 })

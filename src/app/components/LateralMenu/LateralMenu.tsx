@@ -3,19 +3,41 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
 import { useState } from 'react';
+import { archiveProject, unarchiveProject } from '../../../services/streamby';
+import { useProjects } from '../../../hooks/useProjects';
 
 export const LateralMenu = () => {
+  const navigate = useNavigate();
+  const { loadProjects, loadArchivedProjects } = useProjects();
+  const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { name, id, members } = currentProject || {};
   const [showCanvas, setShowCanvas] = useState(false);
-  const { name, id } = currentProject || {};
 
   const handleDeleteProjectModal = () => {
     const deleteProjectModal = document.getElementById("delete-project-modal") as HTMLDivElement | null;
     if (deleteProjectModal) deleteProjectModal.style.display = "flex";
+  };
+
+  const handleArchive = async () => {
+    const response = await archiveProject(id);
+    const { projects, archivedProjects } = response || {};
+    loadProjects(projects);
+    loadArchivedProjects(archivedProjects);
+    navigate("/user/archive");
+    setShowCanvas(false);
+  };
+
+  const handleUnarchive = async () => {
+    const response = await unarchiveProject(id);
+    const { projects, archivedProjects } = response || {};
+    loadProjects(projects);
+    loadArchivedProjects(archivedProjects);
+    setShowCanvas(false);
   };
 
   return (
@@ -29,10 +51,19 @@ export const LateralMenu = () => {
         </span>
         <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
           <ul className={s.projectActionsContainer}>
-            <li className={s.listButton}>
-              <FontAwesomeIcon icon={faArchive} />
-              Archive this project
-            </li>
+            {
+              members?.filter(m => m.userId === session.userId)?.[0].archived
+                ?
+                <li onClick={handleUnarchive} className={s.listButton}>
+                  <FontAwesomeIcon icon={faArchive} />
+                  Unarchive this project
+                </li>
+                :
+                <li onClick={handleArchive} className={s.listButton}>
+                  <FontAwesomeIcon icon={faArchive} />
+                  Archive this project
+                </li>
+            }
             <li className={s.listButton}>
               <FontAwesomeIcon icon={faDoorOpen} />
               Abandon this project
