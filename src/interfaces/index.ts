@@ -3,7 +3,7 @@ export interface Project {
   name: string;
   description?: string;
   image?: string;
-  members?: { userId: string; role: string }[];
+  members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: any[];
   settings?: {
     allowUpload?: boolean;
