@@ -6,10 +6,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ProjectCard } from '../Cards/ProjectCard';
-import { Project } from '../../../interfaces';
+import { ProjectList } from '../../../interfaces';
 
 export const Start = () => {
   const projects = useSelector((state: RootState) => state.projects);
+  const filteredList = projects.filter((project: ProjectList) => !project.archived);
   const navigate = useNavigate();
 
   const handleCreateProject = () => {
@@ -19,7 +20,7 @@ export const Start = () => {
   return (
     <div className={s.container}>
       {
-        projects.length === 0
+        filteredList.length === 0
           ?
           <div className={s.createContainer}>
             <h1>Born to Dev</h1>
@@ -32,7 +33,7 @@ export const Start = () => {
             <p>Choose a project</p>
             <ul>
               {
-                projects.map((project: Project) => {
+                filteredList.map((project: ProjectList) => {
                   return (
                     <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
                       <ProjectCard project={project} />

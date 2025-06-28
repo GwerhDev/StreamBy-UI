@@ -1,0 +1,31 @@
+.box {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.box h3 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.projectImageContainer {
+  border-radius: 100%;
+  width: 32px;
+  aspect-ratio: 1/1;
+  border: solid 3px;
+  border-color: var(--color-button-primary-hover);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: white;
+  opacity: .7;
+  text-transform: uppercase;
+}
+
+.projectImage {
+  height: 100%;
+}

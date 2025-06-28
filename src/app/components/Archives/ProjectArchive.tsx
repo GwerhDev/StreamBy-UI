@@ -4,16 +4,17 @@ import { RootState } from "../../../store";
 import { useNavigate } from "react-router-dom";
 import { ProjectCard } from "../Cards/ProjectCard";
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
-import { Project } from '../../../interfaces';
+import { ProjectList } from '../../../interfaces';
 
 export const ProjectArchive = () => {
-  const archivedProjects = useSelector((state: RootState) => state.archivedProjects);
+  const projects = useSelector((state: RootState) => state.projects);
   const navigate = useNavigate();
+  const filteredList = projects.filter((project: ProjectList) => project.archived);
 
   return (
     <div className={s.container}>
       {
-        archivedProjects.length === 0
+        filteredList.length === 0
           ?
           <EmptyBackground />
           :
@@ -22,7 +23,7 @@ export const ProjectArchive = () => {
             <p>Choose a project</p>
             <ul>
               {
-                archivedProjects.map((project: Project) => {
+                filteredList.map((project: ProjectList) => {
                   return (
                     <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
                       <ProjectCard project={project} />

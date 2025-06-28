@@ -12,7 +12,7 @@ import { useProjects } from '../../../hooks/useProjects';
 
 export const LateralMenu = () => {
   const navigate = useNavigate();
-  const { loadProjects, loadArchivedProjects } = useProjects();
+  const { loadProjects } = useProjects();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { name, id, members } = currentProject || {};
@@ -25,18 +25,16 @@ export const LateralMenu = () => {
 
   const handleArchive = async () => {
     const response = await archiveProject(id);
-    const { projects, archivedProjects } = response || {};
+    const { projects } = response || {};
     loadProjects(projects);
-    loadArchivedProjects(archivedProjects);
     navigate("/user/archive");
     setShowCanvas(false);
   };
 
   const handleUnarchive = async () => {
     const response = await unarchiveProject(id);
-    const { projects, archivedProjects } = response || {};
+    const { projects } = response || {};
     loadProjects(projects);
-    loadArchivedProjects(archivedProjects);
     setShowCanvas(false);
   };
 

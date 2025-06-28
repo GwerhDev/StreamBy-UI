@@ -106,17 +106,6 @@ export async function deleteProject(projectId: string) {
   }
 }
 
-export async function fetchArchivedProjects() {
-  const res = await fetch(`${API_BASE}/streamby/projects/archived`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-
-  if (!res.ok) throw new Error('Failed to fetch archived projects');
-  const { projects } = await res.json() || {};
-  return projects;
-}
-
 export async function archiveProject(projectId: string) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/archive`, {
     method: 'PATCH',
@@ -141,4 +130,23 @@ export async function unarchiveProject(projectId: string) {
 
   if (!res.ok) throw new Error('Failed to unarchive project');
   return await res.json();
+}
+
+export async function fetchProjectMembers(projectId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/members`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const { error, details } = await res.json();
+      throw new Error(`Failed to fetch project members: ${error} - ${details}`);
+    }
+    const { members } = await res.json();
+    return members;
+  } catch (error) {
+    console.error('Error fetching project members:', error);
+    throw error;
+  }
 }

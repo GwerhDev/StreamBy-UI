@@ -1,9 +1,9 @@
 import s from './ProjectCard.module.css';
 import { faRocket } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Project } from '../../../interfaces';
+import { ProjectList } from '../../../interfaces';
 
-export const ProjectCard = (props: { project: Project }) => {
+export const ProjectCard = (props: { project: ProjectList }) => {
   const { project } = props || {};
 
   return (

@@ -12,7 +12,7 @@ import { Browser } from '../components/Browser/Browser';
 export default function ProjectLayout() {
   const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const archivedProjects = useSelector((state: RootState) => state.archivedProjects);
+
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -41,7 +41,7 @@ export default function ProjectLayout() {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch, projects, archivedProjects]);
+  }, [id, dispatch, projects]);
 
   return (
     <>

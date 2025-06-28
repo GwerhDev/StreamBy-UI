@@ -1,14 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Project } from '../interfaces';
+import { ProjectList } from '../interfaces';
 
-const initialState: Project[] = [];
+const initialState: ProjectList[] = [];
 
 export const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
     setProjects: (_, action) => action.payload,
-    addProject: (state, action: PayloadAction<Project>) => {
+    addProject: (state, action: PayloadAction<ProjectList>) => {
       state.push(action.payload);
     },
     removeProject: (state, action: PayloadAction<string>) => {

@@ -22,6 +22,10 @@ import { ProjectCreate } from './app/pages/ProjectCreate';
 import { Loader } from './app/components/Loader';
 import { RootBackground } from './app/components/Backgrounds/RootBackground';
 import { UserAccount } from './app/pages/UserAccount';
+import { Exports } from './app/pages/Exports';
+import { ExportsCreate } from './app/pages/ExportsCreate';
+import { ExportsDetails } from './app/pages/ExportsDetails';
+import { Members } from './app/pages/Members';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -48,6 +52,10 @@ function App() {
                 <Route path="/project/:id/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                 <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
+                <Route path="/project/:id/dashboard/members" element={<Members />} />
+                <Route path="/project/:id/dashboard/exports" element={<Exports />} />
+                <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
+                <Route path="/project/:id/dashboard/exports/:export_id" element={<ExportsDetails />} />
 
                 <Route path="/project/:id/storage" element={<Storage />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />

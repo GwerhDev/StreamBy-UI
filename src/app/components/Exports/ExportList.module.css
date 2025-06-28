@@ -1,0 +1,32 @@
+.container {
+  width: 100%;
+  padding: 1rem;
+}
+
+.container ul {
+  gap: 1rem;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.container ul li {
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  padding-inline: 2rem;
+  background-color: var(--color-dark-300);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container ul li:hover {
+  background-color: var(--color-dark-200);
+}
+
+.container ul .createProject {
+  background-color: transparent;
+  border: dashed .2rem;
+  justify-content: center;
+}

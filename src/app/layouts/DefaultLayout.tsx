@@ -1,7 +1,7 @@
 import { Outlet, useParams } from 'react-router-dom';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { useEffect, useState } from 'react';
-import { fetchArchivedProjects, fetchProjects } from '../../services/streamby';
+import { fetchProjects } from '../../services/streamby';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +12,7 @@ export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { name, image } = currentProject || {};
-  const { projectList, loadProjects, loadArchivedProjects } = useProjects();
+  const { projectList, loadProjects } = useProjects();
   const { logged } = session;
   const [title, setTitle] = useState("StreamBy");
   const params = useParams();
@@ -31,12 +31,9 @@ export default function DefaultLayout() {
   useEffect(() => {
     (async () => {
       loadProjects([]);
-      loadArchivedProjects([]);
       if (!logged) return;
       const projects = await fetchProjects();
       loadProjects(projects);
-      const archivedProjects = await fetchArchivedProjects();
-      loadArchivedProjects(archivedProjects);
     })();
   }, [logged]);
 

@@ -3,12 +3,26 @@ export interface Project {
   name: string;
   description?: string;
   image?: string;
+  exports?: exportList[];
   members?: { userId: string; role: string, archived: boolean }[];
-  rootFolders?: any[];
+  rootFolders?: string[];
   settings?: {
     allowUpload?: boolean;
     allowSharing?: boolean;
   };
+}
+
+export interface ProjectList {
+  id: string;
+  name: string;
+  image?: string;
+  description?: string;
+  archived: boolean;
+}
+
+export interface exportList {
+  _id: string;
+  collectionName?: string;
 }
 
 export type Session = {
