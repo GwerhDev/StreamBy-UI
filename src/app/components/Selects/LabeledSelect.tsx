@@ -1,4 +1,5 @@
 import s from "./LabeledSelect.module.css";
+import { Database } from "../../../interfaces";
 
 export const LabeledSelect = (props: any) => {
   const { label, name, value, id, htmlFor, onChange, options } = props || {};

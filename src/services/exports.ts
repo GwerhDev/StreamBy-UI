@@ -1,4 +1,5 @@
 import { API_BASE } from "../config/api";
+import { ExportPayload } from "../interfaces";
 
 export async function getExport(projectId: string, exportId: string) {
   try {
