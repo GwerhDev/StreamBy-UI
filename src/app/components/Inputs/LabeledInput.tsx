@@ -1,7 +1,7 @@
 import s from "./LabeledInput.module.css";
 
 export const LabeledInput = (props: any) => {
-  const { label, name, value, type, placeholder, id, htmlFor, onChange } = props || {};
+  const { label, name, value, type, placeholder, id, htmlFor, onChange } = props;
 
   return (
     <span className={s.inputContainer}>

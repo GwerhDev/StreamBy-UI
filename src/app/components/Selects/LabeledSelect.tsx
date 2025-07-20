@@ -13,7 +13,7 @@ export const LabeledSelect = (props: any) => {
         onChange={onChange}
         className={s.selectInput}
       >
-        {options.map((option: any, index: number) => (
+        {options.map((option: Database, index: number) => (
           <option key={index} value={option.value}>
             {option.name}
           </option>

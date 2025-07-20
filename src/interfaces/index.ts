@@ -76,6 +76,14 @@ export interface ExportDetails {
   exportedFileUrl?: string;
 }
 
+export interface ExportPayload {
+  name?: string;
+  description?: string;
+  collectionName: string;
+  exportType?: 'json' | 'csv' | 'xml';
+  data?: Record<string, any> | Record<string, any>[];
+}
+
 export interface User {
   id: string;
   username: string;
@@ -87,4 +95,25 @@ export interface User {
 export interface Database {
   value: string;
   name: string;
+}
+
+export interface LabeledSelectProps {
+  label: string;
+  name: string;
+  value: string;
+  id: string;
+  htmlFor: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: Database[];
+}
+
+export interface LabeledInputProps {
+  label: string;
+  name: string;
+  value: string;
+  type: string;
+  placeholder: string;
+  id: string;
+  htmlFor: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

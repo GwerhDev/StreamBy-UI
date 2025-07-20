@@ -44,7 +44,7 @@ export async function createExport(projectId: string, payload: Record<string, an
   }
 }
 
-export async function updateExport(projectId: string, exportId: string | undefined, payload: { name: string; description?: string; collectionName: string; data?: Record<string, any> | Record<string, any>[] }) {
+export async function updateExport(projectId: string, exportId: string | undefined, payload: ExportPayload): Promise<any> {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/${exportId}`, {
       method: 'PATCH',
