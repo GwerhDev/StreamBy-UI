@@ -114,7 +114,8 @@ label {
   font-weight: bold;
 }
 
-input {
+input,
+select {
   width: 100%;
   padding-top: .5rem;
   padding-bottom: .5rem;
@@ -135,13 +136,18 @@ input[type="file"] {
 input:hover,
 input:active,
 input:focus,
-input:focus-visible {
+input:focus-visible,
+select:hover,
+select:active,
+select:focus,
+select:focus-visible {
   outline: none;
   background-color: var(--color-dark-800);
   color: var(--color-light-300);
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-bottom: 1px solid var(--color-button-primary);
 }
 

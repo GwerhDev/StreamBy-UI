@@ -15,6 +15,7 @@ import {
 import { Database } from '../../../interfaces';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
+import { LabeledSelect } from '../Selects/LabeledSelect';
 
 export const CreateProjectForm = () => {
   const [name, setName] = useState<string>("");
@@ -153,22 +154,15 @@ export const CreateProjectForm = () => {
           onChange={handleInput}
         />
 
-        <div className={s.labeledSelect}>
-          <label htmlFor="database-select">Database type</label>
-          <select
-            id="database-select"
-            name="database-select"
-            value={selectedDatabase}
-            onChange={(e) => setSelectedDatabase(e.target.value)}
-            className={s.selectInput}
-          >
-            {databases.map((db, index) => (
-              <option key={index} value={db.value}>
-                {db.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <LabeledSelect
+          label="Database type"
+          id="database-select"
+          name="database-select"
+          htmlFor="database-select"
+          value={selectedDatabase}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDatabase(e.target.value)}
+          options={databases}
+        />
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loader} icon={faDiagramProject} text="Create" type="submit" />
