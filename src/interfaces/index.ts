@@ -85,7 +85,6 @@ export interface User {
 }
 
 export interface Database {
-  id: string;
+  value: string;
   name: string;
-  type: string;
 }
