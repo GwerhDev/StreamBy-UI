@@ -1,7 +1,7 @@
 import { NavigateFunction } from "react-router-dom";
 import { API_BASE } from "../config/api";
 
-export async function createProject(payload: { name: string; description?: string; databaseId: string }) {
+export async function createProject(payload: { name: string; description?: string; dbType: string }) {
   const res = await fetch(`${API_BASE}/streamby/projects/create`, {
     method: 'POST',
     credentials: 'include',

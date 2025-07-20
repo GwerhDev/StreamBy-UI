@@ -24,7 +24,7 @@ export const CreateProjectForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
   const [databases, setDatabases] = useState<Database[]>([]);
-  const [selectedDatabaseId, setSelectedDatabaseId] = useState<string>("");
+  const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshProjects } = useProjects();
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export const CreateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, databaseId: selectedDatabaseId });
+      const response = await createProject({ name, description, dbType: selectedDatabase });
       const { project } = response || {};
 
       if (imageFile && project?.id) {
@@ -82,8 +82,8 @@ export const CreateProjectForm = () => {
   };
 
   useEffect(() => {
-    setDisabled(!name || !selectedDatabaseId);
-  }, [name, selectedDatabaseId]);
+    setDisabled(!name || !selectedDatabase);
+  }, [name, selectedDatabase]);
 
   useEffect(() => {
     const fetchDatabases = async () => {
@@ -91,7 +91,7 @@ export const CreateProjectForm = () => {
         const fetchedDatabases = await getDatabases();
         setDatabases(fetchedDatabases);
         if (fetchedDatabases.length > 0) {
-          setSelectedDatabaseId(fetchedDatabases[0].id);
+          setSelectedDatabase(fetchedDatabases[0].value);
         }
       } catch (err) {
         console.error("Failed to fetch databases:", err);
@@ -158,8 +158,8 @@ export const CreateProjectForm = () => {
           <select
             id="database-select"
             name="database-select"
-            value={selectedDatabaseId}
-            onChange={(e) => setSelectedDatabaseId(e.target.value)}
+            value={selectedDatabase}
+            onChange={(e) => setSelectedDatabase(e.target.value)}
             className={s.selectInput}
           >
             {databases.map((db, index) => (
