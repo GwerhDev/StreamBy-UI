@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faTable } from '@fortawesome/free-solid-svg-icons';
 import { Project } from '../../../interfaces';
 
 export const ProjectButton = (props: { project: Project }) => {
@@ -32,7 +32,7 @@ export const ProjectButton = (props: { project: Project }) => {
       </span>
       {dbType && (
         <div className={s.dbTypeIcon}>
-          <FontAwesomeIcon icon={faDatabase} title={dbType} />
+          <FontAwesomeIcon icon={dbType === "sql" ? faTable : faDatabase} title={dbType} />
         </div>
       )}
     </button>
