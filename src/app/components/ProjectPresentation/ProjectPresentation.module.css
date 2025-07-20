@@ -91,4 +91,18 @@
   overflow: hidden;
   align-items: center;
   text-overflow: ellipsis;
+  position: relative;
+}
+
+.dbType {
+  gap: .5rem;
+  background-color: var(--color-dark-400);
+  border-radius: 1rem;
+  padding: .2rem;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-primary);
 }
