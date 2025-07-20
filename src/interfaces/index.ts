@@ -3,6 +3,7 @@ export interface Project {
   name: string;
   description?: string;
   image?: string;
+  dbType?: string;
   exports?: exportList[];
   members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: string[];

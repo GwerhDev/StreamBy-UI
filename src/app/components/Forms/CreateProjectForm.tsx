@@ -10,7 +10,9 @@ import {
   uploadToPresignedUrl,
   updateProjectImage,
   uploadProjectImage,
+  getDatabases,
 } from '../../../services/streamby';
+import { Database } from '../../../interfaces';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
 
@@ -21,6 +23,8 @@ export const CreateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
+  const [databases, setDatabases] = useState<Database[]>([]);
+  const [selectedDatabaseId, setSelectedDatabaseId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshProjects } = useProjects();
   const navigate = useNavigate();
@@ -29,9 +33,9 @@ export const CreateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description });
+      const response = await createProject({ name, description, databaseId: selectedDatabaseId });
       const { project } = response || {};
-      
+
       if (imageFile && project?.id) {
         const contentType = imageFile.type;
         const { url, publicUrl } = await uploadProjectImage(project.id);
@@ -41,7 +45,7 @@ export const CreateProjectForm = () => {
       await refreshProjects();
       navigate(`/project/${project.id}/dashboard/overview`);
       setLoader(false);
-      
+
     } catch (err) {
       setLoader(false);
       alert((err as Error).message);
@@ -78,8 +82,24 @@ export const CreateProjectForm = () => {
   };
 
   useEffect(() => {
-    setDisabled(!name);
-  }, [name]);
+    setDisabled(!name || !selectedDatabaseId);
+  }, [name, selectedDatabaseId]);
+
+  useEffect(() => {
+    const fetchDatabases = async () => {
+      try {
+        const fetchedDatabases = await getDatabases();
+        setDatabases(fetchedDatabases);
+        if (fetchedDatabases.length > 0) {
+          setSelectedDatabaseId(fetchedDatabases[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch databases:", err);
+        alert("Failed to load databases. Please try again later.");
+      }
+    };
+    fetchDatabases();
+  }, []);
 
   return (
     <div className={s.divContainer}>
@@ -132,6 +152,23 @@ export const CreateProjectForm = () => {
           value={description}
           onChange={handleInput}
         />
+
+        <div className={s.labeledSelect}>
+          <label htmlFor="database-select">Database type</label>
+          <select
+            id="database-select"
+            name="database-select"
+            value={selectedDatabaseId}
+            onChange={(e) => setSelectedDatabaseId(e.target.value)}
+            className={s.selectInput}
+          >
+            {databases.map((db, index) => (
+              <option key={index} value={db.value}>
+                {db.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loader} icon={faDiagramProject} text="Create" type="submit" />

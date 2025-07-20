@@ -1,7 +1,7 @@
 import { NavigateFunction } from "react-router-dom";
 import { API_BASE } from "../config/api";
 
-export async function createProject(payload: { name: string; description?: string }) {
+export async function createProject(payload: { name: string; description?: string; databaseId: string }) {
   const res = await fetch(`${API_BASE}/streamby/projects/create`, {
     method: 'POST',
     credentials: 'include',
@@ -149,4 +149,15 @@ export async function fetchProjectMembers(projectId: string) {
     console.error('Error fetching project members:', error);
     throw error;
   }
+}
+
+export async function getDatabases() {
+  const res = await fetch(`${API_BASE}/streamby/databases`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch databases');
+  const { databases } = await res.json() || {};
+  return databases;
 }
