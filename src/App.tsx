@@ -5,7 +5,6 @@ import { useInitSession } from './hooks/useInitSession';
 import ProjectLayout from './app/layouts/ProjectLayout';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import { Home } from './app/pages/Home';
-import { Login } from './app/pages/Login';
 import { Images } from './app/pages/Images';
 import { Videos } from './app/pages/Videos';
 import { Audios } from './app/pages/Audios';
@@ -16,6 +15,7 @@ import { Database } from './app/pages/Database';
 import { Settings } from './app/pages/Settings';
 import { Dashboard } from './app/pages/Dashboard';
 import { UserArchive } from './app/pages/UserArchive';
+import { Unauthorized } from './app/pages/Unauthorized';
 import { OverviewEdit } from './app/pages/OverviewEdit';
 import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
@@ -40,7 +40,7 @@ function App() {
           <Loader />
           :
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route element={<DefaultLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/project/create" element={<ProjectCreate />} />

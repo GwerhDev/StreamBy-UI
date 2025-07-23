@@ -1,10 +1,10 @@
-import s from './LoginForm.module.css';
+import s from './UnauthorizedForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { faUser, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { CLIENT_BASE, CLIENT_NAME, REDIRECT_LOGIN, REDIRECT_SIGNUP } from '../../../config/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-export const LoginForm = () => {
+export const UnauthorizedForm = () => {
 
   return (
     <div className={s.container}>

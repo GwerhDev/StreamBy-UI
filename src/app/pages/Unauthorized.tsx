@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { LoginForm } from '../components/Forms/LoginForm';
+import { UnauthorizedForm } from '../components/Forms/UnauthorizedForm';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 
-export const Login = () => {
+export const Unauthorized = () => {
   const session = useSelector((state: RootState) => state.session);
   const { logged } = session;
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export const Login = () => {
 
   return (
     <div className='d-flex h-full justify-content-center align-items-center flex-dir-col'>
-      <LoginForm />
+      <UnauthorizedForm />
     </div>
   )
 }
