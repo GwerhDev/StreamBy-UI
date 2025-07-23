@@ -12,7 +12,7 @@ export function useInitSession() {
     dispatch(setLoader(true)); 
     (async () => {
       const session = await fetchAuth();
-      if (!session.logged) navigate('/login');
+      if (!session.logged) navigate('/unauthorized');
       dispatch(setSession(session));
       dispatch(setLoader(false));
     })();

@@ -8,7 +8,7 @@ export const sessionSlice = createSlice({
   initialState,
   reducers: {
     setSession: (_, action: PayloadAction<Session>) => action.payload,
-    clearSession: () => (window.location.href = '/login', { logged: false, loader: true }),
+    clearSession: () => (window.location.href = '/unauthorized', { logged: false, loader: true }),
     setLoader: (state, action: PayloadAction<boolean>) => {
       state.loader = action.payload;
     },
