@@ -3,17 +3,19 @@
   position: relative;
 }
 
-
 .modalContent {
+  gap: 1rem;
   top: 1.3rem;
   right: 1rem;
-  position: absolute;
   z-index: 9;
   width: 300px;
   padding: 20px;
   border-radius: 8px;
   color: var(--color-light-100);
   background-color: var(--color-dark-200);
+  display: flex;
+  position: absolute;
+  flex-direction: column;
 }
 
 .dbInfoButton {
