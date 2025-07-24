@@ -3,17 +3,22 @@ import { fetchLogout } from '../../../services/auth';
 import { useDispatch } from 'react-redux';
 import { clearSession } from '../../../store/sessionSlice';
 import { LogoutForm } from '../Forms/LogoutForm';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 
 export const LogoutModal = () => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    await fetchLogout().then(() => {
+    try {
+      await fetchLogout();
+      dispatch(addApiResponse({ message: 'Logged out successfully.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to log out.', type: 'error' }));
+    } finally {
       const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
       if (logoutModal) logoutModal.style.display = 'none';
-    }).finally(() => {
       dispatch(clearSession());
-    });
+    }
   };
 
   const handleCancelLogout = () => {

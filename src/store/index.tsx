@@ -3,6 +3,7 @@ import sessionReducer from './sessionSlice';
 import projectsReducer from './projectsSlice';
 import currentProjectReducer from './currentProjectSlice';
 import managementReducer from './managementSlice';
+import apiResponsesReducer from './apiResponsesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     projects: projectsReducer,
     currentProject: currentProjectReducer,
     management: managementReducer,
+    apiResponses: apiResponsesReducer,
   },
 });
 

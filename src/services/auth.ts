@@ -21,11 +21,14 @@ export async function fetchLogout() {
       credentials: 'include',
     });
 
-    if (!res.ok) return { logged: false };
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+    }
     return await res.json();
 
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { logged: true };
+    throw error;
   }
 }

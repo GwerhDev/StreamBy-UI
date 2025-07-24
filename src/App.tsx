@@ -26,6 +26,7 @@ import { Exports } from './app/pages/Exports';
 import { ExportsCreate } from './app/pages/ExportsCreate';
 import { ExportsDetails } from './app/pages/ExportsDetails';
 import { Members } from './app/pages/Members';
+import { Toast } from './app/components/Toast/Toast';
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -78,6 +79,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
       }
+      <Toast />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { API_BASE } from "../config/api";
 import { ExportPayload } from "../interfaces";
+import { store } from '../store';
+import { addApiResponse } from '../store/apiResponsesSlice';
 
 export async function getExport(projectId: string, exportId: string) {
   try {
@@ -14,9 +16,11 @@ export async function getExport(projectId: string, exportId: string) {
     }
 
     const { data } = await res.json();
+    store.dispatch(addApiResponse({ message: 'Export fetched successfully.', type: 'success' }));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching exports list:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch export.', type: 'error' }));
     return [];
   }
 }
@@ -38,10 +42,11 @@ export async function createExport(projectId: string, payload: Record<string, an
       throw new Error(`Failed to create export: ${error} - ${details}`);
     }
     const { data } = await res.json() || {};
-
+    store.dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
   }
 }
 
@@ -61,9 +66,10 @@ export async function updateExport(projectId: string, exportId: string | undefin
       throw new Error(`Failed to update export: ${error} - ${details}`);
     }
     const { data } = await res.json() || {};
-
+    store.dispatch(addApiResponse({ message: 'Export updated successfully.', type: 'success' }));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update export.', type: 'error' }));
   }
 }
