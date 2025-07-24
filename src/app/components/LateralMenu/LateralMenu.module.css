@@ -135,3 +135,8 @@
   color: var(--color-danger-500);
   background-color: var(--color-danger-100);
 }
+
+.menuList li.activeLink {
+  background-color: var(--color-dark-100);
+  color: var(--color-light-100);
+}

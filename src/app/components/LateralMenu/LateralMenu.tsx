@@ -79,23 +79,28 @@ export const LateralMenu = () => {
         <div className={s.menuContainer}>
           <div className={s.mainMenu}>
             <h5>MAIN MENU</h5>
-            <span className={s.section}>
+            <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/dashboard`) ? s.activeLink : ''}`}>
               <Link to={`/project/${id}/dashboard`}>
                 <h4>DASHBOARD</h4>
               </Link>
               <FontAwesomeIcon icon={faTableColumns} />
             </span>
           </div>
+          
           <ul className={s.menuList}>
             {
-              dashboardDirectoryList.map(({ name, icon, path }, index) =>
-                <Link key={index} to={`/project/${id}/${path}`}>
-                  <li>
-                    {icon && <FontAwesomeIcon icon={icon} />}
-                    {name}
-                  </li>
-                </Link>
-              )
+              dashboardDirectoryList.map(({ name, icon, path }, index) => {
+                const linkPath = `/project/${id}/${path}`;
+                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                return (
+                  <Link key={index} to={linkPath}>
+                    <li className={isActive ? s.activeLink : ''}>
+                      {icon && <FontAwesomeIcon icon={icon} />}
+                      {name}
+                    </li>
+                  </Link>
+                );
+              })
             }
           </ul>
 
@@ -107,14 +112,19 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              storageDirectoryList.map(({ name, icon, path }, index) =>
-                <Link key={index} to={`/project/${id}/${path}`}>
-                  <li>
-                    {icon && <FontAwesomeIcon icon={icon} />}
-                    {name}
-                  </li>
-                </Link>
-              )
+              storageDirectoryList.map(({ name, icon, path }, index) => {
+                const linkPath = `/project/${id}/${path}`;
+                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                console.log(`Storage - Path: ${location.pathname}, Link: ${linkPath}, Active: ${isActive}`);
+                return (
+                  <Link key={index} to={linkPath}>
+                    <li className={isActive ? s.activeLink : ''}>
+                      {icon && <FontAwesomeIcon icon={icon} />}
+                      {name}
+                    </li>
+                  </Link>
+                );
+              })
             }
           </ul>
 
@@ -126,18 +136,22 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              databaseDirectoryList.map(({ name, icon, path }, index) =>
-                <Link key={index} to={`/project/${id}/${path}`}>
-                  <li>
-                    {icon && <FontAwesomeIcon icon={icon} />}
-                    {name}
-                  </li>
-                </Link>
-              )
+              databaseDirectoryList.map(({ name, icon, path }, index) => {
+                const linkPath = `/project/${id}/${path}`;
+                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                return (
+                  <Link key={index} to={linkPath}>
+                    <li className={isActive ? s.activeLink : ''}>
+                      {icon && <FontAwesomeIcon icon={icon} />}
+                      {name}
+                    </li>
+                  </Link>
+                );
+              })
             }
           </ul>
 
-          <span className={s.section}>
+          <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/settings`) ? s.activeLink : ''}`}>
             <Link to={`/project/${id}/settings`}>
               <h4>SETTINGS</h4>
             </Link>
@@ -145,14 +159,18 @@ export const LateralMenu = () => {
           </span>
           <ul className={s.menuList}>
             {
-              settingsDirectoryList.map(({ name, icon, path }, index) =>
-                <Link key={index} to={`/project/${id}/${path}`}>
-                  <li>
-                    {icon && <FontAwesomeIcon icon={icon} />}
-                    {name}
-                  </li>
-                </Link>
-              )
+              settingsDirectoryList.map(({ name, icon, path }, index) => {
+                const linkPath = `/project/${id}/${path}`;
+                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                return (
+                  <Link key={index} to={linkPath}>
+                    <li className={isActive ? s.activeLink : ''}>
+                      {icon && <FontAwesomeIcon icon={icon} />}
+                      {name}
+                    </li>
+                  </Link>
+                );
+              })
             }
           </ul>
         </div>
