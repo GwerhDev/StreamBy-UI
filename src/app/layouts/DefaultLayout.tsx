@@ -1,7 +1,6 @@
 import { Outlet, useParams } from 'react-router-dom';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { useEffect, useState } from 'react';
-import { fetchProjects } from '../../services/streamby';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,8 +13,7 @@ export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { name, image } = currentProject || {};
-  const { projectList, loadProjects } = useProjects();
-  const { logged } = session;
+  const { projectList } = useProjects();
   const [title, setTitle] = useState("StreamBy");
   const params = useParams();
   const dispatch = useDispatch<AppDispatch>();
@@ -29,15 +27,6 @@ export default function DefaultLayout() {
       dispatch(clearCurrentProject());
     }
   }, [id, name, dispatch]);
-
-  useEffect(() => {
-    (async () => {
-      loadProjects([]);
-      if (!logged) return;
-      const projects = await fetchProjects();
-      loadProjects(projects);
-    })();
-  }, [logged]);
 
   useEffect(() => {
     dispatch(fetchDatabases());
