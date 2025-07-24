@@ -36,9 +36,9 @@ export type Session = {
 };
 
 export interface Member {
+  role: string;
   userId: string;
   username: string;
-  role: string;
   profilePic?: string;
 }
 

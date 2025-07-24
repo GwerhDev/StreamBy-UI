@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchProjectMembers } from '../../../services/streamby';
-
-interface Member {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-}
+import { Member } from '../../../interfaces';
 
 export function MemberList() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -35,28 +29,31 @@ export function MemberList() {
     getMembers();
   }, [projectId]);
 
-  if (loading) {
-    return <p>Cargando miembros...</p>;
-  }
-
-  if (error) {
-    return <p style={{ color: 'red' }}>Error: {error}</p>;
-  }
-
-  if (members.length === 0) {
-    return <p>No hay miembros en este proyecto.</p>;
-  }
-
   return (
     <div>
       <h3>Miembros del Proyecto</h3>
-      <ul>
-        {members.map((member, index) => (
-          <li key={index}>
-            <strong>{member.username}</strong> ({member.email}) - {member.role}
-          </li>
-        ))}
-      </ul>
+      {
+        loading
+          ?
+          <p>Cargando...</p>
+          :
+          <>
+            <ul>
+              {error && <p>Error: {error}</p>}
+              {
+                !members.length && !error
+                  ?
+                  <p>No hay miembros en este proyecto.</p>
+                  :
+                  members.map((member, index) => (
+                    <li key={index}>
+                      <strong>{member.username}</strong> - {member.role}
+                    </li>
+                  ))
+              }
+            </ul>
+          </>
+      }
     </div>
   );
 }
