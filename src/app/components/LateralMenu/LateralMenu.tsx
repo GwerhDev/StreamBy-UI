@@ -115,7 +115,6 @@ export const LateralMenu = () => {
               storageDirectoryList.map(({ name, icon, path }, index) => {
                 const linkPath = `/project/${id}/${path}`;
                 const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                console.log(`Storage - Path: ${location.pathname}, Link: ${linkPath}, Active: ${isActive}`);
                 return (
                   <Link key={index} to={linkPath}>
                     <li className={isActive ? s.activeLink : ''}>
