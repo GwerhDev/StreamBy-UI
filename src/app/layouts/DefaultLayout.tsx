@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { fetchDatabases } from '../../store/managementSlice';
+import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
@@ -55,6 +56,7 @@ export default function DefaultLayout() {
               }
               <small className="font-bold">{title}</small>
             </span>
+            <DbInfoButton />
           </div>
           <Outlet />
         </div>

@@ -1,0 +1,39 @@
+.container {
+  padding-inline: 1rem;
+  position: relative;
+}
+
+
+.modalContent {
+  top: 1.3rem;
+  right: 1rem;
+  position: absolute;
+  z-index: 9;
+  width: 300px;
+  padding: 20px;
+  border-radius: 8px;
+  color: var(--color-light-100);
+  background-color: var(--color-dark-200);
+}
+
+.dbInfoButton {
+  gap: 8px;
+  padding: 0;
+  border: none;
+  display: flex;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-radius: 5px;
+  align-items: center;
+  color: var(--color-light-100);
+  background-color: transparent;
+}
+
+.dbInfoButton:hover {
+  background-color: transparent;
+}
+
+.dbInfoButton .icon:hover {
+  color: var(--color-primary);
+  transition: .4s;
+}
