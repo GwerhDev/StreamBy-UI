@@ -10,12 +10,12 @@ import {
   uploadToPresignedUrl,
   updateProjectImage,
   uploadProjectImage,
-  getDatabases,
 } from '../../../services/streamby';
-import { Database } from '../../../interfaces';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
 import { LabeledSelect } from '../Selects/LabeledSelect';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 
 export const CreateProjectForm = () => {
   const [name, setName] = useState<string>("");
@@ -24,11 +24,18 @@ export const CreateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
-  const [databases, setDatabases] = useState<Database[]>([]);
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshProjects } = useProjects();
   const navigate = useNavigate();
+
+  const { databases, loading, error } = useSelector((state: RootState) => state.management);
+
+  useEffect(() => {
+    if (databases.length > 0 && !selectedDatabase) {
+      setSelectedDatabase(databases[0].value);
+    }
+  }, [databases, selectedDatabase]);
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -83,24 +90,16 @@ export const CreateProjectForm = () => {
   };
 
   useEffect(() => {
-    setDisabled(!name || !selectedDatabase);
-  }, [name, selectedDatabase]);
+    setDisabled(!name || !selectedDatabase || loading);
+  }, [name, selectedDatabase, loading]);
 
-  useEffect(() => {
-    const fetchDatabases = async () => {
-      try {
-        const fetchedDatabases = await getDatabases();
-        setDatabases(fetchedDatabases);
-        if (fetchedDatabases.length > 0) {
-          setSelectedDatabase(fetchedDatabases[0].value);
-        }
-      } catch (err) {
-        console.error("Failed to fetch databases:", err);
-        alert("Failed to load databases. Please try again later.");
-      }
-    };
-    fetchDatabases();
-  }, []);
+  if (loading) {
+    return <div>Loading databases...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className={s.divContainer}>

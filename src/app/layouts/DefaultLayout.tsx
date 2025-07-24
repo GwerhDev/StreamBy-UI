@@ -5,8 +5,9 @@ import { fetchProjects } from '../../services/streamby';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import { RootState, AppDispatch } from '../../store';
 import { clearCurrentProject } from '../../store/currentProjectSlice';
+import { fetchDatabases } from '../../store/managementSlice';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
@@ -16,7 +17,7 @@ export default function DefaultLayout() {
   const { logged } = session;
   const [title, setTitle] = useState("StreamBy");
   const params = useParams();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { id } = params;
 
   useEffect(() => {
@@ -36,6 +37,10 @@ export default function DefaultLayout() {
       loadProjects(projects);
     })();
   }, [logged]);
+
+  useEffect(() => {
+    dispatch(fetchDatabases());
+  }, [dispatch]);
 
   return (
     <main>
