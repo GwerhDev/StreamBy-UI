@@ -127,3 +127,10 @@ export interface LabeledInputProps {
   htmlFor: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
+export interface FieldDefinition {
+  name: string;
+  type: string;
+  label: string;
+  required?: boolean;
+}

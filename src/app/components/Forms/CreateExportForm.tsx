@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
-import { Export } from '../../../interfaces';
+import { Export, FieldDefinition } from '../../../interfaces';
 import s from './CreateExportForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -12,13 +12,6 @@ import { faFileExport, faXmark, faPlus, faTrashCan } from '@fortawesome/free-sol
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledSelect } from '../Selects/LabeledSelect';
-
-interface FieldDefinition {
-  name: string;
-  type: string;
-  label: string;
-  required?: boolean;
-}
 
 export function CreateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
