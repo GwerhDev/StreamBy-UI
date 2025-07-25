@@ -22,10 +22,10 @@ export function useProjects() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (logged && !loading && databases.length > 0) {
+    if (logged && !loading && databases && databases.length > 0 && projectList.list.length === 0) {
       refreshProjects();
     }
-  }, [logged, loading, databases.length, refreshProjects]);
+  }, [logged, loading, databases, refreshProjects, projectList.list]);
 
   return { projectList, loadProjects, refreshProjects };
 }

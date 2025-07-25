@@ -1,13 +1,14 @@
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { useEffect, useState } from 'react';
 import { useProjects } from '../../hooks/useProjects';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
-import { clearCurrentProject } from '../../store/currentProjectSlice';
+import { clearCurrentProject, setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
 import { fetchDatabases } from '../../store/managementSlice';
 import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
+import { fetchProject } from '../../services/streamby';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
@@ -17,16 +18,31 @@ export default function DefaultLayout() {
   const [title, setTitle] = useState("StreamBy");
   const params = useParams();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { id } = params;
 
   useEffect(() => {
     if (id) {
-      setTitle(name || "StreamBy");
+      (async () => {
+        try {
+          dispatch(setProjectLoading());
+          const data = await fetchProject(id, navigate);
+          dispatch(setCurrentProject(data));
+        } catch (err) {
+          console.error('Error loading project:', err);
+        }
+      })();
     } else {
       setTitle("StreamBy");
       dispatch(clearCurrentProject());
     }
-  }, [id, name, dispatch]);
+  }, [id, dispatch, navigate]);
+
+  useEffect(() => {
+    if (id) {
+      setTitle(name || "StreamBy");
+    }
+  }, [id, name]);
 
   useEffect(() => {
     dispatch(fetchDatabases());
