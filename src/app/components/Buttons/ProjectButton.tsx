@@ -20,9 +20,8 @@ export const ProjectButton = (props: { project: Project, loading: boolean }) => 
 
   if (loading) {
     return (
-      <button className={`${s.container} ${skeleton.skeleton}`}>
-        <span className={`${s.defaultImage} ${skeleton.skeleton}`}></span>
-        <div className={`${s.dbTypeIcon} ${skeleton.skeleton}`}></div>
+      <button className={`${s.containerSkeleton} ${skeleton.skeleton}`}>
+        <span className={`${s.defaultImageSkeleton} ${skeleton.skeleton}`}></span>
       </button>
     );
   }

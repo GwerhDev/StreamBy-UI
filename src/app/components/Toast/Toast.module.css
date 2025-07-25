@@ -21,9 +21,9 @@
 }
 
 .toast.success {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-dark-500);
 }
 
 .toast.error {
-  background-color: #f44336;
+  background-color: #93443e;
 }

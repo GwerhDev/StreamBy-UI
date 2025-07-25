@@ -1,4 +1,5 @@
-.container {
+.container,
+.containerSkeleton {
   margin: 0;
   width: 50px;
   height: 50px;
@@ -12,6 +13,12 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-dark-200);
+}
+
+.containerSkeleton {
+  cursor: default;
+  border-radius: 100%;
+  overflow: hidden;
 }
 
 .container span:hover {
@@ -42,12 +49,18 @@
   opacity: .7;
 }
 
-.defaultImage {
+.defaultImage,
+.defaultImageSkeleton {
   color: white;
   opacity: .7;
   font-weight: 900;
   font-size: 1.4rem;
   text-transform: uppercase;
+}
+
+.defaultImageSkeleton {
+  border-radius: 100%;
+  overflow: hidden;
 }
 
 .dbTypeIcon {

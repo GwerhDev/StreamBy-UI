@@ -19,7 +19,7 @@ export const ProjectPresentation = () => {
   return (
     <div className={s.container}>
       <ul>
-        <li className={s.imgContainer}>
+        <li className={`${s.imgContainer} ${loading ? s.borderAnimate : ''}`}>
           <span className={`${s.imageContainer} ${loading ? skeleton.skeleton : ''}`}>
             {
               !loading && (
@@ -30,14 +30,14 @@ export const ProjectPresentation = () => {
             }
           </span>
         </li>
-        <li className={`${s.dbType} ${loading ? skeleton.skeleton : ''}`}>
+        <>
           {!loading && dbType && (
-            <>
+            <li className={`${s.dbType} ${loading ? skeleton.skeleton : ''}`}>
               <FontAwesomeIcon icon={dbType === "sql" ? faTable : faDatabase} title={dbType} />
               <span>{dbType}</span>
-            </>
+            </li>
           )}
-        </li>
+        </>
       </ul>
       <ul className={s.details}>
         <li className={`${s.title} ${loading ? skeleton.skeleton : ''}`}>

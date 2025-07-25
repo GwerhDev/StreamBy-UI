@@ -12,7 +12,8 @@
   padding: 20px;
   border-radius: 8px;
   color: var(--color-light-100);
-  background-color: var(--color-dark-200);
+  background-color: var(--color-dark-400);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   position: absolute;
   flex-direction: column;

@@ -4,7 +4,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { removeApiResponse } from '../../../store/apiResponsesSlice';
 import s from './Toast.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 export const Toast: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -27,7 +27,7 @@ export const Toast: React.FC = () => {
           className={`${s.toast} ${response.type === 'error' ? s.error : s.success}`}
           onClick={() => dispatch(removeApiResponse(response.id))}
         >
-          <FontAwesomeIcon icon={response.type === 'error' ? faTimes : faCheckCircle} />
+          <FontAwesomeIcon icon={response.type === 'error' ? faTriangleExclamation : faCheckCircle} />
           {response.message}
         </div>
       ))}
