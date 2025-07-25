@@ -13,6 +13,7 @@ interface DeleteProjectModalProps {
 export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
+  const [confirmText, setConfirmText] = useState<string>("");
   const { currentProject } = props || {};
   const { loadProjects } = useProjects();
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    setConfirmText(value);
     if (value === currentProject?.name) {
       setDisabled(false);
     } else {
@@ -59,6 +61,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
         handleInput={handleInput}
         disabled={disabled}
         loader={loader}
+        confirmText={confirmText}
       />
     </div>
   );

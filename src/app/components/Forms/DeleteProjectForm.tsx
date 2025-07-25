@@ -3,25 +3,16 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { Project } from '../../../interfaces';
-
-interface DeleteProjectFormProps {
-  currentProject: Project | null;
-  handleDeleteProject: (e: React.FormEvent) => void;
-  handleCancel: () => void;
-  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled: boolean;
-  loader: boolean;
-}
+import { DeleteProjectFormProps } from '../../../interfaces';
 
 export const DeleteProjectForm = (props: DeleteProjectFormProps) => {
-  const { currentProject, handleDeleteProject, handleCancel, handleInput, disabled, loader } = props || {};
+  const { currentProject, handleDeleteProject, handleCancel, handleInput, disabled, loader, confirmText } = props || {};
 
   return (
     <form onSubmit={handleDeleteProject} className={s.container} action="">
       <h2>Delete {currentProject?.name}?</h2>
       <p>Confirm that you want to delete this project </p>
-      <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.name}" to submit`} name="confirm-delete" value="" id="confirm-delete" htmlFor="confirm-delete" placeholder="" />
+      <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.name}" to submit`} name="confirm-delete" value={confirmText} id="confirm-delete" htmlFor="confirm-delete" placeholder="" />
 
       <div className={s.buttonContainer}>
         <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />
