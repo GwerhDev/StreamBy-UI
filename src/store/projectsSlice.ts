@@ -9,7 +9,7 @@ export interface ProjectsState {
 
 const initialState: ProjectsState = {
   list: [],
-  loading: false,
+  loading: true,
   error: null,
 };
 
