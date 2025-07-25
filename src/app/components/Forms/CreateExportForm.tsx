@@ -100,7 +100,7 @@ export function CreateExportForm() {
           name="name-input"
           htmlFor="name-input"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
         />
 
         <LabeledInput
@@ -111,7 +111,7 @@ export function CreateExportForm() {
           name="collection-name-input"
           htmlFor="collection-name-input"
           value={collectionName}
-          onChange={(e) => setCollectionName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
         />
 
         <LabeledInput
@@ -122,7 +122,7 @@ export function CreateExportForm() {
           name="description-input"
           htmlFor="description-input"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
         />
 
         <div className={s.fieldsSection}>
@@ -133,28 +133,37 @@ export function CreateExportForm() {
                 label="Field Name"
                 type="text"
                 placeholder=""
+                id={`field-name-${index}`}
+                name={`field-name-${index}`}
+                htmlFor={`field-name-${index}`}
                 value={field.name}
-                onChange={(e) => handleFieldChange(index, "name", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "name", e.target.value)}
               />
               <LabeledSelect
                 label="Field Type"
+                id={`field-type-${index}`}
+                name={`field-type-${index}`}
+                htmlFor={`field-type-${index}`}
                 value={field.type}
                 options={fieldTypes}
-                onChange={(e) => handleFieldChange(index, "type", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange(index, "type", e.target.value)}
               />
               <LabeledInput
                 label="Field Label"
                 type="text"
                 placeholder=""
+                id={`field-label-${index}`}
+                name={`field-label-${index}`}
+                htmlFor={`field-label-${index}`}
                 value={field.label}
-                onChange={(e) => handleFieldChange(index, "label", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "label", e.target.value)}
               />
               <div className={s.checkboxContainer}>
                 <input
                   type="checkbox"
                   id={`required-${index}`}
                   checked={field.required}
-                  onChange={(e) => handleFieldChange(index, "required", e.target.checked)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "required", e.target.checked)}
                 />
                 <label htmlFor={`required-${index}`}>Required</label>
               </div>
