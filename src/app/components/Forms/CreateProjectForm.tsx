@@ -16,6 +16,7 @@ import { useProjects } from '../../../hooks/useProjects';
 import { LabeledSelect } from '../Selects/LabeledSelect';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import { Spinner } from '../Spinner';
 
 export const CreateProjectForm = () => {
   const [name, setName] = useState<string>("");
@@ -103,6 +104,7 @@ export const CreateProjectForm = () => {
 
   return (
     <div className={s.divContainer}>
+      <Spinner isLoading={loader} />
       <form className={s.container} onSubmit={handleOnSubmit}>
         <h3>New Project</h3>
         <p>Fill the form to create a new project</p>

@@ -15,6 +15,7 @@ import { useProjects } from '../../../hooks/useProjects';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
+import { Spinner } from '../Spinner';
 
 export const UpdateProjectForm = () => {
   const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
@@ -92,6 +93,7 @@ export const UpdateProjectForm = () => {
 
   return (
     <div  className={s.container}>
+      <Spinner isLoading={loader} />
       <form onSubmit={handleOnSubmit}>
         <h3>Update Project</h3>
         <p>Fill the form to update your project</p>
