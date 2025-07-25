@@ -1,7 +1,5 @@
 import s from './ProjectButton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faTable } from '@fortawesome/free-solid-svg-icons';
 import { Project } from '../../../interfaces';
@@ -11,11 +9,9 @@ export const ProjectButton = (props: { project: Project }) => {
   const { name, image, id, dbType } = project || {};
   const params = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const currentProjectId = params.id;
 
   const handleOnClick = () => {
-    dispatch(setCurrentProject(project));
     navigate(`/project/${id}/dashboard/overview`);
   };
 

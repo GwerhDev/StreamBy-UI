@@ -41,7 +41,7 @@ export default function ProjectLayout() {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch, projects]);
+  }, [id, dispatch]);
 
   return (
     <>
