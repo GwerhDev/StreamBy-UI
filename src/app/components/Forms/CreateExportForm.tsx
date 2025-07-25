@@ -1,8 +1,15 @@
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
 import { Export } from '../../../interfaces';
+import s from './CreateExportForm.module.css';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { LabeledInput } from '../Inputs/LabeledInput';
+import { Spinner } from '../Spinner';
+import { faFileExport, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
 export function CreateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
@@ -12,6 +19,8 @@ export function CreateExportForm() {
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [disabled, setDisabled] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,49 +49,68 @@ export function CreateExportForm() {
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1); // Go back to the previous page
+  };
+
+  useEffect(() => {
+    setDisabled(!name || !collectionName || loading);
+  }, [name, collectionName, loading]);
+
   return (
-    <div>
-      <h2>Create new Export</h2>
+    <div className={s.container}>
+      <Spinner isLoading={loading} />
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name *</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Description</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Collection's name *</label>
-          <input
-            type="text"
-            value={collectionName}
-            onChange={(e) => setCollectionName(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? "Creando..." : "Crear Export"}
-        </button>
+        <h3>New Export</h3>
+        <p>Fill the form to create a new export</p>
+
+        <LabeledInput
+          label="Export's name"
+          type="text"
+          placeholder=""
+          id="name-input"
+          name="name-input"
+          htmlFor="name-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <LabeledInput
+          label="Collection's name"
+          type="text"
+          placeholder=""
+          id="collection-name-input"
+          name="collection-name-input"
+          htmlFor="collection-name-input"
+          value={collectionName}
+          onChange={(e) => setCollectionName(e.target.value)}
+        />
+
+        <LabeledInput
+          label="Description (optional)"
+          type="text"
+          placeholder=""
+          id="description-input"
+          name="description-input"
+          htmlFor="description-input"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <span className={s.buttonContainer}>
+          <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
+          <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
+        </span>
+
+        {created && (
+          <div>
+            <h4>Export creado:</h4>
+            <pre>{JSON.stringify(created, null, 2)}</pre>
+          </div>
+        )}
+
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
-
-      {created && (
-        <div>
-          <h4>Export creado:</h4>
-          <pre>{JSON.stringify(created, null, 2)}</pre>
-        </div>
-      )}
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
