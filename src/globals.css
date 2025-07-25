@@ -304,6 +304,10 @@ a:hover {
   animation: fadeInOut 3s ease-in-out infinite;
 }
 
+.w-full {
+  width: 100%;
+}
+
 @keyframes fadeInOut {
   0% {
     opacity: .5;

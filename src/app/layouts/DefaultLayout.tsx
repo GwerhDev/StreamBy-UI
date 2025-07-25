@@ -38,6 +38,7 @@ export default function DefaultLayout() {
         <LateralTab userData={session} projectList={projectList} />
         <div className="project-viewer">
           <div className="header-app">
+            <span className="w-full"/>
             <span className="title-container">
               {
                 image &&
