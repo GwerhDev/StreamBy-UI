@@ -1,9 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../services/streamby';
 import { RootState } from '../store';
-import { setProjects } from '../store/projectsSlice';
+import { setProjects, setProjectsLoading } from '../store/projectsSlice';
 import { ProjectList } from '../interfaces';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export function useProjects() {
   const dispatch = useDispatch();
@@ -15,16 +15,17 @@ export function useProjects() {
     dispatch(setProjects(projects));
   };
 
-  const refreshProjects = async () => {
+  const refreshProjects = useCallback(async () => {
+    dispatch(setProjectsLoading());
     const newList = await fetchProjects();
     dispatch(setProjects(newList));
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     if (logged && !loading && databases.length > 0) {
       refreshProjects();
     }
-  }, [logged, loading]);
+  }, [logged, loading, databases.length, refreshProjects]);
 
   return { projectList, loadProjects, refreshProjects };
 }

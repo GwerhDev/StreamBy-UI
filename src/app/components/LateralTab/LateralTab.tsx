@@ -1,5 +1,5 @@
 import s from './LateralTab.module.css';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { faArchive } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,11 +9,14 @@ import { AddProjectButton } from '../Buttons/AddProjectButton';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
 import { ProjectList, Session } from '../../../interfaces';
 import streambyIcon from '../../../assets/streamby-icon.svg';
+import { RootState } from '../../../store';
+import { ProjectsState } from '../../../store/projectsSlice';
 
-export const LateralTab = (props: { projectList: ProjectList[], userData: Session }) => {
+export const LateralTab = (props: { projectList: ProjectsState, userData: Session }) => {
   const { projectList, userData } = props || {};
+  const { loading: projectsLoading } = useSelector((state: RootState) => state.projects);
 
-  const filteredList = projectList.filter((project: ProjectList) => !project.archived);
+  const filteredList = projectList.list.filter((project: ProjectList) => !project.archived);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -40,11 +43,19 @@ export const LateralTab = (props: { projectList: ProjectList[], userData: Sessio
       </span>
       <ul className={s.projects}>
         {
-          filteredList?.map((project: ProjectList, index: number) => (
-            <li key={index}>
-              <ProjectButton project={project} />
-            </li>
-          ))
+          projectsLoading ? (
+            Array.from({ length: 1 }).map((_, index) => (
+              <li key={index}>
+                <ProjectButton project={{ id: '', name: '', dbType: '' }} loading={true} />
+              </li>
+            ))
+          ) : (
+            filteredList?.map((project: ProjectList, index: number) => (
+              <li key={index}>
+                <ProjectButton project={project} loading={false} />
+              </li>
+            ))
+          )
         }
         <AddProjectButton onClick={handleOnclick} />
       </ul>

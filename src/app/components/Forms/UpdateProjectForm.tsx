@@ -17,38 +17,38 @@ import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
 
 export const UpdateProjectForm = () => {
-  const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
   const navigate = useNavigate();
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>(currentProjectData?.name || "");
   const [loader, setLoader] = useState<boolean>(false);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(currentProjectData?.image || null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [description, setDescription] = useState<string>("");
+  const [description, setDescription] = useState<string>(currentProjectData?.description || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshProjects } = useProjects();
 
   useEffect(() => {
-    setName(currentProject?.name || "");
-    setPreview(currentProject?.image || null);
-    setDescription(currentProject?.description || "");
-  }, [currentProject]);
+    setName(currentProjectData?.name || "");
+    setPreview(currentProjectData?.image || null);
+    setDescription(currentProjectData?.description || "");
+  }, [currentProjectData]);
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
       const payload = { name, description };
-      await updateProject(currentProject.id, payload);
+      await updateProject(currentProjectData?.id || '', payload);
 
-      if (imageFile && currentProject?.id) {
+      if (imageFile && currentProjectData?.id) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await uploadProjectImage(currentProject.id);
+        const { url, publicUrl } = await uploadProjectImage(currentProjectData.id);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(currentProject.id, publicUrl);
+        await updateProjectImage(currentProjectData.id, publicUrl);
       }
       await refreshProjects();
-      navigate('/project/' + currentProject.id + '/dashboard/overview');
+      navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
       setLoader(false);
 
     } catch (err) {
@@ -58,7 +58,7 @@ export const UpdateProjectForm = () => {
   };
 
   const handleCancel = () => {
-    navigate('/project/' + currentProject.id + '/dashboard/overview');
+    navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
   };
 
   const handleImageClick = () => {

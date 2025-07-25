@@ -1,16 +1,37 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Project } from '../interfaces';
 
-const initialState: Project | null = { id: "", name: "" };
+interface CurrentProjectState {
+  data: Project | null;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: CurrentProjectState = {
+  data: { id: "", name: "" },
+  loading: false,
+  error: null,
+};
 
 const currentProjectSlice = createSlice({
   name: 'currentProject',
   initialState,
   reducers: {
-    setCurrentProject: (_, action) => action.payload,
-    clearCurrentProject: () => initialState,
+    setCurrentProject: (state, action: PayloadAction<Project>) => {
+      state.data = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
+    clearCurrentProject: (state) => {
+      state.data = initialState.data;
+      state.loading = false;
+      state.error = null;
+    },
+    setProjectLoading: (state) => {
+      state.loading = true;
+    },
   },
 });
 
-export const { setCurrentProject, clearCurrentProject } = currentProjectSlice.actions;
+export const { setCurrentProject, clearCurrentProject, setProjectLoading } = currentProjectSlice.actions;
 export default currentProjectSlice.reducer;

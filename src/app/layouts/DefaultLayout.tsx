@@ -12,7 +12,7 @@ import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { name, image } = currentProject || {};
+  const { name, image } = currentProject.data || {};
   const { projectList } = useProjects();
   const [title, setTitle] = useState("StreamBy");
   const params = useParams();

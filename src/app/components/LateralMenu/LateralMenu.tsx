@@ -15,7 +15,7 @@ export const LateralMenu = () => {
   const { loadProjects } = useProjects();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { name, id, members } = currentProject || {};
+  const { name, id, members } = currentProject.data || {};
   const [showCanvas, setShowCanvas] = useState(false);
 
   const handleDeleteProjectModal = () => {
@@ -24,7 +24,7 @@ export const LateralMenu = () => {
   };
 
   const handleArchive = async () => {
-    const response = await archiveProject(id);
+    const response = await archiveProject(id || '');
     const { projects } = response || {};
     loadProjects(projects);
     navigate("/user/archive");
@@ -32,7 +32,7 @@ export const LateralMenu = () => {
   };
 
   const handleUnarchive = async () => {
-    const response = await unarchiveProject(id);
+    const response = await unarchiveProject(id || '');
     const { projects } = response || {};
     loadProjects(projects);
     setShowCanvas(false);
@@ -50,7 +50,7 @@ export const LateralMenu = () => {
         <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
           <ul className={s.projectActionsContainer}>
             {
-              members?.filter(m => m.userId === session.userId)?.[0].archived
+              members?.filter((m: { userId: string; }) => m.userId === session.userId)?.[0].archived
                 ?
                 <li onClick={handleUnarchive} className={s.listButton}>
                   <FontAwesomeIcon icon={faArchive} />

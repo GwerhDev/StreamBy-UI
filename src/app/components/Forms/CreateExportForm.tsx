@@ -2,14 +2,15 @@ import { useSelector } from "react-redux";
 import { useState } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
+import { Export } from '../../../interfaces';
 
 export function CreateExportForm() {
-  const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [created, setCreated] = useState<any>(null);
+  const [created, setCreated] = useState<Export | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +24,7 @@ export function CreateExportForm() {
     try {
       setLoading(true);
       setError(null);
-      const response = await createExport(currentProject.id, {
+      const response = await createExport(currentProject?.id || '', {
         name,
         description,
         collectionName,
@@ -32,8 +33,8 @@ export function CreateExportForm() {
       setName("");
       setDescription("");
       setCollectionName("");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al crear export");
+    } catch (err: unknown) {
+      setError((err as Error).message || "Error al crear export");
     } finally {
       setLoading(false);
     }

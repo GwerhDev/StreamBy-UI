@@ -1,6 +1,11 @@
 import s from './ProfileCanvas.module.css';
+import { Session } from '../../../interfaces';
 
-export const ProfileCanvas = (props: any) => {
+interface ProfileCanvasProps {
+  userData: Session;
+}
+
+export const ProfileCanvas = (props: ProfileCanvasProps) => {
   const { userData } = props || {};
   const { username, role } = userData || {};
 

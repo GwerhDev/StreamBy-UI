@@ -10,7 +10,7 @@ import { ProjectList } from '../../../interfaces';
 
 export const Start = () => {
   const projects = useSelector((state: RootState) => state.projects);
-  const filteredList = projects.filter((project: ProjectList) => !project.archived);
+  const filteredList = projects.list.filter((project: ProjectList) => !project.archived);
   const navigate = useNavigate();
 
   const handleCreateProject = () => {

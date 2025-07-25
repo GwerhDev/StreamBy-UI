@@ -1,6 +1,7 @@
 import s from "./LabeledInput.module.css";
+import { LabeledInputProps } from '../../../interfaces';
 
-export const LabeledInput = (props: any) => {
+export const LabeledInput = (props: LabeledInputProps) => {
   const { label, name, value, type, placeholder, id, htmlFor, onChange } = props;
 
   return (

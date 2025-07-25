@@ -9,7 +9,7 @@ import { ProjectList } from '../../../interfaces';
 export const ProjectArchive = () => {
   const projects = useSelector((state: RootState) => state.projects);
   const navigate = useNavigate();
-  const filteredList = projects.filter((project: ProjectList) => project.archived);
+  const filteredList = projects.list.filter((project: ProjectList) => project.archived);
 
   return (
     <div className={s.container}>

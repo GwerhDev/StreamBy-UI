@@ -8,8 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export function ExportList() {
-  const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { exports, id } = currentProject;
+  const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
+  const { exports, id } = currentProjectData || {};
   const navigate = useNavigate();
 
   const handleCreateExport = () => {
@@ -20,7 +20,7 @@ export function ExportList() {
     <div className={s.container}>
       <ul>
         {exports?.map((exportItem: exportList) => (
-          <li key={exportItem._id} onClick={() => navigate('/project/' + currentProject.id + "/dashboard/exports/" + exportItem._id)}>
+          <li key={exportItem._id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem._id)}>
             <ExportCard key={exportItem._id} exports={exportItem} />
           </li>
         ))}

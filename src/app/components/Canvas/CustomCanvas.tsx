@@ -1,7 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, ReactNode } from 'react';
 import s from './CustomCanvas.module.css';
 
-export const CustomCanvas = (props: any) => {
+interface CustomCanvasProps {
+  children: ReactNode;
+  showCanvas: boolean;
+  setShowCanvas: (show: boolean) => void;
+}
+
+export const CustomCanvas = (props: CustomCanvasProps) => {
   const { children, showCanvas, setShowCanvas } = props;
   const containerRef = useRef<HTMLDivElement>(null);
 

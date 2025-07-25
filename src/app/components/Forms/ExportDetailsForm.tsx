@@ -29,8 +29,8 @@ export function ExportDetailsForm() {
             setJsonData(JSON.stringify(exportDetails.data, null, 2));
             setFormattedJson(JSON.stringify(exportDetails.data, null, 2));
           }
-        } catch (err: any) {
-          setError(err.message || "Error al cargar los detalles del export");
+        } catch (err: unknown) {
+          setError((err as Error).message || "Error al cargar los detalles del export");
         } finally {
           setLoading(false);
         }
@@ -51,7 +51,7 @@ export function ExportDetailsForm() {
       const parsed = JSON.parse(value);
       setFormattedJson(JSON.stringify(parsed, null, 2));
       setJsonError(null);
-    } catch (err) {
+    } catch {
       setFormattedJson("");
       setJsonError("JSON inválido");
     }
@@ -69,7 +69,7 @@ export function ExportDetailsForm() {
     if (jsonData.trim() !== "") {
       try {
         parsedData = JSON.parse(jsonData);
-      } catch (err) {
+      } catch {
         setJsonError("JSON inválido. Por favor, corrige el formato.");
         return;
       }
@@ -79,15 +79,27 @@ export function ExportDetailsForm() {
       setLoading(true);
       setError(null);
       setJsonError(null);
-      await updateExport(currentProject.id, exportId, {
+      await updateExport(currentProject.data?.id || '', exportId, {
         name,
         description,
         collectionName,
         data: parsedData,
       });
       alert("Export actualizado exitosamente!");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al actualizar export");
+    } catch (error: unknown) {
+      let errorMessage = "Error al actualizar export";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = (error as { response: unknown }).response;
+        if (response && typeof response === 'object' && 'data' in response) {
+          const data = (response as { data: unknown }).data;
+          if (data && typeof data === 'object' && 'error' in data) {
+            errorMessage = (data as { error: string }).error;
+          }
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

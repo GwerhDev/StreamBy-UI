@@ -6,11 +6,10 @@ import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
 import { useEffect, useState } from 'react';
 import { fetchProject } from '../../services/streamby';
-import { setCurrentProject } from '../../store/currentProjectSlice';
+import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
 import { Browser } from '../components/Browser/Browser';
 
 export default function ProjectLayout() {
-  const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
 
   const { id } = useParams();
@@ -34,6 +33,7 @@ export default function ProjectLayout() {
     if (!id) return;
     (async () => {
       try {
+        dispatch(setProjectLoading());
         const data = await fetchProject(id, navigate);
         dispatch(setCurrentProject(data));
 
@@ -55,7 +55,7 @@ export default function ProjectLayout() {
         }
       </div >
       <LogoutModal />
-      <DeleteProjectModal currentProject={currentProject} />
+      <DeleteProjectModal currentProject={currentProject.data} />
     </>
   );
 }

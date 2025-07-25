@@ -1,21 +1,38 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ProjectList } from '../interfaces';
 
-const initialState: ProjectList[] = [];
+export interface ProjectsState {
+  list: ProjectList[];
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: ProjectsState = {
+  list: [],
+  loading: false,
+  error: null,
+};
 
 export const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
-    setProjects: (_, action) => action.payload,
+    setProjects: (state, action: PayloadAction<ProjectList[]>) => {
+      state.list = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
     addProject: (state, action: PayloadAction<ProjectList>) => {
-      state.push(action.payload);
+      state.list.push(action.payload);
     },
     removeProject: (state, action: PayloadAction<string>) => {
-      return state.filter(p => p.id !== action.payload);
+      state.list = state.list.filter(p => p.id !== action.payload);
+    },
+    setProjectsLoading: (state) => {
+      state.loading = true;
     },
   },
 });
 
-export const { setProjects, addProject, removeProject } = projectsSlice.actions;
+export const { setProjects, addProject, removeProject, setProjectsLoading } = projectsSlice.actions;
 export default projectsSlice.reducer;
