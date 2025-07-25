@@ -43,3 +43,18 @@
   color: var(--color-primary);
   transition: .4s;
 }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.refreshButton {
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  color: var(--color-primary);
+  transition: .4s;
+}
