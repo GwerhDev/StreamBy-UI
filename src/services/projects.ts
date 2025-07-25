@@ -19,7 +19,7 @@ export async function createProject(payload: { name: string; description?: strin
       throw new Error(errorData.message || 'Failed to create project');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project created successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -88,7 +88,7 @@ export async function updateProject(projectId: string, payload: { name: string; 
       throw new Error(errorData.message || 'Failed to update project');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project updated successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -111,7 +111,7 @@ export async function updateProjectImage(projectId: string, imageKey: string) {
       throw new Error(errorData.message || 'Failed to update project image');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project image updated successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -174,7 +174,7 @@ export async function deleteProject(projectId: string | undefined) {
     });
 
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project deleted successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -198,7 +198,7 @@ export async function archiveProject(projectId: string) {
       throw new Error(errorData.message || 'Failed to archive project');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project archived successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -222,7 +222,7 @@ export async function unarchiveProject(projectId: string) {
       throw new Error(errorData.message || 'Failed to unarchive project');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project unarchived successfully.', type: 'success' }));
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -243,7 +243,6 @@ export async function fetchProjectMembers(projectId: string) {
       throw new Error(errorData.message || `Failed to fetch project members`);
     }
     const { members } = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project members fetched successfully.', type: 'success' }));
     return members;
   } catch (error: any) {
     console.error('Error fetching project members:', error);
@@ -263,9 +262,9 @@ export async function getDatabases() {
       const errorData = await res.json();
       throw new Error(errorData.message || 'Failed to fetch databases');
     }
-    const { databases } = await res.json() || {};
-    store.dispatch(addApiResponse({ message: 'Databases fetched successfully.', type: 'success' }));
-    return databases;
+    const response = await res.json() || {};
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    return response.databases;
   } catch (error: any) {
     console.error(error);
     store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch databases.', type: 'error' }));
