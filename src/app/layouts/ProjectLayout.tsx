@@ -10,6 +10,7 @@ import { setCurrentProject, setProjectLoading } from '../../store/currentProject
 import { Browser } from '../components/Browser/Browser';
 
 export default function ProjectLayout() {
+  const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
 
   const { id } = useParams();
@@ -30,7 +31,7 @@ export default function ProjectLayout() {
   }, []);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id && projects.loading) return;
     (async () => {
       try {
         dispatch(setProjectLoading());

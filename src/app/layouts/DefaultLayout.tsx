@@ -1,12 +1,11 @@
-import { Outlet, useParams } from 'react-router-dom';
-import { LateralTab } from '../components/LateralTab/LateralTab';
-import { useEffect, useState } from 'react';
-import { useProjects } from '../../hooks/useProjects';
-import { LogoutModal } from '../components/Modals/LogoutModal';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../store';
-import { clearCurrentProject } from '../../store/currentProjectSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useProjects } from '../../hooks/useProjects';
 import { fetchDatabases } from '../../store/managementSlice';
+import { LateralTab } from '../components/LateralTab/LateralTab';
+import { LogoutModal } from '../components/Modals/LogoutModal';
 import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
 
 export default function DefaultLayout() {
@@ -14,19 +13,7 @@ export default function DefaultLayout() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { name, image } = currentProject.data || {};
   const { projectList } = useProjects();
-  const [title, setTitle] = useState("StreamBy");
-  const params = useParams();
   const dispatch = useDispatch<AppDispatch>();
-  const { id } = params;
-
-  useEffect(() => {
-    if (id) {
-      setTitle(name || "StreamBy");
-    } else {
-      setTitle("StreamBy");
-      dispatch(clearCurrentProject());
-    }
-  }, [id, name, dispatch]);
 
   useEffect(() => {
     dispatch(fetchDatabases());
@@ -44,7 +31,7 @@ export default function DefaultLayout() {
                 image &&
                 <img src={image} alt="" />
               }
-              <small className="font-bold">{title}</small>
+              <small className="font-bold">{name || "StreamBy"}</small>
             </span>
             <DbInfoButton />
           </div>

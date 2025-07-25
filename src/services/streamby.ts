@@ -143,8 +143,13 @@ export async function fetchProjects() {
   }
 }
 
-export async function fetchProject(projectId: string, navigate: NavigateFunction) {
+export async function fetchProject(projectId: string | undefined, navigate: NavigateFunction) {
   try {
+    if (!projectId) {
+      navigate('/project/not-found');
+      return;
+    }
+
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
       method: 'GET',
       credentials: 'include',
@@ -195,7 +200,7 @@ export async function archiveProject(projectId: string) {
         'Content-Type': 'application/json'
       },
     });
-    
+
     if (!res.ok) {
       const errorData = await res.json();
       throw new Error(errorData.message || 'Failed to archive project');
