@@ -1,6 +1,6 @@
 import s from './DeleteProjectModal.module.css';
 import { useNavigate } from 'react-router-dom';
-import { deleteProject, fetchProjects } from '../../../services/streamby';
+import { deleteProject } from '../../../services/projects';
 import { useProjects } from '../../../hooks/useProjects';
 import { FormEvent, useState } from 'react';
 import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
@@ -22,7 +22,8 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteProject(currentProject?.id || '');
+      const response = await deleteProject(currentProject?.id);
+      loadProjects(response.projects);
       setLoader(false);
     } catch (error) {
       setLoader(false);
@@ -31,8 +32,6 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
     if (logoutModal) logoutModal.style.display = 'none';
     navigate('/');
-    const projects = await fetchProjects();
-    loadProjects(projects);
   };
 
   const handleCancel = () => {

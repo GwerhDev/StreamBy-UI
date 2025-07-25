@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getDatabases } from '../services/streamby';
+import { getDatabases } from '../services/projects';
 import { Database } from '../interfaces';
 
 interface ManagementState {

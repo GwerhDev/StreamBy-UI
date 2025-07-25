@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchProjectMembers } from '../../../services/streamby';
+import { fetchProjectMembers } from '../../../services/projects';
 import { Member } from '../../../interfaces';
 
 export function MemberList() {

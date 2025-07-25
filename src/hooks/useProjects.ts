@@ -1,9 +1,9 @@
+import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProjects } from '../services/streamby';
 import { RootState } from '../store';
 import { setProjects, setProjectsLoading } from '../store/projectsSlice';
 import { ProjectList } from '../interfaces';
-import { useEffect, useCallback } from 'react';
+import { fetchProjects } from '../services/projects';
 
 export function useProjects() {
   const dispatch = useDispatch();

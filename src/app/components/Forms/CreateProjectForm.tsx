@@ -10,7 +10,7 @@ import {
   uploadToPresignedUrl,
   updateProjectImage,
   uploadProjectImage,
-} from '../../../services/streamby';
+} from '../../../services/projects';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../hooks/useProjects';
 import { LabeledSelect } from '../Selects/LabeledSelect';
@@ -27,7 +27,7 @@ export const CreateProjectForm = () => {
   const [description, setDescription] = useState<string>("");
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { refreshProjects } = useProjects();
+  const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
   const { databases, loading, error } = useSelector((state: RootState) => state.management);
@@ -43,16 +43,16 @@ export const CreateProjectForm = () => {
     try {
       setLoader(true);
       const response = await createProject({ name, description, dbType: selectedDatabase });
-      const { project } = response || {};
+      const { projects, projectId } = response || {};
 
-      if (imageFile && project?.id) {
+      if (imageFile && projectId) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await uploadProjectImage(project.id);
+        const { url, publicUrl } = await uploadProjectImage(projectId);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(project.id, publicUrl);
+        await updateProjectImage(projectId, publicUrl);
       }
-      await refreshProjects();
-      navigate(`/project/${project.id}/dashboard/overview`);
+      loadProjects(projects);
+      navigate(`/project/${projectId}/dashboard/overview`);
       setLoader(false);
 
     } catch (err) {

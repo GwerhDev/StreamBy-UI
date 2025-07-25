@@ -10,7 +10,7 @@ import {
   updateProjectImage,
   uploadProjectImage,
   updateProject,
-} from '../../../services/streamby';
+} from '../../../services/projects';
 import { useProjects } from '../../../hooks/useProjects';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
@@ -27,7 +27,7 @@ export const UpdateProjectForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { refreshProjects } = useProjects();
+  const { loadProjects } = useProjects();
 
   useEffect(() => {
     setName(currentProjectData?.name || "");
@@ -40,15 +40,15 @@ export const UpdateProjectForm = () => {
     try {
       setLoader(true);
       const payload = { name, description };
-      await updateProject(currentProjectData?.id || '', payload);
+      const { projects, projectId } = await updateProject(currentProjectData?.id || '', payload);
 
-      if (imageFile && currentProjectData?.id) {
+      if (imageFile && projectId) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await uploadProjectImage(currentProjectData.id);
+        const { url, publicUrl } = await uploadProjectImage(projectId);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(currentProjectData.id, publicUrl);
+        await updateProjectImage(projectId, publicUrl);
       }
-      await refreshProjects();
+      loadProjects(projects);
       navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
       setLoader(false);
 
@@ -92,7 +92,7 @@ export const UpdateProjectForm = () => {
   }, [name]);
 
   return (
-    <div  className={s.container}>
+    <div className={s.container}>
       <Spinner isLoading={loader} />
       <form onSubmit={handleOnSubmit}>
         <h3>Update Project</h3>

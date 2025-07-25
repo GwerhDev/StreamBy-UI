@@ -43,7 +43,6 @@ export async function uploadProjectImage(projectId: string) {
       throw new Error(errorData.message || 'Failed to get presigned URL');
     }
     const response = await res.json();
-    store.dispatch(addApiResponse({ message: 'Presigned URL fetched successfully.', type: 'success' }));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -65,7 +64,6 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
       const errorData = await res.json();
       throw new Error(errorData.message || 'Failed to upload image');
     }
-    store.dispatch(addApiResponse({ message: 'Image uploaded successfully.', type: 'success' }));
     return true;
   } catch (error: any) {
     console.error(error);
@@ -134,7 +132,6 @@ export async function fetchProjects() {
       throw new Error(errorData.message || 'Failed to fetch projects');
     }
     const { projects } = await res.json() || {};
-    store.dispatch(addApiResponse({ message: 'Projects fetched successfully.', type: 'success' }));
     return projects;
   } catch (error: any) {
     console.error(error);
@@ -161,7 +158,6 @@ export async function fetchProject(projectId: string | undefined, navigate: Navi
       throw new Error(errorData.message || 'Failed to fetch project');
     };
     const { project } = await res.json();
-    store.dispatch(addApiResponse({ message: 'Project fetched successfully.', type: 'success' }));
     return project;
   } catch (error: any) {
     console.error(error);
@@ -170,17 +166,13 @@ export async function fetchProject(projectId: string | undefined, navigate: Navi
   }
 }
 
-export async function deleteProject(projectId: string) {
+export async function deleteProject(projectId: string | undefined) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
       method: 'DELETE',
       credentials: 'include',
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || 'Failed to delete project');
-    }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: 'Project deleted successfully.', type: 'success' }));
     return response;

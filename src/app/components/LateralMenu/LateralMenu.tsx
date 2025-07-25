@@ -1,14 +1,14 @@
 import s from './LateralMenu.module.css';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
-import { Link, useNavigate } from 'react-router-dom';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
-import { CustomCanvas } from '../Canvas/CustomCanvas';
-import { useState } from 'react';
-import { archiveProject, unarchiveProject } from '../../../services/streamby';
+import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';
+import { archiveProject, unarchiveProject } from '../../../services/projects';
+import { CustomCanvas } from '../Canvas/CustomCanvas';
 
 export const LateralMenu = () => {
   const navigate = useNavigate();

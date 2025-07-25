@@ -5,7 +5,7 @@ import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
 import { useEffect, useState } from 'react';
-import { fetchProject } from '../../services/streamby';
+import { fetchProject } from '../../services/projects';
 import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
 import { Browser } from '../components/Browser/Browser';
 
@@ -31,7 +31,7 @@ export default function ProjectLayout() {
   }, []);
 
   useEffect(() => {
-    if (!id && projects.loading) return;
+    if (!id || projects.loading) return;
     (async () => {
       try {
         dispatch(setProjectLoading());
@@ -42,7 +42,7 @@ export default function ProjectLayout() {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch, navigate]);
+  }, [id, dispatch, navigate, projects.loading]);
 
   return (
     <>
