@@ -8,25 +8,58 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faFileExport, faXmark, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { LabeledSelect } from '../Selects/LabeledSelect';
+
+interface FieldDefinition {
+  name: string;
+  type: string;
+  label: string;
+  required?: boolean;
+}
 
 export function CreateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
+  const [fields, setFields] = useState<FieldDefinition[]>([]);
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const navigate = useNavigate();
 
+  const fieldTypes = [
+    { value: "string", label: "String" },
+    { value: "number", label: "Number" },
+    { value: "boolean", label: "Boolean" },
+    { value: "date", label: "Date" },
+  ];
+
+  const handleAddField = () => {
+    setFields([...fields, { name: "", type: "string", label: "", required: false }]);
+  };
+
+  const handleRemoveField = (index: number) => {
+    const newFields = [...fields];
+    newFields.splice(index, 1);
+    setFields(newFields);
+  };
+
+  const handleFieldChange = (index: number, fieldName: keyof FieldDefinition, value: string | boolean) => {
+    const newFields = [...fields];
+    (newFields[index] as any)[fieldName] = value;
+    setFields(newFields);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !collectionName) {
-      setError("Faltan campos obligatorios");
+    if (!name || !collectionName || fields.length === 0) {
+      setError("Faltan campos obligatorios o no se han definido campos.");
       return;
     }
 
@@ -37,11 +70,13 @@ export function CreateExportForm() {
         name,
         description,
         collectionName,
+        fields,
       });
       setCreated(response);
       setName("");
       setDescription("");
       setCollectionName("");
+      setFields([]);
     } catch (err: unknown) {
       setError((err as Error).message || "Error al crear export");
     } finally {
@@ -54,8 +89,8 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
-    setDisabled(!name || !collectionName || loading);
-  }, [name, collectionName, loading]);
+    setDisabled(!name || !collectionName || fields.length === 0 || loading);
+  }, [name, collectionName, fields, loading]);
 
   return (
     <div className={s.container}>
@@ -96,6 +131,49 @@ export function CreateExportForm() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+
+        <div className={s.fieldsSection}>
+          <h4>Fields</h4>
+          {fields.map((field, index) => (
+            <div key={index} className={s.fieldItem}>
+              <LabeledInput
+                label="Field Name"
+                type="text"
+                placeholder=""
+                value={field.name}
+                onChange={(e) => handleFieldChange(index, "name", e.target.value)}
+              />
+              <LabeledSelect
+                label="Field Type"
+                value={field.type}
+                options={fieldTypes}
+                onChange={(e) => handleFieldChange(index, "type", e.target.value)}
+              />
+              <LabeledInput
+                label="Field Label"
+                type="text"
+                placeholder=""
+                value={field.label}
+                onChange={(e) => handleFieldChange(index, "label", e.target.value)}
+              />
+              <div className={s.checkboxContainer}>
+                <input
+                  type="checkbox"
+                  id={`required-${index}`}
+                  checked={field.required}
+                  onChange={(e) => handleFieldChange(index, "required", e.target.checked)}
+                />
+                <label htmlFor={`required-${index}`}>Required</label>
+              </div>
+              <button type="button" onClick={() => handleRemoveField(index)} className={s.removeFieldButton}>
+                <FontAwesomeIcon icon={faTrashCan} />
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={handleAddField} className={s.addFieldButton}>
+            <FontAwesomeIcon icon={faPlus} /> Add Field
+          </button>
+        </div>
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
