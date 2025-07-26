@@ -1,4 +1,5 @@
 import s from './ExportDetailsView.module.css';
+import JsonViewer from '../JsonViewer/JsonViewer';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { API_BASE } from '../../../config/api';
@@ -57,16 +58,15 @@ export const ExportDetailsView: React.FC = () => {
       <p><strong>Export Type:</strong> {exportDetails.type}</p>
       <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
       <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
+
       {exportDetails.type === 'raw' && exportDetails.json && (
         <div>
           <h3>Raw Data:</h3>
-          <div className={s.jsonContainer}>
-            <pre>
-              {JSON.stringify(exportDetails.json, null, 2)}
-            </pre>
+          <div className={s.jsonViewer}>
+            <JsonViewer data={exportDetails.json} />
           </div>
         </div>
       )}
-    </div >
+    </div>
   );
 };
