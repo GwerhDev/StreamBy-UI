@@ -12,11 +12,12 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
       const parsed = JSON.parse(text);
       return { parsedData: parsed, formattedText: JSON.stringify(parsed, null, 2), isValid: true };
     } catch (e) {
+      console.log(e)
       return { parsedData: null, formattedText: text, isValid: false };
     }
   }, []);
 
-  const { parsedData, formattedText, isValid: currentIsValid } = parseAndFormat(value);
+  const { formattedText, isValid: currentIsValid } = parseAndFormat(value);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
