@@ -12,7 +12,7 @@ import { faFileExport, faXmark, faPlus, faTrashCan } from '@fortawesome/free-sol
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledSelect } from '../Selects/LabeledSelect';
-import JsonEditor from '../JsonEditor/JsonEditor';
+import { JsonEditor } from '../JsonEditor/JsonEditor';
 
 export function CreateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
@@ -257,8 +257,6 @@ export function CreateExportForm() {
             <pre>{JSON.stringify(created, null, 2)}</pre>
           </div>
         )}
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
     </div>
   );

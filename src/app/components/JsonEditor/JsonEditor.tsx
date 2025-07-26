@@ -1,15 +1,12 @@
-import React, { useCallback, useRef, useEffect } from 'react';
 import s from './JsonEditor.module.css';
+import React, { useCallback } from 'react';
 
 interface JsonEditorProps {
   value: string;
   onChange: (jsonString: string, data: object | null, isValid: boolean) => void;
 }
 
-const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const highlightRef = useRef<HTMLDivElement>(null);
-
+export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
   const parseAndFormat = useCallback((text: string) => {
     try {
       const parsed = JSON.parse(text);
@@ -27,19 +24,12 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
     onChange(newText, newParsedData, newIsValid);
   };
 
-  const handleScroll = () => {
-    if (textareaRef.current && highlightRef.current) {
-      highlightRef.current.scrollTop = textareaRef.current.scrollTop;
-      highlightRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
-
   const highlightSyntax = (text: string) => {
     if (!currentIsValid) return text; // Don't highlight if invalid
 
     // Basic syntax highlighting (can be expanded)
     text = text.replace(/("(\w+)"):/g, '<span class="' + s.keyName + '">"$2"</span>:');
-    text = text.replace(/"([^"]*\\(?:\\.[^"]*)*)"/g, '<span class="' + s.stringValue + '">"$1"</span>');
+    text = text.replace(/"([^"]*\\(?:\\.[^\"]*)*)"/g, '<span class="' + s.stringValue + '">"$1"</span>');
     text = text.replace(/\b(true|false)\b/g, '<span class="' + s.booleanValue + '">$1</span>');
     text = text.replace(/\b(\d+\.?\d*([eE][+-]?\d+)?)\b/g, '<span class="' + s.numberValue + '">$1</span>');
     text = text.replace(/\b(null)\b/g, '<span class="' + s.nullValue + '">$1</span>');
@@ -49,23 +39,22 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
 
   return (
     <div className={s.jsonEditorContainer}>
-      <textarea
-        ref={textareaRef}
-        className={`${s.textarea} ${!currentIsValid ? s.invalid : ''}`}
-        value={value}
-        onChange={handleChange}
-        onScroll={handleScroll}
-        spellCheck="false"
-      />
-      <div
-        ref={highlightRef}
-        className={`${s.syntaxHighlighting} ${!currentIsValid ? s.invalid : ''}`}
-        dangerouslySetInnerHTML={{ __html: highlightSyntax(formattedText) }}
-      />
-      {!currentIsValid && <div className={s.errorMessage}>Invalid JSON format</div>}
+      <div className={s.editorPanel}>
+        <textarea
+          className={`${s.textarea} ${!currentIsValid ? s.invalid : ''}`}
+          value={value}
+          onChange={handleChange}
+          spellCheck="false"
+          placeholder="Enter JSON here..."
+        />
+      </div>
+      <div className={s.previewPanel}>
+        <div
+          className={`${s.syntaxHighlighting} ${!currentIsValid ? s.invalid : ''}`}
+          dangerouslySetInnerHTML={{ __html: highlightSyntax(formattedText) }}
+        />
+        {!currentIsValid && <div className={s.errorMessage}>Invalid JSON format</div>}
+      </div>
     </div>
   );
 };
-
-export default JsonEditor;
-

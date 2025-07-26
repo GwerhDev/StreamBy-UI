@@ -1,17 +1,25 @@
 .jsonEditorContainer {
-  position: relative;
+  display: flex;
+  gap: var(--size-2);
   width: 100%;
-  height: 300px; /* Fixed height for the editor */
-  border: 1px solid var(--color-dark-300);
-  border-radius: var(--size-1);
+  height: 300px;
+  /* Fixed height for the editor */
   overflow: hidden;
 }
 
-.textarea,
-.syntaxHighlighting {
-  position: absolute;
-  top: 0;
-  left: 0;
+.editorPanel,
+.previewPanel {
+  flex: 1;
+  position: relative;
+}
+
+.previewPanel {
+  overflow: auto;
+  background-color: var(--color-dark-900);
+  border-radius: .3rem;
+}
+
+.textarea {
   width: 100%;
   height: 100%;
   padding: var(--size-2);
@@ -23,22 +31,25 @@
   outline: none;
   border: none;
   resize: none;
-  background-color: transparent;
-  color: transparent; /* Hide textarea text */
-  caret-color: var(--color-light-300); /* Show caret */
+  border-radius: .3rem;
+  background-color: var(--color-dark-900);
+  color: var(--color-light-300);
   white-space: pre-wrap;
   word-break: break-all;
 }
 
-.textarea {
-  z-index: 2;
-}
-
 .syntaxHighlighting {
-  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: var(--size-2);
+  font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  tab-size: 2;
+  -moz-tab-size: 2;
   color: var(--color-light-300);
-  pointer-events: none; /* Allow clicks to pass through to textarea */
-  background-color: var(--color-dark-900);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .textarea.invalid {
@@ -59,19 +70,23 @@
 }
 
 /* Syntax highlighting colors */
-.keyName {
-  color: #9cdcfe; /* Light blue */
+.syntaxHighlighting .keyName {
+  color: #9cdcfe;
+  /* Light blue */
 }
 
-.stringValue {
-  color: #ce9178; /* Orange */
+.syntaxHighlighting .stringValue {
+  color: #ce9178;
+  /* Orange */
 }
 
-.numberValue,
-.booleanValue {
-  color: #b5cea8; /* Green */
+.syntaxHighlighting .numberValue,
+.syntaxHighlighting .booleanValue {
+  color: #b5cea8;
+  /* Green */
 }
 
-.nullValue {
-  color: #569cd6; /* Blue */
+.syntaxHighlighting .nullValue {
+  color: #569cd6;
+  /* Blue */
 }
