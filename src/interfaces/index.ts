@@ -76,14 +76,13 @@ export interface Export {
 export interface ExportDetails {
   id: string;
   name: string;
+  type: string;
+  method: string;
   description?: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
   updatedAt: string;
   projectId: string;
   collectionName: string;
-  exportType: 'json' | 'csv' | 'xml';
-  exportedBy: string;
   exportedFileUrl?: string;
 }
 

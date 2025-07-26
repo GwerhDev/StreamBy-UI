@@ -56,7 +56,7 @@ function App() {
                 <Route path="/project/:id/dashboard/members" element={<Members />} />
                 <Route path="/project/:id/dashboard/exports" element={<Exports />} />
                 <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
-                <Route path="/project/:id/dashboard/exports/:export_id" element={<ExportsDetails />} />
+                <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
 
                 <Route path="/project/:id/storage" element={<Storage />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />

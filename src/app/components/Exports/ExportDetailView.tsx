@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 import { getExport } from '../../../services/exports';
 import { ExportDetails as ExportDetailsInterface } from '../../../interfaces';
-import { API_BASE } from '../../../config/api';
 
-export const ExportDetailsForm: React.FC = () => {
-  const { id, exportId } = useParams<{ id: string; exportId: string }>();
+interface ExportDetailViewProps {
+  exportId: string;
+}
+
+export const ExportDetailView: React.FC<ExportDetailViewProps> = ({ exportId }) => {
+  const { id: projectId } = useSelector((state: RootState) => state.currentProject.data || {});
   const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchExportDetails = async () => {
-      if (!id || !exportId) {
+      if (!projectId || !exportId) {
         setError('Project ID or Export ID is missing.');
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
-        const data = await getExport(id, exportId);
+        const data = await getExport(projectId, exportId);
         if (data) {
           setExportDetails(data);
         } else {
@@ -33,7 +38,7 @@ export const ExportDetailsForm: React.FC = () => {
     };
 
     fetchExportDetails();
-  }, [id, exportId]);
+  }, [projectId, exportId]);
 
   if (loading) {
     return <div>Loading export details...</div>;
@@ -49,14 +54,17 @@ export const ExportDetailsForm: React.FC = () => {
 
   return (
     <div>
-      <h2>Export Details  /{exportDetails.name}</h2>
-      <p><strong>Full endpoint:</strong><a target='_blank' href={`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}> {`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
+      <h2>Export Details</h2>
       <p><strong>Name:</strong> {exportDetails.name}</p>
       <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
-      <p><strong>Method:</strong> {exportDetails.method}</p>
-      <p><strong>Export Type:</strong> {exportDetails.type}</p>
+      <p><strong>Status:</strong> {exportDetails.status}</p>
       <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
       <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
-    </div >
+      <p><strong>Export Type:</strong> {exportDetails.exportType}</p>
+      <p><strong>Exported By:</strong> {exportDetails.exportedBy}</p>
+      {exportDetails.exportedFileUrl && (
+        <p><strong>File URL:</strong> <a href={exportDetails.exportedFileUrl} target="_blank" rel="noopener noreferrer">Download</a></p>
+      )}
+    </div>
   );
 };
