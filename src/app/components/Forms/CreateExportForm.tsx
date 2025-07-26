@@ -26,7 +26,6 @@ export function CreateExportForm() {
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const navigate = useNavigate();
 
@@ -57,28 +56,12 @@ export function CreateExportForm() {
     setRawJsonInputString(jsonString);
     setRawJsonData(data);
     setIsJsonValid(isValid);
-    if (!isValid) {
-      setError("Invalid JSON format");
-    } else {
-      setError(null);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !collectionName) {
-      setError("Faltan campos obligatorios.");
-      return;
-    }
-
-    if (inputMode === 'rawJson' && !isJsonValid) {
-      setError("Please fix the invalid JSON data.");
-      return;
-    }
-
     setLoading(true);
-    setError(null);
 
     try {
       let payload: any = {
@@ -95,7 +78,6 @@ export function CreateExportForm() {
         setRawJsonInputString("{}"); // Reset to empty string
       } else { // form mode
         if (fields.length === 0) {
-          setError("No se han definido campos.");
           setLoading(false);
           return;
         }
@@ -110,7 +92,7 @@ export function CreateExportForm() {
       setCollectionName("");
 
     } catch (err: unknown) {
-      setError((err as Error).message || "Error al crear export");
+      console.error(err);
     } finally {
       setLoading(false);
     }
