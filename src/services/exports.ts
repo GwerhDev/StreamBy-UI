@@ -25,7 +25,7 @@ export async function getExport(projectId: string, exportId: string) {
   }
 }
 
-export async function createExport(projectId: string, payload: Record<string, any> | Record<string, any>[]) {
+export async function createExport(projectId: string, payload: Record<string, any>) {
   try {
 
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/`, {
@@ -47,6 +47,30 @@ export async function createExport(projectId: string, payload: Record<string, an
   } catch (error: any) {
     console.error('Error creating export:', error);
     store.dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
+  }
+}
+
+export async function createRawExport(projectId: string, payload: Record<string, any>) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/raw`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const { error, details } = await res.json();
+      throw new Error(`Failed to create raw export: ${error} - ${details}`);
+    }
+    const { data } = await res.json() || {};
+    store.dispatch(addApiResponse({ message: 'Raw export created successfully.', type: 'success' }));
+    return data;
+  } catch (error: any) {
+    console.error('Error creating raw export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to create raw export.', type: 'error' }));
   }
 }
 

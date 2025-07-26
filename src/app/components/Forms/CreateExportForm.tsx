@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RootState } from "../../../store";
-import { createExport } from "../../../services/exports";
+import { createExport, createRawExport } from "../../../services/exports";
 import { Export, FieldDefinition } from '../../../interfaces';
 import s from './CreateExportForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -12,6 +12,8 @@ import { faFileExport, faXmark, faPlus, faTrashCan } from '@fortawesome/free-sol
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledSelect } from '../Selects/LabeledSelect';
+import JSONEditor from 'jsoneditor';
+import 'jsoneditor/dist/jsoneditor.min.css';
 
 export function CreateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
@@ -19,13 +21,16 @@ export function CreateExportForm() {
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [fields, setFields] = useState<FieldDefinition[]>([]);
-  const [jsonInput, setJsonInput] = useState<string>("[]");
-  const [inputMode, setInputMode] = useState<'form' | 'json'>('form'); // 'form' or 'json'
+  const [rawJsonData, setRawJsonData] = useState<any>({}); // For raw JSON data (object)
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const jsonEditor = useRef<JSONEditor | null>(null);
 
   const fieldTypes = [
     { value: "string", label: "String" },
@@ -53,50 +58,46 @@ export function CreateExportForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let fieldsToSend: FieldDefinition[] = [];
-
-    if (inputMode === 'json') {
-      try {
-        fieldsToSend = JSON.parse(jsonInput);
-        if (!Array.isArray(fieldsToSend)) {
-          setError("JSON input must be an array of field definitions.");
-          return;
-        }
-        // Basic validation for each field in the parsed JSON
-        for (const field of fieldsToSend) {
-          if (!field.name || !field.type || !field.label) {
-            setError("Each field in JSON must have 'name', 'type', and 'label'.");
-            return;
-          }
-        }
-      } catch (err) {
-        setError("Invalid JSON format for fields.");
-        return;
-      }
-    } else {
-      fieldsToSend = fields;
-    }
-
-    if (!name || !collectionName || fieldsToSend.length === 0) {
-      setError("Faltan campos obligatorios o no se han definido campos.");
+    if (!name || !collectionName) {
+      setError("Faltan campos obligatorios.");
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-      const response = await createExport(currentProject?.id || '', {
+      let payload: any = {
         name,
         description,
         collectionName,
-        fields: fieldsToSend,
-      });
-      setCreated(response);
+      };
+
+      if (inputMode === 'rawJson') {
+        // rawJsonData is already an object due to onChange handler
+        payload.jsonData = rawJsonData;
+        const response = await createRawExport(currentProject?.id || '', payload);
+        setCreated(response);
+        setRawJsonData({}); // Reset to empty object
+        if (jsonEditor.current) {
+          jsonEditor.current.set({}); // Clear editor content
+        }
+      } else { // form mode
+        if (fields.length === 0) {
+          setError("No se han definido campos.");
+          setLoading(false);
+          return;
+        }
+        payload.fields = fields;
+        const response = await createExport(currentProject?.id || '', payload);
+        setCreated(response);
+        setFields([]);
+      }
+
       setName("");
       setDescription("");
       setCollectionName("");
-      setFields([]);
-      setJsonInput("[]");
+
     } catch (err: unknown) {
       setError((err as Error).message || "Error al crear export");
     } finally {
@@ -109,9 +110,56 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
-    const isFieldsDefined = inputMode === 'json' ? jsonInput !== "[]" && jsonInput.trim() !== "" : fields.length > 0;
-    setDisabled(!name || !collectionName || !isFieldsDefined || loading);
-  }, [name, collectionName, fields, jsonInput, inputMode, loading]);
+    if (editorRef.current) {
+      const options = {
+        mode: 'code', // or 'tree', 'view'
+        onChange: () => {
+          try {
+            setRawJsonData(jsonEditor.current?.get());
+          } catch (e) {
+            // Handle invalid JSON input, keep the last valid state or empty object
+            setRawJsonData({});
+          }
+        },
+        onError: (err: any) => {
+          console.error('JSONEditor error:', err);
+          setError(err.message);
+        },
+      };
+      jsonEditor.current = new JSONEditor(editorRef.current, options, rawJsonData);
+    }
+
+    return () => {
+      if (jsonEditor.current) {
+        jsonEditor.current.destroy();
+      }
+    };
+  }, [inputMode]); // Re-initialize editor when inputMode changes
+
+  useEffect(() => {
+    let isContentDefined = false;
+    if (inputMode === 'rawJson') {
+      // rawJsonData is already an object
+      if (rawJsonData === null) {
+        isContentDefined = false; // Explicitly handle null as not defined
+      } else if (typeof rawJsonData === 'object') {
+        if (Array.isArray(rawJsonData)) {
+          isContentDefined = rawJsonData.length > 0;
+        } else {
+          isContentDefined = Object.keys(rawJsonData).length > 0;
+        }
+      } else if (typeof rawJsonData === 'string') {
+        isContentDefined = rawJsonData.trim().length > 0;
+      } else if (typeof rawJsonData === 'number' || typeof rawJsonData === 'boolean') {
+        isContentDefined = true;
+      } else {
+        isContentDefined = false;
+      }
+    } else { // form mode
+      isContentDefined = fields.length > 0;
+    }
+    setDisabled(!name || !collectionName || !isContentDefined || loading);
+  }, [name, collectionName, fields, rawJsonData, inputMode, loading]);
 
   return (
     <div className={s.container}>
@@ -163,10 +211,10 @@ export function CreateExportForm() {
           </button>
           <button
             type="button"
-            className={`${s.toggleButton} ${inputMode === 'json' ? s.active : ''}`}
-            onClick={() => setInputMode('json')}
+            className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+            onClick={() => setInputMode('rawJson')}
           >
-            JSON Input
+            Raw JSON
           </button>
         </div>
 
@@ -224,14 +272,8 @@ export function CreateExportForm() {
           </div>
         ) : (
           <div className={s.fieldsSection}>
-            <h4>JSON Input for Fields</h4>
-            <textarea
-              className={s.jsonInputTextarea}
-              value={jsonInput}
-              onChange={(e) => setJsonInput(e.target.value)}
-              placeholder="Enter JSON array of field definitions here..."
-              rows={10}
-            ></textarea>
+            <h4>Raw JSON Data</h4>
+            <div id="jsoneditor" ref={editorRef} style={{ height: '300px', width: '100%' }}></div>
           </div>
         )}
 
