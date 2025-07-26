@@ -38,7 +38,7 @@ export function ExportList() {
         </div>
       ) : (
         <div className={s.createContainer}>
-          <h2>Seek and deploy</h2>
+          <h2>Export fire with fire</h2>
           <p>Choose an export</p>
           <ul>
             {exports?.map((exportItem: exportList) => (
