@@ -16,7 +16,7 @@ export const ProjectCard = (props: { project: ProjectList }) => {
               : <span>{project.name[0]}</span>
           }
         </span>
-        <h4>
+        <h4 className={s.title}>
           {project.name}
         </h4>
       </span>

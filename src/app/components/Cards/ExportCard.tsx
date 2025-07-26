@@ -12,7 +12,7 @@ export const ExportCard = (props: { exports: exportList }) => {
         <span className={s.projectImageContainer}>
 
         </span>
-        <h4>
+        <h4 className={s.title}>
           {exports.collectionName}
         </h4>
       </span>

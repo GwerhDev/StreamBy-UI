@@ -45,8 +45,9 @@ export const Start = () => {
               <ul>
                 {
                   filteredList.map((project: ProjectList) => {
+                    if (project.archived) return null;
                     return (
-                      <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
+                      <li title={project.name} key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
                         <ProjectCard project={project} />
                       </li>
                     )

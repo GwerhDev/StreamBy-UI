@@ -25,7 +25,7 @@ export const ProjectArchive = () => {
               {
                 filteredList.map((project: ProjectList) => {
                   return (
-                    <li key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
+                    <li title={project.name} key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
                       <ProjectCard project={project} />
                     </li>
                   )

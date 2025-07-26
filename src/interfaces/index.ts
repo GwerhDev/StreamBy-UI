@@ -32,7 +32,8 @@ export interface ProjectList {
 }
 
 export interface exportList {
-  _id: string;
+  id: string;
+  name: string;
   collectionName?: string;
 }
 

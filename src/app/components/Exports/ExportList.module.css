@@ -12,6 +12,7 @@
 
 .container ul li {
   gap: 1rem;
+  width: 100%;
   padding: 1rem;
   border-radius: 1rem;
   padding-inline: 2rem;

@@ -20,8 +20,8 @@ export function ExportList() {
     <div className={s.container}>
       <ul>
         {exports?.map((exportItem: exportList) => (
-          <li key={exportItem._id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem._id)}>
-            <ExportCard key={exportItem._id} exports={exportItem} />
+          <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem.id)}>
+            <ExportCard key={exportItem.id} exports={exportItem} />
           </li>
         ))}
         <li className={s.createProject} onClick={handleCreateExport}>
