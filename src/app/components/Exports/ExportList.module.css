@@ -3,6 +3,22 @@
   padding: 1rem;
 }
 
+.createContainer {
+  gap: 1rem;
+  width: 100%;
+  max-width: 1024px;
+  padding-top: 2rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.projectCardSkeleton {
+  width: 100%;
+  height: 60px;
+  border-radius: 1rem;
+}
+
 .container ul {
   gap: 1rem;
   width: 100%;
