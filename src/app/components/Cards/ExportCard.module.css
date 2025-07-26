@@ -9,6 +9,7 @@
 .title {
   width: 100%;
   overflow: hidden;
+  text-align: start;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
