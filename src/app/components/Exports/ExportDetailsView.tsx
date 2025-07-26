@@ -1,5 +1,6 @@
 import s from './ExportDetailsView.module.css';
 import JsonViewer from '../JsonViewer/JsonViewer';
+import CopyButton from '../Buttons/CopyButton';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { API_BASE } from '../../../config/api';
@@ -50,18 +51,26 @@ export const ExportDetailsView: React.FC = () => {
     return <div>Export details not available.</div>;
   }
 
+  const fullEndpoint = `${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`;
+
   return (
     <div className={s.container}>
-      <h2>Export {exportDetails.method} /{exportDetails.name}</h2>
-      <p><strong>Full endpoint:</strong><a target='_blank' href={`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
-      <p><strong>Name:</strong> {exportDetails.name}</p>
-      <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
-      <p><strong>Export Type:</strong> {exportDetails.type}</p>
-      <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
-      <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
-
+      <div className={s.header}>
+        <h2>Export {exportDetails.method} /{exportDetails.name}</h2>
+        <CopyButton textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`}>
+          Copy Endpoint
+        </CopyButton>
+      </div>
+      <div className={s.detailsGrid}>
+        <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
+        <p><strong>Name:</strong> {exportDetails.name}</p>
+        <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
+        <p><strong>Export Type:</strong> {exportDetails.type}</p>
+        <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
+        <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
+      </div>
       {exportDetails.type === 'raw' && exportDetails.json && (
-        <div>
+        <div className={s.rawDataSection}>
           <h3>Raw Data:</h3>
           <div className={s.jsonViewer}>
             <JsonViewer data={exportDetails.json} />

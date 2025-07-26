@@ -1,21 +1,70 @@
 .container {
   width: 100%;
-  height: 100%;
   max-width: 1024px;
   display: flex;
   flex-direction: column;
-  position: relative;
+  gap: var(--size-4);
+  padding: var(--size-4);
+  background-color: var(--color-dark-300);
+  border-radius: var(--size-2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--size-3);
+  margin-bottom: var(--size-2);
+}
+
+.header h2 {
+  color: var(--color-light-200);
+  font-size: var(--size-9);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--size-2);
+}
+
+.detailsGrid p {
+  color: var(--color-light-300);
+  font-size: 0.95rem;
+}
+
+.detailsGrid strong {
+  color: var(--color-light-200);
+  margin-right: var(--size-1);
+}
+
+.detailsGrid a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.detailsGrid a:hover {
+  text-decoration: underline;
+}
+
+.rawDataSection {
+  margin-top: var(--size-4);
+}
+
+.rawDataSection h3 {
+  color: var(--color-light-200);
+  font-size: var(--size-6);
+  margin-bottom: var(--size-2);
+}
 
 .jsonViewer {
   background-color: var(--color-dark-900);
   padding: 1rem;
+  max-height: 80vh;
   border-radius: 1rem;
   overflow: auto;
   font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 0.9rem;
   line-height: 1.4;
   color: #e0e0e0;
-  max-height: 80vh;
 }
