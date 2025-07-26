@@ -1,7 +1,7 @@
-import { ExportDetailsForm } from '../components/Forms/ExportDetailsForm';
+import { ExportDetailsView } from '../components/Exports/ExportDetailsView';
 
 export const ExportsDetails = () => {
   return (
-    <ExportDetailsForm />
+    <ExportDetailsView />
   );
 };

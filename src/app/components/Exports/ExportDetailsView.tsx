@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { API_BASE } from '../../../config/api';
 import { getExport } from '../../../services/exports';
 import { ExportDetails as ExportDetailsInterface } from '../../../interfaces';
-import { API_BASE } from '../../../config/api';
 
-export const ExportDetailsForm: React.FC = () => {
+export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -50,7 +50,7 @@ export const ExportDetailsForm: React.FC = () => {
   return (
     <div>
       <h2>Export Details  /{exportDetails.name}</h2>
-      <p><strong>Full endpoint:</strong><a target='_blank' href={`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}> {`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
+      <p><strong>Full endpoint:</strong><a target='_blank' href={`${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
       <p><strong>Name:</strong> {exportDetails.name}</p>
       <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
       <p><strong>Method:</strong> {exportDetails.method}</p>
