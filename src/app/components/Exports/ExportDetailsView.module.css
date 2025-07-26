@@ -1,7 +1,7 @@
 .container {
   width: 100%;
-  max-width: 1024px;
   display: flex;
+  position: relative;
   flex-direction: column;
   gap: var(--size-4);
   padding: var(--size-4);
