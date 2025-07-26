@@ -27,7 +27,9 @@ export const Toast: React.FC = () => {
           className={`${s.toast} ${response.type === 'error' ? s.error : s.success}`}
           onClick={() => dispatch(removeApiResponse(response.id))}
         >
-          <FontAwesomeIcon icon={response.type === 'error' ? faTriangleExclamation : faCheckCircle} />
+          <span>
+            <FontAwesomeIcon icon={response.type === 'error' ? faTriangleExclamation : faCheckCircle} />
+          </span>
           {response.message}
         </div>
       ))}

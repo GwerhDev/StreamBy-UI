@@ -13,6 +13,6 @@
 }
 
 .copyButton:hover {
-  background-color: var(--color-dark-300);
+  background-color: var(--color-dark-200);
   color: var(--color-primary);
 }

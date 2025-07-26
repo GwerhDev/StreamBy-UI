@@ -57,9 +57,7 @@ export const ExportDetailsView: React.FC = () => {
     <div className={s.container}>
       <div className={s.header}>
         <h2>Export {exportDetails.method} /{exportDetails.name}</h2>
-        <CopyButton textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`}>
-          Copy Endpoint
-        </CopyButton>
+        <CopyButton title={"Copy endpoint"} textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`} />
       </div>
       <div className={s.detailsGrid}>
         <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
