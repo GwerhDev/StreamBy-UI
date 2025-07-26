@@ -9,11 +9,11 @@ export const ExportCard = (props: { exports: exportList }) => {
   return (
     <>
       <span className={s.box}>
-        <span className={s.projectImageContainer}>
-
+        <span className={s.exportMethodContainer}>
+          {exports.method}
         </span>
         <h4 className={s.title}>
-          {exports.name}
+          /{exports.name}
         </h4>
       </span>
       <FontAwesomeIcon icon={faRocket} />

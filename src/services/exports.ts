@@ -16,7 +16,6 @@ export async function getExport(projectId: string, exportId: string) {
     }
 
     const { data } = await res.json();
-    store.dispatch(addApiResponse({ message: 'Export fetched successfully.', type: 'success' }));
     return data;
   } catch (error: any) {
     console.error('Error fetching exports list:', error);

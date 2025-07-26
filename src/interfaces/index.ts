@@ -34,6 +34,7 @@ export interface ProjectList {
 export interface exportList {
   id: string;
   name: string;
+  method: string;
   collectionName?: string;
 }
 
