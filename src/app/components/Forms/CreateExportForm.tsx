@@ -12,7 +12,7 @@ import { faFileExport, faXmark, faPlus, faTrashCan } from '@fortawesome/free-sol
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledSelect } from '../Selects/LabeledSelect';
-import JSONEditor from 'jsoneditor';
+import JSONEditor, { JSONEditorOptions, JSONEditorMode } from 'jsoneditor';
 import 'jsoneditor/dist/jsoneditor.min.css';
 
 export function CreateExportForm() {
@@ -111,8 +111,8 @@ export function CreateExportForm() {
 
   useEffect(() => {
     if (editorRef.current) {
-      const options = {
-        mode: 'code', // or 'tree', 'view'
+      const options: JSONEditorOptions = {
+        mode: 'code' as JSONEditorMode, // or 'tree', 'view'
         onChange: () => {
           try {
             const editorContent = jsonEditor.current?.get();
