@@ -32,7 +32,7 @@ export function ExportList() {
         </div>
       ) : exports?.length === 0 ? (
         <div className={s.createContainer}>
-          <h2>Born to Deploy</h2>
+          <h2>Export fire with fire</h2>
           <p>Get started by creating a new export</p>
           <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
         </div>

@@ -13,7 +13,7 @@ export const ExportCard = (props: { exports: exportList }) => {
 
         </span>
         <h4 className={s.title}>
-          {exports.collectionName}
+          {exports.name}
         </h4>
       </span>
       <FontAwesomeIcon icon={faRocket} />
