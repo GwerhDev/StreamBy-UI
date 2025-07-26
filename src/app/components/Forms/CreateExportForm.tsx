@@ -19,6 +19,8 @@ export function CreateExportForm() {
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [fields, setFields] = useState<FieldDefinition[]>([]);
+  const [jsonInput, setJsonInput] = useState<string>("[]");
+  const [inputMode, setInputMode] = useState<'form' | 'json'>('form'); // 'form' or 'json'
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,31 @@ export function CreateExportForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !collectionName || fields.length === 0) {
+    let fieldsToSend: FieldDefinition[] = [];
+
+    if (inputMode === 'json') {
+      try {
+        fieldsToSend = JSON.parse(jsonInput);
+        if (!Array.isArray(fieldsToSend)) {
+          setError("JSON input must be an array of field definitions.");
+          return;
+        }
+        // Basic validation for each field in the parsed JSON
+        for (const field of fieldsToSend) {
+          if (!field.name || !field.type || !field.label) {
+            setError("Each field in JSON must have 'name', 'type', and 'label'.");
+            return;
+          }
+        }
+      } catch (err) {
+        setError("Invalid JSON format for fields.");
+        return;
+      }
+    } else {
+      fieldsToSend = fields;
+    }
+
+    if (!name || !collectionName || fieldsToSend.length === 0) {
       setError("Faltan campos obligatorios o no se han definido campos.");
       return;
     }
@@ -63,13 +89,14 @@ export function CreateExportForm() {
         name,
         description,
         collectionName,
-        fields,
+        fields: fieldsToSend,
       });
       setCreated(response);
       setName("");
       setDescription("");
       setCollectionName("");
       setFields([]);
+      setJsonInput("[]");
     } catch (err: unknown) {
       setError((err as Error).message || "Error al crear export");
     } finally {
@@ -82,8 +109,9 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
-    setDisabled(!name || !collectionName || fields.length === 0 || loading);
-  }, [name, collectionName, fields, loading]);
+    const isFieldsDefined = inputMode === 'json' ? jsonInput !== "[]" && jsonInput.trim() !== "" : fields.length > 0;
+    setDisabled(!name || !collectionName || !isFieldsDefined || loading);
+  }, [name, collectionName, fields, jsonInput, inputMode, loading]);
 
   return (
     <div className={s.container}>
@@ -125,57 +153,87 @@ export function CreateExportForm() {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
         />
 
-        <div className={s.fieldsSection}>
-          <h4>Fields</h4>
-          {fields.map((field, index) => (
-            <div key={index} className={s.fieldItem}>
-              <LabeledInput
-                label="Field Name"
-                type="text"
-                placeholder=""
-                id={`field-name-${index}`}
-                name={`field-name-${index}`}
-                htmlFor={`field-name-${index}`}
-                value={field.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "name", e.target.value)}
-              />
-              <LabeledSelect
-                label="Field Type"
-                id={`field-type-${index}`}
-                name={`field-type-${index}`}
-                htmlFor={`field-type-${index}`}
-                value={field.type}
-                options={fieldTypes}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange(index, "type", e.target.value)}
-              />
-              <LabeledInput
-                label="Field Label"
-                type="text"
-                placeholder=""
-                id={`field-label-${index}`}
-                name={`field-label-${index}`}
-                htmlFor={`field-label-${index}`}
-                value={field.label}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "label", e.target.value)}
-              />
-              <div className={s.checkboxContainer}>
-                <input
-                  type="checkbox"
-                  id={`required-${index}`}
-                  checked={field.required}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "required", e.target.checked)}
-                />
-                <label htmlFor={`required-${index}`}>Required</label>
-              </div>
-              <button type="button" onClick={() => handleRemoveField(index)} className={s.removeFieldButton}>
-                <FontAwesomeIcon icon={faTrashCan} />
-              </button>
-            </div>
-          ))}
-          <button type="button" onClick={handleAddField} className={s.addFieldButton}>
-            <FontAwesomeIcon icon={faPlus} /> Add Field
+        <div className={s.inputModeToggle}>
+          <button
+            type="button"
+            className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+            onClick={() => setInputMode('form')}
+          >
+            Form Input
+          </button>
+          <button
+            type="button"
+            className={`${s.toggleButton} ${inputMode === 'json' ? s.active : ''}`}
+            onClick={() => setInputMode('json')}
+          >
+            JSON Input
           </button>
         </div>
+
+        {inputMode === 'form' ? (
+          <div className={s.fieldsSection}>
+            <h4>Fields</h4>
+            {fields.map((field, index) => (
+              <div key={index} className={s.fieldItem}>
+                <LabeledInput
+                  label="Field Name"
+                  type="text"
+                  placeholder=""
+                  id={`field-name-${index}`}
+                  name={`field-name-${index}`}
+                  htmlFor={`field-name-${index}`}
+                  value={field.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "name", e.target.value)}
+                />
+                <LabeledSelect
+                  label="Field Type"
+                  id={`field-type-${index}`}
+                  name={`field-type-${index}`}
+                  htmlFor={`field-type-${index}`}
+                  value={field.type}
+                  options={fieldTypes}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange(index, "type", e.target.value)}
+                />
+                <LabeledInput
+                  label="Field Label"
+                  type="text"
+                  placeholder=""
+                  id={`field-label-${index}`}
+                  name={`field-label-${index}`}
+                  htmlFor={`field-label-${index}`}
+                  value={field.label}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "label", e.target.value)}
+                />
+                <div className={s.checkboxContainer}>
+                  <input
+                    type="checkbox"
+                    id={`required-${index}`}
+                    checked={field.required}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(index, "required", e.target.checked)}
+                  />
+                  <label htmlFor={`required-${index}`}>Required</label>
+                </div>
+                <button type="button" onClick={() => handleRemoveField(index)} className={s.removeFieldButton}>
+                  <FontAwesomeIcon icon={faTrashCan} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddField} className={s.addFieldButton}>
+              <FontAwesomeIcon icon={faPlus} /> Add Field
+            </button>
+          </div>
+        ) : (
+          <div className={s.fieldsSection}>
+            <h4>JSON Input for Fields</h4>
+            <textarea
+              className={s.jsonInputTextarea}
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              placeholder="Enter JSON array of field definitions here..."
+              rows={10}
+            ></textarea>
+          </div>
+        )}
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />

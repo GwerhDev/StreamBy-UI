@@ -146,3 +146,44 @@
 .addFieldButton:hover {
   background-color: var(--color-primary-600);
 }
+
+.inputModeToggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.toggleButton {
+  background-color: var(--color-dark-500);
+  color: var(--color-light-200);
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggleButton:hover {
+  background-color: var(--color-dark-400);
+}
+
+.toggleButton.active {
+  background-color: var(--color-primary-500);
+}
+
+.jsonInputTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-dark-400);
+  background-color: var(--color-dark-600);
+  color: var(--color-light-200);
+  resize: vertical;
+  min-height: 150px;
+}
+
+.jsonInputTextarea:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+}
