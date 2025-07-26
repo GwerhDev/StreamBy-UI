@@ -115,9 +115,10 @@ export function CreateExportForm() {
         mode: 'code', // or 'tree', 'view'
         onChange: () => {
           try {
-            setRawJsonData(jsonEditor.current?.get());
+            const editorContent = jsonEditor.current?.get();
+            setRawJsonData(editorContent);
           } catch (e) {
-            // Handle invalid JSON input, keep the last valid state or empty object
+            console.error('JSONEditor get() error:', e);
             setRawJsonData({});
           }
         },
@@ -149,11 +150,11 @@ export function CreateExportForm() {
           isContentDefined = Object.keys(rawJsonData).length > 0;
         }
       } else if (typeof rawJsonData === 'string') {
-        isContentDefined = rawJsonData.trim().length > 0;
+        isContentDefined = rawJsonData.trim().length > 0; // Non-empty string
       } else if (typeof rawJsonData === 'number' || typeof rawJsonData === 'boolean') {
-        isContentDefined = true;
+        isContentDefined = true; // Numbers and booleans are always defined if parsed successfully
       } else {
-        isContentDefined = false;
+        isContentDefined = false; // Other unexpected types
       }
     } else { // form mode
       isContentDefined = fields.length > 0;
