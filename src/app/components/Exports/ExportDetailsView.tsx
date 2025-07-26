@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { API_BASE } from '../../../config/api';
 import { getExport } from '../../../services/exports';
 import { ExportDetails as ExportDetailsInterface } from '../../../interfaces';
+import { Spinner } from '../Spinner';
 
 export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
@@ -38,7 +39,7 @@ export const ExportDetailsView: React.FC = () => {
   }, [id, exportId]);
 
   if (loading) {
-    return <div>Loading export details...</div>;
+    return (<div className={s.container}><Spinner isLoading /></div>);
   }
 
   if (error) {
