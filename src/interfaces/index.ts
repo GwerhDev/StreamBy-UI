@@ -76,6 +76,7 @@ export interface Export {
 
 export interface ExportDetails {
   id: string;
+  json?: JSON;
   name: string;
   type: string;
   method: string;
