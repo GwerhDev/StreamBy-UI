@@ -17,6 +17,7 @@
   overflow: auto;
   background-color: var(--color-dark-900);
   border-radius: .3rem;
+  padding: 1rem;
 }
 
 .textarea {

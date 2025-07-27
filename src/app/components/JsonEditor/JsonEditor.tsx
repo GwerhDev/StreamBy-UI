@@ -1,5 +1,6 @@
 import s from './JsonEditor.module.css';
 import React, { useCallback } from 'react';
+import JsonViewer from '../JsonViewer/JsonViewer';
 
 interface JsonEditorProps {
   value: string;
@@ -12,30 +13,18 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
       const parsed = JSON.parse(text);
       return { parsedData: parsed, formattedText: JSON.stringify(parsed, null, 2), isValid: true };
     } catch (e) {
-      console.log(e)
+      // Intentionally suppress console.log for expected JSON parsing errors during typing.
+      // The isValid flag already handles the UI feedback.
       return { parsedData: null, formattedText: text, isValid: false };
     }
   }, []);
 
-  const { formattedText, isValid: currentIsValid } = parseAndFormat(value);
+  const { parsedData, isValid: currentIsValid } = parseAndFormat(value);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     const { parsedData: newParsedData, isValid: newIsValid } = parseAndFormat(newText);
     onChange(newText, newParsedData, newIsValid);
-  };
-
-  const highlightSyntax = (text: string) => {
-    if (!currentIsValid) return text; // Don't highlight if invalid
-
-    // Basic syntax highlighting (can be expanded)
-    text = text.replace(/("(\w+)"):/g, '<span class="' + s.keyName + '">"$2"</span>:');
-    text = text.replace(/"((?:[^"\\]|\\.)*)"/g, '<span class="' + s.stringValue + '">"$1"</span>');
-    text = text.replace(/\b(true|false)\b/g, '<span class="' + s.booleanValue + '">$1</span>');
-    text = text.replace(/\b(\d+\.?\d*([eE][+-]?\d+)?)\b/g, '<span class="' + s.numberValue + '">$1</span>');
-    text = text.replace(/\b(null)\b/g, '<span class="' + s.nullValue + '">$1</span>');
-
-    return text;
   };
 
   return (
@@ -50,11 +39,11 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
         />
       </div>
       <div className={s.previewPanel}>
-        <div
-          className={`${s.syntaxHighlighting} ${!currentIsValid ? s.invalid : ''}`}
-          dangerouslySetInnerHTML={{ __html: highlightSyntax(formattedText) }}
-        />
-        {!currentIsValid && <div className={s.errorMessage}>Invalid JSON format</div>}
+        {currentIsValid && parsedData ? (
+          <JsonViewer data={parsedData} />
+        ) : (
+          <div className={s.errorMessage}>Invalid JSON format</div>
+        )}
       </div>
     </div>
   );
