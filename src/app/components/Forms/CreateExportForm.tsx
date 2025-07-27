@@ -30,10 +30,10 @@ export function CreateExportForm() {
   const navigate = useNavigate();
 
   const fieldTypes = [
+    { value: "date", label: "Date" },
     { value: "string", label: "String" },
     { value: "number", label: "Number" },
     { value: "boolean", label: "Boolean" },
-    { value: "date", label: "Date" },
   ];
 
   const handleAddField = () => {
@@ -116,41 +116,43 @@ export function CreateExportForm() {
     <div className={s.container}>
       <Spinner isLoading={loading} />
       <form onSubmit={handleSubmit}>
-        <h3>New Export</h3>
-        <p>Fill the form to create a new export</p>
+        <div className={s.formContainer}>
+          <h3>New Export</h3>
+          <p>Fill the form to create a new export</p>
 
-        <LabeledInput
-          label="Export's name"
-          type="text"
-          placeholder=""
-          id="name-input"
-          name="name-input"
-          htmlFor="name-input"
-          value={name}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-        />
+          <LabeledInput
+            label="Export's name"
+            type="text"
+            placeholder=""
+            id="name-input"
+            name="name-input"
+            htmlFor="name-input"
+            value={name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+          />
 
-        <LabeledInput
-          label="Collection's name"
-          type="text"
-          placeholder=""
-          id="collection-name-input"
-          name="collection-name-input"
-          htmlFor="collection-name-input"
-          value={collectionName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-        />
+          <LabeledInput
+            label="Collection's name"
+            type="text"
+            placeholder=""
+            id="collection-name-input"
+            name="collection-name-input"
+            htmlFor="collection-name-input"
+            value={collectionName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
+          />
 
-        <LabeledInput
-          label="Description (optional)"
-          type="text"
-          placeholder=""
-          id="description-input"
-          name="description-input"
-          htmlFor="description-input"
-          value={description}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
-        />
+          <LabeledInput
+            label="Description (optional)"
+            type="text"
+            placeholder=""
+            id="description-input"
+            name="description-input"
+            htmlFor="description-input"
+            value={description}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
+          />
+        </div>
 
         <div className={s.inputModeToggle}>
           <button

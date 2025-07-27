@@ -10,6 +10,10 @@
   position: relative;
 }
 
+.formContainer {
+  max-width: 500px;
+}
+
 .container ul {
   display: flex;
   align-items: center;

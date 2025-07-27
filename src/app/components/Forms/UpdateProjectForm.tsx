@@ -94,7 +94,7 @@ export const UpdateProjectForm = () => {
   return (
     <div className={s.container}>
       <Spinner isLoading={loader} />
-      <form onSubmit={handleOnSubmit}>
+      <form className={s.formContainer} onSubmit={handleOnSubmit}>
         <h3>Update Project</h3>
         <p>Fill the form to update your project</p>
 
