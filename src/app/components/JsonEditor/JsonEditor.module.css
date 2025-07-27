@@ -1,7 +1,6 @@
 .jsonEditorContainer {
   gap: var(--size-2);
   width: 100%;
-  height: 300px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 2fr));
   overflow: hidden;
@@ -11,6 +10,7 @@
 .previewPanel {
   flex: 1;
   position: relative;
+  height: 300px;
 }
 
 .previewPanel {
