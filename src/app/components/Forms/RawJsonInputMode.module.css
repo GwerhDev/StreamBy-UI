@@ -1,0 +1,8 @@
+.fieldsSection {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.fieldsSection h4 {
+  color: var(--color-light-200);
+}

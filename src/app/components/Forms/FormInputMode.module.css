@@ -1,0 +1,69 @@
+.fieldsSection {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.fieldsSection h4 {
+  color: var(--color-light-200);
+}
+
+.fieldItem {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--color-dark-500);
+}
+
+.fieldItem:last-child {
+  border-bottom: none;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkboxContainer input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--color-primary-500);
+}
+
+.checkboxContainer label {
+  color: var(--color-light-200);
+  font-size: 0.9rem;
+}
+
+.removeFieldButton {
+  background-color: var(--color-danger-500);
+  color: var(--color-light-200);
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.removeFieldButton:hover {
+  background-color: var(--color-danger-600);
+}
+
+.addFieldButton {
+  background-color: var(--color-primary-500);
+  color: var(--color-light-200);
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: fit-content;
+  margin-top: 1rem;
+}
+
+.addFieldButton:hover {
+  background-color: var(--color-primary-600);
+}
