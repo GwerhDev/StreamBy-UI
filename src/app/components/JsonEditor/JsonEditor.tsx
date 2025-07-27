@@ -30,7 +30,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
 
     // Basic syntax highlighting (can be expanded)
     text = text.replace(/("(\w+)"):/g, '<span class="' + s.keyName + '">"$2"</span>:');
-    text = text.replace(/"([^"]*\\(?:\\.[^\"]*)*)"/g, '<span class="' + s.stringValue + '">"$1"</span>');
+    text = text.replace(/"((?:[^"\\]|\\.)*)"/g, '<span class="' + s.stringValue + '">"$1"</span>');
     text = text.replace(/\b(true|false)\b/g, '<span class="' + s.booleanValue + '">$1</span>');
     text = text.replace(/\b(\d+\.?\d*([eE][+-]?\d+)?)\b/g, '<span class="' + s.numberValue + '">$1</span>');
     text = text.replace(/\b(null)\b/g, '<span class="' + s.nullValue + '">$1</span>');
@@ -42,7 +42,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
     <div className={s.jsonEditorContainer}>
       <div className={s.editorPanel}>
         <textarea
-          className={`${s.textarea} ${!currentIsValid ? s.invalid : ''}`}
+          className={`${s.textarea} ${!currentIsValid ? s.invalid : s.valid}`}
           value={value}
           onChange={handleChange}
           spellCheck="false"

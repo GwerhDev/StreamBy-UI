@@ -21,7 +21,7 @@ export function CreateExportForm() {
   const [collectionName, setCollectionName] = useState("");
   const [fields, setFields] = useState<FieldDefinition[]>([]);
   const [rawJsonData, setRawJsonData] = useState<any>({}); // For raw JSON data (object)
-  const [rawJsonInputString, setRawJsonInputString] = useState<string>("{}"); // For raw JSON string input
+  const [rawJsonInputString, setRawJsonInputString] = useState<string>(""); // For raw JSON string input
   const [isJsonValid, setIsJsonValid] = useState<boolean>(true);
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
