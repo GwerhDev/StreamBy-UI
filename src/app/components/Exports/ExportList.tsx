@@ -20,40 +20,32 @@ export function ExportList() {
 
   return (
     <div className={s.container}>
+      <div className={s.header}>
+        <h2>Export fire with fire</h2>
+        <p>Get started by creating a new export</p>
+      </div>
       {currentProjectLoading ? (
-        <div className={s.createContainer}>
-          <h2><span className={skeleton.skeleton}></span></h2>
-          <p><span className={skeleton.skeleton}></span></p>
-          <ul>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <li key={index} className={`${s.projectCardSkeleton} ${skeleton.skeleton}`}></li>
-            ))}
-          </ul>
-        </div>
-      ) : exports?.length === 0 ? (
-        <div className={s.createContainer}>
-          <h2>Export fire with fire</h2>
-          <p>Get started by creating a new export</p>
-          <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
-        </div>
+        <ul>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <li key={index} className={`${s.projectCardSkeleton} ${skeleton.skeleton}`}></li>
+          ))}
+        </ul>
+      ) : !exports?.length ? (
+        <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
       ) : (
-        <div className={s.createContainer}>
-          <h2>Export fire with fire</h2>
-          <p>Choose an export</p>
-          <ul>
-            {exports?.map((exportItem: exportList) => (
-              <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem.id)}>
-                <ExportCard key={exportItem.id} exports={exportItem} />
-              </li>
-            ))}
-            <li className={s.createProject} onClick={handleCreateExport}>
-              <FontAwesomeIcon icon={faPlus} />
-              <h4>
-                Create a new Export
-              </h4>
+        <ul>
+          {exports?.map((exportItem: exportList) => (
+            <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem.id)}>
+              <ExportCard key={exportItem.id} exports={exportItem} />
             </li>
-          </ul>
-        </div>
+          ))}
+          <li className={s.createProject} onClick={handleCreateExport}>
+            <FontAwesomeIcon icon={faPlus} />
+            <h4>
+              Create a new Export
+            </h4>
+          </li>
+        </ul>
       )}
     </div>
   );
