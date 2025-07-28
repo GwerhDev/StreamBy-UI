@@ -114,7 +114,7 @@ export function CreateExportForm() {
 
   return (
     <div className={s.container}>
-      <Spinner isLoading={loading} />
+      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit}>
         <div className={s.formContainer}>
           <h3>New Export</h3>

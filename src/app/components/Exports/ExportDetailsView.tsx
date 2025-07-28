@@ -40,7 +40,7 @@ export const ExportDetailsView: React.FC = () => {
   }, [id, exportId]);
 
   if (loading) {
-    return (<div className={s.container}><Spinner isLoading /></div>);
+    return (<div className={s.container}><Spinner bg={false} isLoading /></div>);
   }
 
   if (error) {

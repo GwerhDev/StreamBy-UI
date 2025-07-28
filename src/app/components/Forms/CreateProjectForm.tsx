@@ -104,7 +104,7 @@ export const CreateProjectForm = () => {
 
   return (
     <div className={s.divContainer}>
-      <Spinner isLoading={loader} />
+      <Spinner bg isLoading={loader} />
       <form className={s.container} onSubmit={handleOnSubmit}>
         <h3>New Project</h3>
         <p>Fill the form to create a new project</p>
