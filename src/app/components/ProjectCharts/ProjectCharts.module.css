@@ -8,13 +8,18 @@
 
 .chartCard {
   background-color: var(--color-dark-300);
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 1rem;
   text-align: center;
-  height: 300px; /* Fixed height for the card */
-  width: 100%; /* Ensure it takes full width */
-  position: relative; /* Needed for absolute positioning of chart if any */
-  overflow: hidden; /* Hide overflow */
+  width: 100%;
+  overflow: hidden;
+}
+
+.graphContainer {
+  width: 100%;
+  padding: 1rem;
+  min-height: 300px;
+  position: relative;
 }
 
 .chartCard h4 {

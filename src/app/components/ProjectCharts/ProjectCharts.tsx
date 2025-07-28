@@ -30,7 +30,7 @@ export const ProjectCharts = () => {
     arcLabelsTextColor: '#ffffff',
     legends: [
       {
-        anchor: 'bottom' as const,
+        anchor: 'left' as const,
         direction: 'row' as const,
         justify: false,
         translateX: 0,
@@ -62,11 +62,13 @@ export const ProjectCharts = () => {
         {loading ? (
           <div className={`${s.chartPlaceholder} ${skeleton.skeleton}`}></div>
         ) : memberRolesData.length > 0 ? (
-          <ResponsivePie
-            data={memberRolesData}
-            {...commonProps}
-            colors={{ scheme: 'category10' }}
-          />
+          <div className={s.graphContainer}>
+            <ResponsivePie
+              data={memberRolesData}
+              {...commonProps}
+              colors={{ scheme: 'category10' }}
+            />
+          </div>
         ) : (
           <p>No member role data available.</p>
         )}
