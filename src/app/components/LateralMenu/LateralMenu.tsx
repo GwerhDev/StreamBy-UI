@@ -1,17 +1,19 @@
 import s from './LateralMenu.module.css';
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';
-import { archiveProject, unarchiveProject } from '../../../services/projects';
+import { archiveProject, unarchiveProject, fetchProject } from '../../../services/projects';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
 
 export const LateralMenu = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { loadProjects } = useProjects();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -35,6 +37,10 @@ export const LateralMenu = () => {
     const response = await unarchiveProject(id || '');
     const { projects } = response || {};
     loadProjects(projects);
+    const updatedProject = await fetchProject(id, navigate);
+    if (updatedProject) {
+      dispatch(setCurrentProject(updatedProject));
+    }
     setShowCanvas(false);
   };
 
