@@ -23,11 +23,11 @@ export const ProjectCharts = () => {
     activeOuterRadiusOffset: 1,
     borderWidth: 1,
     arcLinkLabelsSkipAngle: 10,
-    arcLinkLabelsTextColor: 'ffffff',
+    arcLinkLabelsTextColor: '#adadad',
     arcLinkLabelsThickness: 2,
-    arcLinkLabelsColor: { from: 'color' },
+    arcLinkLabelsColor: '#adadad',
     arcLabelsSkipAngle: 10,
-    arcLabelsTextColor: '#ffffff',
+    arcLabelsTextColor: '#adadad',
     margin: { top: 40, right: 80, bottom: 80, left: 80 },
     legends: [
       {
