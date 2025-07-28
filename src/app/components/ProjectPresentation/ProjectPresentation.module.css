@@ -1,5 +1,9 @@
 .container {
+  gap: 1rem;
   width: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .header {
@@ -14,12 +18,11 @@
 
 .stats {
   gap: 1rem;
-  padding: 1rem;
-  padding-inline: 0;
+  width: 100%;
+  max-width: 1024px;
   display: flex;
   align-items: center;
   flex-direction: column;
-  justify-content: center;
 }
 
 @media screen and (max-width: 1024px) {

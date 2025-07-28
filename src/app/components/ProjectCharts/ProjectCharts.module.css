@@ -1,17 +1,17 @@
 .chartsContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   width: 100%;
   max-width: 1024px;
 }
 
 .chartCard {
-  background-color: var(--color-dark-300);
+  width: 100%;
   padding: 1rem;
   border-radius: 1rem;
   text-align: center;
-  width: 100%;
+  background-color: var(--color-dark-300);
 }
 
 .graphContainer {
