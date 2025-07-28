@@ -17,23 +17,21 @@
 .memberImageContainer {
   border-radius: 100%;
   width: 32px;
+  padding: .4rem;
+  font-weight: 900;
   aspect-ratio: 1/1;
   border: solid 3px;
-  border-color: var(--color-button-primary-hover);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
+  text-transform: uppercase;
   color: white;
   opacity: .7;
-  text-transform: uppercase;
-  padding: .3rem;
+  border-color: var(--color-button-primary-hover);
 }
 
 .memberRole {
   font-size: 0.8em;
   color: var(--color-text-secondary);
-  margin-left: auto;
-  padding-right: 10px;
 }

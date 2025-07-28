@@ -34,7 +34,10 @@ export function MemberList() {
 
   return (
     <div className={s.container}>
-      <h3 className={s.title}>Miembros del Proyecto</h3>
+      <div className={s.header}>
+        <h2 className={s.title}>Project Members</h2>
+        <p className={s.subtitle}>Manage your project's team</p>
+      </div>
       {
         loading
           ?
@@ -50,7 +53,7 @@ export function MemberList() {
               {
                 !members.length && !error
                   ?
-                  <p>No hay miembros en este proyecto.</p>
+                  <p>No members in this project.</p>
                   :
                   members.map((member, index) => (
                     <li key={index} className={s.memberListItem}>
