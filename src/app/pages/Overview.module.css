@@ -1,0 +1,7 @@
+.overviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Espacio entre ProjectPresentation y ProjectStats */
+  width: 100%;
+  padding: 1rem;
+}

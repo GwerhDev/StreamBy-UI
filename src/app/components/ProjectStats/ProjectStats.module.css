@@ -1,0 +1,25 @@
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 1024px;
+}
+
+.statCard {
+  background-color: var(--color-dark-300);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.statCard h4 {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.statCard p {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--color-primary);
+}

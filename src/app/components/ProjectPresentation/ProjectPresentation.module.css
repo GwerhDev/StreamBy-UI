@@ -1,10 +1,24 @@
 .container {
+  width: 100%;
+}
+
+.header {
   gap: 3rem;
   width: 100%;
   padding: 1rem;
   border-radius: 1rem;
   background-color: var(--color-dark-300);
   display: flex;
+  justify-content: center;
+}
+
+.stats {
+  gap: 1rem;
+  padding: 1rem;
+  padding-inline: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
   justify-content: center;
 }
 
