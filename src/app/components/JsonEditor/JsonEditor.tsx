@@ -31,7 +31,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
     <div className={s.jsonEditorContainer}>
       <div className={s.editorPanel}>
         <textarea
-          className={`${s.textarea} ${!currentIsValid ? s.invalid : s.valid}`}
+          className={`${s.textarea} ${!currentIsValid && value ? s.invalid : s.valid}`}
           value={value}
           onChange={handleChange}
           spellCheck="false"
