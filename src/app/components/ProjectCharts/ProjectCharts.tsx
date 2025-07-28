@@ -28,12 +28,13 @@ export const ProjectCharts = () => {
     arcLinkLabelsColor: { from: 'color' },
     arcLabelsSkipAngle: 10,
     arcLabelsTextColor: '#ffffff',
+    margin: { top: 40, right: 80, bottom: 80, left: 80 },
     legends: [
       {
         anchor: 'left' as const,
         direction: 'row' as const,
         justify: false,
-        translateX: 0,
+        translateX: -75,
         translateY: 56,
         itemsSpacing: 0,
         itemWidth: 100,

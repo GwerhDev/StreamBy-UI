@@ -11,6 +11,7 @@
 .header {
   gap: .5rem;
   display: flex;
+  text-align: center;
   align-items: center;
   flex-direction: column;
 }
