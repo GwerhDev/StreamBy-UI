@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchProjectMembers } from '../../../services/projects';
 import { Member } from '../../../interfaces';
+import { MemberCard } from '../Cards/MemberCard';
+import s from './MemberList.module.css';
+import skeleton from '../Loader/Skeleton.module.css';
 
 export function MemberList() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -30,15 +33,19 @@ export function MemberList() {
   }, [projectId]);
 
   return (
-    <div>
-      <h3>Miembros del Proyecto</h3>
+    <div className={s.container}>
+      <h3 className={s.title}>Miembros del Proyecto</h3>
       {
         loading
           ?
-          <p>Cargando...</p>
+          <ul className={s.memberGrid}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <li key={index} className={`${s.memberListItem} ${skeleton.skeleton}`}></li>
+            ))}
+          </ul>
           :
           <>
-            <ul>
+            <ul className={s.memberGrid}>
               {error && <p>Error: {error}</p>}
               {
                 !members.length && !error
@@ -46,8 +53,8 @@ export function MemberList() {
                   <p>No hay miembros en este proyecto.</p>
                   :
                   members.map((member, index) => (
-                    <li key={index}>
-                      <strong>{member.username}</strong> - {member.role}
+                    <li key={index} className={s.memberListItem}>
+                      <MemberCard member={member} />
                     </li>
                   ))
               }

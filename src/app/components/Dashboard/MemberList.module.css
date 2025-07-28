@@ -1,0 +1,40 @@
+.container {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.memberGrid {
+  gap: .5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+}
+
+.memberListItem {
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 1rem;
+  padding-inline: 2rem;
+  background-color: var(--color-dark-300);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.memberListItem:hover {
+  background-color: var(--color-dark-200);
+}
+
+.title {
+  margin-bottom: 1rem;
+}
+
+.memberListItem.skeleton {
+  height: 60px; /* Adjust height as needed for skeleton */
+}
