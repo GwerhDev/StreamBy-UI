@@ -27,15 +27,6 @@
   flex-direction: column;
 }
 
-.buttonContainer {
-  gap: 1rem;
-  width: 100%;
-  max-width: 500px;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
 
 .imgContainer {
   width: 10rem;
@@ -122,6 +113,13 @@
   padding-bottom: 1rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+@media screen and (max-width: 620px) {
+  .buttonContainer {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .imgContainer {

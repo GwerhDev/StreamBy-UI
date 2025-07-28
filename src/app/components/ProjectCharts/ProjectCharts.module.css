@@ -3,7 +3,6 @@
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  max-width: 1024px;
 }
 
 .chartCard {
@@ -16,8 +15,7 @@
 
 .graphContainer {
   width: 100%;
-  padding: 1rem;
-  min-height: 400px;
+  min-height: 300px;
   position: relative;
 }
 

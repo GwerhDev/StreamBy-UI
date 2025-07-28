@@ -2,8 +2,15 @@
   gap: var(--size-2);
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 2fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 2fr));
   overflow: hidden;
+}
+
+@media screen and (max-width: 620px) {
+  .jsonEditorContainer {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .editorPanel,

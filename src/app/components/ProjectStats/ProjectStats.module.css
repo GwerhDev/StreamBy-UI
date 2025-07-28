@@ -1,12 +1,12 @@
 .statsContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   width: 100%;
   max-width: 1024px;
+  display: flex;
 }
 
 .statCard {
+  width: 100%;
   background-color: var(--color-dark-300);
   padding: 1.5rem;
   border-radius: 1rem;

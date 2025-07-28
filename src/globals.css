@@ -307,6 +307,10 @@ a:hover {
   width: 100%;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 @keyframes fadeInOut {
   0% {
     opacity: .5;

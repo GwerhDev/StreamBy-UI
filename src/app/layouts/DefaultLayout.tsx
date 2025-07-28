@@ -31,7 +31,7 @@ export default function DefaultLayout() {
                 image &&
                 <img src={image} alt="" />
               }
-              <small className="font-bold">{name || "StreamBy"}</small>
+              <small className="font-bold nowrap">{name || "StreamBy"}</small>
             </span>
             <DbInfoButton />
           </div>
