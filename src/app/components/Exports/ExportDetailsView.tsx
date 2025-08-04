@@ -7,12 +7,18 @@ import { API_BASE } from '../../../config/api';
 import { getExport } from '../../../services/exports';
 import { ExportDetails as ExportDetailsInterface } from '../../../interfaces';
 import { Spinner } from '../Spinner';
+import { ActionButton } from '../Buttons/ActionButton';
+import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+
 
 export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExportDetails = async () => {
@@ -57,7 +63,9 @@ export const ExportDetailsView: React.FC = () => {
     <div className={s.container}>
       <div className={s.header}>
         <h2>Export {exportDetails.method} /{exportDetails.name}</h2>
-        <CopyButton title={"Copy endpoint"} textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`} />
+        <span className={s.buttonContainer}>
+          <CopyButton title={"Copy endpoint"} textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`} />
+        </span>
       </div>
       <div className={s.detailsGrid}>
         <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
@@ -67,6 +75,10 @@ export const ExportDetailsView: React.FC = () => {
         <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
         <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
       </div>
+      <span className={s.actionButtons}>
+        <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
+        <SecondaryButton icon={faTrash} text="Delete" onClick={() => { /* Handle delete action */ }} />
+      </span>
       {exportDetails.type === 'raw' && exportDetails.json && (
         <div className={s.rawDataSection}>
           <h3>Raw Data:</h3>

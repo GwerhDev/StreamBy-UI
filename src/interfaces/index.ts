@@ -128,6 +128,7 @@ export interface LabeledInputProps {
   id: string;
   htmlFor: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
 export interface FieldDefinition {

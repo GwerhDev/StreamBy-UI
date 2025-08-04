@@ -25,6 +25,7 @@ import { ThreeDModels } from './app/pages/ThreeDModels';
 import { ProjectCreate } from './app/pages/ProjectCreate';
 import { ExportsCreate } from './app/pages/ExportsCreate';
 import { ExportsDetails } from './app/pages/ExportsDetails';
+import { ExportsEdit } from './app/pages/ExportsEdit';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/project/:id/dashboard/exports" element={<Exports />} />
                 <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
                 <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
+                <Route path="/project/:id/dashboard/exports/:exportId/edit" element={<ExportsEdit />} />
 
                 <Route path="/project/:id/storage" element={<Storage />} />
                 <Route path="/project/:id/storage/images" element={<Images />} />

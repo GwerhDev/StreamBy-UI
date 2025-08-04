@@ -73,6 +73,30 @@ export async function createRawExport(projectId: string, payload: Record<string,
   }
 }
 
+export async function updateRawExport(projectId: string, exportId: string, payload: Record<string, any>) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/raw/${exportId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const { error, details } = await res.json();
+      throw new Error(`Failed to update raw export: ${error} - ${details}`);
+    }
+    const { data } = await res.json() || {};
+    store.dispatch(addApiResponse({ message: 'Raw export updated successfully.', type: 'success' }));
+    return data;
+  } catch (error: any) {
+    console.error('Error updating raw export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update raw export.', type: 'error' }));
+  }
+}
+
 export async function updateExport(projectId: string, exportId: string | undefined, payload: ExportPayload): Promise<any> {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/${exportId}`, {
