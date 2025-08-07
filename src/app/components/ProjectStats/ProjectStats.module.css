@@ -13,6 +13,15 @@
   text-align: center;
 }
 
+.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.clickable:hover {
+  background-color: var(--color-dark-200);
+}
+
 .statCard h4 {
   margin-bottom: 0.5rem;
   color: var(--color-text-primary);
