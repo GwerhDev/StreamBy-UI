@@ -3,13 +3,13 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { getExport, updateRawExport } from "../../../services/exports";
-import { Export, FieldDefinition } from '../../../interfaces';
+import { Export } from '../../../interfaces';
 import s from './CreateExportForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faFileExport, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RawJsonInputMode } from './RawJsonInputMode';
 
