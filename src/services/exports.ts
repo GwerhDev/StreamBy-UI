@@ -120,3 +120,20 @@ export async function updateExport(projectId: string, exportId: string | undefin
     store.dispatch(addApiResponse({ message: error.message || 'Failed to update export.', type: 'error' }));
   }
 }
+
+export async function deleteExport(projectId: string | undefined, exportId: string | undefined) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/${exportId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    const response = await res.json();
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete project.', type: 'error' }));
+    throw error;
+  }
+}

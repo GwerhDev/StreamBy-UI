@@ -13,6 +13,17 @@ export interface Project {
   };
 }
 
+export interface DeleteExportFormProps {
+  currentProject: Project | null;
+  currentExport: ExportDetails | null;
+  handleDeleteExport: (e: React.FormEvent) => void;
+  handleCancel: () => void;
+  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled: boolean;
+  loader: boolean;
+  confirmText: string;
+}
+
 export interface DeleteProjectFormProps {
   currentProject: Project | null;
   handleDeleteProject: (e: React.FormEvent) => void;

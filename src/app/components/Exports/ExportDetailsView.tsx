@@ -11,14 +11,22 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-
+import { DeleteExportModal } from '../Modals/DeleteExportModal';
+import { useProjects } from '../../../hooks/useProjects';
+import { Project } from '../../../interfaces';
 
 export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { projectList } = useProjects();
+
+  const currentProject: Project | undefined = projectList.list.find(
+    (project) => project.id === id
+  );
 
   useEffect(() => {
     const fetchExportDetails = async () => {
@@ -44,6 +52,14 @@ export const ExportDetailsView: React.FC = () => {
 
     fetchExportDetails();
   }, [id, exportId]);
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDeleteModal(false);
+  };
 
   if (loading) {
     return (<div className={s.container}><Spinner bg={false} isLoading /></div>);
@@ -77,7 +93,7 @@ export const ExportDetailsView: React.FC = () => {
       </div>
       <span className={s.actionButtons}>
         <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
-        <SecondaryButton icon={faTrash} text="Delete" onClick={() => { /* Handle delete action */ }} />
+        <SecondaryButton icon={faTrash} text="Delete" onClick={handleDeleteClick} />
       </span>
       {exportDetails.type === 'raw' && exportDetails.json && (
         <div className={s.rawDataSection}>
@@ -86,6 +102,13 @@ export const ExportDetailsView: React.FC = () => {
             <JsonViewer data={exportDetails.json} />
           </div>
         </div>
+      )}
+      {showDeleteModal && (
+        <DeleteExportModal
+          currentProject={currentProject || null}
+          currentExport={exportDetails}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );
