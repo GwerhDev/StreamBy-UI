@@ -4,11 +4,19 @@
   z-index: 999;
   width: 100vw;
   height: 100vh;
-  display: none;
+  display: flex;
   position: fixed;
   align-items: center;
   justify-content: center;
   padding: 2rem;
   backdrop-filter: blur(10px);
   background-color: rgba(0, 0, 0, 0.496);
+}
+
+.showModal {
+  display: flex;
+}
+
+.hideModal {
+  display: none;
 }
