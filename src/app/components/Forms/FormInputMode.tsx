@@ -70,9 +70,9 @@ const JsonField: React.FC<JsonFieldProps> = ({
             checked={type === 'boolean' ? fieldValue : undefined}
             onChange={handleValueChange}
           />
-          <button 
-            type="button" 
-            onClick={() => onUpdate(currentPath, {})} 
+          <button
+            type="button"
+            onClick={() => onUpdate(currentPath, {})}
             className={`${s.actionButton} ${s.convertToObjectButton}`}
             title="Convert to Object"
           >
@@ -111,7 +111,7 @@ const JsonField: React.FC<JsonFieldProps> = ({
           onClick={() => {
             const newPath = Array.isArray(fieldValue)
               ? [...currentPath, fieldValue.length]
-              : [...currentPath, `newField${Object.keys(fieldValue).length}`];
+              : [...currentPath, ""];
             onUpdate(newPath, ''); // Add empty string as default value
           }}
           className={s.addFieldButton}
@@ -187,11 +187,11 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
       console.error("Cannot change key of an array item.");
       return;
     }
-    
+
     const value = parent[oldKey];
     delete parent[oldKey];
     parent[newKey] = value;
-    
+
     onJsonDataChange(newJsonData);
   };
 
@@ -212,7 +212,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
       <button
         type="button"
         onClick={() => {
-          const newKey = `newField${Object.keys(jsonData).length}`;
+          const newKey = "";
           const newJsonData = { ...jsonData, [newKey]: '' };
           onJsonDataChange(newJsonData);
         }}

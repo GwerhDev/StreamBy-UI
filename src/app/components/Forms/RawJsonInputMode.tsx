@@ -19,11 +19,18 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
 
   useEffect(() => {
     try {
-      const newJsonString = typeof jsonData === 'string' ? jsonData : JSON.stringify(jsonData, null, 2);
-      if (newJsonString !== jsonString) {
-        setJsonString(newJsonString);
+      // Only update jsonString if jsonData is a non-empty object or array
+      if (Object.keys(jsonData).length > 0 || Array.isArray(jsonData)) {
+        const newJsonString = JSON.stringify(jsonData, null, 2);
+        if (newJsonString !== jsonString) {
+          setJsonString(newJsonString);
+        }
+      } else if (Object.keys(jsonData).length === 0 && !Array.isArray(jsonData)) {
+        // If jsonData is an empty object, set jsonString to an empty string or "{}"
+        setJsonString("{}");
       }
     } catch (e) {
+      // If jsonData cannot be stringified (e.g., contains circular references), set jsonString to empty
       setJsonString('');
     }
   }, [jsonData]);
@@ -41,7 +48,12 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
       setWarning(null);
     }
 
-    onJsonDataChange(newString, data, isValid);
+    if (isValid && data !== null) {
+      onJsonDataChange(data); // Pass the parsed data object
+    } else {
+      // If invalid, we don't update the parent's jsonData to prevent errors.
+      // The warning will be displayed to the user.
+    }
   };
 
   return (
