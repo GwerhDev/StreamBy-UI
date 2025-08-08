@@ -1,36 +1,82 @@
+/* Container for the entire read-only view */
 .container {
   width: 100%;
-  font-family: monospace;
-  font-size: 0.9rem;
-  background-color: var(--color-dark-600);
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 14px;
+  background-color: var(--color-dark-700);
+  border: 1px solid var(--color-dark-500);
+  border-radius: 8px;
+  padding: 0.5rem 1rem; /* vertical | horizontal */
 }
 
+/* A single key-value pair row */
 .fieldItem {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: minmax(150px, 0.5fr) 1.5fr; /* Adjust column ratio */
   gap: 1rem;
   align-items: start;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--color-dark-600);
 }
 
-.fieldItem:last-child {
+.container > .fieldItem:last-child {
   border-bottom: none;
 }
 
+/* The key part of a key-value pair */
 .fieldKey {
   color: var(--color-light-400);
-  font-weight: bold;
   word-break: break-all;
+  text-align: right;
+  padding-right: 1rem;
+  font-weight: 500;
 }
 
+/* The value part of a key-value pair */
 .fieldValue {
-  color: var(--color-primary-400);
   word-break: break-all;
+  white-space: pre-wrap; /* Respect whitespace and wrap */
 }
 
-.nestedObject {
-  margin-top: -0.5rem;
-  /* Align with parent key */
-  width: 100%;
+/* Style different primitive types */
+.stringValue {
+  color: #9ccc65; /* Green for strings */
+}
+
+.numberValue {
+  color: #64b5f6; /* Blue for numbers */
+}
+
+.booleanValue {
+  color: #ff8a65; /* Orange for booleans */
+  font-weight: bold;
+}
+
+.nullValue {
+  color: #e57373; /* Red for null */
+  font-style: italic;
+}
+
+/* Remove container styles from nested views */
+.nestedObject .container {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Indent nested fields and add a visual line */
+.nestedObject .fieldItem {
+  padding-left: 1rem;
+  position: relative;
+}
+
+.nestedObject .fieldItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-dark-500);
 }

@@ -6,11 +6,23 @@ interface ReadOnlyFieldsProps {
 }
 
 const Field: React.FC<{ fieldKey: string | number; fieldValue: any }> = ({ fieldKey, fieldValue }) => {
+  const getValueClassName = (value: any) => {
+    if (value === null) return s.nullValue;
+    const type = typeof value;
+    if (type === 'string') return s.stringValue;
+    if (type === 'number') return s.numberValue;
+    if (type === 'boolean') return s.booleanValue;
+    return '';
+  };
+
   const renderValue = () => {
-    if (typeof fieldValue === 'object' && fieldValue !== null) {
+    if (fieldValue === null) {
+      return <span className={`${s.fieldValue} ${s.nullValue}`}>null</span>;
+    }
+    if (typeof fieldValue === 'object') {
       return <div className={s.nestedObject}><ReadOnlyFields data={fieldValue} /></div>;
     }
-    return <span className={s.fieldValue}>{String(fieldValue)}</span>;
+    return <span className={`${s.fieldValue} ${getValueClassName(fieldValue)}`}>{String(fieldValue)}</span>;
   };
 
   return (
