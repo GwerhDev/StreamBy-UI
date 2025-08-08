@@ -101,7 +101,7 @@ export const ExportDetailsView: React.FC = () => {
       </span>
 
       {exportDetails.json && (
-        <div className={s.dataSection}>
+        <div className={s.jsonViewer}>
           <div className={s.viewModeToggle}>
             <button
               type="button"
@@ -122,16 +122,10 @@ export const ExportDetailsView: React.FC = () => {
               Raw JSON
             </button>
           </div>
-
           {viewMode === 'fields' ? (
-            <div className={s.jsonViewer}>
-
-              <ReadOnlyFields data={exportDetails.json} />
-            </div>
+            <ReadOnlyFields data={exportDetails.json} />
           ) : (
-            <div className={s.jsonViewer}>
-              <JsonViewer data={exportDetails.json} />
-            </div>
+            <JsonViewer data={exportDetails.json} />
           )}
         </div>
       )}

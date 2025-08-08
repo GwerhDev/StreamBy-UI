@@ -79,18 +79,18 @@
   max-height: 80vh;
 }
 
-.dataSection {
-  margin-top: 2rem;
-}
-
 .viewModeToggle {
   display: flex;
+  justify-content: flex-end;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .toggleButton {
-  background-color: var(--color-dark-600);
+  background-color: var(--color-dark-300);
   color: var(--color-light-300);
   border: 1px solid var(--color-dark-500);
   border-radius: 20px;
@@ -109,7 +109,7 @@
 }
 
 .toggleButton.active {
-  background-color: var(--color-primary-500);
+  background-color: var(--color-dark-900);
   color: var(--color-light-100);
   border-color: var(--color-primary-500);
 }

@@ -3,15 +3,15 @@
   width: 100%;
   border-radius: 8px;
   padding: 1rem;
-  background-color: var(--color-dark-700);
-  border: 1px solid var(--color-dark-500);
+  background-color: var(--color-dark-500);
+  border: 1px solid var(--color-dark-300);
 }
 
 .fieldsSection h4 {
   color: var(--color-light-200);
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-dark-500);
+  border-bottom: 1px solid var(--color-dark-300);
 }
 
 /* Styling for each key-value pair item */
