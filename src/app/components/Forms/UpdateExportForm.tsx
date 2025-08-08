@@ -8,9 +8,11 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faFileExport, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RawJsonInputMode } from './RawJsonInputMode';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FormInputMode } from './FormInputMode';
 
 export function UpdateExportForm() {
   const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
@@ -18,8 +20,9 @@ export function UpdateExportForm() {
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [rawJsonData, setRawJsonData] = useState<any>({}); // For raw JSON data (object)
-  const [rawJsonInputString, setRawJsonInputString] = useState<string>(""); // For raw JSON string input
-  const [isJsonValid, setIsJsonValid] = useState<boolean>(true);
+  const [rawJsonInputString, setRawJsonInputString] = useState<string>("{}"); // For raw JSON string input
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
@@ -42,10 +45,16 @@ export function UpdateExportForm() {
             const jsonString = JSON.stringify(data.json, null, 2);
             setRawJsonInputString(jsonString);
             setRawJsonData(data.json);
+            setJsonError(null);
+          } else {
+            setRawJsonInputString("{}");
+            setRawJsonData({});
+            setJsonError(null);
           }
         }
       } catch (err: any) {
         console.error(err);
+        setJsonError("Failed to load export data.");
       } finally {
         setLoading(false);
       }
@@ -54,12 +63,25 @@ export function UpdateExportForm() {
     fetchExportDetails();
   }, [id, exportId]);
 
-  const handleJsonEditorChange = (jsonString: string, data: object | null, isValid: boolean) => {
-    setRawJsonInputString(jsonString);
-    if (isValid) {
-      setRawJsonData(data);
+  const handleJsonDataChange = (newData: any) => {
+    setRawJsonData(newData);
+    try {
+      setRawJsonInputString(JSON.stringify(newData, null, 2));
+      setJsonError(null);
+    } catch (e: any) {
+      setJsonError("Invalid JSON format from form input.");
     }
-    setIsJsonValid(isValid);
+  };
+
+  const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
+    setRawJsonInputString(newRawString);
+    if (isValid && data) {
+      setRawJsonData(data);
+      setJsonError(null);
+    } else {
+      setRawJsonData({}); // Clear jsonData if invalid
+      setJsonError("Invalid JSON format.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,9 +115,17 @@ export function UpdateExportForm() {
   };
 
   useEffect(() => {
-    let isContentDefined = isJsonValid && rawJsonInputString.trim().length > 0;
-    setDisabled(!name || !collectionName || !isContentDefined || loading || !isJsonValid);
-  }, [name, collectionName, rawJsonInputString, loading, isJsonValid]);
+    const isJsonDataEmpty = Object.keys(rawJsonData).length === 0 && JSON.stringify(rawJsonData) === JSON.stringify({});
+
+    let isContentDefined = false;
+    if (inputMode === 'rawJson') {
+      isContentDefined = !isJsonDataEmpty;
+    } else { // form mode
+      isContentDefined = true; // Always enabled in form mode to allow adding first field
+    }
+
+    setDisabled(!name || !collectionName || !isContentDefined || loading || jsonError !== null);
+  }, [name, collectionName, rawJsonData, inputMode, loading, jsonError]);
 
   return (
     <div className={s.container}>
@@ -139,11 +169,41 @@ export function UpdateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
         </div>
-
-        <RawJsonInputMode
-          jsonData={rawJsonData}
-          onJsonDataChange={handleJsonEditorChange}
-        />
+        <div className={s.jsonViewer}>
+          <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+              onClick={() => setInputMode('form')}
+              title="Form Input"
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              Form input
+            </button>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+              onClick={() => setInputMode('rawJson')}
+              title="Raw JSON"
+            >
+              <FontAwesomeIcon icon={faCode} />
+              Raw JSON
+            </button>
+          </div>
+          {inputMode === 'form' ? (
+            <FormInputMode
+              jsonData={rawJsonData}
+              onJsonDataChange={handleJsonDataChange}
+              jsonError={jsonError}
+            />
+          ) : (
+            <RawJsonInputMode
+              jsonData={rawJsonInputString}
+              onJsonDataChange={handleRawJsonStringChange}
+              jsonError={jsonError}
+            />
+          )}
+        </div>
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Update" type="submit" />
