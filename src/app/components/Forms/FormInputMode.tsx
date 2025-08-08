@@ -2,12 +2,13 @@ import s from './FormInputMode.module.css';
 import React from 'react';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faNetworkWired, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
 // Props for the main component
 interface FormInputModeProps {
   jsonData: any;
   onJsonDataChange: (newData: any) => void;
+  jsonError: string | null;
 }
 
 // Props for the recursive field component
@@ -18,6 +19,7 @@ interface JsonFieldProps {
   onUpdate: (path: (string | number)[], value: any) => void;
   onDelete: (path: (string | number)[]) => void;
   onKeyChange: (path: (string | number)[], newKey: string) => void;
+  disabled: boolean;
 }
 
 const JsonField: React.FC<JsonFieldProps> = ({
@@ -27,6 +29,7 @@ const JsonField: React.FC<JsonFieldProps> = ({
   onUpdate,
   onDelete,
   onKeyChange,
+  disabled,
 }) => {
   const currentPath = [...path, fieldKey];
   const isArrayItem = typeof fieldKey === 'number';
@@ -73,14 +76,16 @@ const JsonField: React.FC<JsonFieldProps> = ({
             placeholder=""
             value={String(fieldValue)}
             onChange={handleValueChange}
+            disabled={disabled}
           />
           <button
             type="button"
             onClick={() => onUpdate(currentPath, {})}
             className={`${s.actionButton} ${s.convertToObjectButton}`}
             title="Convert to Object"
+            disabled={disabled}
           >
-            +&#123;&#125;
+            <FontAwesomeIcon icon={faNetworkWired} />
           </button>
         </div>
       );
@@ -108,6 +113,7 @@ const JsonField: React.FC<JsonFieldProps> = ({
             onUpdate={onUpdate}
             onDelete={onDelete}
             onKeyChange={onKeyChange}
+            disabled={disabled}
           />
         ))}
         <button
@@ -119,6 +125,7 @@ const JsonField: React.FC<JsonFieldProps> = ({
             onUpdate(newPath, ''); // Add empty string as default value
           }}
           className={s.addFieldButton}
+          disabled={disabled}
         >
           <FontAwesomeIcon icon={faPlus} /> Add {Array.isArray(fieldValue) ? 'Item' : 'Field'}
         </button>
@@ -141,10 +148,11 @@ const JsonField: React.FC<JsonFieldProps> = ({
             placeholder=""
             value={String(fieldKey)}
             onChange={handleKeyChange}
+            disabled={disabled}
           />
         )}
         {renderValueInput()}
-        <button type="button" onClick={() => onDelete(currentPath)} className={s.removeFieldButton}>
+        <button type="button" onClick={() => onDelete(currentPath)} className={s.removeFieldButton} disabled={disabled}>
           <FontAwesomeIcon icon={faTrashCan} />
         </button>
       </div>
@@ -153,10 +161,11 @@ const JsonField: React.FC<JsonFieldProps> = ({
   );
 };
 
-export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDataChange }) => {
+export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDataChange, jsonError }) => {
   const deepClone = (obj: any) => JSON.parse(JSON.stringify(obj));
 
   const updateJson = (path: (string | number)[], value: any) => {
+    if (jsonError) return; // Prevent updates if there's a JSON error
     const newJsonData = deepClone(jsonData);
     let current: any = newJsonData;
     for (let i = 0; i < path.length - 1; i++) {
@@ -167,6 +176,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
   };
 
   const deleteFromJson = (path: (string | number)[]) => {
+    if (jsonError) return; // Prevent updates if there's a JSON error
     const newJsonData = deepClone(jsonData);
     let parent: any = newJsonData;
     for (let i = 0; i < path.length - 1; i++) {
@@ -182,6 +192,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
   };
 
   const changeKeyInJson = (path: (string | number)[], newKey: string) => {
+    if (jsonError) return; // Prevent updates if there's a JSON error
     const oldKey = path[path.length - 1];
     if (oldKey === newKey) return;
 
@@ -206,6 +217,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
   return (
     <div className={s.fieldsSection}>
       <h4>Fields</h4>
+      {jsonError && <p className={s.errorMessage}>Error: Invalid JSON format. Please switch to Raw JSON mode to fix it. ({jsonError})</p>}
       {Object.entries(jsonData).map(([key, value]) => (
         <JsonField
           key={key}
@@ -215,6 +227,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
           onUpdate={updateJson}
           onDelete={deleteFromJson}
           onKeyChange={changeKeyInJson}
+          disabled={!!jsonError}
         />
       ))}
       <button
@@ -225,6 +238,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
           onJsonDataChange(newJsonData);
         }}
         className={s.addFieldButton}
+        disabled={!!jsonError}
       >
         <FontAwesomeIcon icon={faPlus} /> Add Field
       </button>

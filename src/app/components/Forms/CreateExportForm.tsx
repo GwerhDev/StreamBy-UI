@@ -20,6 +20,8 @@ export function CreateExportForm() {
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [jsonData, setJsonData] = useState<any>({});
+  const [rawJsonString, setRawJsonString] = useState<string>('{}');
+  const [jsonError, setJsonError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
@@ -27,6 +29,23 @@ export function CreateExportForm() {
 
   const handleJsonDataChange = (newData: any) => {
     setJsonData(newData);
+    try {
+      setRawJsonString(JSON.stringify(newData, null, 2));
+      setJsonError(null);
+    } catch (e: any) {
+      setJsonError("Invalid JSON format from form input.");
+    }
+  };
+
+  const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
+    setRawJsonString(newRawString);
+    if (isValid && data) {
+      setJsonData(data);
+      setJsonError(null);
+    } else {
+      setJsonData({}); // Clear jsonData if invalid
+      setJsonError("Invalid JSON format.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,8 +82,8 @@ export function CreateExportForm() {
       isContentDefined = true; // Always enabled in form mode to allow adding first field
     }
 
-    setDisabled(!name || !collectionName || !isContentDefined || loading);
-  }, [name, collectionName, jsonData, inputMode, loading]);
+    setDisabled(!name || !collectionName || !isContentDefined || loading || jsonError !== null);
+  }, [name, collectionName, jsonData, inputMode, loading, jsonError]);
 
   return (
     <div className={s.container}>
@@ -132,11 +151,13 @@ export function CreateExportForm() {
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
+              jsonError={jsonError}
             />
           ) : (
             <RawJsonInputMode
-              jsonData={jsonData}
-              onJsonDataChange={handleJsonDataChange}
+              jsonData={rawJsonString}
+              onJsonDataChange={handleRawJsonStringChange}
+              jsonError={jsonError}
             />
           )}
         </div>

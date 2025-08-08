@@ -3,25 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 
 interface RawJsonInputModeProps {
-  jsonData: any;
+  jsonData: string;
   onJsonDataChange: (jsonString: string, data: object | null, isValid: boolean) => void;
+  jsonError: string | null;
 }
 
-export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, onJsonDataChange }) => {
+export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, onJsonDataChange, jsonError }) => {
   const [jsonString, setJsonString] = useState<string>("");
   const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      if (jsonData) {
-        const newJsonString = JSON.stringify(jsonData, null, 2);
-        setJsonString(newJsonString);
-      } else {
-        setJsonString("{}");
-      }
-    } catch (e) {
-      setJsonString("");
-    }
+    setJsonString(jsonData);
   }, [jsonData]);
 
   const handleEditorChange = (newString: string, data: object | null, isValid: boolean) => {
@@ -42,7 +34,8 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
   return (
     <div className={s.fieldsSection}>
       <h4>Raw JSON Data</h4>
-      <JsonEditor value={jsonString} onChange={handleEditorChange} />
+      <JsonEditor value={jsonString} onChange={handleEditorChange} jsonError={jsonError} />
+      {jsonError && <p className={s.errorMessage}>Error: {jsonError}</p>}
       {warning && <p style={{ color: '#f39c12', marginTop: '10px', fontSize: '14px' }}>{warning}</p>}
     </div>
   );

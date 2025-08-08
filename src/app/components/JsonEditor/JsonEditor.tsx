@@ -5,9 +5,10 @@ import JsonViewer from '../JsonViewer/JsonViewer';
 interface JsonEditorProps {
   value: string;
   onChange: (jsonString: string, data: object | null, isValid: boolean) => void;
+  jsonError?: string | null;
 }
 
-export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
+export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange, jsonError }) => {
   const parseAndFormat = useCallback((text: string) => {
     try {
       const parsed = JSON.parse(text);
@@ -42,7 +43,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({ value, onChange }) => {
         {currentIsValid && parsedData ? (
           <JsonViewer data={parsedData} />
         ) : (
-          <div className={s.errorMessage}>Invalid JSON format</div>
+          <div className={s.errorMessage}>{jsonError || "Invalid JSON format"}</div>
         )}
       </div>
     </div>
