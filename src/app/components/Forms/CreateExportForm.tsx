@@ -2,7 +2,7 @@ import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
-import { createExport, createRawExport } from "../../../services/exports";
+import { createExport } from "../../../services/exports";
 import { FieldDefinition } from '../../../interfaces';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -69,20 +69,9 @@ export function CreateExportForm() {
         collectionName,
       };
 
-      if (inputMode === 'rawJson') {
-        payload.jsonData = rawJsonData;
-        const response = await createRawExport(currentProject?.id || '', payload);
-        navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
-
-      } else { // form mode
-        if (fields.length === 0) {
-          setLoading(false);
-          return;
-        }
-        payload.fields = fields;
-        const response = await createExport(currentProject?.id || '', payload);
-        navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
-      }
+      payload.jsonData = rawJsonData;
+      const response = await createExport(currentProject?.id || '', payload);
+      navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
 
       setName("");
       setDescription("");

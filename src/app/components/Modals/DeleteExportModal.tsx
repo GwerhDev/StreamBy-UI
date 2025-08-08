@@ -19,8 +19,6 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
   const { exportId, currentExport, currentProject, onClose } = props || {};
   const navigate = useNavigate();
 
-  console.log(currentExport)
-
   const handleDeleteExport = async (e: FormEvent) => {
     e.preventDefault();
     try {

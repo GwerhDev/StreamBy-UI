@@ -2,7 +2,7 @@
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
-import { getExport, updateRawExport } from "../../../services/exports";
+import { getExport, updateExport } from "../../../services/exports";
 import { Export } from '../../../interfaces';
 import s from './CreateExportForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -74,7 +74,7 @@ export function UpdateExportForm() {
       };
 
       payload.jsonData = rawJsonData;
-      const response = await updateRawExport(currentProject?.id || '', exportId || '', payload);
+      const response = await updateExport(currentProject?.id || '', exportId || '', payload);
       if (response) {
         setCreated(response);
         navigate(`/project/${id}/dashboard/exports/${response.exportId}`);
