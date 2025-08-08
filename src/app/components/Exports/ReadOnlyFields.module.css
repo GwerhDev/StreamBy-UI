@@ -3,58 +3,60 @@
   width: 100%;
   font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
   font-size: 14px;
-  background-color: var(--color-dark-700);
-  border: 1px solid var(--color-dark-500);
   border-radius: 8px;
-  padding: 0.5rem 1rem; /* vertical | horizontal */
 }
 
 /* A single key-value pair row */
 .fieldItem {
   display: grid;
-  grid-template-columns: minmax(150px, 0.5fr) 1.5fr; /* Adjust column ratio */
-  gap: 1rem;
+  /* Key column adjusts to its content, value column takes the rest */
+  grid-template-columns: max-content 1fr;
+  gap: 1.5rem; /* Increased gap for better separation */
   align-items: start;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-dark-600);
+  border-bottom: 1px solid var(--color-dark-100);
 }
 
 .container > .fieldItem:last-child {
   border-bottom: none;
 }
 
-/* The key part of a key-value pair */
-.fieldKey {
-  color: var(--color-light-400);
-  word-break: break-all;
-  text-align: right;
-  padding-right: 1rem;
+/* Base style for the key/index part */
+.keyBase {
+  word-break: normal; /* Avoid breaking keys unless necessary */
+  text-align: left; /* Align left for variable widths */
   font-weight: 500;
+  color: var(--color-light-400);
+}
+
+/* Style for object keys */
+.fieldKey {
+  composes: keyBase;
+}
+
+/* Style for array indices */
+.arrayIndex {
+  composes: keyBase;
+  color: var(--color-light-500);
+  font-style: italic;
 }
 
 /* The value part of a key-value pair */
 .fieldValue {
   word-break: break-all;
-  white-space: pre-wrap; /* Respect whitespace and wrap */
+  white-space: pre-wrap;
 }
 
 /* Style different primitive types */
-.stringValue {
-  color: #9ccc65; /* Green for strings */
-}
+.stringValue { color: #9ccc65; }
+.numberValue { color: #64b5f6; }
+.booleanValue { color: #ff8a65; font-weight: bold; }
+.nullValue { color: #e57373; font-style: italic; }
+.emptyValue { color: var(--color-light-500); }
 
-.numberValue {
-  color: #64b5f6; /* Blue for numbers */
-}
-
-.booleanValue {
-  color: #ff8a65; /* Orange for booleans */
-  font-weight: bold;
-}
-
-.nullValue {
-  color: #e57373; /* Red for null */
-  font-style: italic;
+/* Indent nested blocks (objects or arrays) */
+.nestedObject {
+  /* The grid layout on fieldItem handles the alignment */
 }
 
 /* Remove container styles from nested views */
@@ -65,18 +67,7 @@
   padding: 0;
 }
 
-/* Indent nested fields and add a visual line */
-.nestedObject .fieldItem {
-  padding-left: 1rem;
-  position: relative;
-}
-
-.nestedObject .fieldItem::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: var(--color-dark-500);
+/* Don't add a border to the last item in a nested block */
+.nestedObject .fieldItem:last-child {
+  border-bottom: none;
 }
