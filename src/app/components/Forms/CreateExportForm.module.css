@@ -244,34 +244,47 @@
   background-color: var(--color-primary-600);
 }
 
-.inputModeToggle {
+.jsonViewer {
   width: 100%;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;  
+}
+
+.inputModeToggle {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .toggleButton {
-  gap: 1rem;
-  width: 100%;
-  border: none;
-  display: flex;
+  background-color: var(--color-dark-300);
+  color: var(--color-light-300);
+  border: 1px solid var(--color-dark-500);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  justify-content: center;
-  color: var(--color-light-200);
-  background-color: var(--color-dark-400);
-  padding: 0.75rem 1.5rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
 
 .toggleButton:hover {
   background-color: var(--color-dark-500);
+  color: var(--color-light-100);
 }
 
 .toggleButton.active {
-  background-color: var(--color-primary);
+  background-color: var(--color-dark-900);
   color: var(--color-light-100);
-  font-weight: bold;
+  border-color: var(--color-primary-500);
 }
 
 .jsonInputTextarea {

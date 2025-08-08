@@ -17,7 +17,7 @@ export interface DeleteExportFormProps {
   loader: boolean;
   disabled: boolean;
   confirmText: string;
-  currentExport: ExportDetails | null;
+  currentExport: ExportDetails | undefined;
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCancel: () => void;
   handleDeleteExport: (e: React.FormEvent) => void;

@@ -133,7 +133,7 @@ export const ExportDetailsView: React.FC = () => {
       {showDeleteModal && (
         <DeleteExportModal
           exportId={exportId}
-          currentProject={currentProject || null}
+          currentProject={currentProject}
           currentExport={exportDetails}
           onClose={handleCloseModal}
         />

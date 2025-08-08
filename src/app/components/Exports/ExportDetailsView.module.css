@@ -70,10 +70,9 @@
 }
 
 .jsonViewer {
-  background-color: var(--color-dark-600);
+  background-color: var(--color-dark-900);
   padding: 1rem;
   border-radius: 8px;
-  border: 1px solid var(--color-dark-500);
   overflow-x: auto;
   min-height: 500px;
   max-height: 80vh;

@@ -6,10 +6,10 @@ import { faFileImage, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-so
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
-  uploadToPresignedUrl,
+  updateProject,
   updateProjectImage,
   uploadProjectImage,
-  updateProject,
+  uploadToPresignedUrl,
 } from '../../../services/projects';
 import { useProjects } from '../../../hooks/useProjects';
 import { useSelector } from 'react-redux';

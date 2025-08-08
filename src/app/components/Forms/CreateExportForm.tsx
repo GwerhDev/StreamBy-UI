@@ -55,7 +55,7 @@ export function CreateExportForm() {
 
   useEffect(() => {
     const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
-    
+
     let isContentDefined = false;
     if (inputMode === 'rawJson') {
       isContentDefined = !isJsonDataEmpty;
@@ -107,45 +107,45 @@ export function CreateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
         </div>
-
-        <div className={s.inputModeToggle}>
-          <button
-            type="button"
-            className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-            onClick={() => setInputMode('form')}
-            title="Form Input"
-          >
-            <FontAwesomeIcon icon={faFileLines} />
-            Form input
-          </button>
-          <button
-            type="button"
-            className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-            onClick={() => setInputMode('rawJson')}
-            title="Raw JSON"
-          >
-            <FontAwesomeIcon icon={faCode} />
-            Raw JSON
-          </button>
+        <div className={s.jsonViewer}>
+          <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+              onClick={() => setInputMode('form')}
+              title="Form Input"
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              Form input
+            </button>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+              onClick={() => setInputMode('rawJson')}
+              title="Raw JSON"
+            >
+              <FontAwesomeIcon icon={faCode} />
+              Raw JSON
+            </button>
+          </div>
+          {inputMode === 'form' ? (
+            <FormInputMode
+              jsonData={jsonData}
+              onJsonDataChange={handleJsonDataChange}
+            />
+          ) : (
+            <RawJsonInputMode
+              jsonData={jsonData}
+              onJsonDataChange={handleJsonDataChange}
+            />
+          )}
         </div>
-
-        {inputMode === 'form' ? (
-          <FormInputMode
-            jsonData={jsonData}
-            onJsonDataChange={handleJsonDataChange}
-          />
-        ) : (
-          <RawJsonInputMode
-            jsonData={jsonData}
-            onJsonDataChange={handleJsonDataChange}
-          />
-        )}
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
-      </form>
-    </div>
+      </form >
+    </div >
   );
 }

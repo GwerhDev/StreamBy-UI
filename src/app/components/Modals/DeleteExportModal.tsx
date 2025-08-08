@@ -7,8 +7,8 @@ import { ExportDetails, Project } from '../../../interfaces';
 
 interface DeleteExportModalProps {
   exportId: string | undefined;
-  currentProject: Project | null;
-  currentExport: ExportDetails | null;
+  currentProject: Project | undefined;
+  currentExport: ExportDetails | undefined;
   onClose: () => void;
 }
 
