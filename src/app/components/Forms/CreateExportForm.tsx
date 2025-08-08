@@ -1,9 +1,9 @@
+import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { createExport, createRawExport } from "../../../services/exports";
-import { Export, FieldDefinition } from '../../../interfaces';
-import s from './CreateExportForm.module.css';
+import { FieldDefinition } from '../../../interfaces';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -25,7 +25,6 @@ export function CreateExportForm() {
   const [isJsonValid, setIsJsonValid] = useState<boolean>(true);
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
-  const [created, setCreated] = useState<Export | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const navigate = useNavigate();
 
@@ -73,9 +72,8 @@ export function CreateExportForm() {
       if (inputMode === 'rawJson') {
         payload.jsonData = rawJsonData;
         const response = await createRawExport(currentProject?.id || '', payload);
-        setCreated(response);
-        setRawJsonData({}); // Reset to empty object
-        setRawJsonInputString("{}"); // Reset to empty string
+        navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
+
       } else { // form mode
         if (fields.length === 0) {
           setLoading(false);
@@ -83,8 +81,7 @@ export function CreateExportForm() {
         }
         payload.fields = fields;
         const response = await createExport(currentProject?.id || '', payload);
-        setCreated(response);
-        setFields([]);
+        navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
       }
 
       setName("");
@@ -194,13 +191,6 @@ export function CreateExportForm() {
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
-
-        {created && (
-          <div>
-            <h4>Export creado:</h4>
-            <pre>{JSON.stringify(created, null, 2)}</pre>
-          </div>
-        )}
       </form>
     </div>
   );

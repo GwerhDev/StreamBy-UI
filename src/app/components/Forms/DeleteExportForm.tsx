@@ -6,11 +6,11 @@ import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { DeleteExportFormProps } from '../../../interfaces';
 
 export const DeleteExportForm = (props: DeleteExportFormProps) => {
-  const { currentProject, currentExport, handleDeleteExport, handleCancel, handleInput, disabled, loader, confirmText } = props || {};
+  const { currentExport, handleDeleteExport, handleCancel, handleInput, disabled, loader, confirmText } = props || {};
 
   return (
     <form onSubmit={handleDeleteExport} className={s.container} action="">
-      <h2>Delete {currentProject?.name}?</h2>
+      <h2>Delete {currentExport?.name}?</h2>
       <p>Confirm that you want to delete this export</p>
       <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentExport?.name}" to submit`} name="confirm-delete" value={confirmText} id="confirm-delete" htmlFor="confirm-delete" placeholder="" />
 

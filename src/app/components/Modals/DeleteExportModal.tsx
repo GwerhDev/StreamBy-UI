@@ -1,12 +1,12 @@
 import s from './DeleteExportModal.module.css';
 import { useNavigate } from 'react-router-dom';
 import { deleteExport } from '../../../services/exports';
-import { useProjects } from '../../../hooks/useProjects';
 import { FormEvent, useState } from 'react';
 import { DeleteExportForm } from '../Forms/DeleteExportForm';
 import { ExportDetails, Project } from '../../../interfaces';
 
 interface DeleteExportModalProps {
+  exportId: string | undefined;
   currentProject: Project | null;
   currentExport: ExportDetails | null;
   onClose: () => void;
@@ -16,16 +16,16 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [confirmText, setConfirmText] = useState<string>("");
-  const { currentExport, currentProject, onClose } = props || {};
-  const { loadProjects } = useProjects();
+  const { exportId, currentExport, currentProject, onClose } = props || {};
   const navigate = useNavigate();
+
+  console.log(currentExport)
 
   const handleDeleteExport = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await deleteExport(currentProject?.id, currentExport?.id);
-      loadProjects(response.projects);
+      await deleteExport(currentProject?.id, exportId);
       setLoader(false);
       onClose();
       navigate('/project/' + currentProject?.id + '/dashboard/exports');
@@ -52,14 +52,13 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
   return (
     <div className={s.container}>
       <DeleteExportForm
-        currentProject={currentProject}
-        currentExport={currentExport}
-        handleDeleteExport={handleDeleteExport}
-        handleCancel={handleCancel}
-        handleInput={handleInput}
-        disabled={disabled}
         loader={loader}
+        disabled={disabled}
         confirmText={confirmText}
+        currentExport={currentExport}
+        handleInput={handleInput}
+        handleCancel={handleCancel}
+        handleDeleteExport={handleDeleteExport}
       />
     </div>
   );
