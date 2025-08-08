@@ -19,64 +19,29 @@ export function CreateExportForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
-  const [fields, setFields] = useState<FieldDefinition[]>([]);
-  const [rawJsonData, setRawJsonData] = useState<any>({}); // For raw JSON data (object)
-  const [rawJsonInputString, setRawJsonInputString] = useState<string>(""); // For raw JSON string input
-  const [isJsonValid, setIsJsonValid] = useState<boolean>(true);
+  const [jsonData, setJsonData] = useState<any>({});
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  const fieldTypes = [
-    { value: "date", label: "Date" },
-    { value: "string", label: "String" },
-    { value: "number", label: "Number" },
-    { value: "boolean", label: "Boolean" },
-  ];
-
-  const handleAddField = () => {
-    setFields([...fields, { name: "", type: "string", label: "", required: false }]);
-  };
-
-  const handleRemoveField = (index: number) => {
-    const newFields = [...fields];
-    newFields.splice(index, 1);
-    setFields(newFields);
-  };
-
-  const handleFieldChange = (index: number, fieldName: keyof FieldDefinition, value: string | boolean) => {
-    const newFields = [...fields];
-    (newFields[index] as any)[fieldName] = value;
-    setFields(newFields);
-  };
-
-  const handleJsonEditorChange = (jsonString: string, data: object | null, isValid: boolean) => {
-    setRawJsonInputString(jsonString);
-    setRawJsonData(data);
-    setIsJsonValid(isValid);
+  const handleJsonDataChange = (newData: any) => {
+    setJsonData(newData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
-      let payload: any = {
+      const payload = {
         name,
         description,
         collectionName,
+        jsonData,
       };
-
-      payload.jsonData = rawJsonData;
       const response = await createExport(currentProject?.id || '', payload);
       navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
-
-      setName("");
-      setDescription("");
-      setCollectionName("");
-
     } catch (err: unknown) {
       console.error(err);
     } finally {
@@ -89,14 +54,17 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
+    const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
+    
     let isContentDefined = false;
     if (inputMode === 'rawJson') {
-      isContentDefined = isJsonValid && rawJsonInputString.trim().length > 0;
+      isContentDefined = !isJsonDataEmpty;
     } else { // form mode
-      isContentDefined = fields.length > 0;
+      isContentDefined = true; // Always enabled in form mode to allow adding first field
     }
-    setDisabled(!name || !collectionName || !isContentDefined || loading || !isJsonValid);
-  }, [name, collectionName, fields, rawJsonInputString, inputMode, loading, isJsonValid]);
+
+    setDisabled(!name || !collectionName || !isContentDefined || loading);
+  }, [name, collectionName, jsonData, inputMode, loading]);
 
   return (
     <div className={s.container}>
@@ -163,16 +131,13 @@ export function CreateExportForm() {
 
         {inputMode === 'form' ? (
           <FormInputMode
-            fields={fields}
-            fieldTypes={fieldTypes}
-            handleAddField={handleAddField}
-            handleRemoveField={handleRemoveField}
-            handleFieldChange={handleFieldChange}
+            jsonData={jsonData}
+            onJsonDataChange={handleJsonDataChange}
           />
         ) : (
           <RawJsonInputMode
-            rawJsonInputString={rawJsonInputString}
-            handleJsonEditorChange={handleJsonEditorChange}
+            jsonData={jsonData}
+            onJsonDataChange={handleJsonDataChange}
           />
         )}
 

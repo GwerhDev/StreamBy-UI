@@ -1,26 +1,73 @@
+/* Main container for the form mode */
 .fieldsSection {
   width: 100%;
   border-radius: 8px;
+  padding: 1rem;
+  background-color: var(--color-dark-700);
+  border: 1px solid var(--color-dark-500);
 }
 
 .fieldsSection h4 {
   color: var(--color-light-200);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-dark-500);
 }
 
+/* Styling for each key-value pair item */
 .fieldItem {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1rem;
-  align-items: flex-end;
   margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px dashed var(--color-dark-500);
 }
 
-.fieldItem:last-child {
-  border-bottom: none;
+/* Controls for a single field (key input, value input, delete button) */
+.fieldControls {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr auto;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
 }
 
+/* Styling for nested objects/arrays to create hierarchy */
+.nestedObject {
+  margin-left: 1.5rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--color-dark-500);
+  margin-top: 1rem;
+}
+
+/* Styling for array item index */
+.arrayIndex {
+  color: var(--color-light-400);
+  font-family: monospace;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background-color: var(--color-dark-600);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.valueInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.convertToObjectButton {
+  padding: 0.4rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+/* Label for non-editable field types like object/array */
+.fieldTypeLabel {
+  color: var(--color-light-500);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Checkbox container */
 .checkboxContainer {
   display: flex;
   align-items: center;
@@ -28,8 +75,8 @@
 }
 
 .checkboxContainer input[type="checkbox"] {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
   accent-color: var(--color-primary-500);
 }
 
@@ -38,30 +85,52 @@
   font-size: 0.9rem;
 }
 
-.removeFieldButton {
-  background-color: var(--color-danger-500);
-  color: var(--color-light-200);
-  border: none;
+/* General button styles */
+.actionButton {
+  background-color: transparent;
+  color: var(--color-light-400);
+  border: 1px solid var(--color-dark-400);
   border-radius: 4px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:hover {
+  color: var(--color-light-100);
+  border-color: var(--color-light-500);
+}
+
+/* Specific styles for remove button */
+.removeFieldButton {
+  composes: actionButton;
+  color: var(--color-danger-400);
 }
 
 .removeFieldButton:hover {
-  background-color: var(--color-danger-600);
+  background-color: var(--color-danger-500);
+  color: var(--color-light-100);
+  border-color: var(--color-danger-500);
 }
 
+/* Specific styles for add button */
 .addFieldButton {
   background-color: var(--color-primary-500);
-  color: var(--color-light-200);
+  color: var(--color-light-100);
   border: none;
   border-radius: 4px;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
   width: fit-content;
   margin-top: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .addFieldButton:hover {
