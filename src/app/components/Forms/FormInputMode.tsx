@@ -60,14 +60,18 @@ const JsonField: React.FC<JsonFieldProps> = ({
         </div>
       );
     }
-    if (type === 'string' || type === 'number' || type === 'boolean') {
+    if (type === 'string' || type === 'number') {
+      const inputId = `value-input-${currentPath.join('-')}`;
       return (
         <div className={s.valueInputContainer}>
           <LabeledInput
             label="Value"
-            type={type === 'number' ? 'number' : type === 'boolean' ? 'checkbox' : 'text'}
+            type={type === 'number' ? 'number' : 'text'}
+            id={inputId}
+            name={inputId}
+            htmlFor={inputId}
+            placeholder=""
             value={String(fieldValue)}
-            checked={type === 'boolean' ? fieldValue : undefined}
             onChange={handleValueChange}
           />
           <button
@@ -131,6 +135,10 @@ const JsonField: React.FC<JsonFieldProps> = ({
           <LabeledInput
             label={`Field (${Array.isArray(fieldValue) ? 'array' : typeof fieldValue})`}
             type="text"
+            id={`key-input-${currentPath.join('-')}`}
+            name={`key-input-${currentPath.join('-')}`}
+            htmlFor={`key-input-${currentPath.join('-')}`}
+            placeholder=""
             value={String(fieldKey)}
             onChange={handleKeyChange}
           />

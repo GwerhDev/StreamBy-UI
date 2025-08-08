@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
-import { FieldDefinition } from '../../../interfaces';
+
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
