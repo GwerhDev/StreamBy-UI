@@ -41,9 +41,7 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
       setWarning(null);
     }
 
-    if (isValid && data) {
-      onJsonDataChange(newString, data, isValid);
-    }
+    onJsonDataChange(newString, data, isValid);
   };
 
   return (
