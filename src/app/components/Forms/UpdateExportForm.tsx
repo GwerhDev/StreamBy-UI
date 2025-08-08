@@ -139,7 +139,7 @@ export function UpdateExportForm() {
         </div>
 
         <RawJsonInputMode
-          jsonData={rawJsonInputString}
+          jsonData={rawJsonData}
           onJsonDataChange={handleJsonEditorChange}
         />
 
