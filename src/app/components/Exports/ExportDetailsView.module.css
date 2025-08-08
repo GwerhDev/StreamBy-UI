@@ -70,14 +70,46 @@
 }
 
 .jsonViewer {
-  background-color: var(--color-dark-900);
+  background-color: var(--color-dark-600);
   padding: 1rem;
-  width: 100%;
-  display: flex;
+  border-radius: 8px;
+  border: 1px solid var(--color-dark-500);
+  overflow-x: auto;
+  min-height: 500px;
   max-height: 80vh;
-  border-radius: 1rem;
-  overflow: auto;
-  font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+
+.dataSection {
+  margin-top: 2rem;
+}
+
+.viewModeToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.toggleButton {
+  background-color: var(--color-dark-600);
+  color: var(--color-light-300);
+  border: 1px solid var(--color-dark-500);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
-  line-height: 1.4;
+}
+
+.toggleButton:hover {
+  background-color: var(--color-dark-500);
+  color: var(--color-light-100);
+}
+
+.toggleButton.active {
+  background-color: var(--color-primary-500);
+  color: var(--color-light-100);
+  border-color: var(--color-primary-500);
 }

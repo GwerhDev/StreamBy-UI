@@ -1,0 +1,36 @@
+.container {
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.9rem;
+  background-color: var(--color-dark-600);
+}
+
+.fieldItem {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-dark-600);
+}
+
+.fieldItem:last-child {
+  border-bottom: none;
+}
+
+.fieldKey {
+  color: var(--color-light-400);
+  font-weight: bold;
+  word-break: break-all;
+}
+
+.fieldValue {
+  color: var(--color-primary-400);
+  word-break: break-all;
+}
+
+.nestedObject {
+  margin-top: -0.5rem;
+  /* Align with parent key */
+  width: 100%;
+}

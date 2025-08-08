@@ -14,6 +14,9 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
 import { useProjects } from '../../../hooks/useProjects';
 import { Project } from '../../../interfaces';
+import { ReadOnlyFields } from './ReadOnlyFields'; // Import the new component
+import { faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
@@ -21,6 +24,7 @@ export const ExportDetailsView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'fields' | 'raw'>('fields'); // State for view mode
   const navigate = useNavigate();
   const { projectList } = useProjects();
 
@@ -95,14 +99,43 @@ export const ExportDetailsView: React.FC = () => {
         <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
         <SecondaryButton icon={faTrash} text="Delete" onClick={handleDeleteClick} />
       </span>
-      {exportDetails.type === 'raw' && exportDetails.json && (
-        <div className={s.rawDataSection}>
-          <h3>Raw Data:</h3>
-          <div className={s.jsonViewer}>
-            <JsonViewer data={exportDetails.json} />
+
+      {exportDetails.json && (
+        <div className={s.dataSection}>
+          <div className={s.viewModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${viewMode === 'fields' ? s.active : ''}`}
+              onClick={() => setViewMode('fields')}
+              title="Fields View"
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              Fields
+            </button>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${viewMode === 'raw' ? s.active : ''}`}
+              onClick={() => setViewMode('raw')}
+              title="Raw JSON"
+            >
+              <FontAwesomeIcon icon={faCode} />
+              Raw JSON
+            </button>
           </div>
+
+          {viewMode === 'fields' ? (
+            <div className={s.jsonViewer}>
+
+              <ReadOnlyFields data={exportDetails.json} />
+            </div>
+          ) : (
+            <div className={s.jsonViewer}>
+              <JsonViewer data={exportDetails.json} />
+            </div>
+          )}
         </div>
       )}
+
       {showDeleteModal && (
         <DeleteExportModal
           exportId={exportId}
