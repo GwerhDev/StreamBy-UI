@@ -56,7 +56,9 @@ export function UpdateExportForm() {
 
   const handleJsonEditorChange = (jsonString: string, data: object | null, isValid: boolean) => {
     setRawJsonInputString(jsonString);
-    setRawJsonData(data);
+    if (isValid) {
+      setRawJsonData(data);
+    }
     setIsJsonValid(isValid);
   };
 
