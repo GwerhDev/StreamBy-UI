@@ -8,19 +8,23 @@ interface RawJsonInputModeProps {
 }
 
 export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, onJsonDataChange }) => {
-  const [jsonString, setJsonString] = useState(() => JSON.stringify(jsonData, null, 2));
+  const [jsonString, setJsonString] = useState(() => {
+    try {
+      return typeof jsonData === 'string' ? jsonData : JSON.stringify(jsonData, null, 2);
+    } catch (e) {
+      return '';
+    }
+  });
   const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
-    let localData;
     try {
-      localData = JSON.parse(jsonString);
+      const newJsonString = typeof jsonData === 'string' ? jsonData : JSON.stringify(jsonData, null, 2);
+      if (newJsonString !== jsonString) {
+        setJsonString(newJsonString);
+      }
     } catch (e) {
-      localData = null;
-    }
-
-    if (JSON.stringify(localData) !== JSON.stringify(jsonData)) {
-      setJsonString(JSON.stringify(jsonData, null, 2));
+      setJsonString('');
     }
   }, [jsonData]);
 
@@ -38,7 +42,7 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
     }
 
     if (isValid && data) {
-      onJsonDataChange(data);
+      onJsonDataChange(newString, data, isValid);
     }
   };
 

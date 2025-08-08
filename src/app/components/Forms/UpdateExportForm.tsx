@@ -1,10 +1,9 @@
-
+import s from './UpdateExportForm.module.css';
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { getExport, updateExport } from "../../../services/exports";
 import { Export } from '../../../interfaces';
-import s from './CreateExportForm.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -140,8 +139,8 @@ export function UpdateExportForm() {
         </div>
 
         <RawJsonInputMode
-          rawJsonInputString={rawJsonInputString}
-          handleJsonEditorChange={handleJsonEditorChange}
+          jsonData={rawJsonInputString}
+          onJsonDataChange={handleJsonEditorChange}
         />
 
         <span className={s.buttonContainer}>
