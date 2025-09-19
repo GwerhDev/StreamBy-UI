@@ -25,7 +25,7 @@ export function useProjects() {
     if (logged && !loading && databases && databases.length > 0 && projectList.list.length === 0) {
       refreshProjects();
     }
-  }, [logged, loading, databases, refreshProjects, projectList.list]);
+  }, [logged, loading, databases, refreshProjects]);
 
   return { projectList, loadProjects, refreshProjects };
 }
