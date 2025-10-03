@@ -77,18 +77,18 @@ export const ExportDetailsView: React.FC = () => {
     return <div>Export details not available.</div>;
   }
 
-  const fullEndpoint = `${API_BASE}/streamby/${id}/public-export/${exportDetails.name}`;
+  const fullEndpoint = `${API_BASE}/streamby/${id}/get-export/${exportDetails.name}`;
 
   return (
     <div className={s.container}>
       <div className={s.header}>
         <h2>Export {exportDetails.method} /{exportDetails.name}</h2>
         <span className={s.buttonContainer}>
-          <CopyButton title={"Copy endpoint"} textToCopy={`/streamby/${id}/public-export/${exportDetails.name}`} />
+          <CopyButton title={"Copy endpoint"} textToCopy={`/streamby/${id}/get-export/${exportDetails.name}`} />
         </span>
       </div>
       <div className={s.detailsGrid}>
-        <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/public-export/${exportDetails.name}`}</a></p>
+        <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/get-export/${exportDetails.name}`}</a></p>
         <p><strong>Name:</strong> {exportDetails.name}</p>
         <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
         <p><strong>Export Type:</strong> {exportDetails.type}</p>

@@ -83,6 +83,8 @@ export interface Export {
   collectionName: string;
   exportType: 'json' | 'csv' | 'xml';
   exportedBy: string;
+  allowedOrigin?: string[];
+  private?: boolean;
 }
 
 export interface ExportDetails {
@@ -97,6 +99,8 @@ export interface ExportDetails {
   projectId: string;
   collectionName: string;
   exportedFileUrl?: string;
+  allowedOrigin?: string[];
+  private?: boolean;
 }
 
 export interface ExportPayload {
@@ -105,6 +109,8 @@ export interface ExportPayload {
   collectionName: string;
   exportType?: 'json' | 'csv' | 'xml';
   data?: Record<string, any> | Record<string, any>[];
+  allowedOrigin?: string[];
+  private?: boolean;
 }
 
 export interface User {
