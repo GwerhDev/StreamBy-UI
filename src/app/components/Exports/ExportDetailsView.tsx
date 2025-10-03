@@ -94,6 +94,9 @@ export const ExportDetailsView: React.FC = () => {
         <p><strong>Export Type:</strong> {exportDetails.type}</p>
         <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
         <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
+        {exportDetails.allowedOrigin && exportDetails.allowedOrigin.length > 0 && (
+          <p><strong>Allowed Origins:</strong> {exportDetails.allowedOrigin.join(', ')}</p>
+        )}
       </div>
       <span className={s.actionButtons}>
         <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
