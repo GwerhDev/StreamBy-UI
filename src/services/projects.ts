@@ -3,7 +3,7 @@ import { API_BASE } from "../config/api";
 import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
 
-export async function createProject(payload: { name: string; description?: string; dbType: string }) {
+export async function createProject(payload: { name: string; description?: string; dbType: string; allowedOrigin?: string[] }) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/create`, {
       method: 'POST',

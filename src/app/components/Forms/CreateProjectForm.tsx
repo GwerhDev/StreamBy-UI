@@ -1,4 +1,5 @@
 import s from './CreateProjectForm.module.css';
+import inputStyles from '../Inputs/LabeledInput.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -25,6 +26,7 @@ export const CreateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
+  const [allowedOrigin, setAllowedOrigin] = useState<string[]>([""]);
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { loadProjects } = useProjects();
@@ -42,7 +44,7 @@ export const CreateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, dbType: selectedDatabase });
+      const response = await createProject({ name, description, dbType: selectedDatabase, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') });
       const { projects, projectId } = response || {};
 
       if (imageFile && projectId) {
@@ -90,6 +92,22 @@ export const CreateProjectForm = () => {
     }
   };
 
+  const handleAllowedOriginChange = (index: number, value: string) => {
+    const newAllowedOrigins = [...allowedOrigin];
+    newAllowedOrigins[index] = value;
+    setAllowedOrigin(newAllowedOrigins);
+  };
+
+  const handleAddAllowedOrigin = () => {
+    setAllowedOrigin([...allowedOrigin, ""]);
+  };
+
+  const handleRemoveAllowedOrigin = (index: number) => {
+    const newAllowedOrigins = [...allowedOrigin];
+    newAllowedOrigins.splice(index, 1);
+    setAllowedOrigin(newAllowedOrigins);
+  };
+
   useEffect(() => {
     setDisabled(!name || !selectedDatabase || loading);
   }, [name, selectedDatabase, loading]);
@@ -122,6 +140,7 @@ export const CreateProjectForm = () => {
               <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
             </span>
           </li>
+
           <li>
             <input
               type="file"
@@ -164,6 +183,32 @@ export const CreateProjectForm = () => {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDatabase(e.target.value)}
           options={databases}
         />
+
+        <h4>Permissions</h4>
+        <span className={`${inputStyles.inputContainer} ${s.allowedOriginsWrapper}`}>
+          <div className={s.allowedOriginsContainer}>
+            {allowedOrigin.map((origin, index) => (
+              <div key={index} className={s.allowedOriginInputContainer}>
+                <LabeledInput
+                  label={`Allowed Origin ${index + 1}`}
+                  type="text"
+                  placeholder="http://example.com"
+                  id={`allowed-origin-${index}`}
+                  name={`allowed-origin-${index}`}
+                  htmlFor={`allowed-origin-${index}`}
+                  value={origin}
+                  onChange={(e) => handleAllowedOriginChange(index, e.target.value)}
+                />
+                <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddAllowedOrigin}>
+              <FontAwesomeIcon icon={faPlus} /> Add Origin
+            </button>
+          </div>
+        </span>
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loader} icon={faDiagramProject} text="Create" type="submit" />

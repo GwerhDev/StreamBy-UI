@@ -4,6 +4,7 @@ export interface Project {
   description?: string;
   image?: string;
   dbType?: string;
+  allowedOrigin?: string[];
   exports?: exportList[];
   members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: string[];
