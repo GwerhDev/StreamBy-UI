@@ -77,3 +77,45 @@
   object-fit: cover;
   aspect-ratio: 1/1;
 }
+
+.allowedOriginsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.allowedOriginsWrapper {
+  height: auto !important;
+}
+
+.allowedOriginInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.allowedOriginInputContainer > span {
+  flex-grow: 1;
+}
+
+.allowedOriginInputContainer button {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0.5rem;
+}
+
+.allowedOriginsContainer button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  width: fit-content;
+}

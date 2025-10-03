@@ -1,4 +1,5 @@
 import s from './UpdateProjectForm.module.css';
+import inputStyles from '../Inputs/LabeledInput.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -26,6 +27,7 @@ export const UpdateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
+  const [allowedOrigin, setAllowedOrigin] = useState<string[]>(currentProjectData?.allowedOrigin || [""]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { loadProjects } = useProjects();
 
@@ -33,13 +35,14 @@ export const UpdateProjectForm = () => {
     setName(currentProjectData?.name || "");
     setPreview(currentProjectData?.image || null);
     setDescription(currentProjectData?.description || "");
+    setAllowedOrigin(currentProjectData?.allowedOrigin || []);
   }, [currentProjectData]);
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const payload = { name, description };
+      const payload = { name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') };
       const { projects, projectId } = await updateProject(currentProjectData?.id || '', payload);
 
       if (imageFile && projectId) {
@@ -85,6 +88,22 @@ export const UpdateProjectForm = () => {
     } else if (name === 'description-input') {
       setDescription(value);
     }
+  };
+
+  const handleAllowedOriginChange = (index: number, value: string) => {
+    const newAllowedOrigins = [...allowedOrigin];
+    newAllowedOrigins[index] = value;
+    setAllowedOrigin(newAllowedOrigins);
+  };
+
+  const handleAddAllowedOrigin = () => {
+    setAllowedOrigin([...allowedOrigin, ""]);
+  };
+
+  const handleRemoveAllowedOrigin = (index: number) => {
+    const newAllowedOrigins = [...allowedOrigin];
+    newAllowedOrigins.splice(index, 1);
+    setAllowedOrigin(newAllowedOrigins);
   };
 
   useEffect(() => {
@@ -143,6 +162,32 @@ export const UpdateProjectForm = () => {
           value={description}
           onChange={handleInput}
         />
+
+        <h4>Permissions</h4>
+        <span className={`${inputStyles.inputContainer} ${s.allowedOriginsWrapper}`}>
+          <div className={s.allowedOriginsContainer}>
+            {allowedOrigin.map((origin, index) => (
+              <div key={index} className={s.allowedOriginInputContainer}>
+                <LabeledInput
+                  label={`Allowed Origin ${index + 1}`}
+                  type="text"
+                  placeholder="http://example.com"
+                  id={`allowed-origin-${index}`}
+                  name={`allowed-origin-${index}`}
+                  htmlFor={`allowed-origin-${index}`}
+                  value={origin}
+                  onChange={(e) => handleAllowedOriginChange(index, e.target.value)}
+                />
+                <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddAllowedOrigin}>
+              <FontAwesomeIcon icon={faPlus} /> Add Origin
+            </button>
+          </div>
+        </span>
 
         <span className={s.buttonContainer}>
           <ActionButton disabled={disabled || loader} icon={faFloppyDisk} text="Update" type="submit" />
