@@ -1,12 +1,12 @@
-import s from './UpdateExportForm.module.css';
+import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { getExport, updateExport } from "../../../services/exports";
-import { Export } from '../../../interfaces';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
+import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
 import { faCode, faFileExport, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -15,29 +15,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FormInputMode } from './FormInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 
-
 export function UpdateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
-  const [rawJsonData, setRawJsonData] = useState<JSON | object>({});
-  const [rawJsonInputString, setRawJsonInputString] = useState<string>("{}");
+  const [jsonData, setJsonData] = useState<object>({});
+  const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form');
   const [loading, setLoading] = useState(false);
-  const [created, setCreated] = useState<Export | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
+  const [exportType, setExportType] = useState<'json' | 'externalApi'>('json');
+  const [apiUrl, setApiUrl] = useState<string>('');
+  const [credentialId, setCredentialId] = useState<string>('');
+  const [prefix, setPrefix] = useState<string>('');
+  const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
   const navigate = useNavigate();
   const { id, exportId } = useParams();
 
   useEffect(() => {
     const fetchExportDetails = async () => {
-      if (!id || !exportId) {
-        return;
-      }
+      if (!id || !exportId) return;
       try {
         setLoading(true);
         const data = await getExport(id, exportId);
@@ -47,16 +48,20 @@ export function UpdateExportForm() {
           setCollectionName(data.collectionName);
           setSelectedAllowedOrigins(data.allowedOrigin || []);
           setIsPrivate(data.private || false);
+          setExportType(data.exportType || 'json');
+          setApiUrl(data.apiUrl || '');
+          setPrefix(data.prefix || '');
+          setCredentialId(data.credentialId || '');
+
           if (data.json) {
             const jsonString = JSON.stringify(data.json, null, 2);
-            setRawJsonInputString(jsonString);
-            setRawJsonData(data.json);
-            setJsonError(null);
+            setRawJsonString(jsonString);
+            setJsonData(data.json);
           } else {
-            setRawJsonInputString("{}");
-            setRawJsonData({});
-            setJsonError(null);
+            setRawJsonString("{}");
+            setJsonData({});
           }
+          setJsonError(null);
         }
       } catch (err: unknown) {
         console.error(err);
@@ -69,48 +74,54 @@ export function UpdateExportForm() {
     fetchExportDetails();
   }, [id, exportId]);
 
-  const handleJsonDataChange = (newData: JSON) => {
-    setRawJsonData(newData);
+  useEffect(() => {
+    if (currentProject?.data?.credentials) {
+      const credentialsOptions = currentProject.data.credentials.map(cred => ({
+        value: cred.id,
+        label: cred.key,
+      }));
+      setAvailableCredentials(credentialsOptions);
+    }
+  }, [currentProject]);
+
+  const handleJsonDataChange = (newData: object) => {
+    setJsonData(newData);
     try {
-      setRawJsonInputString(JSON.stringify(newData, null, 2));
+      setRawJsonString(JSON.stringify(newData, null, 2));
       setJsonError(null);
-    } catch (err: unknown) {
-      console.error(err);
+    } catch {
       setJsonError("Invalid JSON format from form input.");
     }
   };
 
   const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
-    setRawJsonInputString(newRawString);
+    setRawJsonString(newRawString);
     if (isValid && data) {
-      setRawJsonData(data);
+      setJsonData(data);
       setJsonError(null);
     } else {
-      setRawJsonData({}); // Clear jsonData if invalid
+      setJsonData({});
       setJsonError("Invalid JSON format.");
     }
   };
 
   const handleAllowedOriginCheckboxChange = (origin: string) => {
-    const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin));
+    const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(o => o === '*');
 
-    if (isChecked) { // The box was checked, now it's being unchecked
-      if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
-        // If "all" was selected, now we have a selection of all but one.
+    if (isChecked) {
+      if (selectedAllowedOrigins.includes('*')) {
         const allOrigins = currentProject?.data?.allowedOrigin || [];
-        const newSelection = allOrigins.filter(o => o !== origin);
-        setSelectedAllowedOrigins(newSelection);
+        setSelectedAllowedOrigins(allOrigins.filter(o => o !== origin));
       } else {
-        // Just remove the origin from the list
         setSelectedAllowedOrigins(prev => prev.filter(o => o !== origin));
       }
-    } else { // The box was unchecked, now it's being checked
+    } else {
       setSelectedAllowedOrigins(prev => [...prev, origin]);
     }
   };
 
   const handleSelectAllOriginsChange = () => {
-    if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
+    if (selectedAllowedOrigins.includes('*')) {
       setSelectedAllowedOrigins([]);
     } else {
       setSelectedAllowedOrigins(['*']);
@@ -119,34 +130,21 @@ export function UpdateExportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
 
-    interface Payload {
-      name: string;
-      description?: string;
-      collectionName: string;
-      jsonData: object;
-      allowedOrigin: string[];
-      private: boolean;
-    }
-
     try {
-      const payload: Payload = {
+      const payload = {
         name,
         description,
         collectionName,
-        jsonData: rawJsonData,
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
+        exportType,
+        ...(exportType !== 'externalApi' && { jsonData }),
+        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined }),
       };
-
-      const response = await updateExport(currentProject?.data?.id || '', exportId || '', payload);
-      if (response) {
-        setCreated(response);
-        navigate(`/project/${id}/dashboard/exports/${response.exportId}`);
-      }
-
+      await updateExport(id || '', exportId || '', payload);
+      navigate(`/project/${id}/dashboard/exports/${exportId}`);
     } catch (err: unknown) {
       console.error(err);
     } finally {
@@ -155,21 +153,35 @@ export function UpdateExportForm() {
   };
 
   const handleCancel = () => {
-    navigate(-1); // Go back to the previous page
+    navigate(-1);
   };
 
   useEffect(() => {
-    const isJsonDataEmpty = Object.keys(rawJsonData).length === 0 && JSON.stringify(rawJsonData) === JSON.stringify({});
+    let isFormValid = true;
 
-    let isContentDefined = false;
-    if (inputMode === 'rawJson') {
-      isContentDefined = !isJsonDataEmpty;
-    } else { // form mode
-      isContentDefined = true; // Always enabled in form mode to allow adding first field
+    if (!name || !collectionName) {
+      isFormValid = false;
     }
 
-    setDisabled(!name || !collectionName || !isContentDefined || loading || jsonError !== null);
-  }, [name, collectionName, rawJsonData, inputMode, loading, jsonError, selectedAllowedOrigins]);
+    if (exportType === 'externalApi') {
+      if (!apiUrl) {
+        isFormValid = false;
+      }
+    } else {
+      const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
+      if (inputMode === 'rawJson') {
+        if (isJsonDataEmpty || jsonError !== null) {
+          isFormValid = false;
+        }
+      } else {
+        if (jsonError !== null) {
+          isFormValid = false;
+        }
+      }
+    }
+
+    setDisabled(!isFormValid || loading);
+  }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
 
   return (
     <div className={s.container}>
@@ -177,7 +189,7 @@ export function UpdateExportForm() {
       <form onSubmit={handleSubmit}>
         <div className={s.formContainer}>
           <h3>Update Export</h3>
-          <p>Fill the form to update a new export</p>
+          <p>Fill the form to update an export</p>
 
           <LabeledInput
             label="Export's name"
@@ -199,7 +211,6 @@ export function UpdateExportForm() {
             htmlFor="collection-name-input"
             value={collectionName}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-            disabled={true}
           />
 
           <LabeledInput
@@ -212,73 +223,120 @@ export function UpdateExportForm() {
             value={description}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
+
           <h4>Allowed Origins for this Export</h4>
           {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
             <div className={s.allowedOriginsContainer}>
-              <div className={s.checkboxContainer}>
+              <CustomCheckbox
+                id="all-origins-checkbox"
+                name="all-origins-checkbox"
+                checked={selectedAllowedOrigins.includes('*')}
+                onChange={handleSelectAllOriginsChange}
+                label="Allow all origins from project"
+              />
+              {currentProject.data.allowedOrigin.map((origin: string, index: number) => (
                 <CustomCheckbox
-                  id="all-origins-checkbox"
-                  name="all-origins-checkbox"
-                  checked={selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                  onChange={handleSelectAllOriginsChange}
+                  key={index}
+                  id={`origin-${index}`}
+                  name={`origin-${index}`}
+                  value={origin}
+                  checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.includes('*')}
+                  onChange={() => handleAllowedOriginCheckboxChange(origin)}
+                  label={origin}
                 />
-                <label htmlFor="all-origins-checkbox">Allow all origins from project</label>
-              </div>
-              {currentProject.data.allowedOrigin.map((origin, index) => (
-                <div key={index} className={s.checkboxContainer}>
-                  <CustomCheckbox
-                    id={`origin-${index}`}
-                    name={`origin-${index}`}
-                    value={origin}
-                    checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                    onChange={() => handleAllowedOriginCheckboxChange(origin)}
-                  />
-                  <label htmlFor={`origin-${index}`}>{origin}</label>
-                </div>
               ))}
             </div>
           )}
 
-          <div className={s.checkboxContainer}>
-            <CustomCheckbox
-              id="private-checkbox"
-              name="private-checkbox"
-              checked={isPrivate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-            />
-            <label htmlFor="private-checkbox">Private Export</label>
-          </div>
+          <CustomCheckbox
+            id="private-checkbox"
+            name="private-checkbox"
+            checked={isPrivate}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+            label="Private Export"
+          />
+
+          <LabeledSelect
+            label="Export Type"
+            id="export-type-select"
+            name="export-type-select"
+            htmlFor="export-type-select"
+            value={exportType}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExportType(e.target.value as 'json' | 'externalApi')}
+            options={[
+              { value: 'json', label: 'JSON' },
+              { value: 'externalApi', label: 'External API' },
+            ]}
+          />
+
+          {exportType === 'externalApi' && (
+            <>
+              <LabeledInput
+                label="API URL"
+                type="text"
+                placeholder="https://api.example.com/webhook"
+                id="api-url-input"
+                name="api-url-input"
+                htmlFor="api-url-input"
+                value={apiUrl}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
+              />
+              <LabeledInput
+                label="Prefix (optional)"
+                type="text"
+                placeholder="data"
+                id="prefix-input"
+                name="prefix-input"
+                htmlFor="prefix-input"
+                value={prefix}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
+              />
+              {availableCredentials.length > 0 && (
+                <LabeledSelect
+                  label="Credential (optional)"
+                  id="credential-select"
+                  name="credential-select"
+                  htmlFor="credential-select"
+                  value={credentialId}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCredentialId(e.target.value)}
+                  options={availableCredentials}
+                />
+              )}
+            </>
+          )}
         </div>
         <div className={s.jsonViewer}>
-          <div className={s.inputModeToggle}>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-              onClick={() => setInputMode('form')}
-              title="Form Input"
-            >
-              <FontAwesomeIcon icon={faFileLines} />
-              Form input
-            </button>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-              onClick={() => setInputMode('rawJson')}
-              title="Raw JSON"
-            >
-              <FontAwesomeIcon icon={faCode} />
-              Raw JSON
-            </button>
-          </div>
-          {inputMode === 'form' ? (
+          {exportType !== 'externalApi' && (
+            <div className={s.inputModeToggle}>
+              <button
+                type="button"
+                className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+                onClick={() => setInputMode('form')}
+                title="Form Input"
+              >
+                <FontAwesomeIcon icon={faFileLines} />
+                Form input
+              </button>
+              <button
+                type="button"
+                className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+                onClick={() => setInputMode('rawJson')}
+                title="Raw JSON"
+              >
+                <FontAwesomeIcon icon={faCode} />
+                Raw JSON
+              </button>
+            </div>
+          )}
+          {exportType !== 'externalApi' && inputMode === 'form' ? (
             <FormInputMode
-              jsonData={rawJsonData}
+              jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-          ) : (
+          ) : exportType !== 'externalApi' && (
             <RawJsonInputMode
-              jsonData={rawJsonInputString}
+              jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}
               jsonError={jsonError}
             />
@@ -289,13 +347,6 @@ export function UpdateExportForm() {
           <ActionButton disabled={disabled || loading} icon={faFileExport} text="Update" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
-
-        {created && (
-          <div>
-            <h4>Export updated:</h4>
-            <pre>{JSON.stringify(created, null, 2)}</pre>
-          </div>
-        )}
       </form>
     </div>
   );
