@@ -26,6 +26,7 @@ import { ProjectCreate } from './app/pages/ProjectCreate';
 import { ExportsCreate } from './app/pages/ExportsCreate';
 import { ExportsDetails } from './app/pages/ExportsDetails';
 import { ExportsEdit } from './app/pages/ExportsEdit';
+import { Permissions } from './app/pages/Permissions';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 
@@ -69,6 +70,7 @@ function App() {
                 <Route path="/project/:id/database" element={<Database />} />
 
                 <Route path="/project/:id/settings" element={<Settings />} />
+                <Route path="/project/:id/settings/permissions" element={<Permissions />} />
                 <Route path="/project/:id/not-found" element={<NotFound />} />
                 <Route path="/project/:id/*" element={<NotFound />} />
 
