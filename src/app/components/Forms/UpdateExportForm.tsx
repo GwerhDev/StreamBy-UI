@@ -21,10 +21,10 @@ export function UpdateExportForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
-  const [rawJsonData, setRawJsonData] = useState<any>({}); // For raw JSON data (object)
-  const [rawJsonInputString, setRawJsonInputString] = useState<string>("{}"); // For raw JSON string input
+  const [rawJsonData, setRawJsonData] = useState<JSON | object>({});
+  const [rawJsonInputString, setRawJsonInputString] = useState<string>("{}");
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<Export | null>(null);
   const [disabled, setDisabled] = useState<boolean>(true);
@@ -58,7 +58,7 @@ export function UpdateExportForm() {
             setJsonError(null);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         setJsonError("Failed to load export data.");
       } finally {
@@ -69,12 +69,13 @@ export function UpdateExportForm() {
     fetchExportDetails();
   }, [id, exportId]);
 
-  const handleJsonDataChange = (newData: any) => {
+  const handleJsonDataChange = (newData: JSON) => {
     setRawJsonData(newData);
     try {
       setRawJsonInputString(JSON.stringify(newData, null, 2));
       setJsonError(null);
-    } catch (e: any) {
+    } catch (err: unknown) {
+      console.error(err);
       setJsonError("Invalid JSON format from form input.");
     }
   };
@@ -139,7 +140,7 @@ export function UpdateExportForm() {
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
       };
-      
+
       const response = await updateExport(currentProject?.data?.id || '', exportId || '', payload);
       if (response) {
         setCreated(response);
@@ -211,38 +212,42 @@ export function UpdateExportForm() {
             value={description}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
-
+          <h4>Allowed Origins for this Export</h4>
           {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
             <div className={s.allowedOriginsContainer}>
-              <h4>Allowed Origins for Project</h4>
-              <CustomCheckbox
-                id="all-origins-checkbox"
-                name="all-origins-checkbox"
-                checked={selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                onChange={handleSelectAllOriginsChange}
-                label="Allow all origins from project"
-              />
-              {currentProject.data.allowedOrigin.map((origin, index) => (
+              <div className={s.checkboxContainer}>
                 <CustomCheckbox
-                  key={index}
-                  id={`origin-${index}`}
-                  name={`origin-${index}`}
-                  value={origin}
-                  checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                  onChange={() => handleAllowedOriginCheckboxChange(origin)}
-                  label={origin}
+                  id="all-origins-checkbox"
+                  name="all-origins-checkbox"
+                  checked={selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
+                  onChange={handleSelectAllOriginsChange}
                 />
+                <label htmlFor="all-origins-checkbox">Allow all origins from project</label>
+              </div>
+              {currentProject.data.allowedOrigin.map((origin, index) => (
+                <div key={index} className={s.checkboxContainer}>
+                  <CustomCheckbox
+                    id={`origin-${index}`}
+                    name={`origin-${index}`}
+                    value={origin}
+                    checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
+                    onChange={() => handleAllowedOriginCheckboxChange(origin)}
+                  />
+                  <label htmlFor={`origin-${index}`}>{origin}</label>
+                </div>
               ))}
             </div>
           )}
 
-          <CustomCheckbox
-            id="private-checkbox"
-            name="private-checkbox"
-            checked={isPrivate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-            label="Private Export"
-          />
+          <div className={s.checkboxContainer}>
+            <CustomCheckbox
+              id="private-checkbox"
+              name="private-checkbox"
+              checked={isPrivate}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+            />
+            <label htmlFor="private-checkbox">Private Export</label>
+          </div>
         </div>
         <div className={s.jsonViewer}>
           <div className={s.inputModeToggle}>
