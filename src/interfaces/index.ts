@@ -97,6 +97,9 @@ export interface Export {
   exportedBy: string;
   allowedOrigin?: string[];
   private?: boolean;
+  credentialId?: string;
+  apiUrl?: string;
+  prefix?: string;
 }
 
 export interface ExportDetails {
