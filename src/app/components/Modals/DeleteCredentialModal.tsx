@@ -1,9 +1,7 @@
 import s from './DeleteCredentialModal.module.css';
-import { useNavigate } from 'react-router-dom';
 import { deleteCredential } from '../../../services/projects';
 import { FormEvent, useState } from 'react';
 import { DeleteCredentialForm } from '../Forms/DeleteCredentialForm';
-import { CurrentProjectState } from '../../../interfaces';
 
 interface Credential {
   id: string;
@@ -14,7 +12,6 @@ interface Credential {
 interface DeleteCredentialModalProps {
   projectId: string | undefined;
   credentialId: string | undefined;
-  currentProject: CurrentProjectState | undefined;
   currentCredential: Credential | undefined;
   onClose: () => void;
 }
@@ -23,8 +20,7 @@ export const DeleteCredentialModal = (props: DeleteCredentialModalProps) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [confirmText, setConfirmText] = useState<string>("");
-  const { projectId, credentialId, currentCredential, currentProject, onClose } = props || {};
-  const navigate = useNavigate();
+  const { projectId, credentialId, currentCredential, onClose } = props || {};
 
   const handleDeleteCredential = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,7 +29,6 @@ export const DeleteCredentialModal = (props: DeleteCredentialModalProps) => {
       await deleteCredential(projectId || '', credentialId || '');
       setLoader(false);
       onClose();
-      navigate('/project/' + currentProject?.data?.id + '/settings/credentials');
     } catch (error) {
       setLoader(false);
       console.error('Error deleting credential:', error);
