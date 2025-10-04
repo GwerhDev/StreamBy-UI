@@ -86,7 +86,7 @@ export function CreateExportForm() {
     if (currentProject?.data?.credentials) {
       const credentialsOptions = currentProject.data.credentials.map(cred => ({
         value: cred.id,
-        label: cred.key, // Assuming 'key' is a good display name for the credential
+        label: cred.key,
       }));
       setAvailableCredentials(credentialsOptions);
       if (credentialsOptions.length > 0) {
@@ -120,13 +120,12 @@ export function CreateExportForm() {
   };
 
   const handleCancel = () => {
-    navigate(-1); // Go back to the previous page
+    navigate(-1);
   };
 
   useEffect(() => {
     let isFormValid = true;
 
-    // Common validations
     if (!name || !collectionName) {
       isFormValid = false;
     }
@@ -135,16 +134,13 @@ export function CreateExportForm() {
       if (!apiUrl) {
         isFormValid = false;
       }
-      // jsonData is not relevant for externalApi, so no validation needed for it
     } else {
-      // For other export types, jsonData is relevant
       const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
       if (inputMode === 'rawJson') {
         if (isJsonDataEmpty || jsonError !== null) {
           isFormValid = false;
         }
-      } else { // form mode
-        // In form mode, we assume content is being added, so it's valid unless there's a jsonError
+      } else {
         if (jsonError !== null) {
           isFormValid = false;
         }

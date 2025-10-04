@@ -23,7 +23,7 @@ export function LabeledSelect({
   disabled = false,
 }: LabeledSelectProps) {
   return (
-    <div className={s.inputGroup}>
+    <div className={s.inputContainer}>
       <label htmlFor={htmlFor}>{label}</label>
       <select
         name={name}
@@ -31,7 +31,6 @@ export function LabeledSelect({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={s.input} // Reusing input style
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

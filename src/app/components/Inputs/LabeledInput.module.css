@@ -11,9 +11,11 @@
   display: flex;
 }
 
-.inputContainer input {
+.inputContainer input,
+.inputContainer select {
   width: 100%;
 }
+
 
 .disabled {
   opacity: 0.5;
