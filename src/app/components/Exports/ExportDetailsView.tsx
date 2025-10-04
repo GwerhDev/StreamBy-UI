@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { API_BASE } from '../../../config/api';
 import { getExport } from '../../../services/exports';
-import { ExportDetails as ExportDetailsInterface } from '../../../interfaces';
+import { Export } from '../../../interfaces';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
 import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -24,7 +24,7 @@ export const ExportDetailsView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'fields' | 'raw'>('fields');
-  const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
+  const [exportDetails, setExportDetails] = useState<Export | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
 

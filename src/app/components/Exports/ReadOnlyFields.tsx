@@ -2,7 +2,7 @@ import s from './ReadOnlyFields.module.css';
 import React from 'react';
 
 interface ReadOnlyFieldsProps {
-  data: any;
+  data: JSON;
   isNested?: boolean;
 }
 

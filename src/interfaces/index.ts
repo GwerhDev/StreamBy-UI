@@ -19,7 +19,7 @@ export interface DeleteExportFormProps {
   loader: boolean;
   disabled: boolean;
   confirmText: string;
-  currentExport: ExportDetails | undefined;
+  currentExport: Export | undefined;
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCancel: () => void;
   handleDeleteExport: (e: React.FormEvent) => void;
@@ -100,23 +100,7 @@ export interface Export {
   credentialId?: string;
   apiUrl?: string;
   prefix?: string;
-}
-
-export interface ExportDetails {
-  id: string;
-  json?: JSON;
-  name: string;
-  type: string;
-  method: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-  projectId: string;
-  collectionName: string;
-  exportedFileUrl?: string;
-  allowedOrigin?: string[];
-  private?: boolean;
-  apiUrl?: string;
+  json?: JSON | null;
 }
 
 export interface ExportPayload {

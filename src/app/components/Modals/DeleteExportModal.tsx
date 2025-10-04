@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { deleteExport } from '../../../services/exports';
 import { FormEvent, useState } from 'react';
 import { DeleteExportForm } from '../Forms/DeleteExportForm';
-import { CurrentProjectState, ExportDetails } from '../../../interfaces';
+import { CurrentProjectState, Export } from '../../../interfaces';
 
 interface DeleteExportModalProps {
   exportId: string | undefined;
   currentProject: CurrentProjectState | undefined;
-  currentExport: ExportDetails | undefined;
+  currentExport: Export | undefined;
   onClose: () => void;
 }
 
