@@ -3,10 +3,10 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
-
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
+import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
 import { faFileExport, faXmark, faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,7 +14,6 @@ import { useNavigate } from 'react-router-dom';
 import { FormInputMode } from './FormInputMode';
 import { RawJsonInputMode } from './RawJsonInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
-
 
 export function CreateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -29,6 +28,11 @@ export function CreateExportForm() {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>(['*']);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
+  const [exportType, setExportType] = useState<'json' | 'externalApi'>('json');
+  const [apiUrl, setApiUrl] = useState<string>('');
+  const [credentialId, setCredentialId] = useState<string>('');
+  const [prefix, setPrefix] = useState<string>('');
+  const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
   const navigate = useNavigate();
 
   const handleJsonDataChange = (newData: object) => {
@@ -78,6 +82,19 @@ export function CreateExportForm() {
     }
   };
 
+  useEffect(() => {
+    if (currentProject?.data?.credentials) {
+      const credentialsOptions = currentProject.data.credentials.map(cred => ({
+        value: cred.id,
+        label: cred.key, // Assuming 'key' is a good display name for the credential
+      }));
+      setAvailableCredentials(credentialsOptions);
+      if (credentialsOptions.length > 0) {
+        setCredentialId(credentialsOptions[0].value);
+      }
+    }
+  }, [currentProject]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -85,11 +102,13 @@ export function CreateExportForm() {
     try {
       const payload = {
         name,
-        jsonData,
         description,
         collectionName,
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
+        exportType,
+        ...(exportType !== 'externalApi' && { data: jsonData }),
+        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined }),
       };
       const response = await createExport(currentProject?.data?.id || '', payload);
       navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
@@ -105,17 +124,35 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
-    const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
+    let isFormValid = true;
 
-    let isContentDefined = false;
-    if (inputMode === 'rawJson') {
-      isContentDefined = !isJsonDataEmpty;
-    } else { // form mode
-      isContentDefined = true; // Always enabled in form mode to allow adding first field
+    // Common validations
+    if (!name || !collectionName) {
+      isFormValid = false;
     }
 
-    setDisabled(!name || !collectionName || !isContentDefined || loading || jsonError !== null);
-  }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins]);
+    if (exportType === 'externalApi') {
+      if (!apiUrl) {
+        isFormValid = false;
+      }
+      // jsonData is not relevant for externalApi, so no validation needed for it
+    } else {
+      // For other export types, jsonData is relevant
+      const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
+      if (inputMode === 'rawJson') {
+        if (isJsonDataEmpty || jsonError !== null) {
+          isFormValid = false;
+        }
+      } else { // form mode
+        // In form mode, we assume content is being added, so it's valid unless there's a jsonError
+        if (jsonError !== null) {
+          isFormValid = false;
+        }
+      }
+    }
+
+    setDisabled(!isFormValid || loading);
+  }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
 
   return (
     <div className={s.container}>
@@ -189,35 +226,86 @@ export function CreateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
             label="Private Export"
           />
+
+          <LabeledSelect
+            label="Export Type"
+            id="export-type-select"
+            name="export-type-select"
+            htmlFor="export-type-select"
+            value={exportType}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExportType(e.target.value as 'json' | 'externalApi')}
+            options={[
+              { value: 'json', label: 'JSON' },
+              { value: 'externalApi', label: 'External API' },
+            ]}
+          />
+
+          {exportType === 'externalApi' && (
+            <>
+              <LabeledInput
+                label="API URL"
+                type="text"
+                placeholder="https://api.example.com/webhook"
+                id="api-url-input"
+                name="api-url-input"
+                htmlFor="api-url-input"
+                value={apiUrl}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
+              />
+              <LabeledInput
+                label="Prefix (optional)"
+                type="text"
+                placeholder="data"
+                id="prefix-input"
+                name="prefix-input"
+                htmlFor="prefix-input"
+                value={prefix}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
+              />
+              {availableCredentials.length > 0 && (
+                <LabeledSelect
+                  label="Credential (optional)"
+                  id="credential-select"
+                  name="credential-select"
+                  htmlFor="credential-select"
+                  value={credentialId}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCredentialId(e.target.value)}
+                  options={availableCredentials}
+                />
+              )}
+            </>
+          )}
         </div>
         <div className={s.jsonViewer}>
-          <div className={s.inputModeToggle}>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-              onClick={() => setInputMode('form')}
-              title="Form Input"
-            >
-              <FontAwesomeIcon icon={faFileLines} />
-              Form input
-            </button>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-              onClick={() => setInputMode('rawJson')}
-              title="Raw JSON"
-            >
-              <FontAwesomeIcon icon={faCode} />
-              Raw JSON
-            </button>
-          </div>
-          {inputMode === 'form' ? (
+          {exportType !== 'externalApi' && (
+            <div className={s.inputModeToggle}>
+              <button
+                type="button"
+                className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+                onClick={() => setInputMode('form')}
+                title="Form Input"
+              >
+                <FontAwesomeIcon icon={faFileLines} />
+                Form input
+              </button>
+              <button
+                type="button"
+                className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+                onClick={() => setInputMode('rawJson')}
+                title="Raw JSON"
+              >
+                <FontAwesomeIcon icon={faCode} />
+                Raw JSON
+              </button>
+            </div>
+          )}
+          {exportType !== 'externalApi' && inputMode === 'form' ? (
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-          ) : (
+          ) : exportType !== 'externalApi' && (
             <RawJsonInputMode
               jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}

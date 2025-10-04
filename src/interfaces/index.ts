@@ -98,7 +98,7 @@ export interface Export {
   updatedAt: string;
   projectId: string;
   collectionName: string;
-  exportType: 'json' | 'csv' | 'xml';
+  exportType: 'json' | 'externalApi';
   exportedBy: string;
   allowedOrigin?: string[];
   private?: boolean;
@@ -124,10 +124,13 @@ export interface ExportPayload {
   name?: string;
   description?: string;
   collectionName: string;
-  exportType?: 'json' | 'csv' | 'xml';
+  exportType?: 'json' | 'csv' | 'xml' | 'externalApi';
   data?: Record<string, object> | Record<string, object>[];
   allowedOrigin?: string[];
   private?: boolean;
+  apiUrl?: string;
+  credentialId?: string;
+  prefix?: string;
 }
 
 export interface User {
