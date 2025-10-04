@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
-import CredentialList from '../components/Credentials/CredentialList';
-import CreateCredentialForm from '../components/Forms/CreateCredentialForm';
+import { CredentialList } from '../components/Credentials/CredentialList';
+import { CreateCredentialForm } from '../components/Forms/CreateCredentialForm';
 import { createCredential } from '../../services/projects';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 
@@ -44,9 +44,9 @@ export const Credentials = () => {
       <h1>Credentials for {currentProject.name}</h1>
       <CredentialList credentials={currentProject.credentials || []} />
       <CreateCredentialForm
-        projectId={projectId || ''}
         onCreate={handleCreateCredential}
         loading={loading}
+        setLoading={setLoading}
       />
     </div>
   );
