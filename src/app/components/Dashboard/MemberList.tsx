@@ -1,10 +1,10 @@
+import s from './MemberList.module.css';
+import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchProjectMembers } from '../../../services/projects';
 import { Member } from '../../../interfaces';
 import { MemberCard } from '../Cards/MemberCard';
-import s from './MemberList.module.css';
-import skeleton from '../Loader/Skeleton.module.css';
 
 export function MemberList() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -22,8 +22,8 @@ export function MemberList() {
       try {
         const data = await fetchProjectMembers(projectId);
         setMembers(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch project members.");
+      } catch (err: { message?: string } | unknown) {
+        setError((err as { message?: string }).message || "Failed to fetch project members.");
       } finally {
         setLoading(false);
       }

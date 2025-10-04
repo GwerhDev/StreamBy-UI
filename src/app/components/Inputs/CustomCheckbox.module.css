@@ -3,12 +3,12 @@
   align-items: center;
   gap: var(--size-2);
   cursor: pointer;
+  background-color: transparent;
 }
 
 label {
   color: var(--color-light-100);
   user-select: none;
-  background-color: transparent;
 }
 
 .input {
