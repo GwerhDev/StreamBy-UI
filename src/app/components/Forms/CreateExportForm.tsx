@@ -158,7 +158,7 @@ export function CreateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
 
-          <h4>Allowed Origins for Project</h4>
+          <h4>Allowed Origins for this Export</h4>
           {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
             <div className={s.allowedOriginsContainer}>
               <CustomCheckbox

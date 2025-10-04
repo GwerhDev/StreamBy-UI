@@ -43,8 +43,8 @@ export const ExportDetailsView: React.FC = () => {
         } else {
           setError('Export not found.');
         }
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch export details.');
+      } catch (err: { message: string } | unknown) {
+        setError((err as { message: string }).message || 'Failed to fetch export details.');
       } finally {
         setLoading(false);
       }
