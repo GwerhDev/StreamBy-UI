@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './CredentialList.module.css';
+import s from './CredentialList.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ActionButton } from '../Buttons/ActionButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -39,31 +39,30 @@ export const CredentialList: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <div className={s.container}>
+      <div className={s.header}>
         <h2>Manage Project Credentials</h2>
         <p>Add, view, or remove credentials for your project.</p>
       </div>
       {currentProjectLoading ? (
-        // Skeleton loader similar to ExportList
         <ul>
           {Array.from({ length: 3 }).map((_, index) => (
-            <li key={index} className={`${styles.credentialCardSkeleton} ${styles.skeleton}`}></li>
+            <li key={index} className={`${s.credentialCardSkeleton} ${s.skeleton}`}></li>
           ))}
         </ul>
       ) : !credentials?.length ? (
         <ActionButton icon={faPlus} text='Create new credential' onClick={handleCreateCredential} />
       ) : (
-        <ul className={styles.credentialListGrid}>
+        <ul className={s.credentialListGrid}>
           {credentials.map((credential, index) => (
             <li
               title={credential.key}
               key={index}
-              className={styles.credentialItem}
+              className={s.credentialItem}
             >
               <CredentialCard credential={credential} />
               <button
-                className={styles.deleteButton}
+                className={s.deleteButton}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteClick(credential);
@@ -73,7 +72,7 @@ export const CredentialList: React.FC = () => {
               </button>
             </li>
           ))}
-          <li className={styles.createCredential} onClick={handleCreateCredential}>
+          <li className={s.createCredential} onClick={handleCreateCredential}>
             <FontAwesomeIcon icon={faPlus} />
             <h4>
               Create a new Credential
