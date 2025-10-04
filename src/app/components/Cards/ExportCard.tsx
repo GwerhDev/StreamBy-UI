@@ -30,7 +30,7 @@ export const ExportCard = (props: { exports: Export }) => {
       }
 
       {
-        exports.type === "json" || exports.type === "raw" && <FontAwesomeIcon icon={faFileExport} title='JSON Data' />
+        (exports.type === "json" || exports.type === "raw") && <FontAwesomeIcon icon={faFileExport} title='JSON Data' />
       }
     </>
   )
