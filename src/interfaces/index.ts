@@ -5,6 +5,7 @@ export interface Project {
   image?: string;
   dbType?: string;
   allowedOrigin?: string[];
+  credentials?: { id: string; key: string; value: string }[];
   exports?: exportList[];
   members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: string[];

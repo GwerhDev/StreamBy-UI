@@ -271,3 +271,28 @@ export async function getDatabases() {
     throw error;
   }
 }
+
+export async function createCredential(projectId: string, key: string, value: string) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ key, value }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to create credential');
+    }
+    const response = await res.json();
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to create credential.', type: 'error' }));
+    throw error;
+  }
+}

@@ -27,6 +27,8 @@ import { ExportsCreate } from './app/pages/ExportsCreate';
 import { ExportsDetails } from './app/pages/ExportsDetails';
 import { ExportsEdit } from './app/pages/ExportsEdit';
 import { Permissions } from './app/pages/Permissions';
+import { CredentialsList } from './app/pages/CredentialsList';
+import { CredentialsCreate } from './app/pages/CredentialsCreate';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 
@@ -71,6 +73,8 @@ function App() {
 
                 <Route path="/project/:id/settings" element={<Settings />} />
                 <Route path="/project/:id/settings/permissions" element={<Permissions />} />
+                <Route path="/project/:id/settings/credentials" element={<CredentialsList />} />
+                <Route path="/project/:id/settings/credentials/create" element={<CredentialsCreate />} />
                 <Route path="/project/:id/not-found" element={<NotFound />} />
                 <Route path="/project/:id/*" element={<NotFound />} />
 
