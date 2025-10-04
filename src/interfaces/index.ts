@@ -114,7 +114,7 @@ export interface ExportPayload {
   description?: string;
   collectionName: string;
   exportType?: 'json' | 'csv' | 'xml';
-  data?: Record<string, any> | Record<string, any>[];
+  data?: Record<string, object> | Record<string, object>[];
   allowedOrigin?: string[];
   private?: boolean;
 }

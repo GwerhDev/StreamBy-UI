@@ -100,7 +100,6 @@
 
 /* Specific styles for remove button */
 .removeFieldButton {
-  composes: actionButton;
   color: var(--color-danger-400);
 }
 
