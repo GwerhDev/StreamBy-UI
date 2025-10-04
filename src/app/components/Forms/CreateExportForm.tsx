@@ -107,10 +107,10 @@ export function CreateExportForm() {
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
         exportType,
-        ...(exportType !== 'externalApi' && { data: jsonData }),
+        ...(exportType !== 'externalApi' && { jsonData }),
         ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined }),
       };
-      const response = await createExport(currentProject?.data?.id || '', payload);
+      const response = await createExport(currentProject?.data?.id, payload);
       navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
     } catch (err: unknown) {
       console.error(err);

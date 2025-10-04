@@ -23,7 +23,7 @@ export async function getExport(projectId: string, exportId: string) {
   }
 }
 
-export async function createExport(projectId: string, payload: Record<string, any>) {
+export async function createExport(projectId: string | undefined, payload: Record<string, any>) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/`, {
       method: 'POST',
