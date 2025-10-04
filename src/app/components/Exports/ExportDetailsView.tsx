@@ -12,25 +12,21 @@ import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
-import { useProjects } from '../../../hooks/useProjects';
-import { Project } from '../../../interfaces';
 import { ReadOnlyFields } from './ReadOnlyFields'; // Import the new component
 import { faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 
 export const ExportDetailsView: React.FC = () => {
+  const navigate = useNavigate();
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
-  const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'fields' | 'raw'>('fields');
+  const [exportDetails, setExportDetails] = useState<ExportDetailsInterface | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'fields' | 'raw'>('fields'); // State for view mode
-  const navigate = useNavigate();
-  const { projectList } = useProjects();
-
-  const currentProject: Project | undefined = projectList.list.find(
-    (project) => project.id === id
-  );
+  const currentProject = useSelector((state: RootState) => state.currentProject);
 
   useEffect(() => {
     const fetchExportDetails = async () => {
@@ -95,7 +91,11 @@ export const ExportDetailsView: React.FC = () => {
         <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
         <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
         {exportDetails.allowedOrigin && exportDetails.allowedOrigin.length > 0 && (
-          <p><strong>Allowed Origins:</strong> {exportDetails.allowedOrigin.join(', ')}</p>
+          <p><strong>Allowed Origins:</strong> {
+            exportDetails.allowedOrigin.some(origin => /^\*$/.test(origin))
+              ? (currentProject?.data?.allowedOrigin?.join(', ') || '*')
+              : exportDetails.allowedOrigin.join(', ')
+          }</p>
         )}
       </div>
       <span className={s.actionButtons}>

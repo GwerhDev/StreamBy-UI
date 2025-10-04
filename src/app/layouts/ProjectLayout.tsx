@@ -56,7 +56,7 @@ export default function ProjectLayout() {
         }
       </div >
       <LogoutModal />
-      <DeleteProjectModal currentProject={currentProject.data} />
+      <DeleteProjectModal currentProject={currentProject} />
     </>
   );
 }

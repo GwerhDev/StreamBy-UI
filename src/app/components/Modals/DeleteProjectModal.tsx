@@ -1,13 +1,13 @@
 import s from './DeleteProjectModal.module.css';
+import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CurrentProjectState } from '../../../interfaces';
 import { deleteProject } from '../../../services/projects';
 import { useProjects } from '../../../hooks/useProjects';
-import { FormEvent, useState } from 'react';
 import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
-import { Project } from '../../../interfaces';
 
 interface DeleteProjectModalProps {
-  currentProject: Project | null;
+  currentProject: CurrentProjectState | null;
 }
 
 export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
@@ -22,7 +22,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await deleteProject(currentProject?.id);
+      const response = await deleteProject(currentProject?.data?.id);
       loadProjects(response.projects);
       setLoader(false);
     } catch (error) {
@@ -44,7 +44,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setConfirmText(value);
-    if (value === currentProject?.name) {
+    if (value === currentProject?.data?.name) {
       setDisabled(false);
     } else {
       setDisabled(true);

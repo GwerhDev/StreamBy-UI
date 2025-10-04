@@ -1,6 +1,8 @@
 import s from './FormInputMode.module.css';
 import React from 'react';
 import { LabeledInput } from '../Inputs/LabeledInput';
+import { CustomCheckbox } from '../Inputs/CustomCheckbox';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faNetworkWired, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
@@ -52,15 +54,15 @@ const JsonField: React.FC<JsonFieldProps> = ({
   const renderValueInput = () => {
     const type = typeof fieldValue;
     if (type === 'boolean') {
+      const checkboxId = `checkbox-${currentPath.join('-')}`;
       return (
-        <div className={s.checkboxContainer}>
-          <input
-            type="checkbox"
-            checked={fieldValue}
-            onChange={handleValueChange}
-          />
-          <label>{String(fieldValue)}</label>
-        </div>
+        <CustomCheckbox
+          id={checkboxId}
+          name={checkboxId}
+          checked={fieldValue}
+          onChange={handleValueChange}
+          label={String(fieldValue)}
+        />
       );
     }
     if (type === 'string' || type === 'number') {

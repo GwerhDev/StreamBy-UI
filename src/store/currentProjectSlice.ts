@@ -1,11 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Project } from '../interfaces';
-
-interface CurrentProjectState {
-  data: Project | null;
-  loading: boolean;
-  error: string | null;
-}
+import { CurrentProjectState, Project } from '../interfaces';
 
 const initialState: CurrentProjectState = {
   data: { id: "", name: "" },

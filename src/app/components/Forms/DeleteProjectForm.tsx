@@ -10,9 +10,9 @@ export const DeleteProjectForm = (props: DeleteProjectFormProps) => {
 
   return (
     <form onSubmit={handleDeleteProject} className={s.container} action="">
-      <h2>Delete {currentProject?.name}?</h2>
+      <h2>Delete {currentProject?.data?.name}?</h2>
       <p>Confirm that you want to delete this project </p>
-      <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.name}" to submit`} name="confirm-delete" value={confirmText} id="confirm-delete" htmlFor="confirm-delete" placeholder="" />
+      <LabeledInput type="text" onChange={handleInput} label={`Enter "${currentProject?.data?.name}" to submit`} name="confirm-delete" value={confirmText} id="confirm-delete" htmlFor="confirm-delete" placeholder="" />
 
       <div className={s.buttonContainer}>
         <PrimaryButton type="submit" disabled={disabled || loader} icon={faTrash} text='Delete' />

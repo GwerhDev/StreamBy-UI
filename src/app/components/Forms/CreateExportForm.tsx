@@ -13,28 +13,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import { FormInputMode } from './FormInputMode';
 import { RawJsonInputMode } from './RawJsonInputMode';
+import { CustomCheckbox } from '../Inputs/CustomCheckbox';
+
 
 export function CreateExportForm() {
-  const { data: currentProject } = useSelector((state: RootState) => state.currentProject);
+  const currentProject = useSelector((state: RootState) => state.currentProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
-  const [jsonData, setJsonData] = useState<any>({});
+  const [jsonData, setJsonData] = useState<object>({});
   const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
-  const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
+  const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>(['*']);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const handleJsonDataChange = (newData: any) => {
+  const handleJsonDataChange = (newData: object) => {
     setJsonData(newData);
     try {
       setRawJsonString(JSON.stringify(newData, null, 2));
       setJsonError(null);
-    } catch (e: any) {
+    } catch {
       setJsonError("Invalid JSON format from form input.");
     }
   };
@@ -51,9 +53,29 @@ export function CreateExportForm() {
   };
 
   const handleAllowedOriginCheckboxChange = (origin: string) => {
-    setSelectedAllowedOrigins(prev =>
-      prev.includes(origin) ? prev.filter(o => o !== origin) : [...prev, origin]
-    );
+    const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin));
+
+    if (isChecked) { // The box was checked, now it's being unchecked
+      if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
+        // If "all" was selected, now we have a selection of all but one.
+        const allOrigins = currentProject?.data?.allowedOrigin || [];
+        const newSelection = allOrigins.filter((o: string) => o !== origin);
+        setSelectedAllowedOrigins(newSelection);
+      } else {
+        // Just remove the origin from the list
+        setSelectedAllowedOrigins(prev => prev.filter(o => o !== origin));
+      }
+    } else { // The box was unchecked, now it's being checked
+      setSelectedAllowedOrigins(prev => [...prev, origin]);
+    }
+  };
+
+  const handleSelectAllOriginsChange = () => {
+    if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
+      setSelectedAllowedOrigins([]);
+    } else {
+      setSelectedAllowedOrigins(['*']);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,8 +91,8 @@ export function CreateExportForm() {
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
       };
-      const response = await createExport(currentProject?.id || '', payload);
-      navigate(`/project/${currentProject?.id}/dashboard/exports/${response.exportId}`);
+      const response = await createExport(currentProject?.data?.id || '', payload);
+      navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
     } catch (err: unknown) {
       console.error(err);
     } finally {
@@ -136,35 +158,37 @@ export function CreateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
           />
 
-          {currentProject?.allowedOrigin && currentProject.allowedOrigin.length > 0 && (
+          <h4>Allowed Origins for Project</h4>
+          {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
             <div className={s.allowedOriginsContainer}>
-              <h4>Allowed Origins for Project</h4>
-              {currentProject.allowedOrigin.map((origin, index) => (
-                <div key={index} className={s.checkboxContainer}>
-                  <input
-                    type="checkbox"
-                    id={`origin-${index}`}
-                    name={`origin-${index}`}
-                    value={origin}
-                    checked={selectedAllowedOrigins.includes(origin)}
-                    onChange={() => handleAllowedOriginCheckboxChange(origin)}
-                  />
-                  <label htmlFor={`origin-${index}`}>{origin}</label>
-                </div>
+              <CustomCheckbox
+                id="all-origins-checkbox"
+                name="all-origins-checkbox"
+                checked={selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
+                onChange={handleSelectAllOriginsChange}
+                label="Allow all origins from project"
+              />
+              {currentProject.data?.allowedOrigin.map((origin: string, index: number) => (
+                <CustomCheckbox
+                  key={index}
+                  id={`origin-${index}`}
+                  name={`origin-${index}`}
+                  value={origin}
+                  checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
+                  onChange={() => handleAllowedOriginCheckboxChange(origin)}
+                  label={origin}
+                />
               ))}
             </div>
           )}
 
-          <div className={s.checkboxContainer}>
-            <input
-              type="checkbox"
-              id="private-checkbox"
-              name="private-checkbox"
-              checked={isPrivate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-            />
-            <label htmlFor="private-checkbox">Private Export</label>
-          </div>
+          <CustomCheckbox
+            id="private-checkbox"
+            name="private-checkbox"
+            checked={isPrivate}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+            label="Private Export"
+          />
         </div>
         <div className={s.jsonViewer}>
           <div className={s.inputModeToggle}>

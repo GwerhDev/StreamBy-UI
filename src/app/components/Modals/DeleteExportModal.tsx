@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { deleteExport } from '../../../services/exports';
 import { FormEvent, useState } from 'react';
 import { DeleteExportForm } from '../Forms/DeleteExportForm';
-import { ExportDetails, Project } from '../../../interfaces';
+import { CurrentProjectState, ExportDetails } from '../../../interfaces';
 
 interface DeleteExportModalProps {
   exportId: string | undefined;
-  currentProject: Project | undefined;
+  currentProject: CurrentProjectState | undefined;
   currentExport: ExportDetails | undefined;
   onClose: () => void;
 }
@@ -23,10 +23,10 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteExport(currentProject?.id, exportId);
+      await deleteExport(currentProject?.data?.id, exportId);
       setLoader(false);
       onClose();
-      navigate('/project/' + currentProject?.id + '/dashboard/exports');
+      navigate('/project/' + currentProject?.data?.id + '/dashboard/exports');
     } catch (error) {
       setLoader(false);
       console.error('Error deleting project:', error);

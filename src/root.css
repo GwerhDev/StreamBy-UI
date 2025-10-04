@@ -60,3 +60,8 @@
   padding: 0;
   height: 100%;
 }
+
+input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+}

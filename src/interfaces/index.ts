@@ -24,8 +24,14 @@ export interface DeleteExportFormProps {
   handleDeleteExport: (e: React.FormEvent) => void;
 }
 
+export interface CurrentProjectState {
+  data: Project | null;
+  loading: boolean;
+  error: string | null;
+}
+
 export interface DeleteProjectFormProps {
-  currentProject: Project | null;
+  currentProject: CurrentProjectState | null;
   handleDeleteProject: (e: React.FormEvent) => void;
   handleCancel: () => void;
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
