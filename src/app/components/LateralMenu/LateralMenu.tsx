@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash, faFingerprint, faShield } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';

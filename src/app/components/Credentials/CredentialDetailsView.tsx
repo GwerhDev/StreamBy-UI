@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import { fetchCredential, deleteCredential } from '../../../services/projects';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { fetchCredential } from '../../../services/projects';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -19,7 +18,6 @@ interface Credential {
 
 export const CredentialDetailsView: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { id: projectId, credentialId } = useParams<{ id: string; credentialId: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
