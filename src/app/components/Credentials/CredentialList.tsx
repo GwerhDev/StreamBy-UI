@@ -6,18 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import { CredentialCard } from '../Cards/CredentialCard'; // Import CredentialCard
 
-interface Credential {
-  id: string;
-  key: string;
-  value: string;
-}
-
-interface CredentialListProps {
-  // No longer needs to receive credentials as a prop, it will get them from Redux
-}
-
-export const CredentialList: React.FC<CredentialListProps> = () => {
+export const CredentialList: React.FC = () => { // Removed props
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
@@ -45,14 +36,13 @@ export const CredentialList: React.FC<CredentialListProps> = () => {
       ) : (
         <ul className={styles.credentialListGrid}>
           {credentials.map((credential) => (
-            <li key={credential.id} className={styles.credentialItem}>
-              <div>
-                <strong>Key:</strong> {credential.key}
-              </div>
-              <div>
-                <strong>Value:</strong> {credential.value}
-              </div>
-              {/* Add actions like edit/delete later */}
+            <li
+              title={credential.key}
+              key={credential.id}
+              className={styles.credentialItem}
+              onClick={() => navigate(`/project/${projectId}/settings/credentials/${credential.id}`)} // Added onClick
+            >
+              <CredentialCard credential={credential} /> {/* Use CredentialCard */}
             </li>
           ))}
           <li className={styles.createCredential} onClick={handleCreateCredential}>
@@ -66,4 +56,6 @@ export const CredentialList: React.FC<CredentialListProps> = () => {
     </div>
   );
 };
+
+export default CredentialList;
 

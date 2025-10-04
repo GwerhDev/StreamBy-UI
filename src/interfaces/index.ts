@@ -25,6 +25,16 @@ export interface DeleteExportFormProps {
   handleDeleteExport: (e: React.FormEvent) => void;
 }
 
+export interface DeleteCredentialFormProps {
+  loader: boolean;
+  disabled: boolean;
+  confirmText: string;
+  currentCredential: { id: string; key: string; value: string } | undefined;
+  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleCancel: () => void;
+  handleDeleteCredential: (e: React.FormEvent) => void;
+}
+
 export interface CurrentProjectState {
   data: Project | null;
   loading: boolean;

@@ -296,3 +296,69 @@ export async function createCredential(projectId: string, key: string, value: st
     throw error;
   }
 }
+
+export async function fetchCredential(projectId: string, credentialId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials/${credentialId}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to fetch credential');
+    }
+    const { credential } = await res.json();
+    return credential;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch credential.', type: 'error' }));
+    throw error;
+  }
+}
+
+export async function updateCredential(projectId: string, credentialId: string, payload: { key?: string; value?: string }) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials/${credentialId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to update credential');
+    }
+    const response = await res.json();
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update credential.', type: 'error' }));
+    throw error;
+  }
+}
+
+export async function deleteCredential(projectId: string, credentialId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials/${credentialId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to delete credential');
+    }
+    const response = await res.json();
+    store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete credential.', type: 'error' }));
+    throw error;
+  }
+}
