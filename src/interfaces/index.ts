@@ -6,7 +6,7 @@ export interface Project {
   dbType?: string;
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
-  exports?: exportList[];
+  exports?: Export[];
   members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: string[];
   settings?: {
@@ -59,13 +59,6 @@ export interface ProjectList {
   archived: boolean;
 }
 
-export interface exportList {
-  id: string;
-  name: string;
-  method: string;
-  collectionName?: string;
-}
-
 export type Session = {
   logged: boolean;
   loader: boolean;
@@ -92,6 +85,8 @@ export interface Directory {
 export interface Export {
   id: string;
   name: string;
+  type: 'json' | 'raw' | 'externalApi';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
@@ -118,6 +113,7 @@ export interface ExportDetails {
   exportedFileUrl?: string;
   allowedOrigin?: string[];
   private?: boolean;
+  apiUrl?: string;
 }
 
 export interface ExportPayload {

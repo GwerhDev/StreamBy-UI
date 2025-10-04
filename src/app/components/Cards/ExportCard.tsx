@@ -1,9 +1,9 @@
 import s from './ExportCard.module.css';
-import { faFileExport } from "@fortawesome/free-solid-svg-icons";
+import { faExternalLink, faFileExport, faLock } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { exportList } from '../../../interfaces';
+import { Export } from '../../../interfaces';
 
-export const ExportCard = (props: { exports: exportList }) => {
+export const ExportCard = (props: { exports: Export }) => {
   const { exports } = props || {};
 
   return (
@@ -16,7 +16,17 @@ export const ExportCard = (props: { exports: exportList }) => {
           /{exports.name}
         </h4>
       </span>
-      <FontAwesomeIcon icon={faFileExport} />
+
+      {
+        exports.private && <FontAwesomeIcon icon={faLock} />
+      }
+      {
+        exports.type === "externalApi" && <FontAwesomeIcon icon={faExternalLink} />
+      }
+
+      {
+        exports.type === "json" || exports.type === "raw" && <FontAwesomeIcon icon={faFileExport} />
+      }
     </>
   )
 }

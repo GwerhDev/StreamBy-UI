@@ -3,7 +3,7 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../store";
-import { exportList } from "../../../interfaces";
+import { Export } from "../../../interfaces";
 import { ExportCard } from "../Cards/ExportCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -34,7 +34,7 @@ export function ExportList() {
         <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
       ) : (
         <ul>
-          {exports?.map((exportItem: exportList) => (
+          {exports?.map((exportItem: Export) => (
             <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/dashboard/exports/" + exportItem.id)}>
               <ExportCard key={exportItem.id} exports={exportItem} />
             </li>

@@ -61,6 +61,19 @@ export const ExportDetailsView: React.FC = () => {
     setShowDeleteModal(false);
   };
 
+  const handleTypeRender = (type: string) => {
+    switch (type) {
+      case 'json':
+        return 'JSON';
+      case 'raw':
+        return 'Raw Data';
+      case 'externalApi':
+        return 'External API';
+      default:
+        return type;
+    }
+  };
+
   if (loading) {
     return (<div className={s.container}><Spinner bg={false} isLoading /></div>);
   }
@@ -86,10 +99,10 @@ export const ExportDetailsView: React.FC = () => {
       <div className={s.detailsGrid}>
         <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/get-export/${exportDetails.name}`}</a></p>
         <p><strong>Name:</strong> {exportDetails.name}</p>
-        <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>
-        <p><strong>Export Type:</strong> {exportDetails.type}</p>
-        <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>
-        <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>
+        {exportDetails.type !== "externalApi" && <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>}
+        <p><strong>Export Type:</strong> {handleTypeRender(exportDetails.type)}</p>
+        {exportDetails.type !== "externalApi" && <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>}
+        {exportDetails.type !== "externalApi" && <p><strong>Updated At:</strong> {new Date(exportDetails.updatedAt).toLocaleString()}</p>}
         {exportDetails.allowedOrigin && exportDetails.allowedOrigin.length > 0 && (
           <p><strong>Allowed Origins:</strong> {
             exportDetails.allowedOrigin.some(origin => /^\*$/.test(origin))
