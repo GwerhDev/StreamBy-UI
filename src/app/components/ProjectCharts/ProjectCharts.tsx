@@ -3,7 +3,6 @@ import { ResponsivePie } from '@nivo/pie';
 import { RootState } from '../../../store';
 import s from './ProjectCharts.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
-import { Spinner } from '../Spinner';
 
 export const ProjectCharts = () => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
@@ -59,9 +58,9 @@ export const ProjectCharts = () => {
   return (
     <div className={s.chartsContainer}>
       <div className={s.chartCard}>
-        <h4 className={loading ? skeleton.skeleton : ''}>{loading ? <Spinner bg={false} isLoading /> : 'Member Roles'}</h4>
+        <h4 className={loading ? skeleton.skeleton : ''}>{loading ? '' : 'Member Roles'}</h4>
         {loading ? (
-          <div className={`${s.chartPlaceholder} ${skeleton.skeleton}`}></div>
+          <></>
         ) : memberRolesData.length > 0 ? (
           <div className={s.graphContainer}>
             <ResponsivePie

@@ -3,7 +3,7 @@ import { CurrentProjectState, Project } from '../interfaces';
 
 const initialState: CurrentProjectState = {
   data: { id: "", name: "" },
-  loading: false,
+  loading: true,
   error: null,
 };
 

@@ -1,11 +1,10 @@
+import s from './CreateCredentialForm.module.css';
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { createCredential } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
-
-import styles from './CreateCredentialForm.module.css';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -45,14 +44,14 @@ export const CreateCredentialForm = () => { // Removed props
   };
 
   const handleCancel = () => {
-    navigate(-1); // Go back to the previous page
+    navigate(-1);
   };
 
   return (
-    <div className={styles.container}> {/* Use container from CreateExportForm */}
+    <div className={s.container}>
       <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit}>
-        <div className={styles.formContainer}>
+        <div className={s.formContainer}>
           <h3>Create New Credential</h3>
           <p>Fill the form to create a new credential for {currentProject?.name}</p>
 
@@ -79,7 +78,7 @@ export const CreateCredentialForm = () => { // Removed props
             disabled={loading}
           />
         </div>
-        <span className={styles.buttonContainer}>
+        <span className={s.buttonContainer}>
           <ActionButton disabled={loading || !key || !value} icon={faKey} text="Create" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
