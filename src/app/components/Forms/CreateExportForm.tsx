@@ -108,7 +108,7 @@ export function CreateExportForm() {
         private: isPrivate,
         exportType,
         ...(exportType !== 'externalApi' && { jsonData }),
-        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined }),
+        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId, fields: jsonData }),
       };
       const response = await createExport(currentProject?.data?.id, payload);
       navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
@@ -273,41 +273,39 @@ export function CreateExportForm() {
           )}
         </div>
         <div className={s.jsonViewer}>
-          {exportType !== 'externalApi' && (
-            <div className={s.inputModeToggle}>
-              <button
-                type="button"
-                className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-                onClick={() => setInputMode('form')}
-                title="Form Input"
-              >
-                <FontAwesomeIcon icon={faFileLines} />
-                Form input
-              </button>
-              <button
-                type="button"
-                className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-                onClick={() => setInputMode('rawJson')}
-                title="Raw JSON"
-              >
-                <FontAwesomeIcon icon={faCode} />
-                Raw JSON
-              </button>
-            </div>
-          )}
-          {exportType !== 'externalApi' && inputMode === 'form' ? (
+          <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+              onClick={() => setInputMode('form')}
+              title="Form Input"
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              Form input
+            </button>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+              onClick={() => setInputMode('rawJson')}
+              title="Raw JSON"
+            >
+              <FontAwesomeIcon icon={faCode} />
+              Raw JSON
+            </button>
+          </div>
+          {inputMode === 'form' ?
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-          ) : exportType !== 'externalApi' && (
+            :
             <RawJsonInputMode
               jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}
               jsonError={jsonError}
             />
-          )}
+          }
         </div>
 
         <span className={s.buttonContainer}>

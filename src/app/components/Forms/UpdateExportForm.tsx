@@ -48,7 +48,7 @@ export function UpdateExportForm() {
           setCollectionName(data.collectionName);
           setSelectedAllowedOrigins(data.allowedOrigin || []);
           setIsPrivate(data.private || false);
-          setExportType(data.exportType || 'json');
+          setExportType(data.type || 'json');
           setApiUrl(data.apiUrl || '');
           setPrefix(data.prefix || '');
           setCredentialId(data.credentialId || '');

@@ -98,6 +98,7 @@ export const ExportDetailsView: React.FC = () => {
       <div className={s.detailsGrid}>
         <p><strong>Full endpoint:</strong><a target='_blank' href={fullEndpoint}> {`/streamby/${id}/get-export/${exportDetails.name}`}</a></p>
         <p><strong>Name:</strong> {exportDetails.name}</p>
+        {exportDetails.description && <p><strong>Description:</strong> {exportDetails.description}</p>}
         {exportDetails.type !== "externalApi" && <p><strong>Collection Name:</strong> {exportDetails.collectionName}</p>}
         <p><strong>Export Type:</strong> {handleTypeRender(exportDetails.type)}</p>
         {exportDetails.type !== "externalApi" && <p><strong>Created At:</strong> {new Date(exportDetails.createdAt).toLocaleString()}</p>}
