@@ -23,7 +23,7 @@ export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'fields' | 'raw'>('fields');
+  const [viewMode, setViewMode] = useState<'fields' | 'json'>('fields');
   const [exportDetails, setExportDetails] = useState<Export | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -65,8 +65,7 @@ export const ExportDetailsView: React.FC = () => {
     switch (type) {
       case 'json':
         return 'JSON';
-      case 'raw':
-        return 'Raw Data';
+
       case 'externalApi':
         return 'External API';
       default:
@@ -130,8 +129,8 @@ export const ExportDetailsView: React.FC = () => {
             </button>
             <button
               type="button"
-              className={`${s.toggleButton} ${viewMode === 'raw' ? s.active : ''}`}
-              onClick={() => setViewMode('raw')}
+              className={`${s.toggleButton} ${viewMode === 'json' ? s.active : ''}`}
+              onClick={() => setViewMode('json')}
               title="Raw JSON"
             >
               <FontAwesomeIcon icon={faCode} />

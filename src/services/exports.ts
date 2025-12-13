@@ -36,14 +36,14 @@ export async function createExport(projectId: string | undefined, payload: Recor
 
     if (!res.ok) {
       const { error, details } = await res.json();
-      throw new Error(`Failed to create raw export: ${error} - ${details}`);
+      throw new Error(`Failed to create json export: ${error} - ${details}`);
     }
     const { data } = await res.json() || {};
     store.dispatch(addApiResponse({ message: 'Raw export created successfully.', type: 'success' }));
     return data;
   } catch (error: any) {
-    console.error('Error creating raw export:', error);
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to create raw export.', type: 'error' }));
+    console.error('Error creating json export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to create json export.', type: 'error' }));
   }
 }
 
@@ -60,14 +60,14 @@ export async function updateExport(projectId: string, exportId: string, payload:
 
     if (!res.ok) {
       const { error, details } = await res.json();
-      throw new Error(`Failed to update raw export: ${error} - ${details}`);
+      throw new Error(`Failed to update json export: ${error} - ${details}`);
     }
     const { data } = await res.json() || {};
     store.dispatch(addApiResponse({ message: 'Raw export updated successfully.', type: 'success' }));
     return data;
   } catch (error: any) {
-    console.error('Error updating raw export:', error);
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to update raw export.', type: 'error' }));
+    console.error('Error updating json export:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update json export.', type: 'error' }));
   }
 }
 

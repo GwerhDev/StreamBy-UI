@@ -85,7 +85,7 @@ export interface Directory {
 export interface Export {
   id: string;
   name: string;
-  type: 'json' | 'raw' | 'externalApi';
+  type: 'json' | 'externalApi';
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
