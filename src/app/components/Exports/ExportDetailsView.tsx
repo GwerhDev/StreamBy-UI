@@ -162,7 +162,7 @@ export const ExportDetailsView: React.FC = () => {
             </button>
           </div>
           {viewMode === 'preview' && (
-            <NodeViewer data={exportDetails.json} fields={exportDetails.fields} />
+            <NodeViewer exportDetails={exportDetails} />
           )}
           {viewMode === 'apiResponse' && (
             <JsonViewer data={exportDetails.apiResponse as JSON} />
