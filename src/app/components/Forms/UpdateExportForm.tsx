@@ -16,6 +16,7 @@ import { FormInputMode } from './FormInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 
 export function UpdateExportForm() {
+  const navigate = useNavigate();
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -33,7 +34,6 @@ export function UpdateExportForm() {
   const [credentialId, setCredentialId] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
   const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
-  const navigate = useNavigate();
   const { id, exportId } = useParams();
 
   useEffect(() => {
@@ -54,9 +54,15 @@ export function UpdateExportForm() {
           setCredentialId(data.credentialId || '');
 
           if (data.json) {
-            const jsonString = JSON.stringify(data.json, null, 2);
-            setRawJsonString(jsonString);
-            setJsonData(data.json);
+            if (data.type === 'json') {
+              const jsonString = JSON.stringify(data.json, null, 2);
+              setRawJsonString(jsonString);
+              setJsonData(data.json);
+            } else {
+              const jsonString = JSON.stringify(data.fields, null, 2);
+              setRawJsonString(jsonString);
+              setJsonData(data.fields || {});
+            }
           } else {
             setRawJsonString("{}");
             setJsonData({});
@@ -77,6 +83,7 @@ export function UpdateExportForm() {
   useEffect(() => {
     if (currentProject?.data?.credentials) {
       const credentialsOptions = currentProject.data.credentials.map(cred => ({
+        
         value: cred.id,
         label: cred.key,
       }));
@@ -141,7 +148,7 @@ export function UpdateExportForm() {
         private: isPrivate,
         exportType,
         ...(exportType !== 'externalApi' && { jsonData }),
-        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined }),
+        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined, fields: jsonData }),
       };
       await updateExport(id || '', exportId || '', payload);
       navigate(`/project/${id}/dashboard/exports/${exportId}`);
@@ -299,42 +306,40 @@ export function UpdateExportForm() {
                   htmlFor="credential-select"
                   value={credentialId}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCredentialId(e.target.value)}
-                  options={availableCredentials}
+                  options={[{ value: '', label: 'Select a credential' }, ...availableCredentials]}
                 />
               )}
             </>
           )}
         </div>
         <div className={s.jsonViewer}>
-          {exportType !== 'externalApi' && (
-            <div className={s.inputModeToggle}>
-              <button
-                type="button"
-                className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-                onClick={() => setInputMode('form')}
-                title="Form Input"
-              >
-                <FontAwesomeIcon icon={faFileLines} />
-                Form input
-              </button>
-              <button
-                type="button"
-                className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-                onClick={() => setInputMode('rawJson')}
-                title="Raw JSON"
-              >
-                <FontAwesomeIcon icon={faCode} />
-                Raw JSON
-              </button>
-            </div>
-          )}
-          {exportType !== 'externalApi' && inputMode === 'form' ? (
+          <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
+              onClick={() => setInputMode('form')}
+              title="Form Input"
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              Form input
+            </button>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
+              onClick={() => setInputMode('rawJson')}
+              title="Raw JSON"
+            >
+              <FontAwesomeIcon icon={faCode} />
+              Raw JSON
+            </button>
+          </div>
+          {inputMode === 'form' ? (
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-          ) : exportType !== 'externalApi' && (
+          ) : (
             <RawJsonInputMode
               jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}

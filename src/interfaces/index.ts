@@ -101,6 +101,8 @@ export interface Export {
   apiUrl?: string;
   prefix?: string;
   json?: JSON | null;
+  fields?: JSON | null;
+  apiResponse?: JSON | null;
 }
 
 export interface ExportPayload {

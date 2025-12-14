@@ -8,7 +8,7 @@ import { getExport } from '../../../services/exports';
 import { Export } from '../../../interfaces';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
-import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faExternalLink, faEye, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
@@ -17,13 +17,14 @@ import { faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import { NodeViewer } from '../NodeViewer/NodeViewer';
 
 export const ExportDetailsView: React.FC = () => {
   const navigate = useNavigate();
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'fields' | 'json'>('fields');
+  const [viewMode, setViewMode] = useState<'preview' | 'apiResponse' | 'fields' | 'json'>('preview');
   const [exportDetails, setExportDetails] = useState<Export | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -121,6 +122,28 @@ export const ExportDetailsView: React.FC = () => {
           <div className={s.viewModeToggle}>
             <button
               type="button"
+              className={`${s.toggleButton} ${viewMode === 'preview' ? s.active : ''}`}
+              onClick={() => setViewMode('preview')}
+              title="Preview"
+            >
+              <FontAwesomeIcon icon={faEye} />
+              Preview
+            </button>
+            {
+              exportDetails.type === 'externalApi' &&
+              <button
+                type="button"
+                className={`${s.toggleButton} ${viewMode === 'apiResponse' ? s.active : ''}`}
+                onClick={() => setViewMode('apiResponse')}
+                title="Api Response View"
+              >
+                <FontAwesomeIcon icon={faExternalLink} />
+                Api Response
+              </button>
+            }
+
+            <button
+              type="button"
               className={`${s.toggleButton} ${viewMode === 'fields' ? s.active : ''}`}
               onClick={() => setViewMode('fields')}
               title="Fields View"
@@ -138,9 +161,16 @@ export const ExportDetailsView: React.FC = () => {
               Raw JSON
             </button>
           </div>
-          {viewMode === 'fields' ? (
+          {viewMode === 'preview' && (
+            <NodeViewer data={exportDetails.json} fields={exportDetails.fields} />
+          )}
+          {viewMode === 'apiResponse' && (
+            <JsonViewer data={exportDetails.apiResponse as JSON} />
+          )}
+          {viewMode === 'fields' && (
             <ReadOnlyFields data={exportDetails.json} />
-          ) : (
+          )}
+          {viewMode === 'json' && (
             <JsonViewer data={exportDetails.json} />
           )}
         </div>
