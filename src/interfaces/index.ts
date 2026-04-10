@@ -159,3 +159,15 @@ export interface FieldDefinition {
   label: string;
   required?: boolean;
 }
+
+export type StorageCategory = 'images' | 'audios' | 'videos' | '3dmodels';
+
+export interface StorageFile {
+  key: string;
+  name: string;
+  size: number;
+  url: string;
+  contentType: string;
+  lastModified: string;
+  category: StorageCategory;
+}

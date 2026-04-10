@@ -1,5 +1,5 @@
+import { StorageList } from '../components/Storage/StorageList';
+
 export const Images = () => {
-  return (
-    <div>Images</div>
-  )
-}
+  return <StorageList category="images" />;
+};

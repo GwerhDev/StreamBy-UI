@@ -1,5 +1,5 @@
+import { StorageList } from '../components/Storage/StorageList';
+
 export const ThreeDModels = () => {
-  return (
-    <div>ThreeDModels</div>
-  )
-}
+  return <StorageList category="3dmodels" />;
+};
