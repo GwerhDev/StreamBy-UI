@@ -1,7 +1,8 @@
 .container {
   width: 100%;
-  max-width: 100%;
   padding: 1rem;
+  flex-grow: 1;
+  max-width: 100%;
   border-radius: 1rem;
   display: flex;
   position: relative;
@@ -26,7 +27,6 @@
   align-items: center;
   flex-direction: column;
 }
-
 
 .imgContainer {
   width: 10rem;
@@ -76,18 +76,6 @@
   aspect-ratio: 1/1;
 }
 
-.container {
-  width: 100%;
-  max-width: 100%;
-  padding: 1rem;
-  border-radius: 1rem;
-  display: flex;
-  position: relative;
-  align-items: center;
-  flex-direction: column;
-  background-color: var(--color-dark-300);
-}
-
 .formContainer {
   width: 100%;
   max-width: 500px;
@@ -97,12 +85,6 @@
   align-items: center;
   flex-direction: column;
   justify-content: center;
-}
-
-.container ul {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
 }
 
 .buttonContainer {
@@ -243,7 +225,7 @@
   padding: 1rem;
   border-radius: 8px;
   display: flex;
-  flex-direction: column;  
+  flex-direction: column;
 }
 
 .inputModeToggle {

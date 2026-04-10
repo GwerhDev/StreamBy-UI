@@ -1,119 +1,501 @@
-import React, { useState } from 'react';
-import ReactFlow, { Background, Controls, Edge, Node } from 'reactflow';
+import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
+import ReactFlow, {
+  Background,
+  Controls,
+  Edge,
+  Node,
+  NodeProps,
+  Handle,
+  Position,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
 import { Export } from '../../../interfaces';
-import { InfoModal } from '../Modals/InfoModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import {
+  faUser,
+  faBolt,
+  faDatabase,
+  faGlobe,
+  faCircleCheck,
+  faXmark,
+  faFloppyDisk,
+  faInfoCircle,
+  faArrowsRotate,
+  faFilter,
+  faKey,
+  faWrench,
+  faPlus,
+} from '@fortawesome/free-solid-svg-icons';
 
-interface NodeViewerProps {
+// ─── Custom Node Components ────────────────────────────────────────────────
+
+interface CustomNodeData {
+  label: string;
+  subtitle: string;
+  isApi?: boolean;
+}
+
+interface ProcessNodeData {
+  label: string;
+  subtitle: string;
+  icon: IconDefinition;
+  bgColor: string;
+  iconColor: string;
+}
+
+const ClientNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Right} className={s.handle} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0e2537' }}>
+      <div className={s.nodeIcon} style={{ color: '#38B6FF' }}>
+        <FontAwesomeIcon icon={faUser} />
+      </div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ClientNode.displayName = 'ClientNode';
+
+const StreamByNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+  <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left} id="in-left" className={s.handle} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} />
+    <Handle type="source" position={Position.Bottom} id="out-ds" className={s.handle} style={{ left: '38%' }} />
+    <Handle type="target" position={Position.Bottom} id="in-ds" className={s.handle} style={{ left: '62%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#14103a' }}>
+      <div className={s.nodeIcon} style={{ color: '#a78bfa' }}>
+        <FontAwesomeIcon icon={faBolt} />
+      </div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+StreamByNode.displayName = 'StreamByNode';
+
+const DataSourceNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Top} id="in-top" className={s.handle} style={{ left: '38%' }} />
+    <Handle type="source" position={Position.Top} id="out-top" className={s.handle} style={{ left: '62%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
+      <div className={s.nodeIcon} style={{ color: '#34d399' }}>
+        <FontAwesomeIcon icon={data.isApi ? faGlobe : faDatabase} />
+      </div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DataSourceNode.displayName = 'DataSourceNode';
+
+const ResponseNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left} className={s.handle} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#261409' }}>
+      <div className={s.nodeIcon} style={{ color: '#fb923c' }}>
+        <FontAwesomeIcon icon={faCircleCheck} />
+      </div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ResponseNode.displayName = 'ResponseNode';
+
+const ProcessNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left} className={s.handle} />
+    <Handle type="source" position={Position.Right} className={s.handle} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: data.bgColor }}>
+      <div className={s.nodeIcon} style={{ color: data.iconColor }}>
+        <FontAwesomeIcon icon={data.icon} />
+      </div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ProcessNode.displayName = 'ProcessNode';
+
+const nodeTypes = {
+  clientNode: ClientNode,
+  streambyNode: StreamByNode,
+  dataSourceNode: DataSourceNode,
+  responseNode: ResponseNode,
+  processNode: ProcessNode,
+};
+
+// ─── Node Palette Config ───────────────────────────────────────────────────
+
+const NODE_PALETTE: { label: string; subtitle: string; icon: IconDefinition; bgColor: string; iconColor: string }[] = [
+  { label: 'Transform', subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa' },
+  { label: 'Filter',    subtitle: 'Data filtering',      icon: faFilter,        bgColor: '#0d2218', iconColor: '#34d399' },
+  { label: 'Auth',      subtitle: 'Authentication',      icon: faKey,           bgColor: '#1e1030', iconColor: '#c084fc' },
+  { label: 'Custom',    subtitle: 'Custom step',         icon: faWrench,        bgColor: '#251a0a', iconColor: '#fbbf24' },
+];
+
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+interface DetailField {
+  key: string;
+  label: string;
+  value: string;
+  editable?: boolean;
+  inputType?: 'text' | 'checkbox';
+}
+
+interface NodeDetail {
+  title: string;
+  description: string;
+  fields: DetailField[];
+}
+
+// ─── NodeViewer ────────────────────────────────────────────────────────────
+
+export interface NodeViewerProps {
   exportDetails: Export;
+  editMode?: boolean;
+  onSave?: (updates: Record<string, string | boolean>) => void;
 }
 
-const getNodeLabel = (type: string) => {
-  switch (type) {
-    case 'json':
-      return 'Collection';
-    case 'externalApi':
-      return 'External API';
-    default:
-      return 'Data Source';
-  }
-}
+export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode = false, onSave }) => {
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
 
-export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
-  const [modalContent, setModalContent] = useState<React.ReactNode>('');
+  useEffect(() => {
+    if (!editMode) {
+      setLocalData({});
+    }
+  }, [editMode]);
 
-  const getNodeInfo = (nodeId: string) => {
-    switch (nodeId) {
+  const initialNodes = useMemo((): Node[] => [
+    {
+      id: 'client',
+      position: { x: 0, y: 60 },
+      type: 'clientNode',
+      data: { label: 'Client', subtitle: exportDetails.method || 'GET' },
+    },
+    {
+      id: 'streamby',
+      position: { x: 220, y: 60 },
+      type: 'streambyNode',
+      data: { label: 'StreamBy', subtitle: 'Middleware' },
+    },
+    {
+      id: 'datasource',
+      position: { x: 220, y: 220 },
+      type: 'dataSourceNode',
+      data: {
+        label: exportDetails.type === 'json' ? 'Collection' : 'External API',
+        subtitle: exportDetails.type === 'json'
+          ? exportDetails.collectionName
+          : (exportDetails.apiUrl || 'No URL set'),
+        isApi: exportDetails.type === 'externalApi',
+      },
+    },
+    {
+      id: 'response',
+      position: { x: 480, y: 60 },
+      type: 'responseNode',
+      data: { label: 'Response', subtitle: 'JSON Output' },
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], []);
+
+  const initialEdges = useMemo((): Edge[] => [
+    {
+      id: 'e1-2',
+      source: 'client',
+      target: 'streamby',
+      targetHandle: 'in-left',
+      animated: true,
+      style: { stroke: '#38B6FF', strokeWidth: 2 },
+    },
+    {
+      id: 'e2-3',
+      source: 'streamby',
+      sourceHandle: 'out-ds',
+      target: 'datasource',
+      targetHandle: 'in-top',
+      animated: true,
+      style: { stroke: '#34d399', strokeWidth: 2 },
+    },
+    {
+      id: 'e3-2',
+      source: 'datasource',
+      sourceHandle: 'out-top',
+      target: 'streamby',
+      targetHandle: 'in-ds',
+      animated: true,
+      style: { stroke: '#34d399', strokeWidth: 2 },
+    },
+    {
+      id: 'e2-4',
+      source: 'streamby',
+      sourceHandle: 'out-right',
+      target: 'response',
+      animated: true,
+      style: { stroke: '#fb923c', strokeWidth: 2 },
+    },
+  ], []);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges(prev => addEdge(
+      { ...connection, animated: true, style: { stroke: '#38B6FF', strokeWidth: 2 } },
+      prev
+    ));
+  }, [setEdges]);
+
+  const addNode = useCallback((config: typeof NODE_PALETTE[0]) => {
+    const id = `process-${Date.now()}`;
+    const newNode: Node = {
+      id,
+      type: 'processNode',
+      position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 80 },
+      data: { ...config },
+    };
+    setNodes(prev => [...prev, newNode]);
+  }, [setNodes]);
+
+  const CORE_NODE_IDS = ['client', 'streamby', 'datasource', 'response'];
+
+  const getNodeDetail = useCallback((id: string | null): NodeDetail | null => {
+    if (!id) return null;
+
+    if (!CORE_NODE_IDS.includes(id)) {
+      const node = nodes.find(n => n.id === id);
+      if (!node) return null;
+      return {
+        title: node.data.label,
+        description: node.data.subtitle,
+        fields: [
+          { key: 'label', label: 'Name', value: node.data.label, editable: true, inputType: 'text' },
+          { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
+        ],
+      };
+    }
+
+    switch (id) {
       case 'client':
         return {
           title: 'Client',
-          content: 'Represents any client (e.g., a web browser, a mobile app, or a server) that makes a request to the StreamBy endpoint.'
+          description: 'Any consumer (browser, mobile app, or server) making a request to this StreamBy endpoint.',
+          fields: [
+            { key: 'method', label: 'HTTP Method', value: exportDetails.method || 'GET' },
+            { key: 'endpoint', label: 'Endpoint', value: `/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}` },
+          ],
         };
       case 'streamby':
         return {
           title: 'StreamBy Middleware',
-          content: 'This is the core of StreamBy. It receives the request, processes it, fetches data from the configured data source, and sends it back to the client. It handles authentication, data transformation, and caching.'
+          description: 'Core processing engine. Validates requests, fetches data from the configured source, and returns the processed response.',
+          fields: [
+            { key: 'prefix',  label: 'Prefix',  value: exportDetails.prefix || '—', editable: true, inputType: 'text' },
+            { key: 'private', label: 'Private', value: exportDetails.private ? 'Yes' : 'No', editable: true, inputType: 'checkbox' },
+            { key: 'auth',    label: 'Authentication', value: exportDetails.credentialId ? 'Credential required' : 'None' },
+            { key: 'allowedOrigin', label: 'Allowed Origins', value: exportDetails.allowedOrigin?.join(', ') || '*' },
+          ],
         };
       case 'datasource':
         return {
-          title: `Data Source: ${getNodeLabel(exportDetails.type)}`,
-          content: exportDetails.type === 'json'
-            ? `The data is fetched from the collection named "${exportDetails.collectionName}".`
-            : `The data is fetched from an external API at the following URL: ${exportDetails.apiUrl}`
+          title: exportDetails.type === 'json' ? 'JSON Collection' : 'External API',
+          description: exportDetails.type === 'json'
+            ? 'Data is fetched from a JSON collection stored in the StreamBy database.'
+            : 'Data is fetched from an external API and relayed back to the client.',
+          fields: exportDetails.type === 'json'
+            ? [
+                { key: 'collectionName', label: 'Collection Name', value: exportDetails.collectionName, editable: true, inputType: 'text' as const },
+                { key: 'sourceType',     label: 'Source Type',     value: 'JSON Collection' },
+              ]
+            : [
+                { key: 'apiUrl',     label: 'API URL',     value: exportDetails.apiUrl || '—', editable: true, inputType: 'text' as const },
+                { key: 'sourceType', label: 'Source Type', value: 'External API' },
+              ],
         };
       case 'response':
         return {
           title: 'Response',
-          content: 'This is the final JSON data that is sent back to the client.'
+          description: 'The final processed JSON data sent back to the client after middleware transformation.',
+          fields: [
+            { key: 'format',  label: 'Format',        value: 'JSON' },
+            { key: 'status',  label: 'Export Status', value: exportDetails.status },
+            { key: 'updated', label: 'Last Updated',  value: new Date(exportDetails.updatedAt).toLocaleString() },
+          ],
         };
       default:
-        return { title: 'Unknown', content: 'No information available.' };
+        return null;
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportDetails, nodes]);
 
-  const initialNodes: Node[] = [
-    {
-      id: 'client',
-      position: { x: 0, y: 100 },
-      data: { label: 'Client' },
-      type: 'input',
-    },
-    {
-      id: 'streamby',
-      position: { x: 250, y: 100 },
-      data: { label: 'StreamBy Middleware' },
-    },
-    {
-      id: 'datasource',
-      position: { x: 500, y: 200 },
-      data: { label: getNodeLabel(exportDetails.type) },
-    },
-    {
-      id: 'response',
-      position: { x: 750, y: 100 },
-      data: { label: 'Response' },
-      type: 'output',
-    },
-  ];
+  const selectedDetail = getNodeDetail(selectedNodeId);
+  const hasChanges = Object.keys(localData).length > 0;
+  const isProcessNode = selectedNodeId !== null && !CORE_NODE_IDS.includes(selectedNodeId);
 
-  const initialEdges: Edge[] = [
-    { id: 'e1-2', source: 'client', target: 'streamby', animated: true },
-    { id: 'e2-3', source: 'streamby', target: 'datasource', animated: true },
-    { id: 'e3-2', source: 'datasource', target: 'streamby', animated: true },
-    { id: 'e2-4', source: 'streamby', target: 'response', animated: true },
-  ];
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNodeId(node.id);
+  }, []);
 
-  const onNodeClick = (_: React.MouseEvent, node: Node) => {
-    const { title, content } = getNodeInfo(node.id);
-    setModalTitle(title);
-    setModalContent(content);
-    setModalOpen(true);
-  };
+  const handleClosePanel = useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
 
-  const closeModal = () => {
-    setModalOpen(false);
+  const handleFieldChange = useCallback((key: string, value: string | boolean) => {
+    setLocalData(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleSave = useCallback(() => {
+    if (isProcessNode && selectedNodeId) {
+      // Update the process node's data in local state
+      setNodes(prev => prev.map(n =>
+        n.id === selectedNodeId
+          ? { ...n, data: { ...n.data, ...localData } }
+          : n
+      ));
+    } else if (onSave) {
+      onSave(localData);
+    }
+    setLocalData({});
+    setSelectedNodeId(null);
+  }, [isProcessNode, selectedNodeId, localData, onSave, setNodes]);
+
+  const getFieldDisplayValue = (field: DetailField): string | boolean => {
+    if (localData[field.key] !== undefined) return localData[field.key];
+    if (field.inputType === 'checkbox') return field.value === 'Yes';
+    return field.value;
   };
 
   return (
-    <div className={s.container}>
-      <ReactFlow
-        nodes={initialNodes}
-        edges={initialEdges}
-        onNodeClick={onNodeClick}
-        fitView
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+    <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
+      <div className={s.canvasArea}>
+        {/* Node palette — only in edit mode */}
+        {editMode && (
+          <div className={s.palette}>
+            <span className={s.paletteLabel}>
+              <FontAwesomeIcon icon={faPlus} />
+              Add node
+            </span>
+            {NODE_PALETTE.map((config) => (
+              <button
+                key={config.label}
+                type="button"
+                className={s.paletteBtn}
+                onClick={() => addNode(config)}
+                title={`Add ${config.label} node`}
+              >
+                <span className={s.paletteBtnIcon} style={{ color: config.iconColor, backgroundColor: config.bgColor }}>
+                  <FontAwesomeIcon icon={config.icon} />
+                </span>
+                {config.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-      {modalOpen && (
-        <InfoModal title={modalTitle} onClose={closeModal}>
-          {modalContent}
-        </InfoModal>
-      )}
+        <div className={s.flowContainer}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodeClick={handleNodeClick}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={editMode ? onConnect : undefined}
+            nodeTypes={nodeTypes}
+            nodesDraggable={editMode}
+            nodesConnectable={editMode}
+            elementsSelectable={true}
+            deleteKeyCode={editMode ? 'Delete' : null}
+            fitView
+            fitViewOptions={{ padding: 0.35 }}
+          >
+            <Background variant="dots" color="var(--color-dark-400)" gap={22} size={1} />
+            <Controls showInteractive={false} />
+          </ReactFlow>
+        </div>
+
+        {/* Detail / Edit Panel */}
+        {selectedDetail && (
+          <div className={s.detailPanel}>
+            <div className={s.detailHeader}>
+              <span className={s.detailTitle}>{selectedDetail.title}</span>
+              <button className={s.panelClose} onClick={handleClosePanel} type="button">
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+
+            <p className={s.detailDescription}>{selectedDetail.description}</p>
+
+            <div className={s.detailFields}>
+              {selectedDetail.fields.map(field => (
+                <div key={field.key} className={s.detailField}>
+                  <span className={s.fieldLabel}>{field.label}</span>
+                  {editMode && field.editable ? (
+                    field.inputType === 'checkbox' ? (
+                      <label className={s.checkboxRow}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(getFieldDisplayValue(field))}
+                          onChange={e => handleFieldChange(field.key, e.target.checked)}
+                          className={s.fieldCheckbox}
+                        />
+                        <span className={s.checkboxLabel}>
+                          {getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </label>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={String(getFieldDisplayValue(field))}
+                        onChange={e => handleFieldChange(field.key, e.target.value)}
+                        className={s.fieldInput}
+                        placeholder={field.label}
+                      />
+                    )
+                  ) : (
+                    <span className={s.fieldValue}>{field.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {editMode && hasChanges && (isProcessNode || onSave) && (
+              <div className={s.panelActions}>
+                <button className={s.saveButton} onClick={handleSave} type="button">
+                  <FontAwesomeIcon icon={faFloppyDisk} />
+                  Save Changes
+                </button>
+              </div>
+            )}
+
+            {editMode && !onSave && !isProcessNode && (
+              <div className={s.editHint}>
+                <FontAwesomeIcon icon={faInfoCircle} />
+                <span>En modo edición puedes reposicionar y conectar nodos.</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -12,7 +12,7 @@ import { faExternalLink, faEye, faPenToSquare, faTrash } from '@fortawesome/free
 import { useNavigate } from 'react-router-dom';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
-import { ReadOnlyFields } from './ReadOnlyFields'; // Import the new component
+import { ReadOnlyFields } from './ReadOnlyFields';
 import { faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
@@ -66,7 +66,6 @@ export const ExportDetailsView: React.FC = () => {
     switch (type) {
       case 'json':
         return 'JSON';
-
       case 'externalApi':
         return 'External API';
       default:
@@ -127,10 +126,9 @@ export const ExportDetailsView: React.FC = () => {
               title="Preview"
             >
               <FontAwesomeIcon icon={faEye} />
-              Preview
+              Flow
             </button>
-            {
-              exportDetails.type === 'externalApi' &&
+            {exportDetails.type === 'externalApi' && (
               <button
                 type="button"
                 className={`${s.toggleButton} ${viewMode === 'apiResponse' ? s.active : ''}`}
@@ -140,8 +138,7 @@ export const ExportDetailsView: React.FC = () => {
                 <FontAwesomeIcon icon={faExternalLink} />
                 Api Response
               </button>
-            }
-
+            )}
             <button
               type="button"
               className={`${s.toggleButton} ${viewMode === 'fields' ? s.active : ''}`}

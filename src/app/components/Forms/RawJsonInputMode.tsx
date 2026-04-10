@@ -9,7 +9,7 @@ interface RawJsonInputModeProps {
 }
 
 export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, onJsonDataChange, jsonError }) => {
-  const [jsonString, setJsonString] = useState<string>("");
+  const [jsonString, setJsonString] = useState<string>('');
   const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,24 +19,17 @@ export const RawJsonInputMode: React.FC<RawJsonInputModeProps> = ({ jsonData, on
   const handleEditorChange = (newString: string, data: object | null, isValid: boolean) => {
     setJsonString(newString);
 
-    const duplicateKeyRegex = /"([^"]+)"\s*:[\s\S]*,"\1"\s*:/;
+    const duplicateKeyRegex = /"([^"]+)"\s*:[\s\S]*,\s*"\1"\s*:/;
     const match = newString.match(duplicateKeyRegex);
-    
-    if (match) {
-      setWarning(`Warning: Duplicate key found: "${match[1]}". The last value will be used.`);
-    } else {
-      setWarning(null);
-    }
+    setWarning(match ? `Warning: duplicate key "${match[1]}" — last value will be used.` : null);
 
     onJsonDataChange(newString, data, isValid);
   };
 
   return (
     <div className={s.fieldsSection}>
-      <h4>Raw JSON Data</h4>
       <JsonEditor value={jsonString} onChange={handleEditorChange} jsonError={jsonError} />
-      {jsonError && <p className={s.errorMessage}>Error: {jsonError}</p>}
-      {warning && <p style={{ color: '#f39c12', marginTop: '10px', fontSize: '14px' }}>{warning}</p>}
+      {warning && <p className={s.warningMessage}>{warning}</p>}
     </div>
   );
 };

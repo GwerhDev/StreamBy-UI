@@ -1,6 +1,6 @@
 import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RootState } from "../../../store";
 import { getExport, updateExport } from "../../../services/exports";
 import { ActionButton } from '../Buttons/ActionButton';
@@ -8,12 +8,14 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faCode, faFileExport, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faFileExport, faFileLines, faXmark, faSitemap } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RawJsonInputMode } from './RawJsonInputMode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FormInputMode } from './FormInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
+import { NodeViewer } from '../NodeViewer/NodeViewer';
+import { Export } from '../../../interfaces';
 
 export function UpdateExportForm() {
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ export function UpdateExportForm() {
   const [jsonData, setJsonData] = useState<object>({});
   const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form');
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson' | 'flow'>('flow');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
@@ -34,6 +36,7 @@ export function UpdateExportForm() {
   const [credentialId, setCredentialId] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
   const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
+  const [fetchedExport, setFetchedExport] = useState<Export | null>(null);
   const { id, exportId } = useParams();
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export function UpdateExportForm() {
         setLoading(true);
         const data = await getExport(id, exportId);
         if (data) {
+          setFetchedExport(data);
           setName(data.name);
           setDescription(data.description || "");
           setCollectionName(data.collectionName);
@@ -83,13 +87,35 @@ export function UpdateExportForm() {
   useEffect(() => {
     if (currentProject?.data?.credentials) {
       const credentialsOptions = currentProject.data.credentials.map(cred => ({
-        
         value: cred.id,
         label: cred.key,
       }));
       setAvailableCredentials(credentialsOptions);
     }
   }, [currentProject]);
+
+  // Construct a reactive Export object from current form states for the NodeViewer
+  const exportForViewer = useMemo<Export | null>(() => {
+    if (!fetchedExport) return null;
+    return {
+      ...fetchedExport,
+      name,
+      type: exportType,
+      prefix,
+      private: isPrivate,
+      credentialId: credentialId || undefined,
+      apiUrl,
+      collectionName,
+      allowedOrigin: selectedAllowedOrigins,
+    };
+  }, [fetchedExport, name, exportType, prefix, isPrivate, credentialId, apiUrl, collectionName, selectedAllowedOrigins]);
+
+  const handleNodeSave = (updates: Record<string, string | boolean>) => {
+    if ('apiUrl' in updates && typeof updates.apiUrl === 'string') setApiUrl(updates.apiUrl);
+    if ('collectionName' in updates && typeof updates.collectionName === 'string') setCollectionName(updates.collectionName);
+    if ('prefix' in updates && typeof updates.prefix === 'string') setPrefix(updates.prefix);
+    if ('private' in updates && typeof updates.private === 'boolean') setIsPrivate(updates.private);
+  };
 
   const handleJsonDataChange = (newData: object) => {
     setJsonData(newData);
@@ -209,16 +235,18 @@ export function UpdateExportForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           />
 
-          <LabeledInput
-            label="Collection's name"
-            type="text"
-            placeholder=""
-            id="collection-name-input"
-            name="collection-name-input"
-            htmlFor="collection-name-input"
-            value={collectionName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-          />
+          {inputMode !== 'flow' && (
+            <LabeledInput
+              label="Collection's name"
+              type="text"
+              placeholder=""
+              id="collection-name-input"
+              name="collection-name-input"
+              htmlFor="collection-name-input"
+              value={collectionName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
+            />
+          )}
 
           <LabeledInput
             label="Description (optional)"
@@ -255,13 +283,15 @@ export function UpdateExportForm() {
             </div>
           )}
 
-          <CustomCheckbox
-            id="private-checkbox"
-            name="private-checkbox"
-            checked={isPrivate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-            label="Private Export"
-          />
+          {inputMode !== 'flow' && (
+            <CustomCheckbox
+              id="private-checkbox"
+              name="private-checkbox"
+              checked={isPrivate}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+              label="Private Export"
+            />
+          )}
 
           <LabeledSelect
             label="Export Type"
@@ -278,26 +308,30 @@ export function UpdateExportForm() {
 
           {exportType === 'externalApi' && (
             <>
-              <LabeledInput
-                label="API URL"
-                type="text"
-                placeholder="https://api.example.com/webhook"
-                id="api-url-input"
-                name="api-url-input"
-                htmlFor="api-url-input"
-                value={apiUrl}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
-              />
-              <LabeledInput
-                label="Prefix (optional)"
-                type="text"
-                placeholder="data"
-                id="prefix-input"
-                name="prefix-input"
-                htmlFor="prefix-input"
-                value={prefix}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
-              />
+              {inputMode !== 'flow' && (
+                <LabeledInput
+                  label="API URL"
+                  type="text"
+                  placeholder="https://api.example.com/webhook"
+                  id="api-url-input"
+                  name="api-url-input"
+                  htmlFor="api-url-input"
+                  value={apiUrl}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
+                />
+              )}
+              {inputMode !== 'flow' && (
+                <LabeledInput
+                  label="Prefix (optional)"
+                  type="text"
+                  placeholder="data"
+                  id="prefix-input"
+                  name="prefix-input"
+                  htmlFor="prefix-input"
+                  value={prefix}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
+                />
+              )}
               {availableCredentials.length > 0 && (
                 <LabeledSelect
                   label="Credential (optional)"
@@ -312,8 +346,18 @@ export function UpdateExportForm() {
             </>
           )}
         </div>
+
         <div className={s.jsonViewer}>
           <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'flow' ? s.active : ''}`}
+              onClick={() => setInputMode('flow')}
+              title="Flow View"
+            >
+              <FontAwesomeIcon icon={faSitemap} />
+              Flow
+            </button>
             <button
               type="button"
               className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
@@ -333,17 +377,25 @@ export function UpdateExportForm() {
               Raw JSON
             </button>
           </div>
-          {inputMode === 'form' ? (
+          {inputMode === 'form' && (
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-          ) : (
+          )}
+          {inputMode === 'rawJson' && (
             <RawJsonInputMode
               jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}
               jsonError={jsonError}
+            />
+          )}
+          {inputMode === 'flow' && exportForViewer && (
+            <NodeViewer
+              exportDetails={exportForViewer}
+              editMode
+              onSave={handleNodeSave}
             />
           )}
         </div>
@@ -356,4 +408,3 @@ export function UpdateExportForm() {
     </div>
   );
 }
-

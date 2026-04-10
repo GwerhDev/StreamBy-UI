@@ -1,8 +1,9 @@
 .fieldsSection {
   width: 100%;
-  border-radius: 8px;
 }
 
-.fieldsSection h4 {
-  color: var(--color-light-200);
+.warningMessage {
+  margin-top: 0.5rem;
+  font-size: 0.78rem !important;
+  color: #f39c12 !important;
 }
