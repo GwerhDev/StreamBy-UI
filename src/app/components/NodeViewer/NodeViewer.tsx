@@ -1,6 +1,7 @@
 import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
   Background,
+  BackgroundVariant,
   Controls,
   Edge,
   Node,
@@ -428,7 +429,7 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode 
             fitView
             fitViewOptions={{ padding: 0.35 }}
           >
-            <Background variant="dots" color="var(--color-dark-400)" gap={22} size={1} />
+            <Background variant={BackgroundVariant.Dots} color="var(--color-dark-400)" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>
