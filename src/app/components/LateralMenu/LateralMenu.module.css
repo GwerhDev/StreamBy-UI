@@ -1,14 +1,41 @@
+.wrapper {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  width: 100%;
+}
+
 @media screen and (min-width: 1024px) {
-  .container {
-    max-width: 250px;
+  .wrapper {
+    min-width: 160px;
+    max-width: 480px;
+    width: auto;
   }
 }
 
 .container {
   width: 100%;
   gap: 1rem;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-dark-900);
   overflow: hidden;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.resizeHandle:hover {
+  background: var(--color-button-primary, #38B6FF);
 }
 
 .titleButton {
@@ -30,7 +57,6 @@
   border-bottom: solid .5px var(--color-dark-300);
   color: var(--color-light-300);
   cursor: pointer;
-  ;
 }
 
 .projectActionsContainer {
