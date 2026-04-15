@@ -1,13 +1,16 @@
-import s from './StorageDrive.module.css';
-import { StorageList } from './StorageList';
+import { useParams } from 'react-router-dom';
+import { faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
+import { DirectoryList } from '../Dashboard/DirectoryList';
 
 export const StorageDrive = () => {
-  return (
-    <div className={s.sections}>
-      <StorageList category="images" previewLimit={4} />
-      <StorageList category="videos" previewLimit={4} />
-      <StorageList category="audios" previewLimit={4} />
-      <StorageList category="3d-models" previewLimit={4} />
-    </div>
-  );
+  const { storageName } = useParams<{ storageName: string }>();
+
+  const categories = [
+    { name: 'Images',    icon: faImage,      path: `storage/${storageName}/images` },
+    { name: 'Audios',    icon: faHeadphones,  path: `storage/${storageName}/audios` },
+    { name: 'Videos',    icon: faVideo,       path: `storage/${storageName}/videos` },
+    { name: '3D Models', icon: faCubes,       path: `storage/${storageName}/3d-models` },
+  ];
+
+  return <DirectoryList list={categories} />;
 };

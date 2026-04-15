@@ -54,7 +54,7 @@
 }
 
 .dropZone {
-  border: 2px dashed var(--color-dark-500);
+  border: 2px dashed var(--color-light-400);
   border-radius: 0.75rem;
   padding: 2rem 1.5rem;
   display: flex;
