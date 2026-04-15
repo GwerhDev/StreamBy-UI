@@ -1,5 +1,5 @@
 import s from './StorageDrive.module.css';
-import { StorageList } from '../components/Storage/StorageList';
+import { StorageList } from './StorageList';
 
 export const StorageDrive = () => {
   return (

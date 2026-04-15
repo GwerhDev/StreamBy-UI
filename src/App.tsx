@@ -13,12 +13,13 @@ const Home = lazy(() => import('./app/pages/Home').then(module => ({ default: mo
 const Images = lazy(() => import('./app/pages/Images').then(module => ({ default: module.Images })));
 const Videos = lazy(() => import('./app/pages/Videos').then(module => ({ default: module.Videos })));
 const Audios = lazy(() => import('./app/pages/Audios').then(module => ({ default: module.Audios })));
-const Storage = lazy(() => import('./app/pages/Storage').then(module => ({ default: module.Storage })));
+const Storage = lazy(() => import('./app/components/Storage/Storage').then(module => ({ default: module.Storage })));
 const Exports = lazy(() => import('./app/pages/Exports').then(module => ({ default: module.Exports })));
 const Members = lazy(() => import('./app/pages/Members').then(module => ({ default: module.Members })));
 const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ default: module.Overview })));
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Database = lazy(() => import('./app/pages/Database').then(module => ({ default: module.Database })));
+const Api = lazy(() => import('./app/pages/Api').then(module => ({ default: module.Api })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
@@ -26,8 +27,8 @@ const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => 
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
 const ThreeDModels = lazy(() => import('./app/pages/ThreeDModels').then(module => ({ default: module.ThreeDModels })));
-const StorageDrive = lazy(() => import('./app/pages/StorageDrive').then(module => ({ default: module.StorageDrive })));
-const StorageCategory = lazy(() => import('./app/pages/StorageCategory').then(module => ({ default: module.StorageCategory })));
+const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').then(module => ({ default: module.StorageDrive })));
+const StorageCategory = lazy(() => import('./app/components/Storage/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module => ({ default: module.ProjectCreate })));
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
@@ -77,6 +78,8 @@ function App() {
                   <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
 
                   <Route path="/project/:id/database" element={<Database />} />
+
+                  <Route path="/project/:id/api" element={<Api />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />

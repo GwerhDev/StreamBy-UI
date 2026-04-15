@@ -16,7 +16,10 @@ export const storageDirectoryList = [
 export const databaseDirectoryList = [
   { name: "Collections", icon: faBoxesStacked, path: "database/collections" },
   { name: "Records", icon: faBarsProgress, path: "database/records" },
-  { name: "Connections", icon: faTowerBroadcast, path: "database/connections" },
+];
+
+export const apiDirectoryList = [
+  { name: "Connections", icon: faTowerBroadcast, path: "api/connections" },
 ];
 
 export const settingsDirectoryList = [

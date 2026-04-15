@@ -4,8 +4,8 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
+import { faArchive, faBox, faChevronDown, faCloud, faCode, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { apiDirectoryList, dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';
 import { archiveProject, unarchiveProject, fetchProject } from '../../../services/projects';
@@ -217,6 +217,29 @@ export const LateralMenu = () => {
             <ul className={s.menuList}>
               {
                 databaseDirectoryList.map(({ name, icon, path }, index) => {
+                  const linkPath = `/project/${id}/${path}`;
+                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                  return (
+                    <Link key={index} to={linkPath}>
+                      <li className={isActive ? s.activeLink : ''}>
+                        {icon && <FontAwesomeIcon icon={icon} />}
+                        {name}
+                      </li>
+                    </Link>
+                  );
+                })
+              }
+            </ul>
+
+            <span className={s.section}>
+              <Link to={`/project/${id}/api`}>
+                <h4>API</h4>
+              </Link>
+              <FontAwesomeIcon icon={faCode} />
+            </span>
+            <ul className={s.menuList}>
+              {
+                apiDirectoryList.map(({ name, icon, path }, index) => {
                   const linkPath = `/project/${id}/${path}`;
                   const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                   return (

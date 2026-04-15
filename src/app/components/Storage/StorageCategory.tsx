@@ -1,6 +1,6 @@
 import { useParams, Navigate } from 'react-router-dom';
-import { StorageCategory as StorageCategoryType } from '../../interfaces';
-import { StorageList } from '../components/Storage/StorageList';
+import { StorageCategory as StorageCategoryType } from '../../../interfaces';
+import { StorageList } from './StorageList';
 
 const validTypes: StorageCategoryType[] = ['images', 'audios', 'videos', '3dmodels'];
 
