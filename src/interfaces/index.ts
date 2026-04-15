@@ -5,6 +5,7 @@ export interface ApiConnection {
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   credentialId?: string;
+  prefix?: string;
   projectId: string;
   createdAt?: string;
 }
@@ -15,6 +16,7 @@ export interface ApiConnectionPayload {
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   credentialId?: string;
+  prefix?: string;
 }
 
 export interface Project {

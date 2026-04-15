@@ -393,3 +393,129 @@
   flex-shrink: 0;
   line-height: 1.5;
 }
+
+/* ─── JSON Response Preview ───────────────────────────────────────────────── */
+
+.jsonPreviewSection {
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--color-dark-300);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fetchButton {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  background: var(--color-dark-500);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 5px;
+  color: var(--color-light-300);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fetchButton:hover:not(:disabled) {
+  background: var(--color-dark-400);
+  border-color: var(--color-primary);
+  color: var(--color-light-100);
+}
+
+.fetchButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.jsonPre {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-dark-900);
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: var(--color-light-200);
+  white-space: pre;
+  overflow: auto;
+  max-height: 240px;
+}
+
+.jsonEmptyNote {
+  font-size: 0.73rem;
+  color: var(--color-light-400);
+  font-style: italic;
+}
+
+.previewError {
+  font-size: 0.73rem;
+  color: #f87171;
+}
+
+/* ─── Connection Picker (inside detail panel) ─────────────────────────────── */
+
+.connPickerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.connPickerItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-dark-300);
+  background: var(--color-dark-700);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  overflow: hidden;
+}
+
+.connPickerItem:hover {
+  border-color: var(--color-light-400);
+}
+
+.connPickerSelected {
+  border-color: var(--color-primary) !important;
+  background: var(--color-dark-600);
+}
+
+.connMethodBadge {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--color-button-primary);
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.connName {
+  font-size: 0.76rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: var(--color-light-200);
+}
+
+.connUrl {
+  font-size: 0.67rem;
+  color: var(--color-light-400);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

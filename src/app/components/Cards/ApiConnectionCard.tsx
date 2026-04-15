@@ -14,6 +14,11 @@ export const ApiConnectionCard = ({ connection }: { connection: ApiConnection })
         <small className={s.url}>{connection.baseUrl}</small>
       </span>
       <span className={s.methodBadge}>{connection.method}</span>
+      {connection.credentialId && (
+        <span className={s.authBadge} title={connection.prefix ? `Authorization: ${connection.prefix} <credential>` : 'Authorization: <credential>'}>
+          {connection.prefix || 'Auth'}
+        </span>
+      )}
     </span>
   );
 };

@@ -15,7 +15,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FormInputMode } from './FormInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
-import { Export } from '../../../interfaces';
+import { Export, ApiConnection } from '../../../interfaces';
+import { Link } from 'react-router-dom';
 
 export function UpdateExportForm() {
   const navigate = useNavigate();
@@ -35,7 +36,8 @@ export function UpdateExportForm() {
   const [apiUrl, setApiUrl] = useState<string>('');
   const [credentialId, setCredentialId] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
-  const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+  const [apiMethod, setApiMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const [fetchedExport, setFetchedExport] = useState<Export | null>(null);
   const { id, exportId } = useParams();
 
@@ -56,6 +58,13 @@ export function UpdateExportForm() {
           setApiUrl(data.apiUrl || '');
           setPrefix(data.prefix || '');
           setCredentialId(data.credentialId || '');
+          const match = currentProject?.data?.apiConnections?.find((c: ApiConnection) => c.baseUrl === data.apiUrl);
+          if (match) {
+            setSelectedConnectionId(match.id);
+            setApiMethod(match.method);
+          } else if (data.method) {
+            setApiMethod(data.method);
+          }
 
           if (data.json) {
             if (data.type === 'json') {
@@ -82,17 +91,15 @@ export function UpdateExportForm() {
     };
 
     fetchExportDetails();
+    //eslint-disable-next-line
   }, [id, exportId]);
 
-  useEffect(() => {
-    if (currentProject?.data?.credentials) {
-      const credentialsOptions = currentProject.data.credentials.map(cred => ({
-        value: cred.id,
-        label: cred.key,
-      }));
-      setAvailableCredentials(credentialsOptions);
-    }
-  }, [currentProject]);
+  const handleConnectionSelect = (conn: ApiConnection) => {
+    setApiUrl(conn.baseUrl);
+    setCredentialId(conn.credentialId || '');
+    setSelectedConnectionId(conn.id);
+    setApiMethod(conn.method);
+  };
 
   // Construct a reactive Export object from current form states for the NodeViewer
   const exportForViewer = useMemo<Export | null>(() => {
@@ -101,6 +108,7 @@ export function UpdateExportForm() {
       ...fetchedExport,
       name,
       type: exportType,
+      method: apiMethod,
       prefix,
       private: isPrivate,
       credentialId: credentialId || undefined,
@@ -108,7 +116,7 @@ export function UpdateExportForm() {
       collectionName,
       allowedOrigin: selectedAllowedOrigins,
     };
-  }, [fetchedExport, name, exportType, prefix, isPrivate, credentialId, apiUrl, collectionName, selectedAllowedOrigins]);
+  }, [fetchedExport, name, exportType, apiMethod, prefix, isPrivate, credentialId, apiUrl, collectionName, selectedAllowedOrigins]);
 
   const handleNodeSave = (updates: Record<string, string | boolean>) => {
     if ('apiUrl' in updates && typeof updates.apiUrl === 'string') setApiUrl(updates.apiUrl);
@@ -192,7 +200,7 @@ export function UpdateExportForm() {
   useEffect(() => {
     let isFormValid = true;
 
-    if (!name || !collectionName) {
+    if (!name) {
       isFormValid = false;
     }
 
@@ -306,42 +314,28 @@ export function UpdateExportForm() {
             ]}
           />
 
-          {exportType === 'externalApi' && (
+          {exportType === 'externalApi' && inputMode !== 'flow' && (
             <>
-              {inputMode !== 'flow' && (
-                <LabeledInput
-                  label="API URL"
-                  type="text"
-                  placeholder="https://api.example.com/webhook"
-                  id="api-url-input"
-                  name="api-url-input"
-                  htmlFor="api-url-input"
-                  value={apiUrl}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
-                />
-              )}
-              {inputMode !== 'flow' && (
-                <LabeledInput
-                  label="Prefix (optional)"
-                  type="text"
-                  placeholder="data"
-                  id="prefix-input"
-                  name="prefix-input"
-                  htmlFor="prefix-input"
-                  value={prefix}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
-                />
-              )}
-              {availableCredentials.length > 0 && (
-                <LabeledSelect
-                  label="Credential (optional)"
-                  id="credential-select"
-                  name="credential-select"
-                  htmlFor="credential-select"
-                  value={credentialId}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCredentialId(e.target.value)}
-                  options={[{ value: '', label: 'Select a credential' }, ...availableCredentials]}
-                />
+              <h4>API Connection</h4>
+              {(currentProject?.data?.apiConnections?.length ?? 0) > 0 ? (
+                <ul className={s.connectionsList}>
+                  {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
+                    <li
+                      key={conn.id}
+                      className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
+                      onClick={() => handleConnectionSelect(conn)}
+                    >
+                      <span className={s.methodBadge}>{conn.method}</span>
+                      <span className={s.connectionName}>{conn.name}</span>
+                      <small className={s.connectionUrl}>{conn.baseUrl}</small>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={s.emptyConnections}>
+                  No connections yet.{' '}
+                  <Link to={`/project/${id}/api/connections/create`}>Create one</Link>
+                </p>
               )}
             </>
           )}
@@ -396,6 +390,9 @@ export function UpdateExportForm() {
               exportDetails={exportForViewer}
               editMode
               onSave={handleNodeSave}
+              apiConnections={currentProject?.data?.apiConnections ?? []}
+              onConnectionSelect={handleConnectionSelect}
+              selectedConnectionId={selectedConnectionId}
             />
           )}
         </div>

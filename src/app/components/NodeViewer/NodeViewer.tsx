@@ -15,7 +15,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export } from '../../../interfaces';
+import { Export, ApiConnection } from '../../../interfaces';
+import { API_BASE } from '../../../config/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -159,7 +160,7 @@ interface DetailField {
   label: string;
   value: string;
   editable?: boolean;
-  inputType?: 'text' | 'checkbox';
+  inputType?: 'text' | 'checkbox' | 'connection';
 }
 
 interface NodeDetail {
@@ -174,17 +175,72 @@ export interface NodeViewerProps {
   exportDetails: Export;
   editMode?: boolean;
   onSave?: (updates: Record<string, string | boolean>) => void;
+  apiConnections?: ApiConnection[];
+  onConnectionSelect?: (conn: ApiConnection) => void;
+  selectedConnectionId?: string | null;
 }
 
-export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode = false, onSave }) => {
+export const NodeViewer: React.FC<NodeViewerProps> = ({
+  exportDetails,
+  editMode = false,
+  onSave,
+  apiConnections,
+  onConnectionSelect,
+  selectedConnectionId,
+}) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
+  const [previewData, setPreviewData] = useState<unknown>(undefined);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!editMode) {
       setLocalData({});
     }
   }, [editMode]);
+
+  // Reset preview when user navigates away from the response node
+  useEffect(() => {
+    if (selectedNodeId !== 'response') {
+      setPreviewData(undefined);
+      setPreviewError(null);
+    }
+  }, [selectedNodeId]);
+
+  const fetchPreview = useCallback(async () => {
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      if (exportDetails.type === 'externalApi') {
+        if (!exportDetails.apiUrl) throw new Error('No API URL configured. Select a connection first.');
+        const res = await fetch(exportDetails.apiUrl, {
+          method: exportDetails.method || 'GET',
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const data = await res.json();
+        setPreviewData(data);
+      } else {
+        if (!exportDetails.id || !exportDetails.projectId || !exportDetails.name) {
+          throw new Error('Save the export first to preview JSON data.');
+        }
+        const res = await fetch(
+          `${API_BASE}/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}`,
+          { credentials: 'include' },
+        );
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setPreviewData(data);
+      }
+    } catch (err: unknown) {
+      setPreviewError(err instanceof Error ? err.message : 'Failed to fetch');
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [exportDetails.type, exportDetails.apiUrl, exportDetails.method, exportDetails.id, exportDetails.projectId, exportDetails.name]);
 
   const initialNodes = useMemo((): Node[] => [
     {
@@ -329,7 +385,13 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode 
                 { key: 'sourceType',     label: 'Source Type',     value: 'JSON Collection' },
               ]
             : [
-                { key: 'apiUrl',     label: 'API URL',     value: exportDetails.apiUrl || '—', editable: true, inputType: 'text' as const },
+                {
+                  key: 'apiUrl',
+                  label: apiConnections ? 'API Connection' : 'API URL',
+                  value: exportDetails.apiUrl || '—',
+                  editable: true,
+                  inputType: apiConnections ? ('connection' as const) : ('text' as const),
+                },
                 { key: 'sourceType', label: 'Source Type', value: 'External API' },
               ],
         };
@@ -450,7 +512,25 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode 
               {selectedDetail.fields.map(field => (
                 <div key={field.key} className={s.detailField}>
                   <span className={s.fieldLabel}>{field.label}</span>
-                  {editMode && field.editable ? (
+                  {editMode && field.inputType === 'connection' ? (
+                    apiConnections && apiConnections.length > 0 ? (
+                      <ul className={s.connPickerList}>
+                        {apiConnections.map(conn => (
+                          <li
+                            key={conn.id}
+                            className={`${s.connPickerItem} ${selectedConnectionId === conn.id ? s.connPickerSelected : ''}`}
+                            onClick={() => { onConnectionSelect?.(conn); handleClosePanel(); }}
+                          >
+                            <span className={s.connMethodBadge}>{conn.method}</span>
+                            <span className={s.connName}>{conn.name}</span>
+                            <small className={s.connUrl}>{conn.baseUrl}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className={s.fieldValue}>No connections configured for this project.</span>
+                    )
+                  ) : editMode && field.editable ? (
                     field.inputType === 'checkbox' ? (
                       <label className={s.checkboxRow}>
                         <input
@@ -478,6 +558,47 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({ exportDetails, editMode 
                 </div>
               ))}
             </div>
+
+            {selectedNodeId === 'response' && (
+              <div className={s.jsonPreviewSection}>
+                <div className={s.previewHeader}>
+                  <span className={s.fieldLabel}>Response Preview</span>
+                  <button
+                    type="button"
+                    className={s.fetchButton}
+                    onClick={fetchPreview}
+                    disabled={previewLoading || (exportDetails.type === 'externalApi' ? !exportDetails.apiUrl : !exportDetails.id)}
+                    title={
+                      exportDetails.type === 'externalApi'
+                        ? (!exportDetails.apiUrl ? 'Select a connection first' : `${exportDetails.method || 'GET'} ${exportDetails.apiUrl}`)
+                        : (!exportDetails.id ? 'Save the export first' : 'Fetch stored JSON')
+                    }
+                  >
+                    <FontAwesomeIcon icon={faArrowsRotate} spin={previewLoading} />
+                    {previewLoading ? 'Fetching…' : 'Fetch'}
+                  </button>
+                </div>
+                {previewError && (
+                  <p className={s.previewError}>{previewError}</p>
+                )}
+                {previewData !== undefined && previewError == null && (() => {
+                  const prefix = exportDetails.prefix;
+                  const displayed =
+                    prefix &&
+                    previewData !== null &&
+                    typeof previewData === 'object' &&
+                    prefix in (previewData as Record<string, unknown>)
+                      ? (previewData as Record<string, unknown>)[prefix]
+                      : previewData;
+                  return (
+                    <pre className={s.jsonPre}>{JSON.stringify(displayed, null, 2)}</pre>
+                  );
+                })()}
+                {previewData === undefined && !previewError && !previewLoading && (
+                  <p className={s.jsonEmptyNote}>Click Fetch to load the live response.</p>
+                )}
+              </div>
+            )}
 
             {editMode && hasChanges && (isProcessNode || onSave) && (
               <div className={s.panelActions}>

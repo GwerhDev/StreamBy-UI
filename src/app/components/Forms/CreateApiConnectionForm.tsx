@@ -31,6 +31,7 @@ export const CreateApiConnectionForm = () => {
   const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('POST');
   const [description, setDescription] = useState('');
   const [credentialId, setCredentialId] = useState('');
+  const [prefix, setAuthPrefix] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
 
@@ -55,6 +56,7 @@ export const CreateApiConnectionForm = () => {
         method,
         ...(description && { description }),
         ...(credentialId && { credentialId }),
+        ...(credentialId && prefix && { prefix }),
       };
       const response = await createApiConnection(projectId, payload);
       if (response) {
@@ -134,9 +136,23 @@ export const CreateApiConnectionForm = () => {
             name="conn-credential"
             htmlFor="conn-credential"
             value={credentialId}
-            onChange={e => setCredentialId(e.target.value)}
+            onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setAuthPrefix(''); }}
             options={availableCredentials}
           />
+
+          {credentialId && (
+            <LabeledInput
+              label="Auth Prefix (optional)"
+              name="prefix"
+              value={prefix}
+              type="text"
+              placeholder="Bearer"
+              id="conn-auth-prefix"
+              htmlFor="conn-auth-prefix"
+              onChange={e => setAuthPrefix(e.target.value)}
+              disabled={loading}
+            />
+          )}
         </div>
 
         <span className={s.buttonContainer}>

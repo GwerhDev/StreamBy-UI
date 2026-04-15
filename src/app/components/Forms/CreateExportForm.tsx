@@ -1,6 +1,6 @@
 import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
 import { ActionButton } from '../Buttons/ActionButton';
@@ -8,13 +8,14 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark, faFileLines, faCode, faTowerBroadcast } from '@fortawesome/free-solid-svg-icons';
+import { faFileExport, faXmark, faFileLines, faCode, faTowerBroadcast, faSitemap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FormInputMode } from './FormInputMode';
 import { RawJsonInputMode } from './RawJsonInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
-import { ApiConnection } from '../../../interfaces';
+import { NodeViewer } from '../NodeViewer/NodeViewer';
+import { ApiConnection, Export } from '../../../interfaces';
 
 export function CreateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -25,7 +26,7 @@ export function CreateExportForm() {
   const [jsonData, setJsonData] = useState<object>({});
   const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form');
+  const [inputMode, setInputMode] = useState<'flow' | 'form' | 'rawJson'>('flow');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>(['*']);
@@ -33,8 +34,9 @@ export function CreateExportForm() {
   const [exportType, setExportType] = useState<'json' | 'externalApi'>('json');
   const [apiUrl, setApiUrl] = useState<string>('');
   const [credentialId, setCredentialId] = useState<string>('');
-  const [prefix, setPrefix] = useState<string>('');
+  const [prefix, setPrefix] = useState<string | undefined>('');
   const [selectedConnectionId, setSelectedConnectionId] = useState<string>('');
+  const [apiMethod, setApiMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const navigate = useNavigate();
 
   const handleJsonDataChange = (newData: object) => {
@@ -85,10 +87,37 @@ export function CreateExportForm() {
   };
 
   const handleConnectionSelect = (conn: ApiConnection) => {
+    console.log(conn)
     setSelectedConnectionId(conn.id);
     setApiUrl(conn.baseUrl);
     setCredentialId(conn.credentialId ?? '');
+    setApiMethod(conn.method);
+    setPrefix(conn.prefix);
   };
+
+  const handleNodeSave = (updates: Record<string, string | boolean>) => {
+    if ('collectionName' in updates && typeof updates.collectionName === 'string') setCollectionName(updates.collectionName);
+    if ('private' in updates && typeof updates.private === 'boolean') setIsPrivate(updates.private);
+  };
+
+  const exportForViewer = useMemo<Export>(() => ({
+    id: '',
+    name: name || 'New Export',
+    type: exportType,
+    exportType,
+    method: apiMethod,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    projectId: projectId || '',
+    exportedBy: '',
+    collectionName,
+    apiUrl,
+    prefix,
+    credentialId: credentialId || undefined,
+    private: isPrivate,
+    allowedOrigin: selectedAllowedOrigins,
+  }), [name, exportType, collectionName, apiUrl, apiMethod, prefix, credentialId, isPrivate, selectedAllowedOrigins, projectId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +132,7 @@ export function CreateExportForm() {
         private: isPrivate,
         exportType,
         ...(exportType !== 'externalApi' && { jsonData }),
-        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId, fields: jsonData }),
+        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId, fields: jsonData }),
       };
       const response = await createExport(currentProject?.data?.id, payload);
       navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
@@ -129,7 +158,7 @@ export function CreateExportForm() {
       if (!apiUrl) {
         isFormValid = false;
       }
-    } else {
+    } else if (inputMode !== 'flow') {
       const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
       if (inputMode === 'rawJson') {
         if (isJsonDataEmpty || jsonError !== null) {
@@ -210,13 +239,15 @@ export function CreateExportForm() {
             </div>
           )}
 
-          <CustomCheckbox
-            id="private-checkbox"
-            name="private-checkbox"
-            checked={isPrivate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-            label="Private Export"
-          />
+          {inputMode !== 'flow' && (
+            <CustomCheckbox
+              id="private-checkbox"
+              name="private-checkbox"
+              checked={isPrivate}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+              label="Private Export"
+            />
+          )}
 
           <LabeledSelect
             label="Export Type"
@@ -231,7 +262,7 @@ export function CreateExportForm() {
             ]}
           />
 
-          {exportType === 'externalApi' && (
+          {exportType === 'externalApi' && inputMode !== 'flow' && (
             <>
               <h4>API Connection</h4>
               {(currentProject.data?.apiConnections?.length ?? 0) > 0 ? (
@@ -256,21 +287,20 @@ export function CreateExportForm() {
                   </Link>
                 </p>
               )}
-              <LabeledInput
-                label="Prefix (optional)"
-                type="text"
-                placeholder="data"
-                id="prefix-input"
-                name="prefix-input"
-                htmlFor="prefix-input"
-                value={prefix}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
-              />
             </>
           )}
         </div>
         <div className={s.jsonViewer}>
           <div className={s.inputModeToggle}>
+            <button
+              type="button"
+              className={`${s.toggleButton} ${inputMode === 'flow' ? s.active : ''}`}
+              onClick={() => setInputMode('flow')}
+              title="Flow View"
+            >
+              <FontAwesomeIcon icon={faSitemap} />
+              Flow
+            </button>
             <button
               type="button"
               className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
@@ -290,19 +320,31 @@ export function CreateExportForm() {
               Raw JSON
             </button>
           </div>
-          {inputMode === 'form' ?
+          {inputMode === 'form' && (
             <FormInputMode
               jsonData={jsonData}
               onJsonDataChange={handleJsonDataChange}
               jsonError={jsonError}
             />
-            :
+          )}
+          {inputMode === 'rawJson' && (
             <RawJsonInputMode
               jsonData={rawJsonString}
               onJsonDataChange={handleRawJsonStringChange}
               jsonError={jsonError}
             />
-          }
+          )}
+          {inputMode === 'flow' && (
+            <NodeViewer
+              key={exportType}
+              exportDetails={exportForViewer}
+              editMode
+              onSave={handleNodeSave}
+              apiConnections={currentProject.data?.apiConnections ?? []}
+              onConnectionSelect={handleConnectionSelect}
+              selectedConnectionId={selectedConnectionId}
+            />
+          )}
         </div>
 
         <span className={s.buttonContainer}>
