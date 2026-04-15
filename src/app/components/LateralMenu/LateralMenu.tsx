@@ -29,12 +29,6 @@ export const LateralMenu = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (storages.length > 0) {
-      setExpandedStorages(new Set(storages.map((s: CloudStorage) => s.value)));
-    }
-  }, [storages]);
-
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
       const next = new Set(prev);

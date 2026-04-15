@@ -284,9 +284,11 @@ export async function getStorages() {
       throw new Error(errorData.message || 'Failed to fetch storages');
     }
     const response = await res.json() || {};
+    store.dispatch(addApiResponse({ message: response.message || 'Storages retrieved successfully.', type: 'success' }));
     return response.storages;
   } catch (error: any) {
     console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch storages.', type: 'error' }));
     throw error;
   }
 }
