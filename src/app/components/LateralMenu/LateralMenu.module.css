@@ -66,11 +66,11 @@
 }
 
 .listButton {
-  gap: 1rem;
-  padding: .3rem;
+  gap: .75rem;
+  padding: .28rem .5rem;
+  font-size: .875rem;
   font-weight: 400;
-  border-radius: 5px;
-  padding-inline: 1rem;
+  border-radius: 4px;
   color: rgb(199, 199, 199);
   display: flex;
   cursor: pointer;
@@ -78,7 +78,7 @@
 }
 
 .listButton:hover {
-  background-color: var(--color-dark-100);
+  background-color: rgb(77, 77, 77);
 }
 
 .titleButton h4 {
@@ -100,33 +100,44 @@
 }
 
 .menuContainer {
-  gap: 1rem;
+  gap: .6rem;
   height: 100%;
-  padding: 1rem;
-  padding-inline: 1rem;
+  padding: .75rem;
   display: flex;
   overflow-y: auto;
   flex-direction: column;
 }
 
 .mainMenu {
-  gap: .5rem;
+  gap: .4rem;
   display: flex;
   flex-direction: column;
 }
 
 .menuList {
-  gap: .3rem;
+  gap: .15rem;
   display: flex;
   flex-direction: column;
 }
 
-.menuList li {
-  gap: 1rem;
-  padding: .3rem;
+.menuList li,
+.serviceHeader {
+  width: 100%;
+  gap: .75rem;
+  padding: .28rem .5rem;
+  font-size: .875rem;
   font-weight: 400;
-  border-radius: 5px;
-  padding-inline: 1rem;
+  border-radius: 4px;
+  color: rgb(199, 199, 199);
+  display: flex;
+  align-items: center;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.serviceName {
+  width: 100%;
+  font-size: .875rem;
+  font-weight: 400;
   color: rgb(199, 199, 199);
   display: flex;
   align-items: center;
@@ -140,14 +151,19 @@
   color: var(--color-light-300);
 }
 
-.menuList li:hover {
+.menuList li:hover,
+.serviceHeader:hover {
   cursor: pointer;
-  color: rgb(222, 222, 222);
+  color: var(--color-select-accent);
   background-color: rgb(77, 77, 77);
 }
 
+.serviceName:hover {
+  color: var(--color-select-accent);
+}
+
 .deleteButton {
-  gap: 1rem;
+  gap: .75rem;
   width: 100%;
   display: flex;
   font-weight: bold;
@@ -162,7 +178,54 @@
   background-color: var(--color-danger-100);
 }
 
-.menuList li.activeLink {
+.menuList li.activeLink,
+.serviceHeader.activeLink {
   background-color: var(--color-dark-100);
-  color: var(--color-light-100);
+  color: var(--color-select-accent);
+}
+
+.storageList {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.serviceChevron {
+  font-size: .55rem;
+  transition: transform 0.15s ease;
+  transform: rotate(-90deg);
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.serviceChevronOpen {
+  transform: rotate(0deg);
+}
+
+.serviceIcon {
+  font-size: .65rem;
+}
+
+.storageItem {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-left: 1rem;
+  padding: .28rem .5rem .28rem 1.4rem;
+  border-radius: 4px;
+  font-size: .875rem;
+  font-weight: 400;
+  color: rgb(199, 199, 199);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.storageItem:hover {
+  color: var(--color-select-accent);
+}
+
+.storageItem.activeLink {
+  color: var(--color-select-accent  );
 }

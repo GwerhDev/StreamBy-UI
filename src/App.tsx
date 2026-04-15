@@ -26,6 +26,8 @@ const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => 
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
 const ThreeDModels = lazy(() => import('./app/pages/ThreeDModels').then(module => ({ default: module.ThreeDModels })));
+const StorageDrive = lazy(() => import('./app/pages/StorageDrive').then(module => ({ default: module.StorageDrive })));
+const StorageCategory = lazy(() => import('./app/pages/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module => ({ default: module.ProjectCreate })));
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
@@ -67,6 +69,8 @@ function App() {
                   <Route path="/project/:id/dashboard/exports/:exportId/edit" element={<ExportsEdit />} />
 
                   <Route path="/project/:id/storage" element={<Storage />} />
+                  <Route path="/project/:id/storage/:storageName" element={<StorageDrive />} />
+                  <Route path="/project/:id/storage/:storageName/:contentType" element={<StorageCategory />} />
                   <Route path="/project/:id/storage/images" element={<Images />} />
                   <Route path="/project/:id/storage/videos" element={<Videos />} />
                   <Route path="/project/:id/storage/audios" element={<Audios />} />

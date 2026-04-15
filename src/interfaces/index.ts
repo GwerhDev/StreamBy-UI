@@ -131,6 +131,12 @@ export interface Database {
   name: string;
 }
 
+export interface CloudStorage {
+  value: string;
+  name: string;
+  type?: string;
+}
+
 export interface LabeledSelectProps {
   label: string;
   name: string;

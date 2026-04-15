@@ -7,10 +7,10 @@ export const dashboardDirectoryList = [
 ];
 
 export const storageDirectoryList = [
-  { name: "Images", icon: faImage, path: "storage/images" },
-  { name: "Audios", icon: faHeadphones, path: "storage/audios" },
-  { name: "Videos", icon: faVideo, path: "storage/videos" },
-  { name: "3D Models", icon: faCubes, path: "storage/3dmodels" },
+  { name: "Images", icon: faImage, path: "images" },
+  { name: "Audios", icon: faHeadphones, path: "audios" },
+  { name: "Videos", icon: faVideo, path: "videos" },
+  { name: "3D Models", icon: faCubes, path: "3dmodels" },
 ];
 
 export const databaseDirectoryList = [

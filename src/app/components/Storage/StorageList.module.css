@@ -107,3 +107,37 @@
   color: var(--color-light-300);
   font-size: 1rem;
 }
+
+.viewAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.viewAllLink:hover {
+  opacity: 0.8;
+}
+
+.viewAllCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed var(--color-primary);
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.viewAllCard:hover {
+  background-color: rgba(56, 182, 255, 0.06);
+  opacity: 0.9;
+}

@@ -1,0 +1,25 @@
+.sections {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.sections > * {
+  border-right: solid 0.5px var(--color-dark-300);
+  border-bottom: solid 0.5px var(--color-dark-300);
+}
+
+.sections > *:nth-child(even) {
+  border-right: none;
+}
+
+@media screen and (max-width: 900px) {
+  .sections {
+    grid-template-columns: 1fr;
+  }
+
+  .sections > * {
+    border-right: none;
+  }
+}

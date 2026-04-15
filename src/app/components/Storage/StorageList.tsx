@@ -2,8 +2,9 @@ import s from './StorageList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { getStorageFiles, deleteStorageFile } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
@@ -11,6 +12,7 @@ import { UploadModal } from '../Modals/UploadModal';
 
 interface StorageListProps {
   category: StorageCategory;
+  previewLimit?: number;
 }
 
 const categoryMeta: Record<StorageCategory, { label: string; icon: typeof faImage }> = {
@@ -20,8 +22,8 @@ const categoryMeta: Record<StorageCategory, { label: string; icon: typeof faImag
   '3dmodels': { label: '3D Models', icon: faCubes },
 };
 
-export function StorageList({ category }: StorageListProps) {
-  const { id: projectId } = useParams<{ id: string }>();
+export function StorageList({ category, previewLimit }: StorageListProps) {
+  const { id: projectId, storageName } = useParams<{ id: string; storageName: string }>();
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -54,6 +56,9 @@ export function StorageList({ category }: StorageListProps) {
     fetchFiles();
   };
 
+  const displayedFiles = previewLimit ? files.slice(0, previewLimit) : files;
+  const viewAllPath = `/project/${projectId}/storage/${storageName}/${category}`;
+
   return (
     <div className={s.container}>
       <div className={s.header}>
@@ -61,15 +66,23 @@ export function StorageList({ category }: StorageListProps) {
           <FontAwesomeIcon icon={meta.icon} className={s.categoryIcon} />
           <h2>{meta.label}</h2>
         </div>
-        <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
-          <FontAwesomeIcon icon={faCloudArrowUp} />
-          Upload
-        </button>
+        {!previewLimit && (
+          <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
+            <FontAwesomeIcon icon={faCloudArrowUp} />
+            Upload
+          </button>
+        )}
+        {previewLimit && storageName && (
+          <Link to={viewAllPath} className={s.viewAllLink}>
+            View all
+            <FontAwesomeIcon icon={faArrowRight} />
+          </Link>
+        )}
       </div>
 
       {loading ? (
         <ul className={s.grid}>
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: previewLimit ?? 6 }).map((_, i) => (
             <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
           ))}
         </ul>
@@ -77,22 +90,33 @@ export function StorageList({ category }: StorageListProps) {
         <div className={s.empty}>
           <FontAwesomeIcon icon={meta.icon} className={s.emptyIcon} />
           <p>No {meta.label.toLowerCase()} yet</p>
-          <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
-            <FontAwesomeIcon icon={faCloudArrowUp} />
-            Upload your first file
-          </button>
+          {!previewLimit && (
+            <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
+              <FontAwesomeIcon icon={faCloudArrowUp} />
+              Upload your first file
+            </button>
+          )}
         </div>
       ) : (
         <ul className={s.grid}>
-          {files.map(file => (
+          {displayedFiles.map(file => (
             <li key={file.key}>
               <StorageCard file={file} category={category} onDelete={handleDelete} />
             </li>
           ))}
-          <li className={s.uploadCard} onClick={() => setUploadModalOpen(true)}>
-            <FontAwesomeIcon icon={faCloudArrowUp} className={s.uploadCardIcon} />
-            <span>Upload file</span>
-          </li>
+          {previewLimit && files.length > previewLimit && storageName ? (
+            <li>
+              <Link to={viewAllPath} className={s.viewAllCard}>
+                <FontAwesomeIcon icon={faArrowRight} className={s.uploadCardIcon} />
+                <span>View all {meta.label}</span>
+              </Link>
+            </li>
+          ) : !previewLimit ? (
+            <li className={s.uploadCard} onClick={() => setUploadModalOpen(true)}>
+              <FontAwesomeIcon icon={faCloudArrowUp} className={s.uploadCardIcon} />
+              <span>Upload file</span>
+            </li>
+          ) : null}
         </ul>
       )}
 

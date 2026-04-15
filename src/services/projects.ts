@@ -272,6 +272,25 @@ export async function getDatabases() {
   }
 }
 
+export async function getStorages() {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/storages`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to fetch storages');
+    }
+    const response = await res.json() || {};
+    return response.storages;
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export async function createCredential(projectId: string, key: string, value: string) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials`, {

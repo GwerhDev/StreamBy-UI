@@ -1,16 +1,17 @@
 import s from './LateralMenu.module.css';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';
 import { archiveProject, unarchiveProject, fetchProject } from '../../../services/projects';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { CloudStorage } from '../../../interfaces';
 
 const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
@@ -22,9 +23,26 @@ export const LateralMenu = () => {
   const { loadProjects } = useProjects();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const storages = useSelector((state: RootState) => state.management.storages);
   const { name, id, members } = currentProject.data || {};
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
+  const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (storages.length > 0) {
+      setExpandedStorages(new Set(storages.map((s: CloudStorage) => s.value)));
+    }
+  }, [storages]);
+
+  const toggleStorage = (value: string) => {
+    setExpandedStorages(prev => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
 
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 1024);
@@ -154,22 +172,41 @@ export const LateralMenu = () => {
               </Link>
               <FontAwesomeIcon icon={faBox} />
             </span>
-            <ul className={s.menuList}>
-              {
-                storageDirectoryList.map(({ name, icon, path }, index) => {
-                  const linkPath = `/project/${id}/${path}`;
-                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                  return (
-                    <Link key={index} to={linkPath}>
-                      <li className={isActive ? s.activeLink : ''}>
-                        {icon && <FontAwesomeIcon icon={icon} />}
-                        {name}
-                      </li>
-                    </Link>
-                  );
-                })
-              }
-            </ul>
+            <div className={s.storageList}>
+              {storages.map((storage: CloudStorage) => {
+                const isExpanded = expandedStorages.has(storage.value);
+                const linkPath = `/project/${id}/storage/${storage.value}`;
+                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+
+                return (
+                  <React.Fragment key={storage.value}>
+                    <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                      <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                        onClick={() => toggleStorage(storage.value)}
+                      />
+                      <Link to={linkPath} className={s.serviceName}>
+                        <FontAwesomeIcon icon={faCloud} className={s.serviceIcon} />
+                        <span>{storage.name}</span>
+                      </Link>
+                    </div>
+                    {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
+                      const linkPath = `/project/${id}/storage/${storage.value}/${path}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={index} to={linkPath}>
+                          <div className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
+                            {icon && <FontAwesomeIcon icon={icon} />}
+                            {name}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
 
             <span className={s.section}>
               <Link to={`/project/${id}/database`}>

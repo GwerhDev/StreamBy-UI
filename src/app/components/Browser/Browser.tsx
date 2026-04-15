@@ -16,6 +16,9 @@ export const Browser = (props: PropsWithChildren) => {
 
   const segments = relativePath.split('/').filter(Boolean);
 
+  const formatSegment = (seg: string) =>
+    seg.replace(/[_-]/g, ' ');
+
   const handleNavigate = (index: number) => {
     const partial = segments.slice(0, index + 1).join('/');
     navigate(`${basePath}/${partial}`);
@@ -32,7 +35,7 @@ export const Browser = (props: PropsWithChildren) => {
             <span key={i} className={s.separator}>
               <FontAwesomeIcon icon={faChevronRight} />
               <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                {seg}
+                {formatSegment(seg)}
               </span>
             </span>
           ))

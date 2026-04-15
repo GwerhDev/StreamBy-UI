@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useProjects } from '../../hooks/useProjects';
-import { fetchDatabases } from '../../store/managementSlice';
+import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
@@ -17,6 +17,7 @@ export default function DefaultLayout() {
 
   useEffect(() => {
     dispatch(fetchDatabases());
+    dispatch(fetchStorages());
   }, [dispatch]);
 
   return (
