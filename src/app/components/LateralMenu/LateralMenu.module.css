@@ -136,6 +136,7 @@
 
 .serviceName {
   width: 100%;
+  gap: .75rem;
   font-size: .875rem;
   font-weight: 400;
   color: rgb(199, 199, 199);
