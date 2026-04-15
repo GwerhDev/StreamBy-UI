@@ -15,7 +15,7 @@
 
 .container {
   width: 100%;
-  gap: 1rem;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--color-dark-900);
@@ -40,7 +40,7 @@
 
 .titleButton {
   width: 100%;
-  height: 2.4rem;
+  height: 2rem;
   display: flex;
   position: relative;
 }
@@ -95,13 +95,16 @@
 }
 
 .outterMenuContainer {
-  height: 100%;
-  padding-bottom: 2.1rem;
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .menuContainer {
   gap: .6rem;
-  height: 100%;
+  flex-grow: 1;
+  min-height: 0;
   padding: .75rem;
   display: flex;
   overflow-y: auto;
