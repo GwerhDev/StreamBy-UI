@@ -1,3 +1,22 @@
+export interface ApiConnection {
+  id: string;
+  name: string;
+  baseUrl: string;
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  description?: string;
+  credentialId?: string;
+  projectId: string;
+  createdAt?: string;
+}
+
+export interface ApiConnectionPayload {
+  name: string;
+  baseUrl: string;
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  description?: string;
+  credentialId?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -7,6 +26,7 @@ export interface Project {
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
+  apiConnections?: ApiConnection[];
   members?: { userId: string; role: string, archived: boolean }[];
   rootFolders?: string[];
   settings?: {

@@ -36,6 +36,8 @@ const ExportsEdit = lazy(() => import('./app/pages/ExportsEdit').then(module => 
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(module => ({ default: module.CredentialsList })));
 const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
+const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
+const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -80,6 +82,8 @@ function App() {
                   <Route path="/project/:id/database" element={<Database />} />
 
                   <Route path="/project/:id/api" element={<Api />} />
+                  <Route path="/project/:id/api/connections" element={<ApiConnectionsList />} />
+                  <Route path="/project/:id/api/connections/create" element={<ApiConnectionsCreate />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />

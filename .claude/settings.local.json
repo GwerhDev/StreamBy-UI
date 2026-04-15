@@ -5,7 +5,10 @@
       "Bash(npm install *)",
       "Bash(node -e \"require.resolve\\('@dnd-kit/core'\\); require.resolve\\('@dnd-kit/sortable'\\); require.resolve\\('@dnd-kit/utilities'\\); console.log\\('all ok'\\)\")",
       "Bash(xargs grep:*)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(grep -E \"\\(tsx|ts\\)$\")",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
   }
 }

@@ -278,3 +278,66 @@
   outline: none;
   border-color: var(--color-primary-500);
 }
+
+/* API connection selector */
+.connectionsList {
+  width: 100%;
+  gap: .4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.connectionItem {
+  gap: .75rem;
+  padding: .6rem .8rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-dark-400);
+  background-color: var(--color-dark-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: border-color .15s;
+}
+
+.connectionItem:hover {
+  border-color: var(--color-light-300);
+}
+
+.connectionSelected {
+  border-color: var(--color-button-primary) !important;
+  background-color: var(--color-dark-300);
+}
+
+.methodBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--color-button-primary);
+  color: white;
+  letter-spacing: .4px;
+}
+
+.connectionName {
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.connectionUrl {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-light-400);
+  font-size: 11px;
+}
+
+.emptyConnections {
+  width: 100%;
+  text-align: center;
+  padding: .75rem 1rem;
+  border: dashed 1px var(--color-dark-400);
+  border-radius: 8px;
+  font-size: 13px;
+}

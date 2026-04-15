@@ -8,22 +8,24 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark, faFileLines, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faFileExport, faXmark, faFileLines, faCode, faTowerBroadcast } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FormInputMode } from './FormInputMode';
 import { RawJsonInputMode } from './RawJsonInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
+import { ApiConnection } from '../../../interfaces';
 
 export function CreateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { id: projectId } = useParams<{ id: string }>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [collectionName, setCollectionName] = useState("");
   const [jsonData, setJsonData] = useState<object>({});
   const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form'); // 'form' or 'rawJson'
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson'>('form');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>(['*']);
@@ -32,7 +34,7 @@ export function CreateExportForm() {
   const [apiUrl, setApiUrl] = useState<string>('');
   const [credentialId, setCredentialId] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
-  const [availableCredentials, setAvailableCredentials] = useState<{ value: string; label: string }[]>([]);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string>('');
   const navigate = useNavigate();
 
   const handleJsonDataChange = (newData: object) => {
@@ -82,18 +84,11 @@ export function CreateExportForm() {
     }
   };
 
-  useEffect(() => {
-    if (currentProject?.data?.credentials) {
-      const credentialsOptions = currentProject.data.credentials.map(cred => ({
-        value: cred.id,
-        label: cred.key,
-      }));
-      setAvailableCredentials(credentialsOptions);
-      if (credentialsOptions.length > 0) {
-        setCredentialId(credentialsOptions[0].value);
-      }
-    }
-  }, [currentProject]);
+  const handleConnectionSelect = (conn: ApiConnection) => {
+    setSelectedConnectionId(conn.id);
+    setApiUrl(conn.baseUrl);
+    setCredentialId(conn.credentialId ?? '');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,16 +233,29 @@ export function CreateExportForm() {
 
           {exportType === 'externalApi' && (
             <>
-              <LabeledInput
-                label="API URL"
-                type="text"
-                placeholder="https://api.example.com/webhook"
-                id="api-url-input"
-                name="api-url-input"
-                htmlFor="api-url-input"
-                value={apiUrl}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiUrl(e.target.value)}
-              />
+              <h4>API Connection</h4>
+              {(currentProject.data?.apiConnections?.length ?? 0) > 0 ? (
+                <ul className={s.connectionsList}>
+                  {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
+                    <li
+                      key={conn.id}
+                      className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
+                      onClick={() => handleConnectionSelect(conn)}
+                    >
+                      <span className={s.methodBadge}>{conn.method}</span>
+                      <span className={s.connectionName}>{conn.name}</span>
+                      <small className={s.connectionUrl}>{conn.baseUrl}</small>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={s.emptyConnections}>
+                  No connections yet.{' '}
+                  <Link to={`/project/${projectId}/api/connections/create`}>
+                    <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
+                  </Link>
+                </p>
+              )}
               <LabeledInput
                 label="Prefix (optional)"
                 type="text"
@@ -258,17 +266,6 @@ export function CreateExportForm() {
                 value={prefix}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
               />
-              {availableCredentials.length > 0 && (
-                <LabeledSelect
-                  label="Credential (optional)"
-                  id="credential-select"
-                  name="credential-select"
-                  htmlFor="credential-select"
-                  value={credentialId}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCredentialId(e.target.value)}
-                  options={availableCredentials}
-                />
-              )}
             </>
           )}
         </div>
