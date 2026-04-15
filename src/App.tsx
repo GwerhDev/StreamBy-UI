@@ -75,7 +75,7 @@ function App() {
                   <Route path="/project/:id/storage/images" element={<Images />} />
                   <Route path="/project/:id/storage/videos" element={<Videos />} />
                   <Route path="/project/:id/storage/audios" element={<Audios />} />
-                  <Route path="/project/:id/storage/3dmodels" element={<ThreeDModels />} />
+                  <Route path="/project/:id/storage/3d-models" element={<ThreeDModels />} />
 
                   <Route path="/project/:id/database" element={<Database />} />
 

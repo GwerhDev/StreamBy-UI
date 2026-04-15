@@ -21,7 +21,7 @@ function formatBytes(bytes: number): string {
 const categoryIcon = {
   audios: faHeadphones,
   videos: faVideo,
-  '3dmodels': faCubes,
+  '3d-models': faCubes,
 };
 
 export function StorageCard({ file, category, onDelete }: StorageCardProps) {

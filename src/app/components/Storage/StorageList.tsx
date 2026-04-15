@@ -19,7 +19,7 @@ const categoryMeta: Record<StorageCategory, { label: string; icon: typeof faImag
   images: { label: 'Images', icon: faImage },
   audios: { label: 'Audios', icon: faHeadphones },
   videos: { label: 'Videos', icon: faVideo },
-  '3dmodels': { label: '3D Models', icon: faCubes },
+  '3d-models': { label: '3D Models', icon: faCubes },
 };
 
 export function StorageList({ category, previewLimit }: StorageListProps) {

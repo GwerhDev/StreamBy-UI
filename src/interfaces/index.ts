@@ -166,7 +166,7 @@ export interface FieldDefinition {
   required?: boolean;
 }
 
-export type StorageCategory = 'images' | 'audios' | 'videos' | '3dmodels';
+export type StorageCategory = 'images' | 'audios' | 'videos' | '3d-models';
 
 export interface StorageFile {
   key: string;

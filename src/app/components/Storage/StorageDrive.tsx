@@ -7,7 +7,7 @@ export const StorageDrive = () => {
       <StorageList category="images" previewLimit={4} />
       <StorageList category="videos" previewLimit={4} />
       <StorageList category="audios" previewLimit={4} />
-      <StorageList category="3dmodels" previewLimit={4} />
+      <StorageList category="3d-models" previewLimit={4} />
     </div>
   );
 };

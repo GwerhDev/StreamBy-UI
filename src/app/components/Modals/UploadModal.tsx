@@ -17,14 +17,14 @@ const acceptTypes: Record<StorageCategory, string> = {
   images: 'image/*',
   audios: 'audio/*',
   videos: 'video/*',
-  '3dmodels': '.glb,.gltf,.obj,.fbx,.stl,.ply',
+  '3d-models': '.glb,.gltf,.obj,.fbx,.stl,.ply',
 };
 
 const categoryLabels: Record<StorageCategory, string> = {
   images: 'images',
   audios: 'audio files',
   videos: 'videos',
-  '3dmodels': '3D model files',
+  '3d-models': '3D model files',
 };
 
 function formatBytes(bytes: number): string {

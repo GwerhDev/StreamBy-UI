@@ -10,7 +10,7 @@ export const storageDirectoryList = [
   { name: "Images", icon: faImage, path: "images" },
   { name: "Audios", icon: faHeadphones, path: "audios" },
   { name: "Videos", icon: faVideo, path: "videos" },
-  { name: "3D Models", icon: faCubes, path: "3dmodels" },
+  { name: "3D Models", icon: faCubes, path: "3d-models" },
 ];
 
 export const databaseDirectoryList = [
