@@ -29,7 +29,7 @@ export const StorageDrive = () => {
   const fetchRecent = useCallback(async () => {
     if (!projectId) return;
     setLoading(true);
-    const files = await getRecentFiles(projectId, 12);
+    const files = await getRecentFiles(projectId);
     setRecentFiles(files);
     setLoading(false);
   }, [projectId]);
