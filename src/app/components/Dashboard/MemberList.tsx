@@ -43,7 +43,7 @@ export function MemberList() {
           ?
           <ul className={s.memberGrid}>
             {Array.from({ length: 3 }).map((_, index) => (
-              <li key={index} className={`${s.memberListItem} ${skeleton.skeleton}`}></li>
+              <li key={index} className={`${s.cardSkeleton} ${skeleton.skeleton}`}></li>
             ))}
           </ul>
           :

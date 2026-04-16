@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import s from './CredentialList.module.css';
+import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ActionButton } from '../Buttons/ActionButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -47,7 +48,7 @@ export const CredentialList: React.FC = () => {
       {currentProjectLoading ? (
         <ul>
           {Array.from({ length: 3 }).map((_, index) => (
-            <li key={index} className={`${s.credentialCardSkeleton} ${s.skeleton}`}></li>
+            <li key={index} className={`${s.cardSkeleton} ${skeleton.skeleton}`}></li>
           ))}
         </ul>
       ) : !credentials?.length ? (
