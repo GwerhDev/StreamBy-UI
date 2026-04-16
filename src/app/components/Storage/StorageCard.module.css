@@ -12,17 +12,12 @@
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+  background-color: var(--color-dark-200);
 }
 
 .cardSelected {
   box-shadow: 0 0 0 2px var(--color-primary);
   border-color: transparent;
-}
-
-.cardSelected:hover {
-  box-shadow: 0 0 0 2px var(--color-primary), 0 6px 22px rgba(0, 0, 0, 0.4);
 }
 
 .preview {

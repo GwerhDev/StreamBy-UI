@@ -1,25 +1,88 @@
-.sections {
+.page {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.sectionIcon {
+  font-size: 0.85rem;
+  color: var(--color-light-400);
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-light-300);
+  margin: 0;
+}
+
+/* ── Category cards (same pattern as ExportList) ── */
+
+.categoryGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.sections > * {
-  border-right: solid 0.5px var(--color-dark-300);
-  border-bottom: solid 0.5px var(--color-dark-300);
+.categoryCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--color-dark-300);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.sections > *:nth-child(even) {
-  border-right: none;
+.categoryCard:hover {
+  background-color: var(--color-dark-200);
+  color: var(--color-primary);
 }
 
-@media screen and (max-width: 900px) {
-  .sections {
-    grid-template-columns: 1fr;
-  }
+.categoryIcon {
+  font-size: 1.3rem;
+}
 
-  .sections > * {
-    border-right: none;
-  }
+.categoryLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* ── Recent files grid (StorageCard) ── */
+
+.fileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.fileSkeleton {
+  border-radius: 0.75rem;
+  aspect-ratio: 4 / 3;
+}
+
+.empty {
+  font-size: 0.85rem;
+  color: var(--color-light-400);
 }
