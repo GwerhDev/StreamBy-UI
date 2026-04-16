@@ -84,9 +84,9 @@ export interface ProjectList {
 export type Session = {
   logged: boolean;
   loader: boolean;
+  username: string;
   userId?: string;
   role?: string;
-  username?: string;
   profilePic?: string;
 };
 

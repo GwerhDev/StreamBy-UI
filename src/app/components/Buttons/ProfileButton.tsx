@@ -2,14 +2,20 @@ import s from "./ProfileButton.module.css";
 import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faHome, faRightFromBracket, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faGear, faHome, faLayerGroup, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearCurrentProject } from "../../../store/currentProjectSlice";
+import { ACCOUNT_BASE } from "../../../config/api";
+import { Session } from "../../../interfaces";
 
-export const ProfileButton = (props: any) => {
-  const { userData } = props || {};
-  const { profilePic, username } = userData || {};
+interface ProfileButtonProps {
+  userData: Session;
+};
+
+export const ProfileButton = (props: ProfileButtonProps) => {
+  const { userData } = props;
+  const { profilePic, username } = userData;
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -19,21 +25,10 @@ export const ProfileButton = (props: any) => {
     setShowCanvas((prev) => !prev);
   };
 
-  const handleLogoutModal = () => {
-    const logoutModal = document.getElementById("logout-modal") as HTMLDivElement | null;
-    if (logoutModal) logoutModal.style.display = "flex";
-  };
-
   const handleGoHome = () => {
     dispatch(clearCurrentProject());
     setShowCanvas(false);
     navigate("/");
-  };
-
-  const handleAccount = () => {
-    dispatch(clearCurrentProject());
-    setShowCanvas(false);
-    navigate("/user");
   };
 
   useEffect(() => {
@@ -62,14 +57,14 @@ export const ProfileButton = (props: any) => {
               <button title="Home" onClick={handleGoHome}>
                 <FontAwesomeIcon icon={faHome} />
               </button>
-              <button title="Account" onClick={handleAccount}>
+              <a title="Account" target="_blank" href={ACCOUNT_BASE}>
                 <FontAwesomeIcon icon={faUser} />
+              </a>
+              <button title="Apps">
+                <FontAwesomeIcon icon={faLayerGroup} />
               </button>
               <button title="Settings">
                 <FontAwesomeIcon icon={faGear} />
-              </button>
-              <button title="Logout" onClick={handleLogoutModal}>
-                <FontAwesomeIcon icon={faRightFromBracket} />
               </button>
             </ul>
           )}

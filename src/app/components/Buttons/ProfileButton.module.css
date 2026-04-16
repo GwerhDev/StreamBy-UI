@@ -43,10 +43,21 @@
   justify-content: center;
 }
 
-.profileButtonContainer button {
+.profileButtonContainer button,
+.profileButtonContainer a {
+  color: white;
+  padding: .3rem;
+  border-radius: .4rem;
+  padding-inline: 1.6rem;
+  background-color: var(--color-dark-200);
+}
+
+.profileButtonContainer button:hover,
+.profileButtonContainer a:hover {
   padding: .3rem;
   padding-inline: 1.6rem;
   color: white;
+  background-color: var(--color-button-primary-hover);
 }
 
 .profileButton {
