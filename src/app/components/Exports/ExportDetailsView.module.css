@@ -23,7 +23,6 @@
 }
 
 .detailsPanel {
-  gap: 1.5rem;
   padding: 1rem;
   flex-grow: 1;
   display: flex;
@@ -77,97 +76,7 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* ── Details panel contents ──────────────── */
-.header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.iconWrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background-color: var(--color-dark-500);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: 1.25rem;
-  color: var(--color-light-100);
-  margin: 0;
-}
-
-.description {
-  font-size: 0.85rem;
-  color: var(--color-light-400);
-  margin-top: 0.2rem;
-}
-
-.methodBadge {
-  margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.6rem;
-  border-radius: 5px;
-  border: 2px solid var(--color-button-primary-hover);
-  color: var(--color-light-200);
-  flex-shrink: 0;
-}
-
-.fields {
-  gap: 0;
-  border-radius: 0.75rem;
-  display: flex;
-  overflow: auto;
-  flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.field {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 0.85rem 1.1rem;
-  background-color: var(--color-dark-300);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.field:last-child {
-  border-bottom: none;
-}
-
-.fieldIcon {
-  font-size: 0.85rem;
-  color: var(--color-light-400);
-  margin-top: 0.15rem;
-  width: 14px;
-  flex-shrink: 0;
-}
-
-.fieldLabel {
-  font-size: 0.72rem;
-  color: var(--color-light-400);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.2rem;
-}
-
-.fieldValue {
-  font-size: 0.88rem;
-  color: var(--color-light-200);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  word-break: break-all;
-}
-
+/* ── Field link (used in endpoint value) ─── */
 .fieldLink {
   color: var(--color-primary);
   text-decoration: none;
@@ -175,11 +84,6 @@
 
 .fieldLink:hover {
   text-decoration: underline;
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
 }
 
 /* ── Mobile ──────────────────────────────── */
@@ -192,9 +96,5 @@
     width: 100%;
     height: 4px;
     cursor: row-resize;
-  }
-
-  .actions {
-    flex-direction: column;
   }
 }

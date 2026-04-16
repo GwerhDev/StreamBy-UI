@@ -11,7 +11,6 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
 import { ReadOnlyFields } from './ReadOnlyFields';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCode, faFileLines, faLink, faDatabase, faGlobe, faClock,
   faLayerGroup, faExternalLink, faPenToSquare, faTrash, faSitemap,
@@ -21,6 +20,7 @@ import { RootState } from '../../../store';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs, TabItem } from '../Tabs/Tabs';
+import { CustomForm } from '../Forms/CustomForm';
 
 type ViewMode = 'flow' | 'apiResponse' | 'fields' | 'json';
 
@@ -70,99 +70,74 @@ export const ExportDetailsView: React.FC = () => {
   return (
     <div className={s.container}>
 
-      {/* Resizable body */}
       <PanelGroup orientation="horizontal" className={s.splitGroup}>
 
         {/* Details panel */}
         <Panel defaultSize="35%" minSize="20%" maxSize="60%">
           <div className={s.detailsPanel}>
-            <div className={s.header}>
-              <span className={s.iconWrap}><FontAwesomeIcon icon={faCode} /></span>
-              <div>
-                <h2 className={s.title}>{exportDetails.name}</h2>
-                {exportDetails.description && <p className={s.description}>{exportDetails.description}</p>}
-              </div>
-              <span className={s.methodBadge}>{exportDetails.method}</span>
-            </div>
-
-            <div className={s.fields}>
-              <div className={s.field}>
-                <span className={s.fieldIcon}><FontAwesomeIcon icon={faLink} /></span>
-                <div>
-                  <p className={s.fieldLabel}>Endpoint</p>
-                  <p className={s.fieldValue}>
-                    <a className={s.fieldLink} href={fullEndpoint} target="_blank" rel="noopener noreferrer">{endpointPath}</a>
-                    <CopyButton title="Copy endpoint" textToCopy={endpointPath} />
-                  </p>
-                </div>
-              </div>
-
-              <div className={s.field}>
-                <span className={s.fieldIcon}><FontAwesomeIcon icon={faLayerGroup} /></span>
-                <div>
-                  <p className={s.fieldLabel}>Type</p>
-                  <p className={s.fieldValue}>{handleTypeRender(exportDetails.type)}</p>
-                </div>
-              </div>
-
-              {exportDetails.type !== 'externalApi' && exportDetails.collectionName && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faDatabase} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Collection</p>
-                    <p className={s.fieldValue}>{exportDetails.collectionName}</p>
-                  </div>
-                </div>
-              )}
-
-              {exportDetails.description && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faFileLines} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Description</p>
-                    <p className={s.fieldValue}>{exportDetails.description}</p>
-                  </div>
-                </div>
-              )}
-
-              {exportDetails.allowedOrigin && exportDetails.allowedOrigin.length > 0 && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faGlobe} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Allowed Origins</p>
-                    <p className={s.fieldValue}>
-                      {exportDetails.allowedOrigin.some(o => /^\*$/.test(o))
-                        ? (currentProject?.data?.allowedOrigin?.join(', ') || '*')
-                        : exportDetails.allowedOrigin.join(', ')}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {exportDetails.type !== 'externalApi' && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faClock} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Created</p>
-                    <p className={s.fieldValue}>{new Date(exportDetails.createdAt).toLocaleString()}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className={s.actions}>
-              <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
-              <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
-            </div>
+            <CustomForm
+              readOnly
+              header={{
+                icon: faCode,
+                title: exportDetails.name,
+                subtitle: exportDetails.description,
+                badge: exportDetails.method,
+              }}
+              fields={[
+                {
+                  icon: faLink,
+                  label: 'Endpoint',
+                  value: (
+                    <>
+                      <a className={s.fieldLink} href={fullEndpoint} target="_blank" rel="noopener noreferrer">{endpointPath}</a>
+                      <CopyButton title="Copy endpoint" textToCopy={endpointPath} />
+                    </>
+                  ),
+                },
+                {
+                  icon: faLayerGroup,
+                  label: 'Type',
+                  value: handleTypeRender(exportDetails.type),
+                },
+                {
+                  icon: faDatabase,
+                  label: 'Collection',
+                  value: exportDetails.collectionName,
+                  hidden: exportDetails.type === 'externalApi' || !exportDetails.collectionName,
+                },
+                {
+                  icon: faFileLines,
+                  label: 'Description',
+                  value: exportDetails.description,
+                  hidden: !exportDetails.description,
+                },
+                {
+                  icon: faGlobe,
+                  label: 'Allowed Origins',
+                  value: exportDetails.allowedOrigin?.some(o => /^\*$/.test(o))
+                    ? (currentProject?.data?.allowedOrigin?.join(', ') || '*')
+                    : exportDetails.allowedOrigin?.join(', '),
+                  hidden: !exportDetails.allowedOrigin?.length,
+                },
+                {
+                  icon: faClock,
+                  label: 'Created',
+                  value: new Date(exportDetails.createdAt).toLocaleString(),
+                  hidden: exportDetails.type === 'externalApi',
+                },
+              ]}
+              actions={
+                <>
+                  <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
+                  <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
+                </>
+              }
+            />
           </div>
         </Panel>
 
-        {/* Drag handle */}
-        {hasJson && (
-          <PanelResizeHandle className={s.resizeHandle} />
-        )}
+        {hasJson && <PanelResizeHandle className={s.resizeHandle} />}
 
-        {/* Viewer panel */}
         {hasJson && (
           <Panel className={s.panelContainer} minSize="15%">
             <div className={s.viewerPanel}>

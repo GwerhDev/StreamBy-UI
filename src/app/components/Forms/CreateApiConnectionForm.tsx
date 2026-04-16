@@ -10,7 +10,8 @@ import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faTowerBroadcast, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTowerBroadcast, faXmark, faLink, faLayerGroup, faFileLines, faKey, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
+import { CustomForm } from './CustomForm';
 
 const HTTP_METHODS = [
   { value: 'POST', label: 'POST' },
@@ -47,13 +48,10 @@ export const CreateApiConnectionForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectId || !currentProject) return;
-
     setLoading(true);
     try {
       const payload = {
-        name,
-        baseUrl,
-        method,
+        name, baseUrl, method,
         ...(description && { description }),
         ...(credentialId && { credentialId }),
         ...(credentialId && prefix && { prefix }),
@@ -61,10 +59,7 @@ export const CreateApiConnectionForm = () => {
       const response = await createApiConnection(projectId, payload);
       if (response) {
         const existing = currentProject.apiConnections ?? [];
-        dispatch(setCurrentProject({
-          ...currentProject,
-          apiConnections: [...existing, response],
-        }));
+        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response] }));
       }
       navigate(`/project/${projectId}/connections/api`);
     } catch {
@@ -74,91 +69,98 @@ export const CreateApiConnectionForm = () => {
     }
   };
 
-  const handleCancel = () => navigate(-1);
-
   return (
     <div className={s.container}>
       <Spinner bg isLoading={loading} />
-      <form onSubmit={handleSubmit}>
-        <div className={s.formContainer}>
-          <h3>New API Connection</h3>
-          <p>Configure an external API connection for {currentProject?.name}</p>
-
-          <LabeledInput
-            label="Name"
-            name="name"
-            value={name}
-            type="text"
-            placeholder="My Webhook"
-            id="conn-name"
-            htmlFor="conn-name"
-            onChange={e => setName(e.target.value)}
-            disabled={loading}
+      <form onSubmit={handleSubmit} className={s.form}>
+        <div className={s.formWrapper}>
+          <CustomForm
+            readOnly={false}
+            header={{ icon: faTowerBroadcast, title: 'New API Connection', subtitle: `Configure an external API connection for ${currentProject?.name}` }}
+            fields={[
+              {
+                icon: faCode,
+                label: 'Name',
+                value: name || '—',
+                editComponent: (
+                  <LabeledInput
+                    label="Name" name="name" value={name} type="text"
+                    placeholder="My Webhook" id="conn-name" htmlFor="conn-name"
+                    onChange={e => setName(e.target.value)} disabled={loading}
+                  />
+                ),
+              },
+              {
+                icon: faLink,
+                label: 'Base URL',
+                value: baseUrl || '—',
+                editComponent: (
+                  <LabeledInput
+                    label="Base URL" name="baseUrl" value={baseUrl} type="text"
+                    placeholder="https://api.example.com/webhook" id="conn-url" htmlFor="conn-url"
+                    onChange={e => setBaseUrl(e.target.value)} disabled={loading}
+                  />
+                ),
+              },
+              {
+                icon: faLayerGroup,
+                label: 'Method',
+                value: method,
+                editComponent: (
+                  <LabeledSelect
+                    label="Method" id="conn-method" name="conn-method" htmlFor="conn-method"
+                    value={method} onChange={e => setMethod(e.target.value as typeof method)}
+                    options={HTTP_METHODS}
+                  />
+                ),
+              },
+              {
+                icon: faFileLines,
+                label: 'Description',
+                value: description || '—',
+                editComponent: (
+                  <LabeledInput
+                    label="Description (optional)" name="description" value={description} type="text"
+                    placeholder="" id="conn-description" htmlFor="conn-description"
+                    onChange={e => setDescription(e.target.value)} disabled={loading}
+                  />
+                ),
+              },
+              {
+                icon: faKey,
+                label: 'Credential',
+                value: credentialId || 'None',
+                editComponent: (
+                  <LabeledSelect
+                    label="Credential (optional)" id="conn-credential" name="conn-credential" htmlFor="conn-credential"
+                    value={credentialId}
+                    onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setAuthPrefix(''); }}
+                    options={availableCredentials}
+                  />
+                ),
+              },
+              {
+                icon: faLock,
+                label: 'Auth Prefix',
+                value: prefix || '—',
+                hidden: !credentialId,
+                editComponent: (
+                  <LabeledInput
+                    label="Auth Prefix (optional)" name="prefix" value={prefix} type="text"
+                    placeholder="Bearer" id="conn-auth-prefix" htmlFor="conn-auth-prefix"
+                    onChange={e => setAuthPrefix(e.target.value)} disabled={loading}
+                  />
+                ),
+              },
+            ]}
+            actions={
+              <>
+                <ActionButton disabled={disabled} icon={faTowerBroadcast} text="Create" type="submit" />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+              </>
+            }
           />
-
-          <LabeledInput
-            label="Base URL"
-            name="baseUrl"
-            value={baseUrl}
-            type="text"
-            placeholder="https://api.example.com/webhook"
-            id="conn-url"
-            htmlFor="conn-url"
-            onChange={e => setBaseUrl(e.target.value)}
-            disabled={loading}
-          />
-
-          <LabeledSelect
-            label="Method"
-            id="conn-method"
-            name="conn-method"
-            htmlFor="conn-method"
-            value={method}
-            onChange={e => setMethod(e.target.value as typeof method)}
-            options={HTTP_METHODS}
-          />
-
-          <LabeledInput
-            label="Description (optional)"
-            name="description"
-            value={description}
-            type="text"
-            placeholder=""
-            id="conn-description"
-            htmlFor="conn-description"
-            onChange={e => setDescription(e.target.value)}
-            disabled={loading}
-          />
-
-          <LabeledSelect
-            label="Credential (optional)"
-            id="conn-credential"
-            name="conn-credential"
-            htmlFor="conn-credential"
-            value={credentialId}
-            onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setAuthPrefix(''); }}
-            options={availableCredentials}
-          />
-
-          {credentialId && (
-            <LabeledInput
-              label="Auth Prefix (optional)"
-              name="prefix"
-              value={prefix}
-              type="text"
-              placeholder="Bearer"
-              id="conn-auth-prefix"
-              htmlFor="conn-auth-prefix"
-              onChange={e => setAuthPrefix(e.target.value)}
-              disabled={loading}
-            />
-          )}
         </div>
-
-        <span className={s.buttonContainer}>
-          <ActionButton disabled={disabled} icon={faTowerBroadcast} text="Create" type="submit" />
-          <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
-        </span>
       </form>
     </div>
   );

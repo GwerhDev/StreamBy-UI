@@ -1,0 +1,181 @@
+/* ── Container ───────────────────────────── */
+.container {
+  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: var(--color-dark-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  color: var(--color-light-100);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--color-light-400);
+  margin-top: 0.2rem;
+}
+
+.methodBadge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 5px;
+  border: 2px solid var(--color-button-primary-hover);
+  color: var(--color-light-200);
+  flex-shrink: 0;
+}
+
+/* ── Fields list ─────────────────────────── */
+.fields {
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  background-color: var(--color-dark-300);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.field:last-child {
+  border-bottom: none;
+}
+
+.fieldIcon {
+  font-size: 0.85rem;
+  color: var(--color-light-400);
+  margin-top: 0.75rem;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.fieldIconEdit {
+  font-size: 0.85rem;
+  color: var(--color-light-400);
+  margin-top: 1.6rem;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.fieldBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  color: var(--color-light-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.2rem;
+  padding-top: 0.15rem;
+}
+
+.fieldValue {
+  font-size: 0.88rem;
+  color: var(--color-light-200);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  word-break: break-all;
+}
+
+.fieldLink {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.fieldLink:hover {
+  text-decoration: underline;
+}
+
+/* ── Edit mode ───────────────────────────── */
+.fieldEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.88rem;
+  color: var(--color-light-200);
+  background-color: var(--color-dark-500);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px 4px 0 0;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.fieldInput:focus {
+  outline: none;
+  background-color: var(--color-dark-600);
+  border-bottom-color: var(--color-primary);
+}
+
+.fieldSelect {
+  composes: fieldInput;
+  cursor: pointer;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+  color: var(--color-light-300);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ── Actions ─────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}

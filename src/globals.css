@@ -98,19 +98,24 @@ li {
 }
 
 label {
-  color: var(--color-light-300);
   font-size: small;
-  background-color: var(--color-dark-400);
+  background-color: transparent;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   padding-top: .1rem;
   padding-bottom: .1rem;
   padding-inline: .5rem;
-  font-weight: bold;
+  font-weight: light;
+  font-size: 0.72rem;
+  color: var(--color-light-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 0.15rem;
 }
 
 input,
 select {
+  margin: 0;
   width: 100%;
   padding-top: .5rem;
   padding-bottom: .5rem;
@@ -120,8 +125,8 @@ select {
   transition-duration: .4s;
   color: var(--color-light-300);
   border: none;
-  background-color: var(--color-dark-400);
-  border-bottom: 1px solid var(--color-light-300);
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
 }
 
 input[type="file"] {
@@ -289,8 +294,6 @@ a:hover {
 
 .dashboard-sections {
   flex-grow: 1;
-  min-height: 0;
-  overflow: hidden;
   display: flex;
   border-top-left-radius: 10px;
   border: solid .5px var(--color-dark-300);

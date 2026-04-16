@@ -5,7 +5,7 @@ export const LabeledSelect = (props: any) => {
   const { label, name, value, id, htmlFor, onChange, options } = props || {};
 
   return (
-    <span className={s.selectContainer}>
+    <span className={s.container}>
       <label htmlFor={htmlFor}>{label}</label>
       <select
         id={id}

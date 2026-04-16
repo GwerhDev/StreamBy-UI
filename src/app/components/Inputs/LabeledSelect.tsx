@@ -1,5 +1,5 @@
 import React from 'react';
-import s from './LabeledInput.module.css';
+import s from './LabeledSelect.module.css';
 
 interface LabeledSelectProps {
   label: string;
@@ -23,7 +23,7 @@ export function LabeledSelect({
   disabled = false,
 }: LabeledSelectProps) {
   return (
-    <div className={s.inputContainer}>
+    <div className={s.container}>
       <label htmlFor={htmlFor}>{label}</label>
       <select
         name={name}

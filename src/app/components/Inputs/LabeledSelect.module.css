@@ -1,0 +1,24 @@
+.container {
+  gap: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: solid .5px var(--color-dark-100);
+  border-radius: 8px;
+}
+
+.container label {
+  width: 100%;
+  display: flex;
+}
+
+.container input,
+.container select {
+  width: 100%;
+}
+
+
+.disabled {
+  opacity: 0.5;
+}

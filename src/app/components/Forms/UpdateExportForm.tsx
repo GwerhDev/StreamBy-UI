@@ -8,16 +8,17 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faCode, faFileExport, faFileLines, faXmark, faSitemap } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { faCode, faFileExport, faFileLines, faXmark, faSitemap, faDatabase, faGlobe, faLayerGroup, faLock, faTowerBroadcast, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { RawJsonInputMode } from './RawJsonInputMode';
 import { FormInputMode } from './FormInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { Export, ApiConnection } from '../../../interfaces';
-import { Link } from 'react-router-dom';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs } from '../Tabs/Tabs';
+import { CustomForm } from './CustomForm';
 
 export function UpdateExportForm() {
   const navigate = useNavigate();
@@ -60,29 +61,16 @@ export function UpdateExportForm() {
           setPrefix(data.prefix || '');
           setCredentialId(data.credentialId || '');
           const match = currentProject?.data?.apiConnections?.find((c: ApiConnection) => c.baseUrl === data.apiUrl);
-          if (match) {
-            setSelectedConnectionId(match.id);
-            setApiMethod(match.method);
-          } else if (data.method) {
-            setApiMethod(data.method);
-          }
+          if (match) { setSelectedConnectionId(match.id); setApiMethod(match.method); }
+          else if (data.method) { setApiMethod(data.method); }
           if (data.json) {
-            if (data.type === 'json') {
-              setRawJsonString(JSON.stringify(data.json, null, 2));
-              setJsonData(data.json);
-            } else {
-              setRawJsonString(JSON.stringify(data.fields, null, 2));
-              setJsonData(data.fields || {});
-            }
-          } else {
-            setRawJsonString("{}");
-            setJsonData({});
-          }
+            if (data.type === 'json') { setRawJsonString(JSON.stringify(data.json, null, 2)); setJsonData(data.json); }
+            else { setRawJsonString(JSON.stringify(data.fields, null, 2)); setJsonData(data.fields || {}); }
+          } else { setRawJsonString("{}"); setJsonData({}); }
           setJsonError(null);
         }
       } catch (err: unknown) {
-        console.error(err);
-        setJsonError("Failed to load export data.");
+        console.error(err); setJsonError("Failed to load export data.");
       } finally {
         setLoading(false);
       }
@@ -92,17 +80,14 @@ export function UpdateExportForm() {
   }, [id, exportId]);
 
   const handleConnectionSelect = (conn: ApiConnection) => {
-    setApiUrl(conn.baseUrl);
-    setCredentialId(conn.credentialId || '');
-    setSelectedConnectionId(conn.id);
-    setApiMethod(conn.method);
+    setApiUrl(conn.baseUrl); setCredentialId(conn.credentialId || '');
+    setSelectedConnectionId(conn.id); setApiMethod(conn.method);
   };
 
   const exportForViewer = useMemo<Export | null>(() => {
     if (!fetchedExport) return null;
     return {
-      ...fetchedExport,
-      name, type: exportType, method: apiMethod, prefix,
+      ...fetchedExport, name, type: exportType, method: apiMethod, prefix,
       private: isPrivate, credentialId: credentialId || undefined,
       apiUrl, collectionName, allowedOrigin: selectedAllowedOrigins,
     };
@@ -117,12 +102,8 @@ export function UpdateExportForm() {
 
   const handleJsonDataChange = (newData: object) => {
     setJsonData(newData);
-    try {
-      setRawJsonString(JSON.stringify(newData, null, 2));
-      setJsonError(null);
-    } catch {
-      setJsonError("Invalid JSON format from form input.");
-    }
+    try { setRawJsonString(JSON.stringify(newData, null, 2)); setJsonError(null); }
+    catch { setJsonError("Invalid JSON format from form input."); }
   };
 
   const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
@@ -157,8 +138,7 @@ export function UpdateExportForm() {
       const payload = {
         name, description, collectionName,
         allowedOrigin: selectedAllowedOrigins,
-        private: isPrivate,
-        exportType,
+        private: isPrivate, exportType,
         ...(exportType !== 'externalApi' && { jsonData }),
         ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined, fields: jsonData }),
       };
@@ -178,11 +158,8 @@ export function UpdateExportForm() {
       if (!apiUrl) isFormValid = false;
     } else {
       const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
-      if (inputMode === 'rawJson') {
-        if (isJsonDataEmpty || jsonError !== null) isFormValid = false;
-      } else {
-        if (jsonError !== null) isFormValid = false;
-      }
+      if (inputMode === 'rawJson') { if (isJsonDataEmpty || jsonError !== null) isFormValid = false; }
+      else { if (jsonError !== null) isFormValid = false; }
     }
     setDisabled(!isFormValid || loading);
   }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
@@ -193,110 +170,140 @@ export function UpdateExportForm() {
       <form onSubmit={handleSubmit} className={s.form}>
         <PanelGroup orientation="horizontal" className={s.splitGroup}>
 
-          {/* Left: form fields + actions */}
           <Panel defaultSize="40%" minSize="25%" maxSize="60%">
             <div className={s.detailsPanel}>
-              <h3>Update Export</h3>
-              <p>Fill the form to update an export</p>
-
-              <LabeledInput
-                label="Export's name"
-                type="text" placeholder="" id="name-input" name="name-input" htmlFor="name-input"
-                value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              />
-
-              <LabeledInput
-                label="Collection's name"
-                type="text" placeholder="" id="collection-name-input" name="collection-name-input" htmlFor="collection-name-input"
-                value={collectionName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-              />
-
-              <LabeledInput
-                label="Description (optional)"
-                type="text" placeholder="" id="description-input" name="description-input" htmlFor="description-input"
-                value={description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
-              />
-
-              <h4>Allowed Origins for this Export</h4>
-              {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
-                <div className={s.allowedOriginsContainer}>
-                  <CustomCheckbox
-                    id="all-origins-checkbox" name="all-origins-checkbox"
-                    checked={selectedAllowedOrigins.includes('*')}
-                    onChange={handleSelectAllOriginsChange}
-                    label="Allow all origins from project"
-                  />
-                  {currentProject.data.allowedOrigin.map((origin: string, index: number) => (
-                    <CustomCheckbox
-                      key={index} id={`origin-${index}`} name={`origin-${index}`} value={origin}
-                      checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.includes('*')}
-                      onChange={() => handleAllowedOriginCheckboxChange(origin)}
-                      label={origin}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {inputMode !== 'flow' && (
-                <CustomCheckbox
-                  id="private-checkbox" name="private-checkbox"
-                  checked={isPrivate}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-                  label="Private Export"
-                />
-              )}
-
-              <LabeledSelect
-                label="Export Type"
-                id="export-type-select" name="export-type-select" htmlFor="export-type-select"
-                value={exportType}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExportType(e.target.value as 'json' | 'externalApi')}
-                options={[
-                  { value: 'json', label: 'JSON' },
-                  { value: 'externalApi', label: 'External API' },
+              <CustomForm
+                readOnly={false}
+                header={{ icon: faPenToSquare, title: 'Update Export', subtitle: 'Fill the form to update an export' }}
+                fields={[
+                  {
+                    icon: faCode,
+                    label: 'Name',
+                    value: name || '—',
+                    editComponent: (
+                      <LabeledInput
+                        label="Export's name" type="text" placeholder="" id="name-input"
+                        name="name-input" htmlFor="name-input" value={name}
+                        onChange={e => setName(e.target.value)}
+                      />
+                    ),
+                  },
+                  {
+                    icon: faDatabase,
+                    label: 'Collection',
+                    value: collectionName || '—',
+                    editComponent: (
+                      <LabeledInput
+                        label="Collection's name" type="text" placeholder="" id="collection-input"
+                        name="collection-input" htmlFor="collection-input" value={collectionName}
+                        onChange={e => setCollectionName(e.target.value)}
+                      />
+                    ),
+                  },
+                  {
+                    icon: faFileLines,
+                    label: 'Description',
+                    value: description || '—',
+                    editComponent: (
+                      <LabeledInput
+                        label="Description (optional)" type="text" placeholder="" id="description-input"
+                        name="description-input" htmlFor="description-input" value={description}
+                        onChange={e => setDescription(e.target.value)}
+                      />
+                    ),
+                  },
+                  {
+                    icon: faLayerGroup,
+                    label: 'Export Type',
+                    value: exportType,
+                    editComponent: (
+                      <LabeledSelect
+                        label="Export Type" id="export-type-select" name="export-type-select"
+                        htmlFor="export-type-select" value={exportType}
+                        onChange={e => setExportType(e.target.value as 'json' | 'externalApi')}
+                        options={[{ value: 'json', label: 'JSON' }, { value: 'externalApi', label: 'External API' }]}
+                      />
+                    ),
+                  },
+                  {
+                    icon: faLock,
+                    label: 'Private',
+                    value: isPrivate ? 'Yes' : 'No',
+                    hidden: inputMode === 'flow',
+                    editComponent: (
+                      <CustomCheckbox
+                        id="private-checkbox" name="private-checkbox"
+                        checked={isPrivate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+                        label="Private Export"
+                      />
+                    ),
+                  },
+                  {
+                    icon: faGlobe,
+                    label: 'Allowed Origins',
+                    value: selectedAllowedOrigins.join(', ') || '—',
+                    hidden: !currentProject?.data?.allowedOrigin?.length,
+                    editComponent: (
+                      <div className={s.allowedOriginsContainer}>
+                        <CustomCheckbox
+                          id="all-origins-checkbox" name="all-origins-checkbox"
+                          checked={selectedAllowedOrigins.includes('*')}
+                          onChange={handleSelectAllOriginsChange}
+                          label="Allow all origins from project"
+                        />
+                        {currentProject.data?.allowedOrigin?.map((origin: string, i: number) => (
+                          <CustomCheckbox
+                            key={i} id={`origin-${i}`} name={`origin-${i}`} value={origin}
+                            checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.includes('*')}
+                            onChange={() => handleAllowedOriginCheckboxChange(origin)}
+                            label={origin}
+                          />
+                        ))}
+                      </div>
+                    ),
+                  },
+                  {
+                    icon: faTowerBroadcast,
+                    label: 'API Connection',
+                    value: selectedConnectionId || '—',
+                    hidden: exportType !== 'externalApi' || inputMode === 'flow',
+                    editComponent: (currentProject?.data?.apiConnections?.length ?? 0) > 0 ? (
+                      <ul className={s.connectionsList}>
+                        {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
+                          <li
+                            key={conn.id}
+                            className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
+                            onClick={() => handleConnectionSelect(conn)}
+                          >
+                            <span className={s.methodBadge}>{conn.method}</span>
+                            <span className={s.connectionName}>{conn.name}</span>
+                            <small className={s.connectionUrl}>{conn.baseUrl}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className={s.emptyConnections}>
+                        No connections yet.{' '}
+                        <Link to={`/project/${id}/connections/api/create`}>
+                          <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
+                        </Link>
+                      </p>
+                    ),
+                  },
                 ]}
+                actions={
+                  <>
+                    <ActionButton disabled={disabled || loading} icon={faFileExport} text="Update" type="submit" />
+                    <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+                  </>
+                }
               />
-
-              {exportType === 'externalApi' && inputMode !== 'flow' && (
-                <>
-                  <h4>API Connection</h4>
-                  {(currentProject?.data?.apiConnections?.length ?? 0) > 0 ? (
-                    <ul className={s.connectionsList}>
-                      {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
-                        <li
-                          key={conn.id}
-                          className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
-                          onClick={() => handleConnectionSelect(conn)}
-                        >
-                          <span className={s.methodBadge}>{conn.method}</span>
-                          <span className={s.connectionName}>{conn.name}</span>
-                          <small className={s.connectionUrl}>{conn.baseUrl}</small>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className={s.emptyConnections}>
-                      No connections yet.{' '}
-                      <Link to={`/project/${id}/connections/api/create`}>Create one</Link>
-                    </p>
-                  )}
-                </>
-              )}
-
-              <div className={s.buttonContainer}>
-                <ActionButton disabled={disabled || loading} icon={faFileExport} text="Update" type="submit" />
-                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
-              </div>
             </div>
           </Panel>
 
-          {/* Drag handle */}
           <PanelResizeHandle className={s.resizeHandle} />
 
-          {/* Right: viewer with sticky tabs */}
           <Panel minSize="30%">
             <div className={s.viewerPanel}>
               <Tabs
