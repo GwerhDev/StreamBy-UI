@@ -8,7 +8,6 @@ import { RootState } from '../../../store';
 export const AllowedOriginsList = () => {
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
   const allowedOrigins = currentProjectData?.allowedOrigin;
-  console.log(currentProjectLoading)
 
   return (
     <div className={s.container}>
