@@ -16,6 +16,8 @@ import { RawJsonInputMode } from './RawJsonInputMode';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { ApiConnection, Export } from '../../../interfaces';
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
+import { Tabs } from '../Tabs/Tabs';
 
 export function CreateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -55,39 +57,31 @@ export function CreateExportForm() {
       setJsonData(data);
       setJsonError(null);
     } else {
-      setJsonData({}); // Clear jsonData if invalid
+      setJsonData({});
       setJsonError("Invalid JSON format.");
     }
   };
 
   const handleAllowedOriginCheckboxChange = (origin: string) => {
-    const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin));
-
-    if (isChecked) { // The box was checked, now it's being unchecked
-      if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
-        // If "all" was selected, now we have a selection of all but one.
+    const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(o => /^\*$/.test(o));
+    if (isChecked) {
+      if (selectedAllowedOrigins.some(o => /^\*$/.test(o))) {
         const allOrigins = currentProject?.data?.allowedOrigin || [];
-        const newSelection = allOrigins.filter((o: string) => o !== origin);
-        setSelectedAllowedOrigins(newSelection);
+        setSelectedAllowedOrigins(allOrigins.filter((o: string) => o !== origin));
       } else {
-        // Just remove the origin from the list
         setSelectedAllowedOrigins(prev => prev.filter(o => o !== origin));
       }
-    } else { // The box was unchecked, now it's being checked
+    } else {
       setSelectedAllowedOrigins(prev => [...prev, origin]);
     }
   };
 
   const handleSelectAllOriginsChange = () => {
-    if (selectedAllowedOrigins.some(origin => /^\*$/.test(origin))) {
-      setSelectedAllowedOrigins([]);
-    } else {
-      setSelectedAllowedOrigins(['*']);
-    }
+    if (selectedAllowedOrigins.some(o => /^\*$/.test(o))) setSelectedAllowedOrigins([]);
+    else setSelectedAllowedOrigins(['*']);
   };
 
   const handleConnectionSelect = (conn: ApiConnection) => {
-    console.log(conn)
     setSelectedConnectionId(conn.id);
     setApiUrl(conn.baseUrl);
     setCredentialId(conn.credentialId ?? '');
@@ -122,12 +116,9 @@ export function CreateExportForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const payload = {
-        name,
-        description,
-        collectionName,
+        name, description, collectionName,
         allowedOrigin: selectedAllowedOrigins,
         private: isPrivate,
         exportType,
@@ -143,215 +134,169 @@ export function CreateExportForm() {
     }
   };
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
-
   useEffect(() => {
     let isFormValid = true;
-
-    if (!name || !collectionName) {
-      isFormValid = false;
-    }
-
+    if (!name || !collectionName) isFormValid = false;
     if (exportType === 'externalApi') {
-      if (!apiUrl) {
-        isFormValid = false;
-      }
+      if (!apiUrl) isFormValid = false;
     } else if (inputMode !== 'flow') {
       const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
       if (inputMode === 'rawJson') {
-        if (isJsonDataEmpty || jsonError !== null) {
-          isFormValid = false;
-        }
+        if (isJsonDataEmpty || jsonError !== null) isFormValid = false;
       } else {
-        if (jsonError !== null) {
-          isFormValid = false;
-        }
+        if (jsonError !== null) isFormValid = false;
       }
     }
-
     setDisabled(!isFormValid || loading);
   }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
 
   return (
     <div className={s.container}>
       <Spinner bg isLoading={loading} />
-      <form onSubmit={handleSubmit}>
-        <div className={s.formContainer}>
-          <h3>New Export</h3>
-          <p>Fill the form to create a new export</p>
+      <form onSubmit={handleSubmit} className={s.form}>
+        <PanelGroup orientation="horizontal" className={s.splitGroup}>
 
-          <LabeledInput
-            label="Export's name"
-            type="text"
-            placeholder=""
-            id="name-input"
-            name="name-input"
-            htmlFor="name-input"
-            value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-          />
+          {/* Left: form fields + actions */}
+          <Panel defaultSize="40%" minSize="25%" maxSize="60%">
+            <div className={s.detailsPanel}>
+              <h3>New Export</h3>
+              <p>Fill the form to create a new export</p>
 
-          <LabeledInput
-            label="Collection's name"
-            type="text"
-            placeholder=""
-            id="collection-name-input"
-            name="collection-name-input"
-            htmlFor="collection-name-input"
-            value={collectionName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-          />
-
-          <LabeledInput
-            label="Description (optional)"
-            type="text"
-            placeholder=""
-            id="description-input"
-            name="description-input"
-            htmlFor="description-input"
-            value={description}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
-          />
-
-          <h4>Allowed Origins for this Export</h4>
-          {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
-            <div className={s.allowedOriginsContainer}>
-              <CustomCheckbox
-                id="all-origins-checkbox"
-                name="all-origins-checkbox"
-                checked={selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                onChange={handleSelectAllOriginsChange}
-                label="Allow all origins from project"
+              <LabeledInput
+                label="Export's name"
+                type="text" placeholder="" id="name-input" name="name-input" htmlFor="name-input"
+                value={name}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               />
-              {currentProject.data?.allowedOrigin.map((origin: string, index: number) => (
-                <CustomCheckbox
-                  key={index}
-                  id={`origin-${index}`}
-                  name={`origin-${index}`}
-                  value={origin}
-                  checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(origin => /^\*$/.test(origin))}
-                  onChange={() => handleAllowedOriginCheckboxChange(origin)}
-                  label={origin}
-                />
-              ))}
-            </div>
-          )}
 
-          {inputMode !== 'flow' && (
-            <CustomCheckbox
-              id="private-checkbox"
-              name="private-checkbox"
-              checked={isPrivate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
-              label="Private Export"
-            />
-          )}
+              <LabeledInput
+                label="Collection's name"
+                type="text" placeholder="" id="collection-name-input" name="collection-name-input" htmlFor="collection-name-input"
+                value={collectionName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
+              />
 
-          <LabeledSelect
-            label="Export Type"
-            id="export-type-select"
-            name="export-type-select"
-            htmlFor="export-type-select"
-            value={exportType}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExportType(e.target.value as 'json' | 'externalApi')}
-            options={[
-              { value: 'json', label: 'JSON' },
-              { value: 'externalApi', label: 'External API' },
-            ]}
-          />
+              <LabeledInput
+                label="Description (optional)"
+                type="text" placeholder="" id="description-input" name="description-input" htmlFor="description-input"
+                value={description}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
+              />
 
-          {exportType === 'externalApi' && inputMode !== 'flow' && (
-            <>
-              <h4>API Connection</h4>
-              {(currentProject.data?.apiConnections?.length ?? 0) > 0 ? (
-                <ul className={s.connectionsList}>
-                  {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
-                    <li
-                      key={conn.id}
-                      className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
-                      onClick={() => handleConnectionSelect(conn)}
-                    >
-                      <span className={s.methodBadge}>{conn.method}</span>
-                      <span className={s.connectionName}>{conn.name}</span>
-                      <small className={s.connectionUrl}>{conn.baseUrl}</small>
-                    </li>
+              <h4>Allowed Origins for this Export</h4>
+              {currentProject?.data?.allowedOrigin && currentProject.data.allowedOrigin.length > 0 && (
+                <div className={s.allowedOriginsContainer}>
+                  <CustomCheckbox
+                    id="all-origins-checkbox" name="all-origins-checkbox"
+                    checked={selectedAllowedOrigins.some(o => /^\*$/.test(o))}
+                    onChange={handleSelectAllOriginsChange}
+                    label="Allow all origins from project"
+                  />
+                  {currentProject.data.allowedOrigin.map((origin: string, index: number) => (
+                    <CustomCheckbox
+                      key={index} id={`origin-${index}`} name={`origin-${index}`} value={origin}
+                      checked={selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(o => /^\*$/.test(o))}
+                      onChange={() => handleAllowedOriginCheckboxChange(origin)}
+                      label={origin}
+                    />
                   ))}
-                </ul>
-              ) : (
-                <p className={s.emptyConnections}>
-                  No connections yet.{' '}
-                  <Link to={`/project/${projectId}/connections/api/create`}>
-                    <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
-                  </Link>
-                </p>
+                </div>
               )}
-            </>
-          )}
-        </div>
-        <div className={s.jsonViewer}>
-          <div className={s.inputModeToggle}>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'flow' ? s.active : ''}`}
-              onClick={() => setInputMode('flow')}
-              title="Flow View"
-            >
-              <FontAwesomeIcon icon={faSitemap} />
-              Flow
-            </button>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'form' ? s.active : ''}`}
-              onClick={() => setInputMode('form')}
-              title="Form Input"
-            >
-              <FontAwesomeIcon icon={faFileLines} />
-              Form input
-            </button>
-            <button
-              type="button"
-              className={`${s.toggleButton} ${inputMode === 'rawJson' ? s.active : ''}`}
-              onClick={() => setInputMode('rawJson')}
-              title="Raw JSON"
-            >
-              <FontAwesomeIcon icon={faCode} />
-              Raw JSON
-            </button>
-          </div>
-          {inputMode === 'form' && (
-            <FormInputMode
-              jsonData={jsonData}
-              onJsonDataChange={handleJsonDataChange}
-              jsonError={jsonError}
-            />
-          )}
-          {inputMode === 'rawJson' && (
-            <RawJsonInputMode
-              jsonData={rawJsonString}
-              onJsonDataChange={handleRawJsonStringChange}
-              jsonError={jsonError}
-            />
-          )}
-          {inputMode === 'flow' && (
-            <NodeViewer
-              key={exportType}
-              exportDetails={exportForViewer}
-              editMode
-              onSave={handleNodeSave}
-              apiConnections={currentProject.data?.apiConnections ?? []}
-              onConnectionSelect={handleConnectionSelect}
-              selectedConnectionId={selectedConnectionId}
-            />
-          )}
-        </div>
 
-        <span className={s.buttonContainer}>
-          <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
-          <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
-        </span>
-      </form >
-    </div >
+              {inputMode !== 'flow' && (
+                <CustomCheckbox
+                  id="private-checkbox" name="private-checkbox"
+                  checked={isPrivate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsPrivate(e.target.checked)}
+                  label="Private Export"
+                />
+              )}
+
+              <LabeledSelect
+                label="Export Type"
+                id="export-type-select" name="export-type-select" htmlFor="export-type-select"
+                value={exportType}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExportType(e.target.value as 'json' | 'externalApi')}
+                options={[
+                  { value: 'json', label: 'JSON' },
+                  { value: 'externalApi', label: 'External API' },
+                ]}
+              />
+
+              {exportType === 'externalApi' && inputMode !== 'flow' && (
+                <>
+                  <h4>API Connection</h4>
+                  {(currentProject.data?.apiConnections?.length ?? 0) > 0 ? (
+                    <ul className={s.connectionsList}>
+                      {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
+                        <li
+                          key={conn.id}
+                          className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
+                          onClick={() => handleConnectionSelect(conn)}
+                        >
+                          <span className={s.methodBadge}>{conn.method}</span>
+                          <span className={s.connectionName}>{conn.name}</span>
+                          <small className={s.connectionUrl}>{conn.baseUrl}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={s.emptyConnections}>
+                      No connections yet.{' '}
+                      <Link to={`/project/${projectId}/connections/api/create`}>
+                        <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
+                      </Link>
+                    </p>
+                  )}
+                </>
+              )}
+
+              <div className={s.buttonContainer}>
+                <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+              </div>
+            </div>
+          </Panel>
+
+          {/* Drag handle */}
+          <PanelResizeHandle className={s.resizeHandle} />
+
+          {/* Right: viewer with tabs */}
+          <Panel minSize="30%">
+            <div className={s.viewerPanel}>
+              <Tabs
+                active={inputMode}
+                onChange={id => setInputMode(id as 'flow' | 'form' | 'rawJson')}
+                tabs={[
+                  { id: 'flow', label: 'Flow', icon: faSitemap },
+                  { id: 'form', label: 'Form input', icon: faFileLines },
+                  { id: 'rawJson', label: 'Raw JSON', icon: faCode },
+                ]}
+              />
+              <div className={s.viewerContent}>
+                {inputMode === 'form' && (
+                  <FormInputMode jsonData={jsonData} onJsonDataChange={handleJsonDataChange} jsonError={jsonError} />
+                )}
+                {inputMode === 'rawJson' && (
+                  <RawJsonInputMode jsonData={rawJsonString} onJsonDataChange={handleRawJsonStringChange} jsonError={jsonError} />
+                )}
+                {inputMode === 'flow' && (
+                  <NodeViewer
+                    key={exportType}
+                    exportDetails={exportForViewer}
+                    editMode
+                    onSave={handleNodeSave}
+                    apiConnections={currentProject.data?.apiConnections ?? []}
+                    onConnectionSelect={handleConnectionSelect}
+                    selectedConnectionId={selectedConnectionId}
+                  />
+                )}
+              </div>
+            </div>
+          </Panel>
+
+        </PanelGroup>
+      </form>
+    </div>
   );
 }
