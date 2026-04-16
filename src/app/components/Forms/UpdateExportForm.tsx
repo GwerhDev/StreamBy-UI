@@ -43,32 +43,40 @@ export function UpdateExportForm() {
   const [fetchedExport, setFetchedExport] = useState<Export | null>(null);
   const { id, exportId } = useParams();
 
+  const populateFromData = (data: Export) => {
+    setFetchedExport(data);
+    setName(data.name);
+    setDescription(data.description || "");
+    setCollectionName(data.collectionName);
+    setSelectedAllowedOrigins(data.allowedOrigin || []);
+    setIsPrivate(data.private || false);
+    setExportType(data.type || 'json');
+    setApiUrl(data.apiUrl || '');
+    setPrefix(data.prefix || '');
+    setCredentialId(data.credentialId || '');
+    const match = currentProject?.data?.apiConnections?.find((c: ApiConnection) => c.baseUrl === data.apiUrl);
+    if (match) { setSelectedConnectionId(match.id); setApiMethod(match.method); }
+    else if (data.method) { setApiMethod(data.method); }
+    if (data.json) {
+      if (data.type === 'json') { setRawJsonString(JSON.stringify(data.json, null, 2)); setJsonData(data.json); }
+      else { setRawJsonString(JSON.stringify(data.fields, null, 2)); setJsonData(data.fields || {}); }
+    } else { setRawJsonString("{}"); setJsonData({}); }
+    setJsonError(null);
+  };
+
   useEffect(() => {
+    const cached = currentProject.data?.exports?.find(e => e.id === exportId);
+    if (cached?.json !== undefined) {
+      populateFromData(cached);
+      return;
+    }
     const fetchExportDetails = async () => {
       if (!id || !exportId) return;
       try {
         setLoading(true);
         const data = await getExport(id, exportId);
-        if (data) {
-          setFetchedExport(data);
-          setName(data.name);
-          setDescription(data.description || "");
-          setCollectionName(data.collectionName);
-          setSelectedAllowedOrigins(data.allowedOrigin || []);
-          setIsPrivate(data.private || false);
-          setExportType(data.type || 'json');
-          setApiUrl(data.apiUrl || '');
-          setPrefix(data.prefix || '');
-          setCredentialId(data.credentialId || '');
-          const match = currentProject?.data?.apiConnections?.find((c: ApiConnection) => c.baseUrl === data.apiUrl);
-          if (match) { setSelectedConnectionId(match.id); setApiMethod(match.method); }
-          else if (data.method) { setApiMethod(data.method); }
-          if (data.json) {
-            if (data.type === 'json') { setRawJsonString(JSON.stringify(data.json, null, 2)); setJsonData(data.json); }
-            else { setRawJsonString(JSON.stringify(data.fields, null, 2)); setJsonData(data.fields || {}); }
-          } else { setRawJsonString("{}"); setJsonData({}); }
-          setJsonError(null);
-        }
+        if (data) populateFromData(data);
+        else setJsonError("Export not found.");
       } catch (err: unknown) {
         console.error(err); setJsonError("Failed to load export data.");
       } finally {

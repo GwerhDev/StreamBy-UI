@@ -35,6 +35,9 @@ export const ExportDetailsView: React.FC = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
 
   useEffect(() => {
+    const cached = currentProject.data?.exports?.find(e => e.id === exportId);
+    if (cached?.json !== undefined) { setExportDetails(cached); setLoading(false); return; }
+
     const fetchExportDetails = async () => {
       if (!id || !exportId) { setError('Project ID or Export ID is missing.'); setLoading(false); return; }
       try {
@@ -49,6 +52,7 @@ export const ExportDetailsView: React.FC = () => {
       }
     };
     fetchExportDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, exportId]);
 
   const handleTypeRender = (type: string) => {
