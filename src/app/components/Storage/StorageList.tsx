@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
-import { getStorageFiles, deleteStorageFile } from '../../../services/storage';
+import { getStorageFiles, deleteStorageFile, updateStorageFile } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
 
@@ -37,9 +37,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
     setLoading(false);
   }, [projectId, category]);
 
-  useEffect(() => {
-    fetchFiles();
-  }, [fetchFiles]);
+  useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
   const handleDelete = async (key: string) => {
     if (!projectId) return;
@@ -51,6 +49,12 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
     }
   };
 
+  const handleUpdate = async (key: string, newFile: File) => {
+    if (!projectId) return;
+    await updateStorageFile(projectId, category, key, newFile);
+    fetchFiles();
+  };
+
   const handleUploadSuccess = () => {
     setUploadModalOpen(false);
     fetchFiles();
@@ -60,7 +64,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
   const viewAllPath = `/project/${projectId}/storage/${storageName}/${category}`;
 
   return (
-    <div className={s.container}>
+    <div className={s.mainPanel}>
       <div className={s.header}>
         <div className={s.titleRow}>
           <FontAwesomeIcon icon={meta.icon} className={s.categoryIcon} />
@@ -101,7 +105,12 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
         <ul className={s.grid}>
           {displayedFiles.map(file => (
             <li key={file.key}>
-              <StorageCard file={file} category={category} onDelete={handleDelete} />
+              <StorageCard
+                file={file}
+                category={category}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
             </li>
           ))}
           {previewLimit && files.length > previewLimit && storageName ? (

@@ -5,11 +5,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faHeadphones, faVideo, faCubes, faClock, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
-import { StorageFile } from '../../../interfaces';
+import { StorageFile, StorageCategory } from '../../../interfaces';
 import { RootState } from '../../../store';
 import { StorageCard } from './StorageCard';
 import { getRecentFiles } from '../../../services/storageDrive';
-import { deleteStorageFile } from '../../../services/storage';
+import { deleteStorageFile, updateStorageFile } from '../../../services/storage';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 const CATEGORIES = [
@@ -44,10 +44,17 @@ export const StorageDrive = () => {
     setRecentFiles(prev => prev.filter(f => f.key !== key));
   };
 
-  return (
-    <div className={s.page}>
+  const handleUpdate = async (key: string, newFile: File) => {
+    const file = recentFiles.find(f => f.key === key);
+    if (!file || !projectId) return;
+    await updateStorageFile(projectId, file.category, key, newFile);
+    fetchRecent();
+  };
 
-      {/* ── Categories ── */}
+  return (
+    <div className={s.mainPanel}>
+
+      {/* Categories */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
           <FontAwesomeIcon icon={faFolderOpen} className={s.sectionIcon} />
@@ -67,7 +74,7 @@ export const StorageDrive = () => {
         </ul>
       </section>
 
-      {/* ── Recent uploads ── */}
+      {/* Recent uploads */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
           <FontAwesomeIcon icon={faClock} className={s.sectionIcon} />
@@ -86,7 +93,12 @@ export const StorageDrive = () => {
           <ul className={s.fileGrid}>
             {recentFiles.map(file => (
               <li key={file.key}>
-                <StorageCard file={file} category={file.category} onDelete={handleDelete} />
+                <StorageCard
+                  file={file}
+                  category={file.category as StorageCategory}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
+                />
               </li>
             ))}
           </ul>

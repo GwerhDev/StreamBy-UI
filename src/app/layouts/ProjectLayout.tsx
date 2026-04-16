@@ -1,5 +1,4 @@
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { LogoutModal } from '../components/Modals/LogoutModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
@@ -55,7 +54,6 @@ export default function ProjectLayout() {
           </Browser >
         }
       </div >
-      <LogoutModal />
       <DeleteProjectModal currentProject={currentProject} />
     </>
   );

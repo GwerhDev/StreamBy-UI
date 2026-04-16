@@ -17,7 +17,6 @@
 .detailsPanel {
   gap: 1.5rem;
   padding: 1rem;
-  min-width: 600px;
   display: flex;
   overflow: auto;
   box-sizing: border-box;
@@ -114,11 +113,11 @@
 }
 
 .fields {
-  display: flex;
-  flex-direction: column;
   gap: 0;
   border-radius: 0.75rem;
+  display: flex;
   overflow: auto;
+  flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 

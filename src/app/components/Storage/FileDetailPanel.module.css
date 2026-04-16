@@ -170,6 +170,10 @@
 }
 
 /* ── Actions ── */
+.hiddenInput {
+  display: none;
+}
+
 .actions {
   display: flex;
   flex-direction: column;

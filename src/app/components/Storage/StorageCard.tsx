@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
-  faXmark, faCopy, faCheck, faEye,
+  faXmark, faCopy, faCheck, faEye, faArrowsRotate,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 
@@ -11,6 +11,9 @@ interface StorageCardProps {
   file: StorageFile;
   category: StorageCategory;
   onDelete: (key: string) => void;
+  onUpdate?: (key: string, file: File) => Promise<void>;
+  selected?: boolean;
+  onSelect?: (file: StorageFile) => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -27,17 +30,28 @@ const categoryIcon = {
   '3d-models': faCubes,
 };
 
-const CTX_W = 188;
-const CTX_H = 172; // approximate menu height
+const acceptTypes: Record<StorageCategory, string> = {
+  images: 'image/*',
+  audios: 'audio/*',
+  videos: 'video/*',
+  '3d-models': '.glb,.gltf,.obj,.fbx,.stl,.ply',
+};
 
-export function StorageCard({ file, category, onDelete }: StorageCardProps) {
+const CTX_W = 188;
+const CTX_H = 200;
+
+export function StorageCard({ file, category, onDelete, onUpdate, selected: controlledSelected, onSelect }: StorageCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selected, setSelected] = useState(false);
+  const [internalSelected, setInternalSelected] = useState(false);
+  const isControlled = onSelect !== undefined;
+  const selected = isControlled ? (controlledSelected ?? false) : internalSelected;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [ctxConfirmDelete, setCtxConfirmDelete] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const menuRef = useRef<HTMLUListElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   // Close preview on Escape
   useEffect(() => {
@@ -70,7 +84,7 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
   const closeCtx = () => {
     setContextMenu(null);
     setCtxConfirmDelete(false);
-    setSelected(false);
+    if (!isControlled) setInternalSelected(false);
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -79,7 +93,20 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
     const y = e.clientY + CTX_H > window.innerHeight ? e.clientY - CTX_H : e.clientY;
     setContextMenu({ x, y });
     setCtxConfirmDelete(false);
-    setSelected(true);
+    if (isControlled) onSelect!(file);
+    else setInternalSelected(true);
+  };
+
+  const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files?.[0];
+    if (!picked || !onUpdate) return;
+    e.target.value = '';
+    setUpdating(true);
+    try {
+      await onUpdate(file.key, picked);
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleDelete = () => {
@@ -113,11 +140,19 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
 
   return (
     <>
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept={acceptTypes[category]}
+        className={s.hiddenInput}
+        onChange={handleReplace}
+      />
+
       <div
         className={`${s.card} ${selected ? s.cardSelected : ''}`}
         tabIndex={0}
-        onClick={() => setSelected(true)}
-        onBlur={() => setSelected(false)}
+        onClick={() => isControlled ? onSelect!(file) : setInternalSelected(true)}
+        onBlur={() => { if (!isControlled) setInternalSelected(false); }}
         onDoubleClick={() => setPreviewOpen(true)}
         onKeyDown={(e) => { if (e.key === 'Enter') setPreviewOpen(true); }}
         onContextMenu={handleContextMenu}
@@ -164,6 +199,15 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
               Download
             </a>
           </li>
+          {onUpdate && (
+            <li
+              className={s.ctxItem}
+              onClick={() => { replaceInputRef.current?.click(); closeCtx(); }}
+            >
+              <FontAwesomeIcon icon={faArrowsRotate} className={s.ctxIcon} />
+              Replace
+            </li>
+          )}
           <li className={s.ctxDivider} />
           <li
             className={`${s.ctxItem} ${ctxConfirmDelete ? s.ctxItemConfirm : s.ctxItemDanger}`}
@@ -209,9 +253,21 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
                 <FontAwesomeIcon icon={faDownload} />
                 Download
               </a>
+              {onUpdate && (
+                <button
+                  className={s.previewActionBtn}
+                  onClick={() => replaceInputRef.current?.click()}
+                  disabled={updating}
+                  title="Replace file"
+                >
+                  <FontAwesomeIcon icon={faArrowsRotate} />
+                  {updating ? 'Replacing...' : 'Replace'}
+                </button>
+              )}
               <button
                 className={`${s.previewActionBtn} ${confirmDelete ? s.previewConfirmDeleteBtn : s.previewDeleteBtn}`}
                 onClick={handleDelete}
+                disabled={updating}
                 title={confirmDelete ? 'Click again to confirm deletion' : 'Delete file'}
               >
                 <FontAwesomeIcon icon={faTrash} />

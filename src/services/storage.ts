@@ -67,6 +67,32 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   }
 }
 
+export async function updateStorageFile(projectId: string, category: StorageCategory, key: string, file: File) {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/${category}/${encodeURIComponent(key)}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to update file');
+    }
+
+    const response = await res.json();
+    store.dispatch(addApiResponse({ message: response.message || 'File updated successfully.', type: 'success' }));
+    return response;
+  } catch (error: any) {
+    console.error('Error updating file:', error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update file.', type: 'error' }));
+    throw error;
+  }
+}
+
 export async function deleteStorageFile(projectId: string, category: StorageCategory, key: string) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/${category}/${encodeURIComponent(key)}`, {

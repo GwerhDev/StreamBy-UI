@@ -1,9 +1,14 @@
-.page {
+.mainPanel {
   width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .section {
@@ -30,7 +35,7 @@
   margin: 0;
 }
 
-/* ── Category cards (same pattern as ExportList) ── */
+/* ── Category cards ── */
 
 .categoryGrid {
   display: grid;
@@ -66,7 +71,7 @@
   font-weight: 500;
 }
 
-/* ── Recent files grid (StorageCard) ── */
+/* ── Recent files grid ── */
 
 .fileGrid {
   display: grid;
