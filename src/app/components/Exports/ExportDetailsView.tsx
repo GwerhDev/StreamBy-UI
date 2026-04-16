@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
+import { Tabs, TabItem } from '../Tabs/Tabs';
 
 type ViewMode = 'preview' | 'apiResponse' | 'fields' | 'json';
 
@@ -165,22 +166,18 @@ export const ExportDetailsView: React.FC = () => {
         {hasJson && (
           <Panel minSize="15%">
             <div className={s.viewerPanel}>
-              <div className={s.tabs}>
-                <button type="button" className={`${s.tab} ${viewMode === 'preview' ? s.active : ''}`} onClick={() => setViewMode('preview')}>
-                  <FontAwesomeIcon icon={faSitemap} /> Flow
-                </button>
-                {exportDetails.type === 'externalApi' && (
-                  <button type="button" className={`${s.tab} ${viewMode === 'apiResponse' ? s.active : ''}`} onClick={() => setViewMode('apiResponse')}>
-                    <FontAwesomeIcon icon={faExternalLink} /> Api Response
-                  </button>
-                )}
-                <button type="button" className={`${s.tab} ${viewMode === 'fields' ? s.active : ''}`} onClick={() => setViewMode('fields')}>
-                  <FontAwesomeIcon icon={faFileLines} /> Fields
-                </button>
-                <button type="button" className={`${s.tab} ${viewMode === 'json' ? s.active : ''}`} onClick={() => setViewMode('json')}>
-                  <FontAwesomeIcon icon={faCode} /> Raw JSON
-                </button>
-              </div>
+              <Tabs
+                active={viewMode}
+                onChange={id => setViewMode(id as ViewMode)}
+                tabs={[
+                  { id: 'preview', label: 'Flow', icon: faSitemap },
+                  ...(exportDetails.type === 'externalApi'
+                    ? [{ id: 'apiResponse', label: 'Api Response', icon: faExternalLink } as TabItem]
+                    : []),
+                  { id: 'fields', label: 'Fields', icon: faFileLines },
+                  { id: 'json', label: 'Raw JSON', icon: faCode },
+                ]}
+              />
               <div className={s.viewerContent}>
                 {viewMode === 'preview' && <NodeViewer exportDetails={exportDetails} />}
                 {viewMode === 'apiResponse' && exportDetails.apiResponse && <JsonViewer data={exportDetails.apiResponse as JSON} />}
