@@ -206,14 +206,12 @@ export function UpdateExportForm() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               />
 
-              {inputMode !== 'flow' && (
-                <LabeledInput
-                  label="Collection's name"
-                  type="text" placeholder="" id="collection-name-input" name="collection-name-input" htmlFor="collection-name-input"
-                  value={collectionName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
-                />
-              )}
+              <LabeledInput
+                label="Collection's name"
+                type="text" placeholder="" id="collection-name-input" name="collection-name-input" htmlFor="collection-name-input"
+                value={collectionName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollectionName(e.target.value)}
+              />
 
               <LabeledInput
                 label="Description (optional)"
