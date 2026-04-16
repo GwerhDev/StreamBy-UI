@@ -1,4 +1,4 @@
-import { faBarsProgress, faBoxesStacked, faCode, faCubes, faDiagramProject, faTowerBroadcast, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield } from "@fortawesome/free-solid-svg-icons";
+import { faBarsProgress, faBoxesStacked, faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield } from "@fortawesome/free-solid-svg-icons";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
