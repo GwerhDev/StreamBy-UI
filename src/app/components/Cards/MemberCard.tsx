@@ -1,25 +1,45 @@
 import s from './MemberCard.module.css';
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Member } from '../../../interfaces';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
-export const MemberCard = (props: { member: Member }) => {
-  const { member } = props || {};
+type MemberRole = 'viewer' | 'editor' | 'admin';
 
-  return (
-    <>
-      <span className={s.box}>
-        <span className={s.memberImageContainer}>
-          <span>{member.username[0]}</span>
-        </span>
-        <h4 className={s.title}>
-          {member.username}
-        </h4>
-        <span className={s.memberRole}>
-          {member.role}
-        </span>
-      </span>
-      <FontAwesomeIcon icon={faUser} />
-    </>
-  )
+const ROLES: MemberRole[] = ['viewer', 'editor', 'admin'];
+
+interface MemberCardProps {
+  member: Member;
+  isAdmin?: boolean;
+  isSelf?: boolean;
+  onRoleChange?: (role: string) => void;
+  onRemove?: () => void;
 }
+
+export const MemberCard = ({ member, isAdmin, isSelf, onRoleChange, onRemove }: MemberCardProps) => {
+  return (
+    <div className={s.card}>
+      <span className={s.avatar}>{member.username[0].toUpperCase()}</span>
+      <div className={s.info}>
+        <span className={s.username}>{member.username}</span>
+        {isSelf && <span className={s.selfBadge}>you</span>}
+      </div>
+
+      {isAdmin && !isSelf ? (
+        <div className={s.actions}>
+          <select
+            className={s.roleSelect}
+            value={member.role}
+            onChange={e => onRoleChange?.(e.target.value)}
+          >
+            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <button className={s.removeBtn} onClick={onRemove} title="Remove member">
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </div>
+      ) : (
+        <span className={s.roleBadge}>{member.role}</span>
+      )}
+    </div>
+  );
+};

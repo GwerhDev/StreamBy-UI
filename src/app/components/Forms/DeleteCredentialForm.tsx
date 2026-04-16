@@ -1,4 +1,4 @@
-import s from "./DeleteProjectForm.module.css"
+import s from "./DeleteCredentialForm.module.css"
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';

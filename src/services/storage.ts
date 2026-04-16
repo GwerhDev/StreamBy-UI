@@ -69,25 +69,22 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
 
 export async function updateStorageFile(projectId: string, category: StorageCategory, key: string, file: File) {
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/${category}/${encodeURIComponent(key)}`, {
       method: 'PATCH',
       credentials: 'include',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentType: file.type }),
     });
 
     if (!res.ok) {
       const errorData = await res.json();
-      throw new Error(errorData.message || 'Failed to update file');
+      throw new Error(errorData.message || 'Failed to get upload URL');
     }
 
-    const response = await res.json();
-    store.dispatch(addApiResponse({ message: response.message || 'File updated successfully.', type: 'success' }));
-    return response;
+    const { url } = await res.json();
+    await uploadToPresignedUrl(url, file, file.type);
+    store.dispatch(addApiResponse({ message: 'File updated successfully.', type: 'success' }));
   } catch (error: any) {
-    console.error('Error updating file:', error);
     store.dispatch(addApiResponse({ message: error.message || 'Failed to update file.', type: 'error' }));
     throw error;
   }

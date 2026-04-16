@@ -1,65 +1,247 @@
 .container {
   width: 100%;
-  max-width: 1024px;
-  padding-top: 3rem;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  gap: 1.5rem;
 }
 
+/* ── Header ──────────────────────────────── */
 .header {
-  gap: .5rem;
   display: flex;
-  text-align: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-.memberGrid {
   gap: 1rem;
-  padding: 0;
-  width: 100%;
-  display: flex;
-  list-style: none;
-  align-items: center;
-  flex-direction: column;
-}
-
-.memberListItem {
-  gap: 1rem;
-  width: 100%;
-  padding: 1rem;
-  max-width: 500px;
-  border-radius: 1rem;
-  padding-inline: 2rem;
-  background-color: var(--color-dark-300);
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-}
-
-.memberListItem:hover {
-  background-color: var(--color-dark-200);
 }
 
 .title {
-  margin-bottom: 0.5rem;
-  /* Adjust as needed */
+  font-size: 1.25rem;
+  color: var(--color-light-100);
+  margin: 0;
 }
 
 .subtitle {
-  margin-bottom: 1rem;
-  /* Adjust as needed */
+  font-size: 0.85rem;
+  color: var(--color-light-400);
+  margin: 0;
 }
 
-.memberListItem.skeleton {
-  height: 60px;
-  /* Adjust height as needed for skeleton */
+/* ── Invite section ──────────────────────── */
+.inviteSection {
+  background-color: var(--color-dark-300);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.inviteRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+/* Search */
+.searchWrap {
+  flex: 1;
+  position: relative;
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: var(--color-dark-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  gap: 0.5rem;
+  width: 300px;
+  padding: 0 0.65rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.15s ease;
+  background-color: var(--color-dark-500);
+}
+
+.searchInput:focus-within {
+  border-color: var(--color-primary);
+}
+
+.searchIcon {
+  font-size: 0.78rem;
+  color: var(--color-light-400);
+  flex-shrink: 0;
+}
+
+.searchInput input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--color-light-200);
+  min-width: 0;
+}
+
+.searchInput input:focus {
+  outline: none;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  color: var(--color-light-400);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.clearBtn:hover {
+  color: var(--color-light-100);
+  background: none;
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: var(--color-dark-400);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  animation: dropIn 0.1s ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownInfo {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--color-light-400);
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-light-200);
+  transition: background-color 0.1s ease;
+}
+
+.dropdownItem:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-dark-200);
+  border: 2px solid var(--color-button-primary-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-light-100);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.dropdownUsername {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Role selector */
+.roleSelect {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.roleIcon {
+  position: absolute;
+  left: 0.6rem;
+  font-size: 0.7rem;
+  color: var(--color-light-400);
+  pointer-events: none;
+}
+
+.roleSelect select {
+  appearance: none;
+  background-color: var(--color-dark-500);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem 0.5rem 1.85rem;
+  font-size: 0.85rem;
+  color: var(--color-light-200);
+  cursor: pointer;
+  width: auto;
+  min-width: 90px;
+}
+
+/* ── Member list ─────────────────────────── */
+.memberGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.memberListItem {
+  background-color: var(--color-dark-300);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.memberListItem:last-child {
+  border-bottom: none;
 }
 
 .cardSkeleton {
   width: 100%;
   height: 60px;
-  max-width: 500px;
-  border-radius: 1rem;
+}
+
+.errorMsg,
+.emptyMsg {
+  font-size: 0.875rem;
+  color: var(--color-light-400);
+  text-align: center;
+  padding: 2rem 0;
 }
