@@ -1,15 +1,14 @@
 .container {
+  gap: .5rem;
   width: 100%;
   max-width: 500px;
   border-radius: var(--size-4);
-  text-wrap: nowrap;
-  background: var(--color-button-primary);
+  color: white;
   display: flex;
+  text-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
-  color: white;
-  font-size: var(--size-4);
+  background: var(--color-button-primary);
 }
 
 .container:hover {

@@ -282,7 +282,7 @@ export function CreateExportForm() {
               ) : (
                 <p className={s.emptyConnections}>
                   No connections yet.{' '}
-                  <Link to={`/project/${projectId}/api/connections/create`}>
+                  <Link to={`/project/${projectId}/connections/api/create`}>
                     <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
                   </Link>
                 </p>

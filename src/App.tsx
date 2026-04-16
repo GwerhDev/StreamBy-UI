@@ -38,6 +38,8 @@ const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(mo
 const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
 const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
 const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
+const ApiConnectionDetail = lazy(() => import('./app/pages/ApiConnectionDetail').then(module => ({ default: module.ApiConnectionDetail })));
+const ApiConnectionEdit = lazy(() => import('./app/pages/ApiConnectionEdit').then(module => ({ default: module.ApiConnectionEdit })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -81,9 +83,11 @@ function App() {
 
                   <Route path="/project/:id/database" element={<Database />} />
 
-                  <Route path="/project/:id/api" element={<Api />} />
-                  <Route path="/project/:id/api/connections" element={<ApiConnectionsList />} />
-                  <Route path="/project/:id/api/connections/create" element={<ApiConnectionsCreate />} />
+                  <Route path="/project/:id/connections" element={<Api />} />
+                  <Route path="/project/:id/connections/api" element={<ApiConnectionsList />} />
+                  <Route path="/project/:id/connections/api/create" element={<ApiConnectionsCreate />} />
+                  <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
+                  <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />

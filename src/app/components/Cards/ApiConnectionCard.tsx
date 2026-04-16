@@ -1,6 +1,6 @@
 import s from './ApiConnectionCard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFingerprint, faTowerBroadcast } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { ApiConnection } from '../../../interfaces';
 
 export const ApiConnectionCard = ({ connection }: { connection: ApiConnection }) => {
@@ -8,7 +8,7 @@ export const ApiConnectionCard = ({ connection }: { connection: ApiConnection })
     <>
       <span className={s.box}>
         <span className={s.iconContainer}>
-          <FontAwesomeIcon icon={faTowerBroadcast} />
+          <FontAwesomeIcon icon={faCode} />
         </span>
         <span className={s.info}>
           <h4 className={s.title}>{connection.name}</h4>

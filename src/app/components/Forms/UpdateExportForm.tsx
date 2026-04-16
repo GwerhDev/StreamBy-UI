@@ -334,7 +334,7 @@ export function UpdateExportForm() {
               ) : (
                 <p className={s.emptyConnections}>
                   No connections yet.{' '}
-                  <Link to={`/project/${id}/api/connections/create`}>Create one</Link>
+                  <Link to={`/project/${id}/connections/api/create`}>Create one</Link>
                 </p>
               )}
             </>

@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import { createApiConnection } from '../../../services/apiConnections';
+import { updateApiConnection } from '../../../services/apiConnections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faTowerBroadcast, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const HTTP_METHODS = [
   { value: 'POST', label: 'POST' },
@@ -20,33 +20,39 @@ const HTTP_METHODS = [
   { value: 'DELETE', label: 'DELETE' },
 ];
 
-export const CreateApiConnectionForm = () => {
-  const { id: projectId } = useParams<{ id: string }>();
+export const UpdateApiConnectionForm = () => {
+  const { id: projectId, apiConnectionId } = useParams<{ id: string; apiConnectionId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
+  const connection = currentProject?.apiConnections?.find(c => c.id === apiConnectionId);
 
   const [name, setName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
-  const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('POST');
+  const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const [description, setDescription] = useState('');
   const [credentialId, setCredentialId] = useState('');
-  const [prefix, setAuthPrefix] = useState('');
+  const [prefix, setPrefix] = useState('');
   const [loading, setLoading] = useState(false);
-  const [disabled, setDisabled] = useState(true);
+
+  useEffect(() => {
+    if (!connection) return;
+    setName(connection.name);
+    setBaseUrl(connection.baseUrl);
+    setMethod(connection.method);
+    setDescription(connection.description ?? '');
+    setCredentialId(connection.credentialId ?? '');
+    setPrefix(connection.prefix ?? '');
+  }, [connection]);
 
   const availableCredentials = [
     { value: '', label: 'None' },
     ...(currentProject?.credentials?.map(c => ({ value: c.id, label: c.key })) ?? []),
   ];
 
-  useEffect(() => {
-    setDisabled(!name || !baseUrl || loading);
-  }, [name, baseUrl, loading]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectId || !currentProject) return;
+    if (!projectId || !apiConnectionId || !currentProject) return;
 
     setLoading(true);
     try {
@@ -58,15 +64,14 @@ export const CreateApiConnectionForm = () => {
         ...(credentialId && { credentialId }),
         ...(credentialId && prefix && { prefix }),
       };
-      const response = await createApiConnection(projectId, payload);
-      if (response) {
-        const existing = currentProject.apiConnections ?? [];
+      const updated = await updateApiConnection(projectId, apiConnectionId, payload);
+      if (updated && currentProject.apiConnections) {
         dispatch(setCurrentProject({
           ...currentProject,
-          apiConnections: [...existing, response],
+          apiConnections: currentProject.apiConnections.map(c => c.id === apiConnectionId ? updated : c),
         }));
       }
-      navigate(`/project/${projectId}/connections/api`);
+      navigate(`/project/${projectId}/connections/api/${apiConnectionId}`);
     } catch {
       // error handled in service
     } finally {
@@ -76,13 +81,15 @@ export const CreateApiConnectionForm = () => {
 
   const handleCancel = () => navigate(-1);
 
+  if (!connection) return null;
+
   return (
     <div className={s.container}>
       <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit}>
         <div className={s.formContainer}>
-          <h3>New API Connection</h3>
-          <p>Configure an external API connection for {currentProject?.name}</p>
+          <h3>Edit API Connection</h3>
+          <p>{connection.name}</p>
 
           <LabeledInput
             label="Name"
@@ -136,7 +143,7 @@ export const CreateApiConnectionForm = () => {
             name="conn-credential"
             htmlFor="conn-credential"
             value={credentialId}
-            onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setAuthPrefix(''); }}
+            onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setPrefix(''); }}
             options={availableCredentials}
           />
 
@@ -149,14 +156,14 @@ export const CreateApiConnectionForm = () => {
               placeholder="Bearer"
               id="conn-auth-prefix"
               htmlFor="conn-auth-prefix"
-              onChange={e => setAuthPrefix(e.target.value)}
+              onChange={e => setPrefix(e.target.value)}
               disabled={loading}
             />
           )}
         </div>
 
         <span className={s.buttonContainer}>
-          <ActionButton disabled={disabled} icon={faTowerBroadcast} text="Create" type="submit" />
+          <ActionButton disabled={!name || !baseUrl || loading} icon={faCode} text="Save changes" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
       </form>

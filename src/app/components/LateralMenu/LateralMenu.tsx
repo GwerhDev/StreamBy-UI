@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faCloud, faCode, faDatabase, faDoorOpen, faGear, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faCloud, faCode, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
 import { useProjects } from '../../../hooks/useProjects';
@@ -226,10 +226,10 @@ export const LateralMenu = () => {
             </ul>
 
             <span className={s.section}>
-              <Link to={`/project/${id}/api`}>
-                <h4>API</h4>
+              <Link to={`/project/${id}/connections`}>
+                <h4>CONNECTIONS</h4>
               </Link>
-              <FontAwesomeIcon icon={faCode} />
+              <FontAwesomeIcon icon={faTowerBroadcast} />
             </span>
             <ul className={s.menuList}>
               {
