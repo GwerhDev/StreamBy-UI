@@ -184,6 +184,8 @@ main {
 .project-viewer {
   width: 100%;
   flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -287,6 +289,8 @@ a:hover {
 
 .dashboard-sections {
   flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   border-top-left-radius: 10px;
   border: solid .5px var(--color-dark-300);
