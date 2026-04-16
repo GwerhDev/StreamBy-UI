@@ -10,6 +10,7 @@ import { RootState } from '../../../store';
 import { StorageCard } from './StorageCard';
 import { getRecentFiles } from '../../../services/storageDrive';
 import { deleteStorageFile } from '../../../services/storage';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 const CATEGORIES = [
   { key: 'images',    label: 'Images',    icon: faImage },
@@ -80,7 +81,7 @@ export const StorageDrive = () => {
             ))}
           </ul>
         ) : recentFiles.length === 0 ? (
-          <p className={s.empty}>No files uploaded yet.</p>
+          <EmptyBackground />
         ) : (
           <ul className={s.fileGrid}>
             {recentFiles.map(file => (
