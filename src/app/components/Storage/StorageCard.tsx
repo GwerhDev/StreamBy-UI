@@ -70,6 +70,7 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
   const closeCtx = () => {
     setContextMenu(null);
     setCtxConfirmDelete(false);
+    setSelected(false);
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -78,6 +79,7 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
     const y = e.clientY + CTX_H > window.innerHeight ? e.clientY - CTX_H : e.clientY;
     setContextMenu({ x, y });
     setCtxConfirmDelete(false);
+    setSelected(true);
   };
 
   const handleDelete = () => {
@@ -157,7 +159,7 @@ export function StorageCard({ file, category, onDelete }: StorageCardProps) {
             Copy URL
           </li>
           <li className={s.ctxItem} onClick={closeCtx}>
-            <a href={file.url} download={file.name} className={s.ctxLink}>
+            <a target='_blank' href={file.url} download={file.name} className={s.ctxLink}>
               <FontAwesomeIcon icon={faDownload} className={s.ctxIcon} />
               Download
             </a>

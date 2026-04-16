@@ -231,12 +231,14 @@
   margin: 0;
   padding: 0.3rem 0;
   width: 192px;
-  background-color: var(--color-dark-200, #1c1f26);
+  background-color: var(--color-dark-400, #1c1f26);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
   animation: ctxIn 0.12s ease;
   transform-origin: top left;
+  flex-direction: column;
+  gap: .1rem;
 }
 
 @keyframes ctxIn {
