@@ -6,6 +6,22 @@
   align-items: center;
 }
 
+.iconContainer {
+  border-radius: 100%;
+  width: 32px;
+  aspect-ratio: 1/1;
+  border: solid 3px;
+  border-color: var(--color-button-primary-hover);
+  overflow: hidden;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  opacity: .7;
+}
+
 .title {
   width: 100%;
   overflow: hidden;
@@ -33,4 +49,21 @@
 
 .projectImage {
   height: 100%;
+}
+
+.methodBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background-color: var(--color-button-primary);
+  color: white;
+  letter-spacing: .5px;
+}
+
+.icons {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
 }

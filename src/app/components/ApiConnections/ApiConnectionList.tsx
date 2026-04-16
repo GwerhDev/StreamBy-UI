@@ -71,7 +71,8 @@ export const ApiConnectionList = () => {
             <h4>New connection</h4>
           </li>
         </ul>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
