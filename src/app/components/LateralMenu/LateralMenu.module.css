@@ -65,6 +65,24 @@
   flex-direction: column;
 }
 
+.listButton {
+  gap: .75rem;
+  width: 100%;
+  padding: .4rem .6rem;
+  border-radius: 4px;
+  font-size: .875rem;
+  color: var(--color-light-300);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.listButton:hover {
+  color: var(--color-select-accent);
+  background-color: var(--color-dark-100);
+}
+
 
 .titleButton h4 {
   max-width: 150px;
