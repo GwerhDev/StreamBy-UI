@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faExclamationTriangle, faPlugCircleCheck, faGlobe } from '@fortawesome/free-solid-svg-icons';
 import { IntegrationsInfoModal } from './IntegrationsInfoModal';
 
-export const DbInfoButton: React.FC = () => {
+export const IntegrationsInfoButton: React.FC = () => {
   const { databases, storages, loading } = useSelector((state: RootState) => state.management);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

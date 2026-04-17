@@ -6,7 +6,8 @@ import { useProjects } from '../../hooks/useProjects';
 import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { DbInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
+import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
+import { NotificationsInfoButton } from '../components/NotificationsInfo/NotificationsInfoButton';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
@@ -26,7 +27,6 @@ export default function DefaultLayout() {
         <LateralTab userData={session} projectList={projectList} />
         <div className="project-viewer">
           <div className="header-app">
-            <span className="w-full"/>
             <span className="title-container">
               {
                 image &&
@@ -34,7 +34,10 @@ export default function DefaultLayout() {
               }
               <small className="font-bold nowrap">{name || "StreamBy"}</small>
             </span>
-            <DbInfoButton />
+            <span className='info-buttons'>
+              <NotificationsInfoButton />
+              <IntegrationsInfoButton />
+            </span>
           </div>
           <Outlet />
         </div>
