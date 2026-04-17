@@ -1,16 +1,14 @@
 import s from './LateralMenu.module.css';
 import React, { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { RootState } from '../../../store';
-import { useProjects } from '../../../hooks/useProjects';
-import { archiveProject, unarchiveProject, fetchProject } from '../../../services/projects';
+import { archiveProject, unarchiveProject } from '../../../services/projects';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { CloudStorage } from '../../../interfaces';
 
 const MENU_MIN_WIDTH = 160;
@@ -19,8 +17,6 @@ const MENU_DEFAULT_WIDTH = 250;
 
 export const LateralMenu = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { loadProjects } = useProjects();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const storages = useSelector((state: RootState) => state.management.storages);
@@ -75,21 +71,13 @@ export const LateralMenu = () => {
   };
 
   const handleArchive = async () => {
-    const response = await archiveProject(id || '');
-    const { projects } = response || {};
-    loadProjects(projects);
+    await archiveProject(id || '');
     navigate("/user/archive");
     setShowCanvas(false);
   };
 
   const handleUnarchive = async () => {
-    const response = await unarchiveProject(id || '');
-    const { projects } = response || {};
-    loadProjects(projects);
-    const updatedProject = await fetchProject(id, navigate);
-    if (updatedProject) {
-      dispatch(setCurrentProject(updatedProject));
-    }
+    await unarchiveProject(id || '');
     setShowCanvas(false);
   };
 

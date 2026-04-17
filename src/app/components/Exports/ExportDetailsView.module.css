@@ -8,6 +8,44 @@
   min-height: 0;
 }
 
+/* ── Page header ─────────────────────────── */
+.pageHeader {
+  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Panel group ─────────────────────────── */
+.splitGroup {
+  flex-grow: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Individual panel ────────────────────── */
+.panelContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.detailsScroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Footer ──────────────────────────────── */
 .footer {
   width: 100%;
   display: flex;
@@ -19,48 +57,11 @@
   box-sizing: border-box;
 }
 
-.panelContainer {
-  display: flex;
-  flex-grow: 1;
-  min-height: 0;
-  overflow: hidden;
+.colGroup {
+  height: 100%;
 }
 
-/* ── Split body ───────────────────────────── */
-.splitGroup {
-  flex-grow: 1;
-  display: flex;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.detailsPanel {
-  padding: 1rem;
-  flex-grow: 1;
-  display: flex;
-  overflow: auto;
-  box-sizing: border-box;
-  flex-direction: column;
-}
-
-.viewerPanel {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  box-sizing: border-box;
-  flex-direction: column;
-}
-
-.viewerContent {
-  display: flex;
-  flex-grow: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 1rem;
-}
-
-/* ── Resize handle ───────────────────────── */
+/* ── Resize handles ──────────────────────── */
 .resizeHandle {
   width: 4px;
   background: rgba(255, 255, 255, 0.05);
@@ -88,7 +89,54 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* ── Field link (used in endpoint value) ─── */
+.resizeHandleH {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  cursor: row-resize;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.resizeHandleH:hover,
+.resizeHandleH[data-state="active"] {
+  background: var(--color-primary);
+}
+
+.resizeHandleH::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 2px;
+  width: 32px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Tab action buttons ──────────────────── */
+.tabActionBtn {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tabActionBtn:hover {
+  color: var(--color-light-100);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Field link ──────────────────────────── */
 .fieldLink {
   color: var(--color-primary);
   text-decoration: none;

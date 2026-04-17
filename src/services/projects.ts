@@ -2,6 +2,8 @@ import { NavigateFunction } from "react-router-dom";
 import { API_BASE } from "../config/api";
 import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
+import { setProjects } from '../store/projectsSlice';
+import { setCurrentProject } from '../store/currentProjectSlice';
 
 export async function createProject(payload: { name: string; description?: string; dbType: string; allowedOrigin?: string[] }) {
   try {
@@ -20,6 +22,7 @@ export async function createProject(payload: { name: string; description?: strin
     }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -89,6 +92,7 @@ export async function updateProject(projectId: string, payload: { name: string; 
     }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -112,6 +116,7 @@ export async function updateProjectImage(projectId: string, imageKey: string) {
     }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -175,6 +180,7 @@ export async function deleteProject(projectId: string | undefined) {
 
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -199,6 +205,7 @@ export async function archiveProject(projectId: string) {
     }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
     return response;
   } catch (error: any) {
     console.error(error);
@@ -223,6 +230,18 @@ export async function unarchiveProject(projectId: string) {
     }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
+    if (response.projects) store.dispatch(setProjects(response.projects));
+    const state = store.getState();
+    const current = state.currentProject.data;
+    if (current?.id === projectId) {
+      const userId = state.session.userId;
+      store.dispatch(setCurrentProject({
+        ...current,
+        members: current.members?.map(m =>
+          m.userId === userId ? { ...m, archived: false } : m
+        ) ?? [],
+      }));
+    }
     return response;
   } catch (error: any) {
     console.error(error);

@@ -2,7 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { setProjects, setProjectsLoading } from '../store/projectsSlice';
-import { ProjectList } from '../interfaces';
 import { fetchProjects } from '../services/projects';
 
 export function useProjects() {
@@ -10,10 +9,6 @@ export function useProjects() {
   const projectList = useSelector((state: RootState) => state.projects);
   const { logged } = useSelector((state: RootState) => state.session);
   const { databases, loading } = useSelector((state: RootState) => state.management);
-
-  const loadProjects = (projects: ProjectList[]) => {
-    dispatch(setProjects(projects));
-  };
 
   const refreshProjects = useCallback(async () => {
     dispatch(setProjectsLoading());
@@ -27,5 +22,5 @@ export function useProjects() {
     }
   }, [logged, loading, databases, refreshProjects]);
 
-  return { projectList, loadProjects, refreshProjects };
+  return { projectList, refreshProjects };
 }

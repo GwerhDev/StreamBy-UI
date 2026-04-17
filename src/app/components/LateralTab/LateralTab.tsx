@@ -74,7 +74,9 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
       const prevIds = new Set(prev.map(p => p.id));
       const newProjects = filtered.filter((p: ProjectList) => !prevIds.has(p.id));
       const merged = [
-        ...prev.filter(p => filtered.some((f: ProjectList) => f.id === p.id)),
+        ...prev
+          .filter(p => filtered.some((f: ProjectList) => f.id === p.id))
+          .map(p => filtered.find((f: ProjectList) => f.id === p.id) ?? p),
         ...newProjects,
       ];
       return applyOrder(merged, projectOrder);

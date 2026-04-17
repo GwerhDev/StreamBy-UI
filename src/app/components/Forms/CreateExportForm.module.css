@@ -8,14 +8,55 @@
   position: relative;
 }
 
+.pageHeader {
+  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .form {
   flex: 1;
-  width: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
+/* ── Panel group ─────────────────────────── */
+.splitGroup {
+  flex-grow: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.colGroup {
+  height: 100%;
+}
+
+/* ── Individual panel ────────────────────── */
+.panelContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.detailsScroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Footer ──────────────────────────────── */
 .footer {
   width: 100%;
   display: flex;
@@ -24,46 +65,10 @@
   padding: 0.75rem 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
-}
-
-.splitGroup {
-  flex: 1;
-  min-height: 0;
-}
-
-/* ── Left panel ──────────────────────────── */
-.detailsPanel {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
   box-sizing: border-box;
 }
 
-.detailsPanel h3 {
-  font-size: 1.1rem;
-  color: var(--color-light-100);
-  margin: 0;
-}
-
-.detailsPanel h4 {
-  font-size: 0.85rem;
-  color: var(--color-light-300);
-  margin: 0;
-}
-
-.detailsPanel p {
-  font-size: 0.85rem;
-  color: var(--color-light-400);
-  margin: 0;
-}
-
-/* ── Resize handle ───────────────────────── */
+/* ── Resize handles ──────────────────────── */
 .resizeHandle {
   width: 4px;
   background: rgba(255, 255, 255, 0.05);
@@ -90,46 +95,67 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* ── Right panel ─────────────────────────── */
-.viewerPanel {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  overflow: hidden;
+.resizeHandleH {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  cursor: row-resize;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.resizeHandleH:hover,
+.resizeHandleH[data-state="active"] {
+  background: var(--color-primary);
+}
+
+.resizeHandleH::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 2px;
+  width: 32px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Tab action buttons ──────────────────── */
+.tabActionBtn {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
   display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.viewerContent {
-  display: flex;
-  flex-grow: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 1rem;
+.tabActionBtn:hover {
+  color: var(--color-light-100);
+  background: rgba(255, 255, 255, 0.07);
 }
 
-/* ── Actions ─────────────────────────────── */
-.buttonContainer {
-  display: flex;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
-}
-
-@media (max-width: 480px) {
-  .buttonContainer {
-    flex-direction: column;
-  }
-}
-
-/* ── Allowed origins ─────────────────────── */
+/* ── Form-specific ───────────────────────── */
 .allowedOriginsContainer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-/* ── API connection selector ─────────────── */
+.responseHint {
+  font-size: 0.82rem;
+  color: var(--color-light-400);
+  margin: 0;
+}
+
+/* ── Connection selector ─────────────────── */
 .connectionsList {
   width: 100%;
   display: flex;

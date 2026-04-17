@@ -3,7 +3,6 @@ import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CurrentProjectState } from '../../../interfaces';
 import { deleteProject } from '../../../services/projects';
-import { useProjects } from '../../../hooks/useProjects';
 import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
 
 interface DeleteProjectModalProps {
@@ -15,15 +14,13 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [confirmText, setConfirmText] = useState<string>("");
   const { currentProject } = props || {};
-  const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
   const handleDeleteProject = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await deleteProject(currentProject?.data?.id);
-      loadProjects(response.projects);
+      await deleteProject(currentProject?.data?.id);
       setLoader(false);
     } catch (error) {
       setLoader(false);

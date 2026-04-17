@@ -11,7 +11,6 @@ import {
   uploadProjectImage,
   uploadToPresignedUrl,
 } from '../../../services/projects';
-import { useProjects } from '../../../hooks/useProjects';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +28,6 @@ export const UpdateProjectForm = () => {
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
   const [allowedOrigin, setAllowedOrigin] = useState<string[]>(currentProjectData?.allowedOrigin || [""]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { loadProjects } = useProjects();
 
   useEffect(() => {
     setName(currentProjectData?.name || "");
@@ -43,7 +41,7 @@ export const UpdateProjectForm = () => {
     try {
       setLoader(true);
       const payload = { name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') };
-      const { projects, projectId } = await updateProject(currentProjectData?.id || '', payload);
+      const { projectId } = await updateProject(currentProjectData?.id || '', payload);
 
       if (imageFile && projectId) {
         const contentType = imageFile.type;
@@ -51,7 +49,6 @@ export const UpdateProjectForm = () => {
         await uploadToPresignedUrl(url, imageFile, contentType);
         await updateProjectImage(projectId, publicUrl);
       }
-      loadProjects(projects);
       navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
       setLoader(false);
 

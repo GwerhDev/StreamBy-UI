@@ -12,7 +12,6 @@ import {
   uploadProjectImage,
 } from '../../../services/projects';
 import { useNavigate } from 'react-router-dom';
-import { useProjects } from '../../../hooks/useProjects';
 import { LabeledSelect } from '../Selects/LabeledSelect';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
@@ -29,7 +28,6 @@ export const CreateProjectForm = () => {
   const [allowedOrigin, setAllowedOrigin] = useState<string[]>([""]);
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { loadProjects } = useProjects();
   const navigate = useNavigate();
 
   const { databases, loading, error } = useSelector((state: RootState) => state.management);
@@ -45,7 +43,7 @@ export const CreateProjectForm = () => {
     try {
       setLoader(true);
       const response = await createProject({ name, description, dbType: selectedDatabase, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') });
-      const { projects, projectId } = response || {};
+      const { projectId } = response || {};
 
       if (imageFile && projectId) {
         const contentType = imageFile.type;
@@ -53,7 +51,6 @@ export const CreateProjectForm = () => {
         await uploadToPresignedUrl(url, imageFile, contentType);
         await updateProjectImage(projectId, publicUrl);
       }
-      loadProjects(projects);
       navigate(`/project/${projectId}/dashboard/overview`);
       setLoader(false);
 
