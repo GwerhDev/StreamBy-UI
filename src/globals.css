@@ -299,6 +299,7 @@ a:hover {
   border: solid .5px var(--color-dark-300);
   border-right: none;
   border-bottom: none;
+  overflow: auto;
 }
 
 .logo {
