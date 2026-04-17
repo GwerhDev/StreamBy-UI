@@ -1,110 +1,76 @@
-.splitContainer {
+.container {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  align-self: stretch;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .splitGroup {
-  width: 100%;
-  height: 100%;
-}
-
-.resizeHandle {
-  width: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  cursor: col-resize;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-
-.resizeHandle:hover,
-.resizeHandle[data-resize-handle-active] {
-  background: var(--color-primary);
-}
-
-.container {
-  width: 100%;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+  flex-grow: 1;
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  overflow-y: auto;
-  height: 100%;
-}
-
-.fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 0;
 }
 
-.field {
+.detailsPanel {
+  padding: 1rem;
+  flex-grow: 1;
   display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 0.85rem 1.1rem;
-  background-color: var(--color-dark-300);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: auto;
+  box-sizing: border-box;
+  flex-direction: column;
 }
 
-.field:last-child {
-  border-bottom: none;
+.viewerPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.75rem;
 }
 
-.fieldIcon {
-  font-size: 0.85rem;
-  color: var(--color-light-400);
-  margin-top: 0.15rem;
-  width: 14px;
+.viewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-shrink: 0;
 }
 
-.fieldLabel {
+.viewerLabel {
   font-size: 0.72rem;
   color: var(--color-light-400);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.2rem;
+  letter-spacing: 0.06em;
 }
 
-.fieldValue {
-  font-size: 0.88rem;
-  color: var(--color-light-200);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.viewerContent {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
-.prefixBadge {
-  font-size: 0.7rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  background-color: var(--color-dark-500);
+.viewerHint {
+  font-size: 0.82rem;
   color: var(--color-light-400);
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  margin: 0;
 }
 
 .fetchBtn {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
+  padding: 0.35rem 0.75rem;
   background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -131,48 +97,49 @@
   border-radius: 6px;
 }
 
-.responsePanel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 2rem 1.5rem;
-  gap: 0.75rem;
-  overflow: hidden;
+.fieldLink {
+  color: var(--color-primary);
+  text-decoration: none;
+  word-break: break-all;
 }
 
-.responsePanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.fieldLink:hover {
+  text-decoration: underline;
+}
+
+.resizeHandle {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  cursor: col-resize;
+  transition: background 0.15s ease;
   flex-shrink: 0;
 }
 
-.responseLabel {
-  font-size: 0.72rem;
-  color: var(--color-light-400);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0;
+.resizeHandle:hover,
+.resizeHandle[data-state="active"] {
+  background: var(--color-primary);
 }
 
-.responseHint {
-  font-size: 0.82rem;
-  color: var(--color-light-400);
-  margin: 0;
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 32px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.responseViewer {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  background: var(--color-dark-300);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-}
-
-@media (max-width: 480px) {
-  .actions {
-    flex-direction: column;
-  }
+.footer {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  box-sizing: border-box;
 }

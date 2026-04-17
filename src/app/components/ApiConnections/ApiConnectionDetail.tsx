@@ -2,14 +2,15 @@ import s from './ApiConnectionDetail.module.css';
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCode, faPencil, faTrash, faFingerprint, faLink, faFileLines, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
-import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { RootState } from '../../../store';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteApiConnectionModal } from '../Modals/DeleteApiConnectionModal';
 import { getConnectionResponse } from '../../../services/connections';
+import { CustomForm } from '../Forms/CustomForm';
+import CopyButton from '../Buttons/CopyButton';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 
@@ -39,67 +40,51 @@ export const ApiConnectionDetail = () => {
     }
   };
 
+  const credentialKey = currentProject?.credentials?.find(c => c.id === connection.credentialId)?.key;
+
   return (
-    <div className={s.splitContainer}>
+    <div className={s.container}>
       <PanelGroup orientation="horizontal" className={s.splitGroup}>
 
-        <Panel defaultSize="40%" minSize="25%" maxSize="70%">
-          <div className={s.container}>
-            <SectionHeader icon={faCode} title={connection.name} subtitle={connection.description} badge={connection.method} />
-
-            <div className={s.fields}>
-              <div className={s.field}>
-                <span className={s.fieldIcon}><FontAwesomeIcon icon={faLink} /></span>
-                <div>
-                  <p className={s.fieldLabel}>Base URL</p>
-                  <p className={s.fieldValue}>{connection.baseUrl}</p>
-                </div>
-              </div>
-
-              {connection.credentialId && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faFingerprint} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Credential</p>
-                    <p className={s.fieldValue}>
-                      {currentProject?.credentials?.find(c => c.id === connection.credentialId)?.key ?? connection.credentialId}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {connection.description && (
-                <div className={s.field}>
-                  <span className={s.fieldIcon}><FontAwesomeIcon icon={faFileLines} /></span>
-                  <div>
-                    <p className={s.fieldLabel}>Description</p>
-                    <p className={s.fieldValue}>{connection.description}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className={s.actions}>
-              <ActionButton
-                icon={faPencil}
-                text="Edit"
-                onClick={() => navigate(`/project/${projectId}/connections/api/${apiConnectionId}/edit`)}
-              />
-              <SecondaryButton
-                icon={faTrash}
-                text="Delete"
-                onClick={() => setShowDeleteModal(true)}
-              />
-            </div>
+        <Panel defaultSize="35%" minSize="20%" maxSize="60%">
+          <div className={s.detailsPanel}>
+            <CustomForm
+              readOnly
+              header={{ icon: faCode, title: connection.name, subtitle: connection.description, badge: connection.method }}
+              fields={[
+                {
+                  icon: faLink,
+                  label: '',
+                  value: (
+                    <>
+                      <a className={s.fieldLink} href={connection.apiUrl} target="_blank" rel="noopener noreferrer">{connection.apiUrl}</a>
+                      <CopyButton title="Copy URL" textToCopy={connection.apiUrl} />
+                    </>
+                  ),
+                },
+                {
+                  icon: faFingerprint,
+                  label: 'Credential',
+                  value: credentialKey ?? connection.credentialId,
+                  hidden: !connection.credentialId,
+                },
+                {
+                  icon: faFileLines,
+                  label: 'Description',
+                  value: connection.description,
+                  hidden: !connection.description,
+                },
+              ]}
+            />
           </div>
         </Panel>
 
         <PanelResizeHandle className={s.resizeHandle} />
 
         <Panel minSize="25%">
-          <div className={s.responsePanel}>
-            <div className={s.responsePanelHeader}>
-              <p className={s.responseLabel}>Response</p>
+          <div className={s.viewerPanel}>
+            <div className={s.viewerHeader}>
+              <span className={s.viewerLabel}>Response</span>
               <button
                 type="button"
                 className={`${s.fetchBtn} ${fetching ? s.fetchBtnLoading : ''}`}
@@ -110,17 +95,22 @@ export const ApiConnectionDetail = () => {
                 {fetching ? 'Fetching…' : 'Fetch'}
               </button>
             </div>
-
-            {fetchError && <p className={s.fetchError}>{fetchError}</p>}
-
-            {response != null
-              ? <div className={s.responseViewer}><JsonViewer data={response as JSON} /></div>
-              : !fetchError && <p className={s.responseHint}>Click Fetch to preview the API response.</p>
-            }
+            <div className={s.viewerContent}>
+              {fetchError && <p className={s.fetchError}>{fetchError}</p>}
+              {response != null
+                ? <JsonViewer data={response as JSON} />
+                : !fetchError && <p className={s.viewerHint}>Click Fetch to preview the API response.</p>
+              }
+            </div>
           </div>
         </Panel>
 
       </PanelGroup>
+
+      <div className={s.footer}>
+        <ActionButton icon={faPencil} text="Edit" onClick={() => navigate(`/project/${projectId}/connections/api/${apiConnectionId}/edit`)} />
+        <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
+      </div>
 
       {showDeleteModal && (
         <DeleteApiConnectionModal

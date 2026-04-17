@@ -310,7 +310,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       nodes.push({ id: 'json-input', type: 'jsonInputNode', position: { x: 240, y: 320 }, data: { label: 'JSON Data', subtitle: 'Static data source', jsonString: JSON.stringify(initialJsonRef.current, null, 2) } });
     }
     if (initialApiRef.current.apiUrl) {
-      const conn = apiConnectionsRef.current.find(c => c.baseUrl === initialApiRef.current.apiUrl);
+      const conn = apiConnectionsRef.current.find(c => c.apiUrl === initialApiRef.current.apiUrl);
       nodes.push({ id: 'api-conn', type: 'apiConnectionNode', position: { x: 240, y: 320 }, data: { label: conn?.name || 'API Connection', subtitle: initialApiRef.current.apiUrl || '', connectionId: conn?.id || '' } });
     }
     return nodes;
@@ -443,7 +443,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     if (node.type === 'apiConnectionNode') {
-      const options = apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.baseUrl}` }));
+      const options = apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` }));
       return {
         title: 'API Connection',
         description: 'External API that StreamBy queries via the data layer.',
@@ -511,7 +511,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node?.type === 'apiConnectionNode') {
       const connId = (localData.connectionId as string) ?? node.data.connectionId;
       const conn = apiConnections.find(c => c.id === connId);
-      if (conn) setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: conn.name, subtitle: conn.baseUrl, connectionId: conn.id } } : n));
+      if (conn) setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: conn.name, subtitle: conn.apiUrl, connectionId: conn.id } } : n));
       setLocalData({}); setSelectedNodeId(null);
       return;
     }
@@ -598,6 +598,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <span className={s.detailTitle}>{selectedDetail.title}</span>
               <button className={s.panelClose} onClick={handleClosePanel} type="button"><FontAwesomeIcon icon={faXmark} /></button>
             </div>
+
             <p className={s.detailDescription}>{selectedDetail.description}</p>
             {selectedDetail.fields.length > 0 && <div className={s.detailFields}>
               {selectedDetail.fields.map(field => (

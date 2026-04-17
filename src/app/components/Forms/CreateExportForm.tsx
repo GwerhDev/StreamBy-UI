@@ -174,12 +174,6 @@ export function CreateExportForm() {
                     ),
                   },
                 ]}
-                actions={
-                  <>
-                    <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
-                    <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
-                  </>
-                }
               />
             </div>
           </Panel>
@@ -217,6 +211,11 @@ export function CreateExportForm() {
           </Panel>
 
         </PanelGroup>
+
+        <div className={s.footer}>
+          <ActionButton disabled={disabled || loading} icon={faFileExport} text="Create" type="submit" />
+          <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+        </div>
       </form>
     </div>
   );

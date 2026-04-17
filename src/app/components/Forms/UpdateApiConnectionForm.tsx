@@ -29,7 +29,7 @@ export const UpdateApiConnectionForm = () => {
   const connection = currentProject?.apiConnections?.find(c => c.id === apiConnectionId);
 
   const [name, setName] = useState('');
-  const [baseUrl, setBaseUrl] = useState('');
+  const [apiUrl, setApiUrl] = useState('');
   const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const [description, setDescription] = useState('');
   const [credentialId, setCredentialId] = useState('');
@@ -39,7 +39,7 @@ export const UpdateApiConnectionForm = () => {
   useEffect(() => {
     if (!connection) return;
     setName(connection.name);
-    setBaseUrl(connection.baseUrl);
+    setApiUrl(connection.apiUrl);
     setMethod(connection.method);
     setDescription(connection.description ?? '');
     setCredentialId(connection.credentialId ?? '');
@@ -57,7 +57,7 @@ export const UpdateApiConnectionForm = () => {
     setLoading(true);
     try {
       const payload = {
-        name, baseUrl, method,
+        name, apiUrl, method,
         ...(description && { description }),
         ...(credentialId && { credentialId }),
         ...(credentialId && prefix && { prefix }),
@@ -102,13 +102,13 @@ export const UpdateApiConnectionForm = () => {
               },
               {
                 icon: faLink,
-                label: 'Base URL',
-                value: baseUrl || '—',
+                label: 'API URL',
+                value: apiUrl || '—',
                 editComponent: (
                   <LabeledInput
-                    label="Base URL" name="baseUrl" value={baseUrl} type="text"
+                    label="API URL" name="apiUrl" value={apiUrl} type="text"
                     placeholder="https://api.example.com/webhook" id="conn-url" htmlFor="conn-url"
-                    onChange={e => setBaseUrl(e.target.value)} disabled={loading}
+                    onChange={e => setApiUrl(e.target.value)} disabled={loading}
                   />
                 ),
               },
@@ -165,7 +165,7 @@ export const UpdateApiConnectionForm = () => {
             ]}
             actions={
               <>
-                <ActionButton disabled={!name || !baseUrl || loading} icon={faPenToSquare} text="Save changes" type="submit" />
+                <ActionButton disabled={!name || !apiUrl || loading} icon={faPenToSquare} text="Save changes" type="submit" />
                 <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
               </>
             }

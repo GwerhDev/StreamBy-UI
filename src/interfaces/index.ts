@@ -1,7 +1,7 @@
 export interface ApiConnection {
   id: string;
   name: string;
-  baseUrl: string;
+  apiUrl: string;
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   credentialId?: string;
@@ -12,7 +12,7 @@ export interface ApiConnection {
 
 export interface ApiConnectionPayload {
   name: string;
-  baseUrl: string;
+  apiUrl: string;
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   credentialId?: string;

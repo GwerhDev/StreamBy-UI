@@ -12,7 +12,7 @@ export const ApiConnectionCard = ({ connection }: { connection: ApiConnection })
         </span>
         <span className={s.info}>
           <h4 className={s.title}>{connection.name}</h4>
-          <small className={s.subtitle}>{connection.baseUrl}</small>
+          <small className={s.subtitle}>{connection.apiUrl}</small>
         </span>
       </span>
       <span className={s.icons}>

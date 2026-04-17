@@ -111,12 +111,6 @@ export const ExportDetailsView: React.FC = () => {
                   value: new Date(exportDetails.createdAt).toLocaleString(),
                 },
               ]}
-              actions={
-                <>
-                  <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
-                  <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
-                </>
-              }
             />
           </div>
         </Panel>
@@ -147,6 +141,11 @@ export const ExportDetailsView: React.FC = () => {
         </Panel>
 
       </PanelGroup>
+
+      <div className={s.footer}>
+        <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
+        <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
+      </div>
 
       {showDeleteModal && (
         <DeleteExportModal

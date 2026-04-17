@@ -28,7 +28,7 @@ export const CreateApiConnectionForm = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
   const [name, setName] = useState('');
-  const [baseUrl, setBaseUrl] = useState('');
+  const [apiUrl, setApiUrl] = useState('');
   const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('POST');
   const [description, setDescription] = useState('');
   const [credentialId, setCredentialId] = useState('');
@@ -42,8 +42,8 @@ export const CreateApiConnectionForm = () => {
   ];
 
   useEffect(() => {
-    setDisabled(!name || !baseUrl || loading);
-  }, [name, baseUrl, loading]);
+    setDisabled(!name || !apiUrl || loading);
+  }, [name, apiUrl, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ export const CreateApiConnectionForm = () => {
     setLoading(true);
     try {
       const payload = {
-        name, baseUrl, method,
+        name, apiUrl, method,
         ...(description && { description }),
         ...(credentialId && { credentialId }),
         ...(credentialId && prefix && { prefix }),
@@ -92,13 +92,13 @@ export const CreateApiConnectionForm = () => {
               },
               {
                 icon: faLink,
-                label: 'Base URL',
-                value: baseUrl || '—',
+                label: 'API URL',
+                value: apiUrl || '—',
                 editComponent: (
                   <LabeledInput
-                    label="Base URL" name="baseUrl" value={baseUrl} type="text"
+                    label="API URL" name="apiUrl" value={apiUrl} type="text"
                     placeholder="https://api.example.com/webhook" id="conn-url" htmlFor="conn-url"
-                    onChange={e => setBaseUrl(e.target.value)} disabled={loading}
+                    onChange={e => setApiUrl(e.target.value)} disabled={loading}
                   />
                 ),
               },
