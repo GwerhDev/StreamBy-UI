@@ -11,7 +11,8 @@ import { ProjectList } from '../../../interfaces';
 
 export const Start = () => {
   const projects = useSelector((state: RootState) => state.projects);
-  const { list: filteredList, loading: projectsLoading } = projects;
+  const { list, loading: projectsLoading } = projects;
+  const filteredList = list.filter((p: ProjectList) => !p.archived);
   const navigate = useNavigate();
 
   const handleCreateProject = () => {
@@ -35,25 +36,26 @@ export const Start = () => {
           filteredList.length === 0 ? (
             <div className={s.emptyState}>
               <div className={s.createContainer}>
-                <h1>Born to Dev</h1>
-                <p>Get started by creating a new project</p>
+                <div className={s.title}>
+                  <h1>Born to Dev</h1>
+                  <p>Get started by creating a new project</p>
+                </div>
                 <ActionButton icon={faPlus} text='Create project' onClick={handleCreateProject} />
               </div>
             </div>
           ) : (
             <div className={s.createContainer}>
-              <h2>Seek and deploy</h2>
-              <p>Choose a project</p>
+              <div className={s.title}>
+                <h2>Seek and deploy</h2>
+                <p>Choose a project</p>
+              </div>
               <ul>
                 {
-                  filteredList.map((project: ProjectList) => {
-                    if (project.archived) return null;
-                    return (
-                      <li title={project.name} key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
-                        <ProjectCard project={project} />
-                      </li>
-                    )
-                  })
+                  filteredList.map((project: ProjectList) => (
+                    <li title={project.name} key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
+                      <ProjectCard project={project} />
+                    </li>
+                  ))
                 }
                 <li className={s.createProject} onClick={handleCreateProject}>
                   <FontAwesomeIcon icon={faPlus} />

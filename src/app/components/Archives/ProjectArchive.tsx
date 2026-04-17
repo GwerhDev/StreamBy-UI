@@ -19,8 +19,10 @@ export const ProjectArchive = () => {
           <EmptyBackground />
           :
           <div className={s.createContainer}>
-            <h2>Archive Enemy</h2>
-            <p>Choose a project</p>
+            <div className={s.title}>
+              <h2>Archive Enemy</h2>
+              <p>Choose a project</p>
+            </div>
             <ul>
               {
                 filteredList.map((project: ProjectList) => {

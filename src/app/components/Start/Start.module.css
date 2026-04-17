@@ -19,7 +19,7 @@
 }
 
 .createContainer {
-  gap: 1rem;
+  gap: 3rem;
   width: 100%;
   max-width: 1024px;
   padding-top: 2rem;
@@ -31,8 +31,11 @@
 .emptyState {
   flex-grow: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
+}
+
+.title p {
+  color: var(--color-light-400);
 }
 
 .createContainer ul {

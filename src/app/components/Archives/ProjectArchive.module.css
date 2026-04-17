@@ -13,13 +13,17 @@
 }
 
 .createContainer {
-  gap: 1rem;
+  gap: 3rem;
   width: 100%;
   max-width: 1024px;
   padding-top: 2rem;
   display: flex;
   align-items: center;
   flex-direction: column;
+}
+
+.title p {
+  color: var(--color-light-400);
 }
 
 .createContainer ul {
