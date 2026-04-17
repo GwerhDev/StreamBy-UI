@@ -146,11 +146,6 @@ select:focus-visible {
   color: var(--color-light-300);
 }
 
-input:focus,
-select:focus {
-  border-bottom: 1px solid var(--color-button-primary);
-}
-
 button {
   color: var(--color-light-300);
   background-color: var(--color-light-400);
