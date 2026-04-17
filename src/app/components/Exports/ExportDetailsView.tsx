@@ -134,11 +134,10 @@ export const ExportDetailsView: React.FC = () => {
               ]}
             />
             <div className={s.viewerContent}>
-              {viewMode === 'nodes' && <NodeViewer exportDetails={exportDetails} />}
+              {viewMode === 'nodes' && <NodeViewer exportDetails={exportDetails} projectId={id} />}
               {viewMode === 'response' && (
                 <ResponsePreview
                   projectId={id!}
-                  exportName={exportDetails.name}
                   schema={exportDetails.nodeSchema}
                   savedApiResponse={exportDetails.apiResponse}
                 />

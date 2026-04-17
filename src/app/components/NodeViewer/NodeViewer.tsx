@@ -1,4 +1,6 @@
 import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { getConnectionResponse } from '../../../services/connections';
+import JsonViewer from '../JsonViewer/JsonViewer';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -271,6 +273,7 @@ export interface NodeViewerProps {
   onSave?: (updates: Record<string, string | boolean | object | null>) => void;
   onChange?: (schema: { nodes: Node[]; edges: Edge[] }) => void;
   apiConnections?: ApiConnection[];
+  projectId?: string;
 }
 
 export interface NodeViewerHandle {
@@ -280,11 +283,14 @@ export interface NodeViewerHandle {
 const CORE_NODE_IDS = ['client', 'streamby'];
 
 export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [],
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], projectId,
 }, ref) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [connFetching, setConnFetching] = useState(false);
+  const [connResult, setConnResult] = useState<unknown>(null);
+  const [connError, setConnError] = useState<string | null>(null);
 
   const initialJsonRef = useRef(exportDetails.json);
   const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
@@ -334,6 +340,12 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const visibleNodes = useMemo(() => {
+    if (editMode) return nodes;
+    const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
+    return nodes.filter(n => connected.has(n.id));
+  }, [editMode, nodes, edges]);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -422,7 +434,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node.type === 'jsonInputNode') return {
       title: 'JSON Data',
       description: 'Static JSON that feeds the data layer. Connect its output to a Data Source or directly to StreamBy bottom.',
-      fields: [{ key: 'jsonString', label: 'JSON Content', value: node.data.jsonString || '{}', editable: true, inputType: 'json' }],
+      fields: [],
     };
 
     if (node.type === 'apiConnectionNode') {
@@ -472,8 +484,9 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isCoreNode     = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
   const canSave        = editMode && hasChanges && (isJsonNode || isApiNode || !isCoreNode || !!onSave);
 
-  const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); }, []);
-  const handleClosePanel  = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); }, []);
+  const resetConnFetch = () => { setConnFetching(false); setConnResult(null); setConnError(null); };
+  const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
+  const handleClosePanel  = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
   const handleFieldChange = useCallback((key: string, value: string | boolean) => { setLocalData(prev => ({ ...prev, [key]: value })); if (key === 'jsonString') setJsonError(null); }, []);
 
   const handleSave = useCallback(() => {
@@ -505,6 +518,23 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
     setLocalData({}); setSelectedNodeId(null);
   }, [selectedNodeId, localData, nodes, apiConnections, onSave, setNodes]);
+
+  const handleConnFetch = useCallback(async () => {
+    if (!projectId || !selectedNodeId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    const connectionId = (node?.data?.connectionId as string) ?? '';
+    if (!connectionId) return;
+    setConnFetching(true);
+    setConnError(null);
+    try {
+      const result = await getConnectionResponse(projectId, connectionId);
+      setConnResult(result);
+    } catch (err: unknown) {
+      setConnError((err as { message: string }).message || 'Fetch failed.');
+    } finally {
+      setConnFetching(false);
+    }
+  }, [projectId, selectedNodeId, nodes]);
 
   const getFieldDisplayValue = (field: DetailField): string | boolean => {
     if (localData[field.key] !== undefined) return localData[field.key];
@@ -541,9 +571,10 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
         <div className={s.flowContainer}>
           <ReactFlow
-            nodes={nodes} edges={edges}
+            nodes={visibleNodes} edges={edges}
             onNodeClick={handleNodeClick}
-            onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+            onNodesChange={editMode ? onNodesChange : undefined}
+            onEdgesChange={editMode ? onEdgesChange : undefined}
             onConnect={editMode ? onConnect : undefined}
             isValidConnection={editMode ? isValidConnection : undefined}
             nodeTypes={nodeTypes}
@@ -563,7 +594,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <button className={s.panelClose} onClick={handleClosePanel} type="button"><FontAwesomeIcon icon={faXmark} /></button>
             </div>
             <p className={s.detailDescription}>{selectedDetail.description}</p>
-            <div className={s.detailFields}>
+            {selectedDetail.fields.length > 0 && <div className={s.detailFields}>
               {selectedDetail.fields.map(field => (
                 <div key={field.key} className={s.detailField}>
                   <span className={s.fieldLabel}>{field.label}</span>
@@ -588,8 +619,45 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   )}
                 </div>
               ))}
-            </div>
+            </div>}
             {jsonError && <p className={s.jsonError}>{jsonError}</p>}
+
+            {isJsonNode && (() => {
+              const raw = (localData.jsonString as string) ?? (selectedNode?.data?.jsonString as string) ?? '{}';
+              let parsed: unknown = null;
+              try { parsed = JSON.parse(raw); } catch { /* invalid */ }
+              return parsed != null ? (
+                <div className={s.jsonPreviewSection}>
+                  <div className={s.previewHeader}>
+                    <span className={s.fieldLabel}>Preview</span>
+                  </div>
+                  <div className={s.jsonPre}><JsonViewer data={parsed as JSON} /></div>
+                </div>
+              ) : null;
+            })()}
+
+            {isApiNode && projectId && (
+              <div className={s.jsonPreviewSection}>
+                <div className={s.previewHeader}>
+                  <span className={s.fieldLabel}>Response</span>
+                  <button
+                    type="button"
+                    className={s.fetchButton}
+                    onClick={handleConnFetch}
+                    disabled={connFetching || !((selectedNode?.data?.connectionId as string) ?? '')}
+                  >
+                    <FontAwesomeIcon icon={faArrowsRotate} spin={connFetching} />
+                    {connFetching ? 'Fetching…' : 'Fetch'}
+                  </button>
+                </div>
+                {connError && <p className={s.previewError}>{connError}</p>}
+                {connResult != null
+                  ? <div className={s.jsonPre}><JsonViewer data={connResult as JSON} /></div>
+                  : !connError && <p className={s.jsonEmptyNote}>Click Fetch to preview the API response.</p>
+                }
+              </div>
+            )}
+
             {canSave && (
               <div className={s.panelActions}>
                 <button className={s.saveButton} onClick={handleSave} type="button"><FontAwesomeIcon icon={faFloppyDisk} /> Save Changes</button>

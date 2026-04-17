@@ -249,12 +249,12 @@ export function UpdateExportForm() {
                     onSave={handleNodeSave}
                     onChange={schema => { liveSchemaRef.current = schema; }}
                     apiConnections={currentProject.data?.apiConnections || []}
+                    projectId={id}
                   />
                 )}
                 {inputMode === 'response' && exportDetails && (
                   <ResponsePreview
                     projectId={id!}
-                    exportName={exportDetails.name}
                     schema={liveSchemaRef.current}
                     savedApiResponse={exportDetails.apiResponse}
                   />

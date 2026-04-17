@@ -90,6 +90,20 @@ export async function updateApiConnection(projectId: string, connectionId: strin
   }
 }
 
+export async function getConnectionResponse(projectId: string, connectionId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/get-connection/${connectionId}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed with status ${res.status}`);
+  }
+
+  return res.json();
+}
+
 export async function deleteApiConnection(projectId: string, connectionId: string) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
