@@ -3,10 +3,12 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTowerBroadcast } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { ActionButton } from '../Buttons/ActionButton';
 import { ApiConnectionCard } from '../Cards/ApiConnectionCard';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 export const ApiConnectionList = () => {
   const navigate = useNavigate();
@@ -18,10 +20,14 @@ export const ApiConnectionList = () => {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <h2>API Connections</h2>
-        <p>Manage the external API connections for this project.</p>
-      </div>
+      <SectionHeader
+        icon={faTowerBroadcast}
+        title="API Connections"
+        subtitle="Manage the external API connections for this project."
+        action={!loading && !connections.length
+          ? <ActionButton icon={faPlus} text="Create new connection" onClick={handleCreate} />
+          : undefined}
+      />
 
       {loading ? (
         <ul>
@@ -30,7 +36,9 @@ export const ApiConnectionList = () => {
           ))}
         </ul>
       ) : !connections.length ? (
-        <ActionButton icon={faPlus} text="Create new connection" onClick={handleCreate} />
+        <div className={s.emptyState}>
+          <EmptyBackground />
+        </div>
       ) : (
         <ul>
           {connections.map(conn => (

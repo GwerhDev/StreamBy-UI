@@ -4,11 +4,13 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ActionButton } from '../Buttons/ActionButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faKey } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { CredentialCard } from '../Cards/CredentialCard';
 import { DeleteCredentialModal } from '../Modals/DeleteCredentialModal';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 interface Credential {
   id: string;
@@ -41,10 +43,14 @@ export const CredentialList: React.FC = () => {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <h2>Manage Project Credentials</h2>
-        <p>Add, view, or remove credentials for your project.</p>
-      </div>
+      <SectionHeader
+        icon={faKey}
+        title="Credentials"
+        subtitle="Add, view, or remove credentials for your project."
+        action={!currentProjectLoading && !credentials?.length
+          ? <ActionButton icon={faPlus} text='Create new credential' onClick={handleCreateCredential} />
+          : undefined}
+      />
       {currentProjectLoading ? (
         <ul>
           {Array.from({ length: 3 }).map((_, index) => (
@@ -52,7 +58,9 @@ export const CredentialList: React.FC = () => {
           ))}
         </ul>
       ) : !credentials?.length ? (
-        <ActionButton icon={faPlus} text='Create new credential' onClick={handleCreateCredential} />
+        <div className={s.emptyState}>
+          <EmptyBackground />
+        </div>
       ) : (
         <ul className={s.credentialListGrid}>
           {credentials.map((credential, index) => (

@@ -68,18 +68,6 @@
   flex-shrink: 0;
 }
 
-.roleSelect {
-  appearance: none;
-  background-color: var(--color-dark-500);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  color: var(--color-light-200);
-  cursor: pointer;
-  width: auto;
-  text-align: center;
-}
 
 .removeBtn {
   background: none;

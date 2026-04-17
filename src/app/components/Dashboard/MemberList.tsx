@@ -9,9 +9,11 @@ import { inviteMember, removeMember, updateMemberRole } from '../../../services/
 import { searchUsers, UserSearchResult } from '../../../services/users';
 import { Member } from '../../../interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faMagnifyingGlass, faXmark, faChevronDown, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faUserPlus, faMagnifyingGlass, faXmark, faUserGroup } from '@fortawesome/free-solid-svg-icons';
 import { MemberCard } from '../Cards/MemberCard';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { DropdownInput } from '../Inputs/DropdownInput';
 
 type MemberRole = 'viewer' | 'editor' | 'admin';
 
@@ -127,15 +129,7 @@ export function MemberList() {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <span className={s.iconWrap}>
-          <FontAwesomeIcon icon={faUserGroup} />
-        </span>
-        <div className={s.headerText}>
-          <h2 className={s.title}>Project Members</h2>
-          <p className={s.subtitle}>Manage your project's team</p>
-        </div>
-      </div>
+      <SectionHeader icon={faUserGroup} title="Project Members" subtitle="Manage your project's team" />
 
       {isAdmin && (
         <div className={s.inviteSection}>
@@ -174,12 +168,11 @@ export function MemberList() {
               )}
             </div>
 
-            <div className={s.roleSelect}>
-              <FontAwesomeIcon icon={faChevronDown} className={s.roleIcon} />
-              <select value={inviteRole} onChange={e => setInviteRole(e.target.value as MemberRole)}>
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
+            <DropdownInput
+              value={inviteRole}
+              onChange={v => setInviteRole(v as MemberRole)}
+              options={ROLES.map(r => ({ value: r, label: r }))}
+            />
 
             <ActionButton
               icon={faUserPlus}

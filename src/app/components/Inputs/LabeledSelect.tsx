@@ -1,43 +1,28 @@
 import React from 'react';
 import s from './LabeledSelect.module.css';
+import { DropdownInput } from './DropdownInput';
 
 interface LabeledSelectProps {
   label: string;
-  name: string;
+  name?: string;
   value: string;
-  id: string;
-  htmlFor: string;
+  id?: string;
+  htmlFor?: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: { value: string; label: string }[];
   disabled?: boolean;
 }
 
-export function LabeledSelect({
-  label,
-  name,
-  value,
-  id,
-  htmlFor,
-  onChange,
-  options,
-  disabled = false,
-}: LabeledSelectProps) {
+export function LabeledSelect({ label, htmlFor, value, onChange, options, disabled = false }: LabeledSelectProps) {
   return (
     <div className={s.container}>
       <label htmlFor={htmlFor}>{label}</label>
-      <select
-        name={name}
-        id={id}
+      <DropdownInput
         value={value}
-        onChange={onChange}
+        onChange={v => onChange({ target: { value: v } } as React.ChangeEvent<HTMLSelectElement>)}
+        options={options}
         disabled={disabled}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      />
     </div>
   );
 }

@@ -2,8 +2,10 @@ import s from './AllowedOriginsList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 export const AllowedOriginsList = () => {
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
@@ -11,10 +13,7 @@ export const AllowedOriginsList = () => {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <h2 className={s.title}>Allowed Origins</h2>
-        <p className={s.subtitle}>Manage your project's allowed origins</p>
-      </div>
+      <SectionHeader icon={faGlobe} title="Allowed Origins" subtitle="Manage your project's allowed origins" />
       {
         currentProjectLoading
           ?
@@ -23,7 +22,11 @@ export const AllowedOriginsList = () => {
               <li key={index} className={`${s.cardSkeleton} ${skeleton.skeleton}`}></li>
             ))}
           </ul>
-          : (
+          : !allowedOrigins?.length ? (
+            <div className={s.emptyState}>
+              <EmptyBackground />
+            </div>
+          ) : (
             <ul className={s.originGrid}>
               {allowedOrigins?.map((origin, index) => (
                 <li key={index} className={s.originListItem}>

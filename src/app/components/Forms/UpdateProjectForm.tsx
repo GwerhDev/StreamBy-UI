@@ -1,9 +1,8 @@
 import s from './UpdateProjectForm.module.css';
-import inputStyles from '../Inputs/LabeledInput.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faFileImage, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faGlobe, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
@@ -17,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
 import { Spinner } from '../Spinner';
+import { CustomForm } from './CustomForm';
 
 export const UpdateProjectForm = () => {
   const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
@@ -61,49 +61,32 @@ export const UpdateProjectForm = () => {
     }
   };
 
-  const handleCancel = () => {
-    navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
-  };
+  const handleCancel = () => navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleImageClick = () => fileInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
+      reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target || {};
-    if (name === 'name-input') {
-      setName(value);
-    } else if (name === 'description-input') {
-      setDescription(value);
-    }
-  };
-
   const handleAllowedOriginChange = (index: number, value: string) => {
-    const newAllowedOrigins = [...allowedOrigin];
-    newAllowedOrigins[index] = value;
-    setAllowedOrigin(newAllowedOrigins);
+    const updated = [...allowedOrigin];
+    updated[index] = value;
+    setAllowedOrigin(updated);
   };
 
-  const handleAddAllowedOrigin = () => {
-    setAllowedOrigin([...allowedOrigin, ""]);
-  };
+  const handleAddAllowedOrigin = () => setAllowedOrigin([...allowedOrigin, ""]);
 
   const handleRemoveAllowedOrigin = (index: number) => {
-    const newAllowedOrigins = [...allowedOrigin];
-    newAllowedOrigins.splice(index, 1);
-    setAllowedOrigin(newAllowedOrigins);
+    const updated = [...allowedOrigin];
+    updated.splice(index, 1);
+    setAllowedOrigin(updated);
   };
 
   useEffect(() => {
@@ -111,88 +94,99 @@ export const UpdateProjectForm = () => {
   }, [name]);
 
   return (
-    <div className={s.container}>
+    <div className={s.divContainer}>
       <Spinner bg isLoading={loader} />
-      <form className={s.formContainer} onSubmit={handleOnSubmit}>
-        <h3>Update Project</h3>
-        <p>Fill the form to update your project</p>
-
-        <ul className={s.formContainer}>
-          <li className={s.imgContainer} onClick={handleImageClick}>
-            {preview ? (
-              <span className={s.previewImageContainer}>
-                <img src={preview} alt="preview" className={s.previewImage} />
-              </span>
-            ) : (
-              <FontAwesomeIcon color="var(--color-dark-400)" size="4x" icon={faFileImage} />
-            )}
-            <span className={s.plusContainer}>
-              <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
-            </span>
-          </li>
-          <li>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-          </li>
-        </ul>
-
-        <LabeledInput
-          label="Project's name"
-          type="text"
-          placeholder=""
-          id="name-input"
-          name="name-input"
-          htmlFor="name-input"
-          value={name}
-          onChange={handleInput}
-        />
-
-        <LabeledInput
-          label="Description (optional)"
-          type="text"
-          placeholder=""
-          id="description-input"
-          name="description-input"
-          htmlFor="description-input"
-          value={description}
-          onChange={handleInput}
-        />
-
-        <h4>Permissions</h4>
-        <span className={`${inputStyles.inputContainer} ${s.allowedOriginsWrapper}`}>
-          <div className={s.allowedOriginsContainer}>
-            {allowedOrigin.map((origin, index) => (
-              <div key={index} className={s.allowedOriginInputContainer}>
+      <form className={s.form} onSubmit={handleOnSubmit}>
+        <CustomForm
+          readOnly={false}
+          header={{ icon: faDiagramProject, title: 'Update Project', subtitle: 'Edit your project details below' }}
+          fields={[
+            {
+              icon: faFileImage,
+              label: 'Image',
+              value: null,
+              editComponent: (
+                <div className={s.imageField}>
+                  <div className={s.imgContainer} onClick={handleImageClick}>
+                    {preview ? (
+                      <span className={s.previewImageContainer}>
+                        <img src={preview} alt="preview" className={s.previewImage} />
+                      </span>
+                    ) : (
+                      <FontAwesomeIcon color="var(--color-dark-400)" size="4x" icon={faFileImage} />
+                    )}
+                    <span className={s.plusContainer}>
+                      <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                </div>
+              ),
+            },
+            {
+              icon: faDiagramProject,
+              label: "Project's name",
+              value: name || '—',
+              editComponent: (
                 <LabeledInput
-                  label={`Allowed Origin ${index + 1}`}
-                  type="text"
-                  placeholder="http://example.com"
-                  id={`allowed-origin-${index}`}
-                  name={`allowed-origin-${index}`}
-                  htmlFor={`allowed-origin-${index}`}
-                  value={origin}
-                  onChange={(e) => handleAllowedOriginChange(index, e.target.value)}
+                  label="Project's name" type="text" placeholder=""
+                  id="name-input" name="name-input" htmlFor="name-input"
+                  value={name} onChange={e => setName(e.target.value)}
                 />
-                <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
-            ))}
-            <button type="button" onClick={handleAddAllowedOrigin}>
-              <FontAwesomeIcon icon={faPlus} /> Add Origin
-            </button>
-          </div>
-        </span>
-
-        <span className={s.buttonContainer}>
-          <ActionButton disabled={disabled || loader} icon={faFloppyDisk} text="Update" type="submit" />
-          <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
-        </span>
+              ),
+            },
+            {
+              icon: faFileLines,
+              label: 'Description',
+              value: description || '—',
+              editComponent: (
+                <LabeledInput
+                  label="Description (optional)" type="text" placeholder=""
+                  id="description-input" name="description-input" htmlFor="description-input"
+                  value={description} onChange={e => setDescription(e.target.value)}
+                />
+              ),
+            },
+            {
+              icon: faGlobe,
+              label: 'Allowed Origins',
+              value: null,
+              editComponent: (
+                <div className={s.allowedOriginsContainer}>
+                  {allowedOrigin.map((origin, index) => (
+                    <div key={index} className={s.allowedOriginInputContainer}>
+                      <LabeledInput
+                        label={`Allowed Origin ${index + 1}`} type="text"
+                        placeholder="http://example.com"
+                        id={`allowed-origin-${index}`} name={`allowed-origin-${index}`}
+                        htmlFor={`allowed-origin-${index}`}
+                        value={origin} onChange={e => handleAllowedOriginChange(index, e.target.value)}
+                      />
+                      <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
+                        <FontAwesomeIcon icon={faXmark} />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={handleAddAllowedOrigin}>
+                    <FontAwesomeIcon icon={faPlus} /> Add Origin
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+          actions={
+            <>
+              <ActionButton disabled={disabled || loader} icon={faFloppyDisk} text="Update" type="submit" />
+              <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
+            </>
+          }
+        />
       </form>
     </div>
   );

@@ -1,23 +1,23 @@
 .container {
+  gap: 1rem;
   width: 100%;
   max-width: 1024px;
-  padding-top: 3rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  flex-grow: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
 }
 
-.header {
-  gap: .5rem;
+.emptyState {
+  flex-grow: 1;
   display: flex;
-  text-align: center;
   align-items: center;
-  flex-direction: column;
+  justify-content: center;
 }
 
-.subtitle {
-  margin-bottom: 1rem;
-}
 
 .originGrid {
   gap: 1rem;

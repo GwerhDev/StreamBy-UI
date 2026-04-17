@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCode, faPencil, faTrash, faFingerprint, faLink, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { RootState } from '../../../store';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -21,16 +22,7 @@ export const ApiConnectionDetail = () => {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <span className={s.iconWrap}>
-          <FontAwesomeIcon icon={faCode} />
-        </span>
-        <div>
-          <h2 className={s.title}>{connection.name}</h2>
-          {connection.description && <p className={s.description}>{connection.description}</p>}
-        </div>
-        <span className={s.methodBadge}>{connection.method}</span>
-      </div>
+      <SectionHeader icon={faCode} title={connection.name} subtitle={connection.description} badge={connection.method} />
 
       <div className={s.fields}>
         <div className={s.field}>

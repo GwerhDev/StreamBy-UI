@@ -2,6 +2,7 @@ import s from './MemberCard.module.css';
 import { Member } from '../../../interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { DropdownInput } from '../Inputs/DropdownInput';
 
 type MemberRole = 'viewer' | 'editor' | 'admin';
 
@@ -26,13 +27,11 @@ export const MemberCard = ({ member, isAdmin, isSelf, onRoleChange, onRemove }: 
 
       {isAdmin && !isSelf ? (
         <div className={s.actions}>
-          <select
-            className={s.roleSelect}
+          <DropdownInput
             value={member.role}
-            onChange={e => onRoleChange?.(e.target.value)}
-          >
-            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+            onChange={v => onRoleChange?.(v)}
+            options={ROLES.map(r => ({ value: r, label: r }))}
+          />
           <button className={s.removeBtn} onClick={onRemove} title="Remove member">
             <FontAwesomeIcon icon={faTrash} />
           </button>

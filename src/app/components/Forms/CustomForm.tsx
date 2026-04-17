@@ -2,6 +2,7 @@ import s from './CustomForm.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ReactNode } from 'react';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
 
 export interface FieldConfig {
   icon: IconDefinition;
@@ -11,7 +12,7 @@ export interface FieldConfig {
   hidden?: boolean;
 }
 
-interface CustomFormHeader {
+export interface CustomFormHeader {
   icon: IconDefinition;
   title: string;
   subtitle?: string;
@@ -35,22 +36,9 @@ export function CustomForm({ header, fields, actions, readOnly = true }: CustomF
   return (
     <div className={s.container}>
       {header && (
-        <div className={s.header}>
-          {isHeaderConfig(header) ? (
-            <>
-              <span className={s.iconWrap}>
-                <FontAwesomeIcon icon={header.icon} />
-              </span>
-              <div className={s.headerText}>
-                <h2 className={s.title}>{header.title}</h2>
-                {header.subtitle && <p className={s.subtitle}>{header.subtitle}</p>}
-              </div>
-              {header.badge && <span className={s.methodBadge}>{header.badge}</span>}
-            </>
-          ) : (
-            header as ReactNode
-          )}
-        </div>
+        isHeaderConfig(header)
+          ? <SectionHeader icon={header.icon} title={header.title} subtitle={header.subtitle} badge={header.badge} />
+          : header as ReactNode
       )}
 
       <div className={s.fields}>

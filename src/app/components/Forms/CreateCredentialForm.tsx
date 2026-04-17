@@ -9,9 +9,10 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faKey, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faKey, faXmark, faFingerprint, faLock } from '@fortawesome/free-solid-svg-icons';
+import { CustomForm } from './CustomForm';
 
-export const CreateCredentialForm = () => { // Removed props
+export const CreateCredentialForm = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,7 +20,7 @@ export const CreateCredentialForm = () => { // Removed props
 
   const [key, setKey] = useState('');
   const [value, setValue] = useState('');
-  const [loading, setLoading] = useState(false); // Managed internally
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +35,7 @@ export const CreateCredentialForm = () => { // Removed props
           ? [...currentProject.credentials, newCredential]
           : [newCredential];
         dispatch(setCurrentProject({ ...currentProject, credentials: updatedCredentials }));
-        navigate(`/project/${projectId}/settings/credentials`); // Navigate back to the list
+        navigate(`/project/${projectId}/settings/credentials`);
       }
     } catch (error) {
       console.error('Error creating credential:', error);
@@ -43,45 +44,48 @@ export const CreateCredentialForm = () => { // Removed props
     }
   };
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
-
   return (
     <div className={s.container}>
       <Spinner bg isLoading={loading} />
-      <form onSubmit={handleSubmit}>
-        <div className={s.formContainer}>
-          <h3>Create New Credential</h3>
-          <p>Fill the form to create a new credential for {currentProject?.name}</p>
-
-          <LabeledInput
-            label="Key"
-            name="key"
-            value={key}
-            type="text"
-            placeholder="Enter credential key"
-            id="credential-key"
-            htmlFor="credential-key"
-            onChange={(e) => setKey(e.target.value)}
-            disabled={loading}
-          />
-          <LabeledInput
-            label="Value"
-            name="value"
-            value={value}
-            type="text"
-            placeholder="Enter credential value"
-            id="credential-value"
-            htmlFor="credential-value"
-            onChange={(e) => setValue(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-        <span className={s.buttonContainer}>
-          <ActionButton disabled={loading || !key || !value} icon={faKey} text="Create" type="submit" />
-          <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
-        </span>
+      <form onSubmit={handleSubmit} className={s.form}>
+        <CustomForm
+          readOnly={false}
+          header={{ icon: faKey, title: 'New Credential', subtitle: `Add a credential for ${currentProject?.name}` }}
+          fields={[
+            {
+              icon: faFingerprint,
+              label: 'Key',
+              value: key || '—',
+              editComponent: (
+                <LabeledInput
+                  label="Key" name="key" value={key} type="text"
+                  placeholder="Enter credential key"
+                  id="credential-key" htmlFor="credential-key"
+                  onChange={e => setKey(e.target.value)} disabled={loading}
+                />
+              ),
+            },
+            {
+              icon: faLock,
+              label: 'Value',
+              value: value || '—',
+              editComponent: (
+                <LabeledInput
+                  label="Value" name="value" value={value} type="text"
+                  placeholder="Enter credential value"
+                  id="credential-value" htmlFor="credential-value"
+                  onChange={e => setValue(e.target.value)} disabled={loading}
+                />
+              ),
+            },
+          ]}
+          actions={
+            <>
+              <ActionButton disabled={loading || !key || !value} icon={faKey} text="Create" type="submit" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+            </>
+          }
+        />
       </form>
     </div>
   );

@@ -33,10 +33,12 @@ export const Start = () => {
           </div>
         ) : (
           filteredList.length === 0 ? (
-            <div className={s.createContainer}>
-              <h1>Born to Dev</h1>
-              <p>Get started by creating a new project</p>
-              <ActionButton icon={faPlus} text='Create project' onClick={handleCreateProject} />
+            <div className={s.emptyState}>
+              <div className={s.createContainer}>
+                <h1>Born to Dev</h1>
+                <p>Get started by creating a new project</p>
+                <ActionButton icon={faPlus} text='Create project' onClick={handleCreateProject} />
+              </div>
             </div>
           ) : (
             <div className={s.createContainer}>

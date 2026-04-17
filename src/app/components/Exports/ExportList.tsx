@@ -6,8 +6,10 @@ import { RootState } from "../../../store";
 import { Export } from "../../../interfaces";
 import { ExportCard } from "../Cards/ExportCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { ActionButton } from "../Buttons/ActionButton";
+import { SectionHeader } from "../SectionHeader/SectionHeader";
+import { EmptyBackground } from "../Backgrounds/EmptyBackground";
 
 export function ExportList() {
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
@@ -20,10 +22,14 @@ export function ExportList() {
 
   return (
     <div className={s.container}>
-      <div className={s.header}>
-        <h2>Export fire with fire</h2>
-        <p>Get started by creating a new export</p>
-      </div>
+      <SectionHeader
+        icon={faArrowUpFromBracket}
+        title="Exports"
+        subtitle="Get started by creating a new export"
+        action={!currentProjectLoading && !exports?.length
+          ? <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
+          : undefined}
+      />
       {currentProjectLoading ? (
         <ul>
           {Array.from({ length: 3 }).map((_, index) => (
@@ -31,7 +37,9 @@ export function ExportList() {
           ))}
         </ul>
       ) : !exports?.length ? (
-        <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
+        <div className={s.emptyState}>
+          <EmptyBackground />
+        </div>
       ) : (
         <ul>
           {exports?.map((exportItem: Export) => (

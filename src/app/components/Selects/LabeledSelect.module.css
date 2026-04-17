@@ -13,12 +13,12 @@
   display: flex;
 }
 
-.container input,
-.container select {
+.container > div {
   width: 100%;
 }
 
-
-.disabled {
-  opacity: 0.5;
+.container > div button {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
 }
