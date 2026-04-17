@@ -1,6 +1,7 @@
 import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import { getConnectionResponse } from '../../../services/connections';
 import JsonViewer from '../JsonViewer/JsonViewer';
+import { JsonEditor } from '../JsonEditor/JsonEditor';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -341,10 +342,12 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  const CONNECTOR_TYPES = ['apiConnectionNode', 'dataSourceNode'];
   const visibleNodes = useMemo(() => {
     if (editMode) return nodes;
     const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
-    return nodes.filter(n => connected.has(n.id));
+    return nodes.filter(n => !CONNECTOR_TYPES.includes(n.type ?? '') || connected.has(n.id));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, nodes, edges]);
 
   const onChangeRef = useRef(onChange);
@@ -434,7 +437,9 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node.type === 'jsonInputNode') return {
       title: 'JSON Data',
       description: 'Static JSON that feeds the data layer. Connect its output to a Data Source or directly to StreamBy bottom.',
-      fields: [],
+      fields: editMode
+        ? [{ key: 'jsonString', label: 'JSON Content', value: node.data.jsonString || '{}', editable: true, inputType: 'json' as const }]
+        : [],
     };
 
     if (node.type === 'apiConnectionNode') {
@@ -474,7 +479,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     return null;
-  }, [exportDetails, nodes, apiConnections]);
+  }, [exportDetails, nodes, apiConnections, editMode]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
@@ -573,8 +578,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
           <ReactFlow
             nodes={visibleNodes} edges={edges}
             onNodeClick={handleNodeClick}
-            onNodesChange={editMode ? onNodesChange : undefined}
-            onEdgesChange={editMode ? onEdgesChange : undefined}
+            onNodesChange={editMode ? onNodesChange : () => {}}
+            onEdgesChange={editMode ? onEdgesChange : () => {}}
             onConnect={editMode ? onConnect : undefined}
             isValidConnection={editMode ? isValidConnection : undefined}
             nodeTypes={nodeTypes}
@@ -605,7 +610,11 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
                       </label>
                     ) : field.inputType === 'json' ? (
-                      <textarea defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldTextarea} spellCheck={false} />
+                      <JsonEditor
+                        value={String(getFieldDisplayValue(field))}
+                        onChange={(jsonString) => handleFieldChange(field.key, jsonString)}
+                        jsonError={jsonError}
+                      />
                     ) : field.inputType === 'select' && field.options?.length ? (
                       <select value={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldSelect}>
                         <option value="">Select connection…</option>
