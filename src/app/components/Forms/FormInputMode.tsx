@@ -218,8 +218,8 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
 
   return (
     <div className={s.fieldsSection}>
-      <h4>Fields</h4>
-      {jsonError && <p className={s.errorMessage}>Error: Invalid JSON format. Please switch to Raw JSON mode to fix it. ({jsonError})</p>}
+      <h4>Form</h4>
+      {jsonError && <p className={s.errorMessage}>Error: Invalid JSON format. Please switch to JSON mode to fix it. ({jsonError})</p>}
       {Object.entries(jsonData).map(([key, value]) => (
         <JsonField
           key={key}

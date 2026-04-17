@@ -22,14 +22,14 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { CustomForm } from '../Forms/CustomForm';
 
-type ViewMode = 'flow' | 'apiResponse' | 'fields' | 'json';
+type ViewMode = 'nodes' | 'apiResponse' | 'fields' | 'json';
 
 export const ExportDetailsView: React.FC = () => {
   const navigate = useNavigate();
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('flow');
+  const [viewMode, setViewMode] = useState<ViewMode>('nodes');
   const [exportDetails, setExportDetails] = useState<Export | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -149,16 +149,16 @@ export const ExportDetailsView: React.FC = () => {
                 active={viewMode}
                 onChange={id => setViewMode(id as ViewMode)}
                 tabs={[
-                  { id: 'flow', label: 'Flow', icon: faSitemap },
+                  { id: 'nodes', label: 'Nodes', icon: faSitemap },
                   ...(exportDetails.type === 'externalApi'
                     ? [{ id: 'apiResponse', label: 'Api Response', icon: faExternalLink } as TabItem]
                     : []),
-                  { id: 'fields', label: 'Fields', icon: faFileLines },
-                  { id: 'json', label: 'Raw JSON', icon: faCode },
+                  { id: 'fields', label: 'Form', icon: faFileLines },
+                  { id: 'json', label: 'JSON', icon: faCode },
                 ]}
               />
               <div className={s.viewerContent}>
-                {viewMode === 'flow' && <NodeViewer exportDetails={exportDetails} />}
+                {viewMode === 'nodes' && <NodeViewer exportDetails={exportDetails} />}
                 {viewMode === 'apiResponse' && exportDetails.apiResponse && <JsonViewer data={exportDetails.apiResponse as JSON} />}
                 {viewMode === 'fields' && exportDetails.json && <ReadOnlyFields data={exportDetails.json} />}
                 {viewMode === 'json' && exportDetails.json && <JsonViewer data={exportDetails.json} />}

@@ -18,7 +18,7 @@ Answer questions, implement features, and write tests according to the conventio
 | HTTP | Native `fetch` with `credentials: 'include'` (session cookies) |
 | DnD | @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/modifiers |
 | Charts | Chart.js + react-chartjs-2, @nivo/pie |
-| Flow | ReactFlow 11 (used in NodeViewer) |
+| Nodes | ReactFlow 11 (used in NodeViewer) |
 
 ---
 

@@ -29,7 +29,7 @@ export function UpdateExportForm() {
   const [jsonData, setJsonData] = useState<object>({});
   const [rawJsonString, setRawJsonString] = useState<string>('{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson' | 'flow'>('flow');
+  const [inputMode, setInputMode] = useState<'form' | 'rawJson' | 'nodes'>('nodes');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
@@ -237,7 +237,7 @@ export function UpdateExportForm() {
                     icon: faLock,
                     label: 'Private',
                     value: isPrivate ? 'Yes' : 'No',
-                    hidden: inputMode === 'flow',
+                    hidden: inputMode === 'nodes',
                     editComponent: (
                       <CustomCheckbox
                         id="private-checkbox" name="private-checkbox"
@@ -275,7 +275,7 @@ export function UpdateExportForm() {
                     icon: faTowerBroadcast,
                     label: 'API Connection',
                     value: selectedConnectionId || '—',
-                    hidden: exportType !== 'externalApi' || inputMode === 'flow',
+                    hidden: exportType !== 'externalApi' || inputMode === 'nodes',
                     editComponent: (currentProject?.data?.apiConnections?.length ?? 0) > 0 ? (
                       <ul className={s.connectionsList}>
                         {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
@@ -316,11 +316,11 @@ export function UpdateExportForm() {
             <div className={s.viewerPanel}>
               <Tabs
                 active={inputMode}
-                onChange={id => setInputMode(id as 'flow' | 'form' | 'rawJson')}
+                onChange={id => setInputMode(id as 'nodes' | 'form' | 'rawJson')}
                 tabs={[
-                  { id: 'flow', label: 'Flow', icon: faSitemap },
-                  { id: 'form', label: 'Form input', icon: faFileLines },
-                  { id: 'rawJson', label: 'Raw JSON', icon: faCode },
+                  { id: 'nodes', label: 'Nodes', icon: faSitemap },
+                  { id: 'form', label: 'Form', icon: faFileLines },
+                  { id: 'rawJson', label: 'JSON', icon: faCode },
                 ]}
               />
               <div className={s.viewerContent}>
@@ -330,7 +330,7 @@ export function UpdateExportForm() {
                 {inputMode === 'rawJson' && (
                   <RawJsonInputMode jsonData={rawJsonString} onJsonDataChange={handleRawJsonStringChange} jsonError={jsonError} />
                 )}
-                {inputMode === 'flow' && exportForViewer && (
+                {inputMode === 'nodes' && exportForViewer && (
                   <NodeViewer
                     exportDetails={exportForViewer}
                     editMode
