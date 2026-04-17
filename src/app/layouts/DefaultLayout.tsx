@@ -6,7 +6,7 @@ import { useProjects } from '../../hooks/useProjects';
 import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { DbInfoButton } from '../components/DbInfo/DbInfoButton';
+import { DbInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
 
 export default function DefaultLayout() {
   const session = useSelector((state: RootState) => state.session);
