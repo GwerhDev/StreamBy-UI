@@ -60,6 +60,18 @@
   white-space: nowrap;
 }
 
+.paletteGroupLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0 0.3rem;
+  border-left: 1px solid var(--color-dark-300);
+  margin-left: 0.1rem;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
 .paletteBtn {
   display: flex;
   align-items: center;
@@ -67,7 +79,7 @@
   padding: 0.28rem 0.55rem;
   background: var(--color-dark-500);
   border: 1px solid var(--color-dark-300);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--color-light-300);
   font-size: 0.75rem;
   cursor: pointer;
@@ -175,7 +187,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
@@ -374,7 +386,7 @@
   background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.81rem;
   font-weight: 600;
   cursor: pointer;
@@ -466,6 +478,56 @@
   color: #f87171;
 }
 
+/* ─── JSON Textarea & Select ──────────────────────────────────────────────── */
+
+.fieldTextarea {
+  font-size: 0.72rem;
+  font-family: monospace;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-dark-900);
+  border: 1px solid var(--color-dark-200);
+  border-radius: 4px;
+  color: var(--color-light-200);
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  line-height: 1.55;
+  transition: border-color 0.18s ease;
+}
+
+.fieldTextarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  background: var(--color-dark-800);
+}
+
+.fieldSelect {
+  font-size: 0.79rem;
+  padding: 0.32rem 0.5rem;
+  background: var(--color-dark-900);
+  border: none;
+  border-bottom: 1px solid var(--color-dark-100);
+  border-radius: 4px 4px 0 0;
+  color: var(--color-light-200);
+  width: 100%;
+  transition: border-color 0.18s ease;
+}
+
+.fieldSelect:focus {
+  border-bottom-color: var(--color-primary);
+  outline: none;
+}
+
+.jsonError {
+  margin: 0 1rem 0.5rem;
+  font-size: 0.73rem;
+  color: #f87171;
+  padding: 0.35rem 0.5rem;
+  background: rgba(248, 113, 113, 0.08);
+  border-radius: 4px;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
 /* ─── Connection Picker (inside detail panel) ─────────────────────────────── */
 
 .connPickerList {
@@ -482,7 +544,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.45rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--color-dark-300);
   background: var(--color-dark-700);
   cursor: pointer;

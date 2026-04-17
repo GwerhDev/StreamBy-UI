@@ -7,7 +7,7 @@ import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { deleteApiConnection } from '../../../services/apiConnections';
+import { deleteApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { RootState } from '../../../store';
 

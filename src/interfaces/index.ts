@@ -63,6 +63,12 @@ export interface CurrentProjectState {
   error: string | null;
 }
 
+export interface CurrentExportState {
+  data: Export | null;
+  loading: boolean;
+  error: string | null;
+}
+
 export interface DeleteProjectFormProps {
   currentProject: CurrentProjectState | null;
   handleDeleteProject: (e: React.FormEvent) => void;
@@ -107,15 +113,15 @@ export interface Directory {
 export interface Export {
   id: string;
   name: string;
-  type: 'json' | 'externalApi';
+  type?: 'json' | 'externalApi';
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
   updatedAt: string;
   projectId: string;
-  collectionName: string;
-  exportType: 'json' | 'externalApi';
+  collectionName?: string;
+  exportType?: 'json' | 'externalApi';
   exportedBy: string;
   allowedOrigin?: string[];
   private?: boolean;
@@ -125,6 +131,9 @@ export interface Export {
   json?: JSON | null;
   fields?: JSON | null;
   apiResponse?: JSON | null;
+  nodeSchema?: { nodes: object[]; edges: object[] } | null;
+  useConnections?: boolean;
+  useCredentials?: boolean;
 }
 
 export interface ExportPayload {

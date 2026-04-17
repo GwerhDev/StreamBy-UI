@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import { createApiConnection } from '../../../services/apiConnections';
+import { createApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';

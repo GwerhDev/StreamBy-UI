@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -16,48 +16,38 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
 import { Export, ApiConnection } from '../../../interfaces';
-import { API_BASE } from '../../../config/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-  faUser,
-  faBolt,
-  faDatabase,
-  faGlobe,
-  faCircleCheck,
-  faXmark,
-  faFloppyDisk,
-  faInfoCircle,
-  faArrowsRotate,
-  faFilter,
-  faKey,
-  faWrench,
-  faPlus,
+  faUser, faBolt, faDatabase, faGlobe, faXmark, faFloppyDisk,
+  faInfoCircle, faArrowsRotate, faFilter, faKey, faWrench,
+  faPlus, faCode, faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
+
+// ─── Node Data Types ───────────────────────────────────────────────────────
+
+interface BaseNodeData { label: string; subtitle: string; }
+interface ProcessNodeData extends BaseNodeData { icon: IconDefinition; bgColor: string; iconColor: string; }
+interface JsonInputNodeData extends BaseNodeData { jsonString: string; }
+
+// ─── Handle color tokens ───────────────────────────────────────────────────
+// Left=input blue, Top=process purple, Bottom=data green, Right=output amber
+
+const H_LEFT   = '#38B6FF';
+const H_TOP    = '#a78bfa';
+const H_BOTTOM = '#34d399';
+const H_RIGHT  = '#fbbf24';
+
+const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-dark-800)', borderColor: color });
+const hOut = (color: string): React.CSSProperties => ({ background: color, borderColor: color });
 
 // ─── Custom Node Components ────────────────────────────────────────────────
 
-interface CustomNodeData {
-  label: string;
-  subtitle: string;
-  isApi?: boolean;
-}
-
-interface ProcessNodeData {
-  label: string;
-  subtitle: string;
-  icon: IconDefinition;
-  bgColor: string;
-  iconColor: string;
-}
-
-const ClientNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+const ClientNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="source" position={Position.Right} className={s.handle} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_LEFT)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0e2537' }}>
-      <div className={s.nodeIcon} style={{ color: '#38B6FF' }}>
-        <FontAwesomeIcon icon={faUser} />
-      </div>
+      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faUser} /></div>
     </div>
     <div className={s.nodeBody}>
       <div className={s.nodeLabel}>{data.label}</div>
@@ -67,16 +57,20 @@ const ClientNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
 ));
 ClientNode.displayName = 'ClientNode';
 
-const StreamByNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
+const StreamByNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left} id="in-left" className={s.handle} />
-    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} />
-    <Handle type="source" position={Position.Bottom} id="out-ds" className={s.handle} style={{ left: '38%' }} />
-    <Handle type="target" position={Position.Bottom} id="in-ds" className={s.handle} style={{ left: '62%' }} />
+    {/* Left — input from client */}
+    <Handle type="target" position={Position.Left}   id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    {/* Top — process layer */}
+    <Handle type="source" position={Position.Top}    id="out-top"   className={s.handle} style={{ ...hOut(H_TOP),    left: '35%' }} />
+    <Handle type="target" position={Position.Top}    id="in-top"    className={s.handle} style={{ ...hIn(H_TOP),     left: '65%' }} />
+    {/* Bottom — data layer */}
+    <Handle type="source" position={Position.Bottom} id="out-bottom" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '35%' }} />
+    <Handle type="target" position={Position.Bottom} id="in-bottom"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '65%' }} />
+    {/* Right — output layer */}
+    <Handle type="source" position={Position.Right}  id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#14103a' }}>
-      <div className={s.nodeIcon} style={{ color: '#a78bfa' }}>
-        <FontAwesomeIcon icon={faBolt} />
-      </div>
+      <div className={s.nodeIcon} style={{ color: '#a78bfa' }}><FontAwesomeIcon icon={faBolt} /></div>
     </div>
     <div className={s.nodeBody}>
       <div className={s.nodeLabel}>{data.label}</div>
@@ -86,47 +80,13 @@ const StreamByNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
 ));
 StreamByNode.displayName = 'StreamByNode';
 
-const DataSourceNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Top} id="in-top" className={s.handle} style={{ left: '38%' }} />
-    <Handle type="source" position={Position.Top} id="out-top" className={s.handle} style={{ left: '62%' }} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
-      <div className={s.nodeIcon} style={{ color: '#34d399' }}>
-        <FontAwesomeIcon icon={data.isApi ? faGlobe : faDatabase} />
-      </div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-DataSourceNode.displayName = 'DataSourceNode';
-
-const ResponseNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left} className={s.handle} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#261409' }}>
-      <div className={s.nodeIcon} style={{ color: '#fb923c' }}>
-        <FontAwesomeIcon icon={faCircleCheck} />
-      </div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-ResponseNode.displayName = 'ResponseNode';
-
+// Sits ABOVE StreamBy — connects via StreamBy top handles
 const ProcessNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left} className={s.handle} />
-    <Handle type="source" position={Position.Right} className={s.handle} />
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
     <div className={s.nodeIconBar} style={{ backgroundColor: data.bgColor }}>
-      <div className={s.nodeIcon} style={{ color: data.iconColor }}>
-        <FontAwesomeIcon icon={data.icon} />
-      </div>
+      <div className={s.nodeIcon} style={{ color: data.iconColor }}><FontAwesomeIcon icon={data.icon} /></div>
     </div>
     <div className={s.nodeBody}>
       <div className={s.nodeLabel}>{data.label}</div>
@@ -136,311 +96,415 @@ const ProcessNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
 ));
 ProcessNode.displayName = 'ProcessNode';
 
+// Sits BELOW StreamBy — connects via StreamBy bottom handles + receives JSON input from left
+const DataSourceNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
+    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
+    <Handle type="target" position={Position.Left} id="in-json"    className={s.handle} style={hIn(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faDatabase} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DataSourceNode.displayName = 'DataSourceNode';
+
+// Sits BELOW StreamBy — connects via StreamBy bottom handles
+const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
+    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
+      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faGlobe} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ApiConnectionNode.displayName = 'ApiConnectionNode';
+
+// Feeds static JSON into the data layer
+const JsonInputNode = memo(({ data, selected }: NodeProps<JsonInputNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1403' }}>
+      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faCode} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+JsonInputNode.displayName = 'JsonInputNode';
+
+// Sits to the RIGHT of StreamBy — output filters before response
+const FilterNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: data.bgColor }}>
+      <div className={s.nodeIcon} style={{ color: data.iconColor }}><FontAwesomeIcon icon={data.icon} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+FilterNode.displayName = 'FilterNode';
+
+// ─── Schema response computation ──────────────────────────────────────────
+// Walks the saved node graph and computes a client-side preview of the response.
+// Only JSON Data nodes can be evaluated here; API/DB nodes require server execution.
+
+type SchemaNode = { id: string; type?: string; data?: Record<string, unknown> };
+type SchemaEdge = { source?: string; sourceHandle?: string; target?: string; targetHandle?: string };
+
+export function computeResponseFromSchema(
+  schema: { nodes: object[]; edges: object[] } | null | undefined
+): unknown {
+  if (!schema) return null;
+  const nodes = schema.nodes as SchemaNode[];
+  const edges  = schema.edges as SchemaEdge[];
+
+  // Collect all JSON values reachable at StreamBy's in-bottom
+  const collectJsonAt = (nodeId: string, targetHandle: string): unknown[] => {
+    return edges
+      .filter(e => e.target === nodeId && e.targetHandle === targetHandle)
+      .flatMap(edge => {
+        const src = nodes.find(n => n.id === edge.source);
+        if (!src) return [];
+        if (src.type === 'jsonInputNode') {
+          try { return [JSON.parse((src.data?.jsonString as string) || '{}')] ; }
+          catch { return []; }
+        }
+        return []; // API/DataSource: not evaluable client-side
+      });
+  };
+
+  const dataLayer = collectJsonAt('streamby', 'in-bottom');
+  if (dataLayer.length === 0) return null;
+
+  // Multiple sources → wrap in array so each is distinct
+  let result: unknown = dataLayer.length === 1 ? dataLayer[0] : dataLayer;
+
+  // Walk filter nodes chained on StreamBy's out-right (pass-through for now)
+  const walkFilters = (srcId: string, srcHandle: string): void => {
+    const next = edges.find(e => e.source === srcId && e.sourceHandle === srcHandle);
+    if (!next?.target) return;
+    const filterNode = nodes.find(n => n.id === next.target);
+    if (filterNode?.type === 'filterNode') {
+      // Future: apply actual filter logic from filterNode.data
+      walkFilters(next.target, 'out-filter');
+    }
+  };
+  walkFilters('streamby', 'out-right');
+
+  return result;
+}
+
 const nodeTypes = {
   clientNode: ClientNode,
   streambyNode: StreamByNode,
   dataSourceNode: DataSourceNode,
-  responseNode: ResponseNode,
+  jsonInputNode: JsonInputNode,
+  apiConnectionNode: ApiConnectionNode,
   processNode: ProcessNode,
+  filterNode: FilterNode,
 };
 
 // ─── Node Palette Config ───────────────────────────────────────────────────
 
-const NODE_PALETTE: { label: string; subtitle: string; icon: IconDefinition; bgColor: string; iconColor: string }[] = [
-  { label: 'Transform', subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa' },
-  { label: 'Filter',    subtitle: 'Data filtering',      icon: faFilter,        bgColor: '#0d2218', iconColor: '#34d399' },
-  { label: 'Auth',      subtitle: 'Authentication',      icon: faKey,           bgColor: '#1e1030', iconColor: '#c084fc' },
-  { label: 'Custom',    subtitle: 'Custom step',         icon: faWrench,        bgColor: '#251a0a', iconColor: '#fbbf24' },
+type PaletteItem = { type: string; label: string; subtitle: string; icon: IconDefinition; bgColor: string; iconColor: string; group: 'data' | 'process' | 'output' };
+
+const NODE_PALETTE: PaletteItem[] = [
+  // Data layer — connect to StreamBy bottom
+  { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
+  { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
+  { type: 'apiConnectionNode', label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
+  // Process layer — connect to StreamBy top
+  { type: 'processNode',       label: 'Transform',    subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa', group: 'process' },
+  { type: 'processNode',       label: 'Auth',         subtitle: 'Authentication',      icon: faKey,          bgColor: '#1e1030', iconColor: H_TOP,    group: 'process' },
+  { type: 'processNode',       label: 'Custom',       subtitle: 'Custom step',         icon: faWrench,       bgColor: '#251a0a', iconColor: H_RIGHT,  group: 'process' },
+  // Output layer — connect to StreamBy right
+  { type: 'filterNode',        label: 'Filter',       subtitle: 'Output filter',       icon: faFilter,       bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
+  { type: 'filterNode',        label: 'Transform',    subtitle: 'Output transform',    icon: faArrowRight,   bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
 ];
+
+const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
+  { key: 'data',    label: 'Data',    color: H_BOTTOM },
+  { key: 'process', label: 'Process', color: H_TOP },
+  { key: 'output',  label: 'Output',  color: H_RIGHT },
+];
+
+// ─── Edge color per connection type ───────────────────────────────────────
+
+const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
+  if (srcType === 'jsonInputNode') return H_RIGHT;
+  if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;
+  if (sourceHandle === 'out-bottom' || sourceHandle === 'out-stream') return H_BOTTOM;
+  if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;
+  return H_LEFT;
+};
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 interface DetailField {
-  key: string;
-  label: string;
-  value: string;
-  editable?: boolean;
-  inputType?: 'text' | 'checkbox' | 'connection';
+  key: string; label: string; value: string;
+  editable?: boolean; inputType?: 'text' | 'checkbox' | 'json' | 'select';
+  options?: { value: string; label: string }[];
 }
-
-interface NodeDetail {
-  title: string;
-  description: string;
-  fields: DetailField[];
-}
+interface NodeDetail { title: string; description: string; fields: DetailField[]; }
 
 // ─── NodeViewer ────────────────────────────────────────────────────────────
 
 export interface NodeViewerProps {
   exportDetails: Export;
   editMode?: boolean;
-  onSave?: (updates: Record<string, string | boolean>) => void;
+  onSave?: (updates: Record<string, string | boolean | object | null>) => void;
+  onChange?: (schema: { nodes: Node[]; edges: Edge[] }) => void;
   apiConnections?: ApiConnection[];
-  onConnectionSelect?: (conn: ApiConnection) => void;
-  selectedConnectionId?: string | null;
 }
 
-export const NodeViewer: React.FC<NodeViewerProps> = ({
-  exportDetails,
-  editMode = false,
-  onSave,
-  apiConnections,
-  onConnectionSelect,
-  selectedConnectionId,
-}) => {
+export interface NodeViewerHandle {
+  getSchema: () => { nodes: Node[]; edges: Edge[] };
+}
+
+const CORE_NODE_IDS = ['client', 'streamby'];
+
+export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [],
+}, ref) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
-  const [previewData, setPreviewData] = useState<unknown>(undefined);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [jsonError, setJsonError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!editMode) {
-      setLocalData({});
+  const initialJsonRef = useRef(exportDetails.json);
+  const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
+  const apiConnectionsRef = useRef(apiConnections);
+  const initialSchemaRef = useRef(exportDetails.nodeSchema);
+
+  const initialNodes = useMemo((): Node[] => {
+    if (initialSchemaRef.current?.nodes) return initialSchemaRef.current.nodes as Node[];
+
+    const nodes: Node[] = [
+      { id: 'client',   type: 'clientNode',   position: { x: 0,   y: 100 }, data: { label: 'Client',   subtitle: exportDetails.method || 'GET' } },
+      { id: 'streamby', type: 'streambyNode',  position: { x: 240, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
+    ];
+
+    if (initialJsonRef.current) {
+      nodes.push({ id: 'json-input', type: 'jsonInputNode', position: { x: 240, y: 320 }, data: { label: 'JSON Data', subtitle: 'Static data source', jsonString: JSON.stringify(initialJsonRef.current, null, 2) } });
     }
-  }, [editMode]);
-
-  // Reset preview when user navigates away from the response node
-  useEffect(() => {
-    if (selectedNodeId !== 'response') {
-      setPreviewData(undefined);
-      setPreviewError(null);
+    if (initialApiRef.current.apiUrl) {
+      const conn = apiConnectionsRef.current.find(c => c.baseUrl === initialApiRef.current.apiUrl);
+      nodes.push({ id: 'api-conn', type: 'apiConnectionNode', position: { x: 240, y: 320 }, data: { label: conn?.name || 'API Connection', subtitle: initialApiRef.current.apiUrl || '', connectionId: conn?.id || '' } });
     }
-  }, [selectedNodeId]);
+    return nodes;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const fetchPreview = useCallback(async () => {
-    setPreviewLoading(true);
-    setPreviewError(null);
-    try {
-      if (exportDetails.type === 'externalApi') {
-        if (!exportDetails.apiUrl) throw new Error('No API URL configured. Select a connection first.');
-        const res = await fetch(exportDetails.apiUrl, {
-          method: exportDetails.method || 'GET',
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const data = await res.json();
-        setPreviewData(data);
-      } else {
-        if (!exportDetails.id || !exportDetails.projectId || !exportDetails.name) {
-          throw new Error('Save the export first to preview JSON data.');
-        }
-        const res = await fetch(
-          `${API_BASE}/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}`,
-          { credentials: 'include' },
-        );
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        setPreviewData(data);
-      }
-    } catch (err: unknown) {
-      setPreviewError(err instanceof Error ? err.message : 'Failed to fetch');
-    } finally {
-      setPreviewLoading(false);
+  const initialEdges = useMemo((): Edge[] => {
+    if (initialSchemaRef.current?.edges) return initialSchemaRef.current.edges as Edge[];
+
+    const edges: Edge[] = [{
+      id: 'e-client-streamby', source: 'client', sourceHandle: 'out-right',
+      target: 'streamby', targetHandle: 'in-left',
+      animated: true, style: { stroke: H_LEFT, strokeWidth: 2 },
+    }];
+
+    if (initialJsonRef.current) {
+      edges.push({ id: 'e-json-streamby', source: 'json-input', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } });
     }
-  }, [exportDetails.type, exportDetails.apiUrl, exportDetails.method, exportDetails.id, exportDetails.projectId, exportDetails.name]);
-
-  const initialNodes = useMemo((): Node[] => [
-    {
-      id: 'client',
-      position: { x: 0, y: 60 },
-      type: 'clientNode',
-      data: { label: 'Client', subtitle: exportDetails.method || 'GET' },
-    },
-    {
-      id: 'streamby',
-      position: { x: 220, y: 60 },
-      type: 'streambyNode',
-      data: { label: 'StreamBy', subtitle: 'Middleware' },
-    },
-    {
-      id: 'datasource',
-      position: { x: 220, y: 220 },
-      type: 'dataSourceNode',
-      data: {
-        label: exportDetails.type === 'json' ? 'Collection' : 'External API',
-        subtitle: exportDetails.type === 'json'
-          ? exportDetails.collectionName
-          : (exportDetails.apiUrl || 'No URL set'),
-        isApi: exportDetails.type === 'externalApi',
-      },
-    },
-    {
-      id: 'response',
-      position: { x: 480, y: 60 },
-      type: 'responseNode',
-      data: { label: 'Response', subtitle: 'JSON Output' },
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], []);
-
-  const initialEdges = useMemo((): Edge[] => [
-    {
-      id: 'e1-2',
-      source: 'client',
-      target: 'streamby',
-      targetHandle: 'in-left',
-      animated: true,
-      style: { stroke: '#38B6FF', strokeWidth: 2 },
-    },
-    {
-      id: 'e2-3',
-      source: 'streamby',
-      sourceHandle: 'out-ds',
-      target: 'datasource',
-      targetHandle: 'in-top',
-      animated: true,
-      style: { stroke: '#34d399', strokeWidth: 2 },
-    },
-    {
-      id: 'e3-2',
-      source: 'datasource',
-      sourceHandle: 'out-top',
-      target: 'streamby',
-      targetHandle: 'in-ds',
-      animated: true,
-      style: { stroke: '#34d399', strokeWidth: 2 },
-    },
-    {
-      id: 'e2-4',
-      source: 'streamby',
-      sourceHandle: 'out-right',
-      target: 'response',
-      animated: true,
-      style: { stroke: '#fb923c', strokeWidth: 2 },
-    },
-  ], []);
+    if (initialApiRef.current.apiUrl) {
+      edges.push(
+        { id: 'e-streamby-api', source: 'streamby', sourceHandle: 'out-bottom', target: 'api-conn', targetHandle: 'in-stream', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
+        { id: 'e-api-streamby', source: 'api-conn', sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
+      );
+    }
+    return edges;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const onConnect = useCallback((connection: Connection) => {
-    setEdges(prev => addEdge(
-      { ...connection, animated: true, style: { stroke: '#38B6FF', strokeWidth: 2 } },
-      prev
-    ));
-  }, [setEdges]);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  useEffect(() => { onChangeRef.current?.({ nodes, edges }); }, [nodes, edges]);
 
-  const addNode = useCallback((config: typeof NODE_PALETTE[0]) => {
-    const id = `process-${Date.now()}`;
-    const newNode: Node = {
-      id,
-      type: 'processNode',
-      position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 80 },
-      data: { ...config },
-    };
-    setNodes(prev => [...prev, newNode]);
+  useImperativeHandle(ref, () => ({ getSchema: () => ({ nodes, edges }) }), [nodes, edges]);
+
+  // ─── Connection validation ─────────────────────────────────────────────
+
+  const isValidConnection = useCallback((conn: Connection): boolean => {
+    const src = nodes.find(n => n.id === conn.source);
+    const tgt = nodes.find(n => n.id === conn.target);
+    if (!src || !tgt || src.id === tgt.id) return false;
+
+    const sh = conn.sourceHandle;
+    const th = conn.targetHandle;
+    const st = src.type ?? '';
+    const tt = tgt.type ?? '';
+
+    // Client → StreamBy left input
+    if (st === 'clientNode' && tt === 'streambyNode')  return th === 'in-left';
+
+    // StreamBy top ↔ ProcessNode bottom
+    if (st === 'streambyNode' && tt === 'processNode') return sh === 'out-top';
+    if (st === 'processNode'  && tt === 'streambyNode') return th === 'in-top';
+
+    // StreamBy bottom ↔ DataSource/API top
+    if (st === 'streambyNode' && (tt === 'dataSourceNode' || tt === 'apiConnectionNode')) return sh === 'out-bottom';
+    if ((st === 'dataSourceNode' || st === 'apiConnectionNode') && tt === 'streambyNode') return th === 'in-bottom';
+
+    // JsonInput → DataSource left or StreamBy bottom
+    if (st === 'jsonInputNode' && tt === 'dataSourceNode')    return th === 'in-json';
+    if (st === 'jsonInputNode' && tt === 'streambyNode')      return th === 'in-bottom';
+
+    // StreamBy right → FilterNode left
+    if (st === 'streambyNode' && tt === 'filterNode')  return sh === 'out-right';
+
+    // FilterNode can chain to another FilterNode
+    if (st === 'filterNode'   && tt === 'filterNode')  return sh === 'out-filter' && th === 'in-filter';
+
+    return false;
+  }, [nodes]);
+
+  const onConnect = useCallback((connection: Connection) => {
+    const src = nodes.find(n => n.id === connection.source);
+    const color = edgeColorForSource(connection.sourceHandle, src?.type ?? '');
+    setEdges(prev => addEdge({ ...connection, animated: true, style: { stroke: color, strokeWidth: 2 } }, prev));
+  }, [nodes, setEdges]);
+
+  const addNode = useCallback((config: PaletteItem) => {
+    const id = `${config.type}-${Date.now()}`;
+    const pos = config.group === 'process' ? { x: 240 + Math.random() * 60, y: -80 + Math.random() * 40 }
+              : config.group === 'output'  ? { x: 520 + Math.random() * 60, y: 100 + Math.random() * 40 }
+              : /* data */                   { x: 240 + Math.random() * 60, y: 300 + Math.random() * 40 };
+    setNodes(prev => [...prev, {
+      id, type: config.type, position: pos,
+      data: { label: config.label, subtitle: config.subtitle, icon: config.icon, bgColor: config.bgColor, iconColor: config.iconColor, ...(config.type === 'jsonInputNode' ? { jsonString: '{}' } : {}) },
+    }]);
   }, [setNodes]);
 
-  const CORE_NODE_IDS = ['client', 'streamby', 'datasource', 'response'];
+  // ─── Detail panel ─────────────────────────────────────────────────────
 
-  const getNodeDetail = useCallback((id: string | null): NodeDetail | null => {
-    if (!id) return null;
+  const getNodeDetail = useCallback((nodeId: string | null): NodeDetail | null => {
+    if (!nodeId) return null;
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return null;
 
-    if (!CORE_NODE_IDS.includes(id)) {
-      const node = nodes.find(n => n.id === id);
-      if (!node) return null;
+    if (nodeId === 'client') return {
+      title: 'Client',
+      description: 'Consumer making requests to this StreamBy endpoint.',
+      fields: [
+        { key: 'method',   label: 'HTTP Method', value: exportDetails.method || 'GET' },
+        { key: 'endpoint', label: 'Endpoint',    value: `/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}` },
+      ],
+    };
+
+    if (nodeId === 'streamby') return {
+      title: 'StreamBy Middleware',
+      description: 'Core engine. Connect data sources below, process nodes above, and output filters to the right.',
+      fields: [
+        { key: 'private',       label: 'Private',          value: exportDetails.private ? 'Yes' : 'No', editable: true, inputType: 'checkbox' },
+        { key: 'allowedOrigin', label: 'Allowed Origins',  value: exportDetails.allowedOrigin?.join(', ') || '*' },
+      ],
+    };
+
+    if (node.type === 'jsonInputNode') return {
+      title: 'JSON Data',
+      description: 'Static JSON that feeds the data layer. Connect its output to a Data Source or directly to StreamBy bottom.',
+      fields: [{ key: 'jsonString', label: 'JSON Content', value: node.data.jsonString || '{}', editable: true, inputType: 'json' }],
+    };
+
+    if (node.type === 'apiConnectionNode') {
+      const options = apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.baseUrl}` }));
       return {
-        title: node.data.label,
-        description: node.data.subtitle,
-        fields: [
-          { key: 'label', label: 'Name', value: node.data.label, editable: true, inputType: 'text' },
-          { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
-        ],
+        title: 'API Connection',
+        description: 'External API that StreamBy queries via the data layer.',
+        fields: [{ key: 'connectionId', label: 'Connection', value: node.data.connectionId || '', editable: true, inputType: 'select', options }],
       };
     }
 
-    switch (id) {
-      case 'client':
-        return {
-          title: 'Client',
-          description: 'Any consumer (browser, mobile app, or server) making a request to this StreamBy endpoint.',
-          fields: [
-            { key: 'method', label: 'HTTP Method', value: exportDetails.method || 'GET' },
-            { key: 'endpoint', label: 'Endpoint', value: `/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}` },
-          ],
-        };
-      case 'streamby':
-        return {
-          title: 'StreamBy Middleware',
-          description: 'Core processing engine. Validates requests, fetches data from the configured source, and returns the processed response.',
-          fields: [
-            { key: 'prefix',  label: 'Prefix',  value: exportDetails.prefix || '—', editable: true, inputType: 'text' },
-            { key: 'private', label: 'Private', value: exportDetails.private ? 'Yes' : 'No', editable: true, inputType: 'checkbox' },
-            { key: 'auth',    label: 'Authentication', value: exportDetails.credentialId ? 'Credential required' : 'None' },
-            { key: 'allowedOrigin', label: 'Allowed Origins', value: exportDetails.allowedOrigin?.join(', ') || '*' },
-          ],
-        };
-      case 'datasource':
-        return {
-          title: exportDetails.type === 'json' ? 'JSON Collection' : 'External API',
-          description: exportDetails.type === 'json'
-            ? 'Data is fetched from a JSON collection stored in the StreamBy database.'
-            : 'Data is fetched from an external API and relayed back to the client.',
-          fields: exportDetails.type === 'json'
-            ? [
-                { key: 'collectionName', label: 'Collection Name', value: exportDetails.collectionName, editable: true, inputType: 'text' as const },
-                { key: 'sourceType',     label: 'Source Type',     value: 'JSON Collection' },
-              ]
-            : [
-                {
-                  key: 'apiUrl',
-                  label: apiConnections ? 'API Connection' : 'API URL',
-                  value: exportDetails.apiUrl || '—',
-                  editable: true,
-                  inputType: apiConnections ? ('connection' as const) : ('text' as const),
-                },
-                { key: 'sourceType', label: 'Source Type', value: 'External API' },
-              ],
-        };
-      case 'response':
-        return {
-          title: 'Response',
-          description: 'The final processed JSON data sent back to the client after middleware transformation.',
-          fields: [
-            { key: 'format',  label: 'Format',        value: 'JSON' },
-            { key: 'status',  label: 'Export Status', value: exportDetails.status },
-            { key: 'updated', label: 'Last Updated',  value: new Date(exportDetails.updatedAt).toLocaleString() },
-          ],
-        };
-      default:
-        return null;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exportDetails, nodes]);
+    if (node.type === 'dataSourceNode') return {
+      title: 'Data Source',
+      description: 'Database collection used by this export.',
+      fields: [
+        { key: 'label',    label: 'Name',       value: node.data.label,    editable: true, inputType: 'text' },
+        { key: 'subtitle', label: 'Collection', value: node.data.subtitle, editable: true, inputType: 'text' },
+      ],
+    };
+
+    if (node.type === 'processNode') return {
+      title: node.data.label,
+      description: 'Processing step applied to data before it reaches the output layer.',
+      fields: [
+        { key: 'label',    label: 'Name',        value: node.data.label,    editable: true, inputType: 'text' },
+        { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
+      ],
+    };
+
+    if (node.type === 'filterNode') return {
+      title: node.data.label,
+      description: 'Output filter applied to the response before it reaches the client.',
+      fields: [
+        { key: 'label',    label: 'Name',        value: node.data.label,    editable: true, inputType: 'text' },
+        { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
+      ],
+    };
+
+    return null;
+  }, [exportDetails, nodes, apiConnections]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
-  const hasChanges = Object.keys(localData).length > 0;
-  const isProcessNode = selectedNodeId !== null && !CORE_NODE_IDS.includes(selectedNodeId);
+  const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
+  const hasChanges     = Object.keys(localData).length > 0;
+  const isJsonNode     = selectedNode?.type === 'jsonInputNode';
+  const isApiNode      = selectedNode?.type === 'apiConnectionNode';
+  const isCoreNode     = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
+  const canSave        = editMode && hasChanges && (isJsonNode || isApiNode || !isCoreNode || !!onSave);
 
-  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNodeId(node.id);
-  }, []);
-
-  const handleClosePanel = useCallback(() => {
-    setSelectedNodeId(null);
-  }, []);
-
-  const handleFieldChange = useCallback((key: string, value: string | boolean) => {
-    setLocalData(prev => ({ ...prev, [key]: value }));
-  }, []);
+  const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); }, []);
+  const handleClosePanel  = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); }, []);
+  const handleFieldChange = useCallback((key: string, value: string | boolean) => { setLocalData(prev => ({ ...prev, [key]: value })); if (key === 'jsonString') setJsonError(null); }, []);
 
   const handleSave = useCallback(() => {
-    if (isProcessNode && selectedNodeId) {
-      // Update the process node's data in local state
-      setNodes(prev => prev.map(n =>
-        n.id === selectedNodeId
-          ? { ...n, data: { ...n.data, ...localData } }
-          : n
-      ));
-    } else if (onSave) {
-      onSave(localData);
+    if (!selectedNodeId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+
+    if (node?.type === 'jsonInputNode') {
+      const jsonStr = (localData.jsonString as string) ?? node.data.jsonString ?? '{}';
+      try {
+        JSON.parse(jsonStr);
+        setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, jsonString: jsonStr } } : n));
+        setJsonError(null); setLocalData({}); setSelectedNodeId(null);
+      } catch { setJsonError('JSON inválido — verifica la sintaxis.'); }
+      return;
     }
-    setLocalData({});
-    setSelectedNodeId(null);
-  }, [isProcessNode, selectedNodeId, localData, onSave, setNodes]);
+
+    if (node?.type === 'apiConnectionNode') {
+      const connId = (localData.connectionId as string) ?? node.data.connectionId;
+      const conn = apiConnections.find(c => c.id === connId);
+      if (conn) setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: conn.name, subtitle: conn.baseUrl, connectionId: conn.id } } : n));
+      setLocalData({}); setSelectedNodeId(null);
+      return;
+    }
+
+    if (!CORE_NODE_IDS.includes(selectedNodeId)) {
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, ...localData } } : n));
+    } else if (onSave) {
+      onSave(localData as Record<string, string | boolean>);
+    }
+    setLocalData({}); setSelectedNodeId(null);
+  }, [selectedNodeId, localData, nodes, apiConnections, onSave, setNodes]);
 
   const getFieldDisplayValue = (field: DetailField): string | boolean => {
     if (localData[field.key] !== undefined) return localData[field.key];
@@ -451,106 +515,73 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({
   return (
     <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
       <div className={s.canvasArea}>
-        {/* Node palette — only in edit mode */}
+
         {editMode && (
           <div className={s.palette}>
-            <span className={s.paletteLabel}>
-              <FontAwesomeIcon icon={faPlus} />
-              Add node
-            </span>
-            {NODE_PALETTE.map((config) => (
-              <button
-                key={config.label}
-                type="button"
-                className={s.paletteBtn}
-                onClick={() => addNode(config)}
-                title={`Add ${config.label} node`}
-              >
-                <span className={s.paletteBtnIcon} style={{ color: config.iconColor, backgroundColor: config.bgColor }}>
-                  <FontAwesomeIcon icon={config.icon} />
-                </span>
-                {config.label}
-              </button>
+            <span className={s.paletteLabel}><FontAwesomeIcon icon={faPlus} /> Add</span>
+            {PALETTE_GROUPS.map(group => (
+              <React.Fragment key={group.key}>
+                <span className={s.paletteGroupLabel} style={{ color: group.color }}>{group.label}</span>
+                {NODE_PALETTE.filter(p => p.group === group.key).map(config => (
+                  <button
+                    key={`${config.type}-${config.label}`} type="button"
+                    className={s.paletteBtn} onClick={() => addNode(config)}
+                    title={`Add ${config.label} node`}
+                  >
+                    <span className={s.paletteBtnIcon} style={{ color: config.iconColor, backgroundColor: config.bgColor }}>
+                      <FontAwesomeIcon icon={config.icon} />
+                    </span>
+                    {config.label}
+                  </button>
+                ))}
+              </React.Fragment>
             ))}
           </div>
         )}
 
         <div className={s.flowContainer}>
           <ReactFlow
-            nodes={nodes}
-            edges={edges}
+            nodes={nodes} edges={edges}
             onNodeClick={handleNodeClick}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onConnect={editMode ? onConnect : undefined}
+            isValidConnection={editMode ? isValidConnection : undefined}
             nodeTypes={nodeTypes}
-            nodesDraggable={editMode}
-            nodesConnectable={editMode}
-            elementsSelectable={true}
-            deleteKeyCode={editMode ? 'Delete' : null}
-            fitView
-            fitViewOptions={{ padding: 0.35 }}
+            nodesDraggable={editMode} nodesConnectable={editMode}
+            elementsSelectable deleteKeyCode={editMode ? 'Delete' : null}
+            fitView fitViewOptions={{ padding: 0.35 }}
           >
             <Background variant={BackgroundVariant.Dots} color="var(--color-dark-400)" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>
 
-        {/* Detail / Edit Panel */}
         {selectedDetail && (
           <div className={s.detailPanel}>
             <div className={s.detailHeader}>
               <span className={s.detailTitle}>{selectedDetail.title}</span>
-              <button className={s.panelClose} onClick={handleClosePanel} type="button">
-                <FontAwesomeIcon icon={faXmark} />
-              </button>
+              <button className={s.panelClose} onClick={handleClosePanel} type="button"><FontAwesomeIcon icon={faXmark} /></button>
             </div>
-
             <p className={s.detailDescription}>{selectedDetail.description}</p>
-
             <div className={s.detailFields}>
               {selectedDetail.fields.map(field => (
                 <div key={field.key} className={s.detailField}>
                   <span className={s.fieldLabel}>{field.label}</span>
-                  {editMode && field.inputType === 'connection' ? (
-                    apiConnections && apiConnections.length > 0 ? (
-                      <ul className={s.connPickerList}>
-                        {apiConnections.map(conn => (
-                          <li
-                            key={conn.id}
-                            className={`${s.connPickerItem} ${selectedConnectionId === conn.id ? s.connPickerSelected : ''}`}
-                            onClick={() => { onConnectionSelect?.(conn); handleClosePanel(); }}
-                          >
-                            <span className={s.connMethodBadge}>{conn.method}</span>
-                            <span className={s.connName}>{conn.name}</span>
-                            <small className={s.connUrl}>{conn.baseUrl}</small>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className={s.fieldValue}>No connections configured for this project.</span>
-                    )
-                  ) : editMode && field.editable ? (
+                  {editMode && field.editable ? (
                     field.inputType === 'checkbox' ? (
                       <label className={s.checkboxRow}>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(getFieldDisplayValue(field))}
-                          onChange={e => handleFieldChange(field.key, e.target.checked)}
-                          className={s.fieldCheckbox}
-                        />
-                        <span className={s.checkboxLabel}>
-                          {getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}
-                        </span>
+                        <input type="checkbox" checked={Boolean(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.checked)} className={s.fieldCheckbox} />
+                        <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
                       </label>
+                    ) : field.inputType === 'json' ? (
+                      <textarea defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldTextarea} spellCheck={false} />
+                    ) : field.inputType === 'select' && field.options?.length ? (
+                      <select value={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldSelect}>
+                        <option value="">Select connection…</option>
+                        {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                      </select>
                     ) : (
-                      <input
-                        type="text"
-                        defaultValue={String(getFieldDisplayValue(field))}
-                        onChange={e => handleFieldChange(field.key, e.target.value)}
-                        className={s.fieldInput}
-                        placeholder={field.label}
-                      />
+                      <input type="text" defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldInput} placeholder={field.label} />
                     )
                   ) : (
                     <span className={s.fieldValue}>{field.value}</span>
@@ -558,66 +589,20 @@ export const NodeViewer: React.FC<NodeViewerProps> = ({
                 </div>
               ))}
             </div>
-
-            {selectedNodeId === 'response' && (
-              <div className={s.jsonPreviewSection}>
-                <div className={s.previewHeader}>
-                  <span className={s.fieldLabel}>Response Preview</span>
-                  <button
-                    type="button"
-                    className={s.fetchButton}
-                    onClick={fetchPreview}
-                    disabled={previewLoading || (exportDetails.type === 'externalApi' ? !exportDetails.apiUrl : !exportDetails.id)}
-                    title={
-                      exportDetails.type === 'externalApi'
-                        ? (!exportDetails.apiUrl ? 'Select a connection first' : `${exportDetails.method || 'GET'} ${exportDetails.apiUrl}`)
-                        : (!exportDetails.id ? 'Save the export first' : 'Fetch stored JSON')
-                    }
-                  >
-                    <FontAwesomeIcon icon={faArrowsRotate} spin={previewLoading} />
-                    {previewLoading ? 'Fetching…' : 'Fetch'}
-                  </button>
-                </div>
-                {previewError && (
-                  <p className={s.previewError}>{previewError}</p>
-                )}
-                {previewData !== undefined && previewError == null && (() => {
-                  const prefix = exportDetails.prefix;
-                  const displayed =
-                    prefix &&
-                    previewData !== null &&
-                    typeof previewData === 'object' &&
-                    prefix in (previewData as Record<string, unknown>)
-                      ? (previewData as Record<string, unknown>)[prefix]
-                      : previewData;
-                  return (
-                    <pre className={s.jsonPre}>{JSON.stringify(displayed, null, 2)}</pre>
-                  );
-                })()}
-                {previewData === undefined && !previewError && !previewLoading && (
-                  <p className={s.jsonEmptyNote}>Click Fetch to load the live response.</p>
-                )}
-              </div>
-            )}
-
-            {editMode && hasChanges && (isProcessNode || onSave) && (
+            {jsonError && <p className={s.jsonError}>{jsonError}</p>}
+            {canSave && (
               <div className={s.panelActions}>
-                <button className={s.saveButton} onClick={handleSave} type="button">
-                  <FontAwesomeIcon icon={faFloppyDisk} />
-                  Save Changes
-                </button>
+                <button className={s.saveButton} onClick={handleSave} type="button"><FontAwesomeIcon icon={faFloppyDisk} /> Save Changes</button>
               </div>
             )}
-
-            {editMode && !onSave && !isProcessNode && (
-              <div className={s.editHint}>
-                <FontAwesomeIcon icon={faInfoCircle} />
-                <span>En modo edición puedes reposicionar y conectar nodos.</span>
-              </div>
+            {editMode && isCoreNode && !onSave && (
+              <div className={s.editHint}><FontAwesomeIcon icon={faInfoCircle} /><span>Reposiciona y conecta nodos en modo edición.</span></div>
             )}
           </div>
         )}
       </div>
     </div>
   );
-};
+});
+
+NodeViewer.displayName = 'NodeViewer';

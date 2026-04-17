@@ -5,7 +5,7 @@ import { ApiConnectionPayload } from '../interfaces';
 
 export async function getApiConnections(projectId: string) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/api/connections`, {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -26,7 +26,7 @@ export async function getApiConnections(projectId: string) {
 
 export async function createApiConnection(projectId: string, payload: ApiConnectionPayload) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/api/connections`, {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +49,7 @@ export async function createApiConnection(projectId: string, payload: ApiConnect
 
 export async function getApiConnection(projectId: string, connectionId: string) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/api/connections/${connectionId}`, {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -69,7 +69,7 @@ export async function getApiConnection(projectId: string, connectionId: string) 
 
 export async function updateApiConnection(projectId: string, connectionId: string, payload: Partial<ApiConnectionPayload>) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/api/connections/${connectionId}`, {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ export async function updateApiConnection(projectId: string, connectionId: strin
 
 export async function deleteApiConnection(projectId: string, connectionId: string) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/api/connections/${connectionId}`, {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
       method: 'DELETE',
       credentials: 'include',
     });

@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import sessionReducer from './sessionSlice';
 import projectsReducer from './projectsSlice';
 import currentProjectReducer from './currentProjectSlice';
+import currentExportReducer from './currentExportSlice';
 import managementReducer from './managementSlice';
 import apiResponsesReducer from './apiResponsesSlice';
 
@@ -10,6 +11,7 @@ export const store = configureStore({
     session: sessionReducer,
     projects: projectsReducer,
     currentProject: currentProjectReducer,
+    currentExport: currentExportReducer,
     management: managementReducer,
     apiResponses: apiResponsesReducer,
   },

@@ -1,21 +1,17 @@
 import s from './CreateExportForm.module.css';
 import { useSelector } from "react-redux";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { RootState } from "../../../store";
 import { createExport } from "../../../services/exports";
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faFileExport, faXmark, faFileLines, faCode, faTowerBroadcast, faSitemap, faDatabase, faGlobe, faLayerGroup, faLock } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FormInputMode } from './FormInputMode';
-import { RawJsonInputMode } from './RawJsonInputMode';
+import { faFileExport, faXmark, faFileLines, faCode, faSitemap, faGlobe, faLock } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
-import { NodeViewer } from '../NodeViewer/NodeViewer';
-import { ApiConnection, Export } from '../../../interfaces';
+import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { Export } from '../../../interfaces';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs } from '../Tabs/Tabs';
 import { CustomForm } from './CustomForm';
@@ -25,34 +21,14 @@ export function CreateExportForm() {
   const { id: projectId } = useParams<{ id: string }>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [collectionName, setCollectionName] = useState("");
-  const [jsonData, setJsonData] = useState<object>({});
-  const [rawJsonString, setRawJsonString] = useState<string>('{}');
-  const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'nodes' | 'form' | 'rawJson'>('nodes');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>(['*']);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
-  const [exportType, setExportType] = useState<'json' | 'externalApi'>('json');
-  const [apiUrl, setApiUrl] = useState<string>('');
-  const [credentialId, setCredentialId] = useState<string>('');
-  const [prefix, setPrefix] = useState<string | undefined>('');
-  const [selectedConnectionId, setSelectedConnectionId] = useState<string>('');
-  const [apiMethod, setApiMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
+  const [inputMode, setInputMode] = useState<'nodes' | 'response'>('nodes');
+  const [createdExportId, setCreatedExportId] = useState<string | null>(null);
+  const nodeViewerRef = useRef<NodeViewerHandle>(null);
   const navigate = useNavigate();
-
-  const handleJsonDataChange = (newData: object) => {
-    setJsonData(newData);
-    try { setRawJsonString(JSON.stringify(newData, null, 2)); setJsonError(null); }
-    catch { setJsonError("Invalid JSON format from form input."); }
-  };
-
-  const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
-    setRawJsonString(newRawString);
-    if (isValid && data) { setJsonData(data); setJsonError(null); }
-    else { setJsonData({}); setJsonError("Invalid JSON format."); }
-  };
 
   const handleAllowedOriginCheckboxChange = (origin: string) => {
     const isChecked = selectedAllowedOrigins.includes(origin) || selectedAllowedOrigins.some(o => /^\*$/.test(o));
@@ -73,40 +49,45 @@ export function CreateExportForm() {
     else setSelectedAllowedOrigins(['*']);
   };
 
-  const handleConnectionSelect = (conn: ApiConnection) => {
-    setSelectedConnectionId(conn.id);
-    setApiUrl(conn.baseUrl);
-    setCredentialId(conn.credentialId ?? '');
-    setApiMethod(conn.method);
-    setPrefix(conn.prefix);
-  };
-
-  const handleNodeSave = (updates: Record<string, string | boolean>) => {
-    if ('collectionName' in updates && typeof updates.collectionName === 'string') setCollectionName(updates.collectionName);
+  const handleNodeSave = (updates: Record<string, string | boolean | object | null>) => {
     if ('private' in updates && typeof updates.private === 'boolean') setIsPrivate(updates.private);
   };
 
   const exportForViewer = useMemo<Export>(() => ({
-    id: '', name: name || 'New Export', type: exportType, exportType,
-    method: apiMethod, status: 'pending',
-    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    projectId: projectId || '', exportedBy: '', collectionName,
-    apiUrl, prefix, credentialId: credentialId || undefined,
-    private: isPrivate, allowedOrigin: selectedAllowedOrigins,
-  }), [name, exportType, collectionName, apiUrl, apiMethod, prefix, credentialId, isPrivate, selectedAllowedOrigins, projectId]);
+    id: createdExportId || '',
+    name: name || 'New Export',
+    method: 'GET',
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    projectId: projectId || '',
+    exportedBy: '',
+    private: isPrivate,
+    allowedOrigin: selectedAllowedOrigins,
+  }), [createdExportId, name, projectId, isPrivate, selectedAllowedOrigins]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const nodeSchema = nodeViewerRef.current?.getSchema();
+      const apiConns = currentProject.data?.apiConnections || [];
+      const useConnections = nodeSchema?.nodes.some((n: object) => (n as { type?: string }).type === 'apiConnectionNode') ?? false;
+      const useCredentials = useConnections && nodeSchema!.nodes.some((n: object) => {
+        const node = n as { type?: string; data?: { connectionId?: string } };
+        if (node.type !== 'apiConnectionNode') return false;
+        return !!apiConns.find(c => c.id === node.data?.connectionId)?.credentialId;
+      });
       const payload = {
-        name, description, collectionName,
+        name, description,
         allowedOrigin: selectedAllowedOrigins,
-        private: isPrivate, exportType,
-        ...(exportType !== 'externalApi' && { jsonData }),
-        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId, fields: jsonData }),
+        private: isPrivate,
+        useConnections,
+        useCredentials,
+        ...(nodeSchema ? { nodeSchema } : {}),
       };
       const response = await createExport(currentProject?.data?.id, payload);
+      setCreatedExportId(response.exportId);
       navigate(`/project/${currentProject?.data?.id}/dashboard/exports/${response.exportId}`);
     } catch (err: unknown) {
       console.error(err);
@@ -116,17 +97,8 @@ export function CreateExportForm() {
   };
 
   useEffect(() => {
-    let isFormValid = true;
-    if (!name || !collectionName) isFormValid = false;
-    if (exportType === 'externalApi') {
-      if (!apiUrl) isFormValid = false;
-    } else if (inputMode !== 'nodes') {
-      const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
-      if (inputMode === 'rawJson') { if (isJsonDataEmpty || jsonError !== null) isFormValid = false; }
-      else { if (jsonError !== null) isFormValid = false; }
-    }
-    setDisabled(!isFormValid || loading);
-  }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
+    setDisabled(!name || loading);
+  }, [name, loading]);
 
   return (
     <div className={s.container}>
@@ -153,18 +125,6 @@ export function CreateExportForm() {
                     ),
                   },
                   {
-                    icon: faDatabase,
-                    label: 'Collection',
-                    value: collectionName || '—',
-                    editComponent: (
-                      <LabeledInput
-                        label="Collection's name" type="text" placeholder="" id="collection-input"
-                        name="collection-input" htmlFor="collection-input" value={collectionName}
-                        onChange={e => setCollectionName(e.target.value)}
-                      />
-                    ),
-                  },
-                  {
                     icon: faFileLines,
                     label: 'Description',
                     value: description || '—',
@@ -177,23 +137,9 @@ export function CreateExportForm() {
                     ),
                   },
                   {
-                    icon: faLayerGroup,
-                    label: 'Export Type',
-                    value: exportType,
-                    editComponent: (
-                      <LabeledSelect
-                        label="Export Type" id="export-type-select" name="export-type-select"
-                        htmlFor="export-type-select" value={exportType}
-                        onChange={e => setExportType(e.target.value as 'json' | 'externalApi')}
-                        options={[{ value: 'json', label: 'JSON' }, { value: 'externalApi', label: 'External API' }]}
-                      />
-                    ),
-                  },
-                  {
                     icon: faLock,
                     label: 'Private',
                     value: isPrivate ? 'Yes' : 'No',
-                    hidden: inputMode === 'nodes',
                     editComponent: (
                       <CustomCheckbox
                         id="private-checkbox" name="private-checkbox"
@@ -227,34 +173,6 @@ export function CreateExportForm() {
                       </div>
                     ),
                   },
-                  {
-                    icon: faTowerBroadcast,
-                    label: 'API Connection',
-                    value: selectedConnectionId || '—',
-                    hidden: exportType !== 'externalApi' || inputMode === 'nodes',
-                    editComponent: (currentProject.data?.apiConnections?.length ?? 0) > 0 ? (
-                      <ul className={s.connectionsList}>
-                        {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
-                          <li
-                            key={conn.id}
-                            className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
-                            onClick={() => handleConnectionSelect(conn)}
-                          >
-                            <span className={s.methodBadge}>{conn.method}</span>
-                            <span className={s.connectionName}>{conn.name}</span>
-                            <small className={s.connectionUrl}>{conn.baseUrl}</small>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className={s.emptyConnections}>
-                        No connections yet.{' '}
-                        <Link to={`/project/${projectId}/connections/api/create`}>
-                          <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
-                        </Link>
-                      </p>
-                    ),
-                  },
                 ]}
                 actions={
                   <>
@@ -272,30 +190,27 @@ export function CreateExportForm() {
             <div className={s.viewerPanel}>
               <Tabs
                 active={inputMode}
-                onChange={id => setInputMode(id as 'nodes' | 'form' | 'rawJson')}
+                onChange={id => setInputMode(id as 'nodes' | 'response')}
                 tabs={[
                   { id: 'nodes', label: 'Nodes', icon: faSitemap },
-                  { id: 'form', label: 'Form', icon: faFileLines },
-                  { id: 'rawJson', label: 'JSON', icon: faCode },
+                  { id: 'response', label: 'Response', icon: faCode },
                 ]}
               />
               <div className={s.viewerContent}>
-                {inputMode === 'form' && (
-                  <FormInputMode jsonData={jsonData} onJsonDataChange={handleJsonDataChange} jsonError={jsonError} />
-                )}
-                {inputMode === 'rawJson' && (
-                  <RawJsonInputMode jsonData={rawJsonString} onJsonDataChange={handleRawJsonStringChange} jsonError={jsonError} />
-                )}
                 {inputMode === 'nodes' && (
                   <NodeViewer
-                    key={exportType}
+                    key="create"
+                    ref={nodeViewerRef}
                     exportDetails={exportForViewer}
                     editMode
                     onSave={handleNodeSave}
-                    apiConnections={currentProject.data?.apiConnections ?? []}
-                    onConnectionSelect={handleConnectionSelect}
-                    selectedConnectionId={selectedConnectionId}
+                    apiConnections={currentProject.data?.apiConnections || []}
                   />
+                )}
+                {inputMode === 'response' && (
+                  <div className={s.responsePanel}>
+                    <p className={s.responseHint}>Save the export first to see the processed response.</p>
+                  </div>
                 )}
               </div>
             </div>

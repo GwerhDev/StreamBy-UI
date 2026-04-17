@@ -40,7 +40,6 @@ export const ApiConnectionDetail = () => {
               <p className={s.fieldLabel}>Credential</p>
               <p className={s.fieldValue}>
                 {currentProject?.credentials?.find(c => c.id === connection.credentialId)?.key ?? connection.credentialId}
-                {connection.prefix && <span className={s.prefixBadge}>{connection.prefix}</span>}
               </p>
             </div>
           </div>

@@ -71,6 +71,18 @@ export async function updateExport(projectId: string, exportId: string, payload:
   }
 }
 
+export async function previewExport(projectId: string, exportName: string) {
+  const res = await fetch(`${API_BASE}/streamby/${projectId}/get-export/${exportName}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function deleteExport(projectId: string | undefined, exportId: string | undefined) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/${exportId}`, {

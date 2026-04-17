@@ -1,0 +1,76 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.fetchBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: rgba(56, 182, 255, 0.05);
+  border: 1px solid rgba(56, 182, 255, 0.15);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.fetchHint {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+  line-height: 1.4;
+}
+
+.fetchBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.fetchBtn:hover:not(:disabled) {
+  background: var(--color-button-primary-hover);
+}
+
+.fetchBtn:disabled,
+.fetchBtnLoading {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-light-400);
+  margin: 0;
+}
+
+.error {
+  font-size: 0.78rem;
+  color: #f87171;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 6px;
+  flex-shrink: 0;
+}

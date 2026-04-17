@@ -6,7 +6,7 @@ import { RootState } from "../../../store";
 import { Export } from "../../../interfaces";
 import { ExportCard } from "../Cards/ExportCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faFileExport } from "@fortawesome/free-solid-svg-icons";
 import { ActionButton } from "../Buttons/ActionButton";
 import { SectionHeader } from "../SectionHeader/SectionHeader";
 import { EmptyBackground } from "../Backgrounds/EmptyBackground";
@@ -23,7 +23,7 @@ export function ExportList() {
   return (
     <div className={s.container}>
       <SectionHeader
-        icon={faArrowUpFromBracket}
+        icon={faFileExport}
         title="Exports"
         subtitle="Get started by creating a new export"
         action={!currentProjectLoading && !exports?.length

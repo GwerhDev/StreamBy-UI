@@ -1,67 +1,61 @@
 import s from './ExportDetailsView.module.css';
-import JsonViewer from '../JsonViewer/JsonViewer';
 import CopyButton from '../Buttons/CopyButton';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../../../config/api';
 import { getExport } from '../../../services/exports';
-import { Export } from '../../../interfaces';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
-import { ReadOnlyFields } from './ReadOnlyFields';
 import {
-  faCode, faFileLines, faLink, faDatabase, faGlobe, faClock,
-  faLayerGroup, faExternalLink, faPenToSquare, faTrash, faSitemap,
+  faCode, faFileLines, faLink, faGlobe, faClock,
+  faPenToSquare, faTrash, faSitemap,
 } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
+import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
+import { ResponsePreview } from './ResponsePreview';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
-import { Tabs, TabItem } from '../Tabs/Tabs';
+import { Tabs } from '../Tabs/Tabs';
 import { CustomForm } from '../Forms/CustomForm';
 
-type ViewMode = 'nodes' | 'apiResponse' | 'fields' | 'json';
+type ViewMode = 'nodes' | 'response';
 
 export const ExportDetailsView: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('nodes');
-  const [exportDetails, setExportDetails] = useState<Export | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { data: exportDetails, loading, error } = useSelector((state: RootState) => state.currentExport);
 
   useEffect(() => {
-    const cached = currentProject.data?.exports?.find(e => e.id === exportId);
-    if (cached?.json !== undefined) { setExportDetails(cached); setLoading(false); return; }
+    if (!id || !exportId) { dispatch(setExportError('Project ID or Export ID is missing.')); return; }
 
-    const fetchExportDetails = async () => {
-      if (!id || !exportId) { setError('Project ID or Export ID is missing.'); setLoading(false); return; }
+    if (exportDetails?.id === exportId) return;
+
+    const fetch = async () => {
+      dispatch(setExportLoading());
       try {
-        setLoading(true);
         const data = await getExport(id, exportId);
-        if (data) setExportDetails(data);
-        else setError('Export not found.');
+        if (data) dispatch(setCurrentExport(data));
+        else dispatch(setExportError('Export not found.'));
       } catch (err: { message: string } | unknown) {
-        setError((err as { message: string }).message || 'Failed to fetch export details.');
-      } finally {
-        setLoading(false);
+        dispatch(setExportError((err as { message: string }).message || 'Failed to fetch export details.'));
       }
     };
-    fetchExportDetails();
+    fetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, exportId]);
 
-  const handleTypeRender = (type: string) => {
-    switch (type) {
-      case 'json': return 'JSON';
-      case 'externalApi': return 'External API';
-      default: return type;
-    }
-  };
+  useEffect(() => {
+    return () => { dispatch(clearCurrentExport()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) return <div className={s.container}><Spinner bg={false} isLoading /></div>;
   if (error) return <div>Error: {error}</div>;
@@ -69,7 +63,6 @@ export const ExportDetailsView: React.FC = () => {
 
   const endpointPath = `/streamby/${id}/get-export/${exportDetails.name}`;
   const fullEndpoint = `${API_BASE}${endpointPath}`;
-  const hasJson = !!exportDetails.json;
 
   return (
     <div className={s.container}>
@@ -99,17 +92,6 @@ export const ExportDetailsView: React.FC = () => {
                   ),
                 },
                 {
-                  icon: faLayerGroup,
-                  label: 'Type',
-                  value: handleTypeRender(exportDetails.type),
-                },
-                {
-                  icon: faDatabase,
-                  label: 'Collection',
-                  value: exportDetails.collectionName,
-                  hidden: exportDetails.type === 'externalApi' || !exportDetails.collectionName,
-                },
-                {
                   icon: faFileLines,
                   label: 'Description',
                   value: exportDetails.description,
@@ -127,7 +109,6 @@ export const ExportDetailsView: React.FC = () => {
                   icon: faClock,
                   label: 'Created',
                   value: new Date(exportDetails.createdAt).toLocaleString(),
-                  hidden: exportDetails.type === 'externalApi',
                 },
               ]}
               actions={
@@ -140,32 +121,31 @@ export const ExportDetailsView: React.FC = () => {
           </div>
         </Panel>
 
-        {hasJson && <PanelResizeHandle className={s.resizeHandle} />}
+        <PanelResizeHandle className={s.resizeHandle} />
 
-        {hasJson && (
-          <Panel className={s.panelContainer} minSize="15%">
-            <div className={s.viewerPanel}>
-              <Tabs
-                active={viewMode}
-                onChange={id => setViewMode(id as ViewMode)}
-                tabs={[
-                  { id: 'nodes', label: 'Nodes', icon: faSitemap },
-                  ...(exportDetails.type === 'externalApi'
-                    ? [{ id: 'apiResponse', label: 'Api Response', icon: faExternalLink } as TabItem]
-                    : []),
-                  { id: 'fields', label: 'Form', icon: faFileLines },
-                  { id: 'json', label: 'JSON', icon: faCode },
-                ]}
-              />
-              <div className={s.viewerContent}>
-                {viewMode === 'nodes' && <NodeViewer exportDetails={exportDetails} />}
-                {viewMode === 'apiResponse' && exportDetails.apiResponse && <JsonViewer data={exportDetails.apiResponse as JSON} />}
-                {viewMode === 'fields' && exportDetails.json && <ReadOnlyFields data={exportDetails.json} />}
-                {viewMode === 'json' && exportDetails.json && <JsonViewer data={exportDetails.json} />}
-              </div>
+        <Panel className={s.panelContainer} minSize="15%">
+          <div className={s.viewerPanel}>
+            <Tabs
+              active={viewMode}
+              onChange={id => setViewMode(id as ViewMode)}
+              tabs={[
+                { id: 'nodes', label: 'Nodes', icon: faSitemap },
+                { id: 'response', label: 'Response', icon: faCode },
+              ]}
+            />
+            <div className={s.viewerContent}>
+              {viewMode === 'nodes' && <NodeViewer exportDetails={exportDetails} />}
+              {viewMode === 'response' && (
+                <ResponsePreview
+                  projectId={id!}
+                  exportName={exportDetails.name}
+                  schema={exportDetails.nodeSchema}
+                  savedApiResponse={exportDetails.apiResponse}
+                />
+              )}
             </div>
-          </Panel>
-        )}
+          </div>
+        </Panel>
 
       </PanelGroup>
 

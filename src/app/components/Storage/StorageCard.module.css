@@ -191,7 +191,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   font-size: 0.82rem;
@@ -256,7 +256,7 @@
   gap: 0.65rem;
   margin: 0 0.3rem;
   padding: 0.48rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.84rem;
   color: var(--color-light-200);
   cursor: pointer;

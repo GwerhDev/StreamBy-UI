@@ -101,8 +101,8 @@ src/
   /project/:id/database                  → Database
 
   /project/:id/api                       → Api (directory list)
-  /project/:id/api/connections           → ApiConnectionsList
-  /project/:id/api/connections/create    → ApiConnectionsCreate
+  /project/:id/connections/api           → ApiConnectionsList
+  /project/:id/connections/api/create    → ApiConnectionsCreate
 
   /project/:id/settings                  → Settings
   /project/:id/settings/permissions      → Permissions

@@ -1,123 +1,93 @@
 import s from './UpdateExportForm.module.css';
-import { useSelector } from "react-redux";
-import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { RootState } from "../../../store";
 import { getExport, updateExport } from "../../../services/exports";
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { Spinner } from '../Spinner';
-import { faCode, faFileExport, faFileLines, faXmark, faSitemap, faDatabase, faGlobe, faLayerGroup, faLock, faTowerBroadcast, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { RawJsonInputMode } from './RawJsonInputMode';
-import { FormInputMode } from './FormInputMode';
+import { faFileExport, faXmark, faFileLines, faCode, faSitemap, faGlobe, faLock, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+
+import { useNavigate, useParams } from 'react-router-dom';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
-import { NodeViewer } from '../NodeViewer/NodeViewer';
-import { Export, ApiConnection } from '../../../interfaces';
+import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { ResponsePreview } from '../Exports/ResponsePreview';
+import { Export } from '../../../interfaces';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs } from '../Tabs/Tabs';
 import { CustomForm } from './CustomForm';
+import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 
 export function UpdateExportForm() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
+  const { id, exportId } = useParams();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [collectionName, setCollectionName] = useState("");
-  const [jsonData, setJsonData] = useState<object>({});
-  const [rawJsonString, setRawJsonString] = useState<string>('{}');
-  const [jsonError, setJsonError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'form' | 'rawJson' | 'nodes'>('nodes');
-  const [loading, setLoading] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
-  const [exportType, setExportType] = useState<'json' | 'externalApi'>('json');
-  const [apiUrl, setApiUrl] = useState<string>('');
-  const [credentialId, setCredentialId] = useState<string>('');
-  const [prefix, setPrefix] = useState<string>('');
-  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
-  const [apiMethod, setApiMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
-  const [fetchedExport, setFetchedExport] = useState<Export | null>(null);
-  const { id, exportId } = useParams();
+  const [inputMode, setInputMode] = useState<'nodes' | 'response'>('nodes');
+  const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
+  const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
+  const nodeViewerRef = useRef<NodeViewerHandle>(null);
+
+  const handleTabChange = (tab: string) => {
+    if (inputMode === 'nodes' && tab !== 'nodes') {
+      const schema = nodeViewerRef.current?.getSchema() ?? liveSchemaRef.current;
+      if (schema) setPendingSchema(schema);
+    }
+    setInputMode(tab as 'nodes' | 'response');
+  };
 
   const populateFromData = (data: Export) => {
-    setFetchedExport(data);
     setName(data.name);
     setDescription(data.description || "");
-    setCollectionName(data.collectionName);
     setSelectedAllowedOrigins(data.allowedOrigin || []);
     setIsPrivate(data.private || false);
-    setExportType(data.type || 'json');
-    setApiUrl(data.apiUrl || '');
-    setPrefix(data.prefix || '');
-    setCredentialId(data.credentialId || '');
-    const match = currentProject?.data?.apiConnections?.find((c: ApiConnection) => c.baseUrl === data.apiUrl);
-    if (match) { setSelectedConnectionId(match.id); setApiMethod(match.method); }
-    else if (data.method) { setApiMethod(data.method); }
-    if (data.json) {
-      if (data.type === 'json') { setRawJsonString(JSON.stringify(data.json, null, 2)); setJsonData(data.json); }
-      else { setRawJsonString(JSON.stringify(data.fields, null, 2)); setJsonData(data.fields || {}); }
-    } else { setRawJsonString("{}"); setJsonData({}); }
-    setJsonError(null);
   };
 
   useEffect(() => {
-    const cached = currentProject.data?.exports?.find(e => e.id === exportId);
-    if (cached?.json !== undefined) {
-      populateFromData(cached);
-      return;
-    }
+    if (!id || !exportId) { dispatch(setExportError('Project ID or Export ID is missing.')); return; }
+
+    if (exportDetails?.id === exportId) { populateFromData(exportDetails); return; }
+
     const fetchExportDetails = async () => {
-      if (!id || !exportId) return;
+      dispatch(setExportLoading());
       try {
-        setLoading(true);
         const data = await getExport(id, exportId);
-        if (data) populateFromData(data);
-        else setJsonError("Export not found.");
+        if (data) { dispatch(setCurrentExport(data)); populateFromData(data); }
+        else dispatch(setExportError('Export not found.'));
       } catch (err: unknown) {
-        console.error(err); setJsonError("Failed to load export data.");
-      } finally {
-        setLoading(false);
+        dispatch(setExportError((err as { message: string }).message || 'Failed to fetch export details.'));
       }
     };
     fetchExportDetails();
-    //eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, exportId]);
 
-  const handleConnectionSelect = (conn: ApiConnection) => {
-    setApiUrl(conn.baseUrl); setCredentialId(conn.credentialId || '');
-    setSelectedConnectionId(conn.id); setApiMethod(conn.method);
-  };
+  useEffect(() => {
+    return () => { dispatch(clearCurrentExport()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const exportForViewer = useMemo<Export | null>(() => {
-    if (!fetchedExport) return null;
+    if (!exportDetails) return null;
     return {
-      ...fetchedExport, name, type: exportType, method: apiMethod, prefix,
-      private: isPrivate, credentialId: credentialId || undefined,
-      apiUrl, collectionName, allowedOrigin: selectedAllowedOrigins,
+      ...exportDetails,
+      name, private: isPrivate, allowedOrigin: selectedAllowedOrigins,
+      nodeSchema: pendingSchema ?? exportDetails.nodeSchema,
     };
-  }, [fetchedExport, name, exportType, apiMethod, prefix, isPrivate, credentialId, apiUrl, collectionName, selectedAllowedOrigins]);
+  }, [exportDetails, name, isPrivate, selectedAllowedOrigins, pendingSchema]);
 
-  const handleNodeSave = (updates: Record<string, string | boolean>) => {
-    if ('apiUrl' in updates && typeof updates.apiUrl === 'string') setApiUrl(updates.apiUrl);
-    if ('collectionName' in updates && typeof updates.collectionName === 'string') setCollectionName(updates.collectionName);
-    if ('prefix' in updates && typeof updates.prefix === 'string') setPrefix(updates.prefix);
+  const handleNodeSave = (updates: Record<string, string | boolean | object | null>) => {
     if ('private' in updates && typeof updates.private === 'boolean') setIsPrivate(updates.private);
-  };
-
-  const handleJsonDataChange = (newData: object) => {
-    setJsonData(newData);
-    try { setRawJsonString(JSON.stringify(newData, null, 2)); setJsonError(null); }
-    catch { setJsonError("Invalid JSON format from form input."); }
-  };
-
-  const handleRawJsonStringChange = (newRawString: string, data: object | null, isValid: boolean) => {
-    setRawJsonString(newRawString);
-    if (isValid && data) { setJsonData(data); setJsonError(null); }
-    else { setJsonData({}); setJsonError("Invalid JSON format."); }
   };
 
   const handleAllowedOriginCheckboxChange = (origin: string) => {
@@ -141,36 +111,38 @@ export function UpdateExportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     try {
+      const nodeSchema = nodeViewerRef.current?.getSchema() ?? liveSchemaRef.current as { nodes: object[]; edges: object[] } | null;
+      const apiConns = currentProject.data?.apiConnections || [];
+      const useConnections = nodeSchema?.nodes.some((n: object) => (n as { type?: string }).type === 'apiConnectionNode') ?? false;
+      const useCredentials = useConnections && nodeSchema!.nodes.some((n: object) => {
+        const node = n as { type?: string; data?: { connectionId?: string } };
+        if (node.type !== 'apiConnectionNode') return false;
+        return !!apiConns.find(c => c.id === node.data?.connectionId)?.credentialId;
+      });
       const payload = {
-        name, description, collectionName,
+        name, description,
         allowedOrigin: selectedAllowedOrigins,
-        private: isPrivate, exportType,
-        ...(exportType !== 'externalApi' && { jsonData }),
-        ...(exportType === 'externalApi' && { apiUrl, prefix, credentialId: credentialId || undefined, fields: jsonData }),
+        private: isPrivate,
+        useConnections,
+        useCredentials,
+        ...(nodeSchema ? { nodeSchema } : {}),
       };
       await updateExport(id || '', exportId || '', payload);
       navigate(`/project/${id}/dashboard/exports/${exportId}`);
     } catch (err: unknown) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   useEffect(() => {
-    let isFormValid = true;
-    if (!name) isFormValid = false;
-    if (exportType === 'externalApi') {
-      if (!apiUrl) isFormValid = false;
-    } else {
-      const isJsonDataEmpty = Object.keys(jsonData).length === 0 && JSON.stringify(jsonData) === JSON.stringify({});
-      if (inputMode === 'rawJson') { if (isJsonDataEmpty || jsonError !== null) isFormValid = false; }
-      else { if (jsonError !== null) isFormValid = false; }
-    }
-    setDisabled(!isFormValid || loading);
-  }, [name, collectionName, jsonData, inputMode, loading, jsonError, selectedAllowedOrigins, exportType, apiUrl]);
+    setDisabled(!name || submitting);
+  }, [name, submitting]);
+
+  const loading = sliceLoading || submitting;
 
   return (
     <div className={s.container}>
@@ -182,7 +154,7 @@ export function UpdateExportForm() {
             <div className={s.detailsPanel}>
               <CustomForm
                 readOnly={false}
-                header={{ icon: faPenToSquare, title: 'Update Export', subtitle: 'Fill the form to update an export' }}
+                header={{ icon: faPenToSquare, title: 'Update Export', subtitle: 'Edit the export details below' }}
                 fields={[
                   {
                     icon: faCode,
@@ -193,18 +165,6 @@ export function UpdateExportForm() {
                         label="Export's name" type="text" placeholder="" id="name-input"
                         name="name-input" htmlFor="name-input" value={name}
                         onChange={e => setName(e.target.value)}
-                      />
-                    ),
-                  },
-                  {
-                    icon: faDatabase,
-                    label: 'Collection',
-                    value: collectionName || '—',
-                    editComponent: (
-                      <LabeledInput
-                        label="Collection's name" type="text" placeholder="" id="collection-input"
-                        name="collection-input" htmlFor="collection-input" value={collectionName}
-                        onChange={e => setCollectionName(e.target.value)}
                       />
                     ),
                   },
@@ -221,23 +181,9 @@ export function UpdateExportForm() {
                     ),
                   },
                   {
-                    icon: faLayerGroup,
-                    label: 'Export Type',
-                    value: exportType,
-                    editComponent: (
-                      <LabeledSelect
-                        label="Export Type" id="export-type-select" name="export-type-select"
-                        htmlFor="export-type-select" value={exportType}
-                        onChange={e => setExportType(e.target.value as 'json' | 'externalApi')}
-                        options={[{ value: 'json', label: 'JSON' }, { value: 'externalApi', label: 'External API' }]}
-                      />
-                    ),
-                  },
-                  {
                     icon: faLock,
                     label: 'Private',
                     value: isPrivate ? 'Yes' : 'No',
-                    hidden: inputMode === 'nodes',
                     editComponent: (
                       <CustomCheckbox
                         id="private-checkbox" name="private-checkbox"
@@ -271,34 +217,6 @@ export function UpdateExportForm() {
                       </div>
                     ),
                   },
-                  {
-                    icon: faTowerBroadcast,
-                    label: 'API Connection',
-                    value: selectedConnectionId || '—',
-                    hidden: exportType !== 'externalApi' || inputMode === 'nodes',
-                    editComponent: (currentProject?.data?.apiConnections?.length ?? 0) > 0 ? (
-                      <ul className={s.connectionsList}>
-                        {currentProject.data!.apiConnections!.map((conn: ApiConnection) => (
-                          <li
-                            key={conn.id}
-                            className={`${s.connectionItem} ${selectedConnectionId === conn.id ? s.connectionSelected : ''}`}
-                            onClick={() => handleConnectionSelect(conn)}
-                          >
-                            <span className={s.methodBadge}>{conn.method}</span>
-                            <span className={s.connectionName}>{conn.name}</span>
-                            <small className={s.connectionUrl}>{conn.baseUrl}</small>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className={s.emptyConnections}>
-                        No connections yet.{' '}
-                        <Link to={`/project/${id}/connections/api/create`}>
-                          <FontAwesomeIcon icon={faTowerBroadcast} /> Create one
-                        </Link>
-                      </p>
-                    ),
-                  },
                 ]}
                 actions={
                   <>
@@ -316,28 +234,29 @@ export function UpdateExportForm() {
             <div className={s.viewerPanel}>
               <Tabs
                 active={inputMode}
-                onChange={id => setInputMode(id as 'nodes' | 'form' | 'rawJson')}
+                onChange={handleTabChange}
                 tabs={[
                   { id: 'nodes', label: 'Nodes', icon: faSitemap },
-                  { id: 'form', label: 'Form', icon: faFileLines },
-                  { id: 'rawJson', label: 'JSON', icon: faCode },
+                  { id: 'response', label: 'Response', icon: faCode },
                 ]}
               />
               <div className={s.viewerContent}>
-                {inputMode === 'form' && (
-                  <FormInputMode jsonData={jsonData} onJsonDataChange={handleJsonDataChange} jsonError={jsonError} />
-                )}
-                {inputMode === 'rawJson' && (
-                  <RawJsonInputMode jsonData={rawJsonString} onJsonDataChange={handleRawJsonStringChange} jsonError={jsonError} />
-                )}
                 {inputMode === 'nodes' && exportForViewer && (
                   <NodeViewer
+                    ref={nodeViewerRef}
                     exportDetails={exportForViewer}
                     editMode
                     onSave={handleNodeSave}
-                    apiConnections={currentProject?.data?.apiConnections ?? []}
-                    onConnectionSelect={handleConnectionSelect}
-                    selectedConnectionId={selectedConnectionId}
+                    onChange={schema => { liveSchemaRef.current = schema; }}
+                    apiConnections={currentProject.data?.apiConnections || []}
+                  />
+                )}
+                {inputMode === 'response' && exportDetails && (
+                  <ResponsePreview
+                    projectId={id!}
+                    exportName={exportDetails.name}
+                    schema={liveSchemaRef.current}
+                    savedApiResponse={exportDetails.apiResponse}
                   />
                 )}
               </div>
