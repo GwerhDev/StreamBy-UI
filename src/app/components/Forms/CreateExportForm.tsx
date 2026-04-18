@@ -6,20 +6,20 @@ import { createExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { Spinner } from '../Spinner';
 import { faDiagramProject, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
+import { Icon } from '@fortawesome/fontawesome-svg-core';
 
 export function CreateExportForm() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id: projectId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
+  const [description, setDescription] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => { setDisabled(!name || loading); }, [name, loading]);
 
@@ -36,8 +36,10 @@ export function CreateExportForm() {
     }
   };
 
-  const handleCancel = () => navigate('/');
-  if (loading) return <Spinner bg isLoading={loading} />;
+  const handleCancel = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/project/${projectId}/dashboard/exports`);
+  };
 
   return (
     <div className={s.divContainer}>
@@ -75,7 +77,7 @@ export function CreateExportForm() {
           actions={
             <>
               <ActionButton disabled={disabled} icon={faDiagramProject} text="Create" type="submit" />
-              <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
+              <SecondaryButton icon={faXmark as Icon} onClick={handleCancel} type="button" text="Cancel" />
             </>
           }
         />

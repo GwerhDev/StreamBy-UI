@@ -7,6 +7,7 @@ import { RootState } from '../../../store';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
+import { Icon } from '@fortawesome/fontawesome-svg-core';
 
 type BrowserProps = {
   children: React.ReactNode;
@@ -105,7 +106,7 @@ export const Browser = (props: BrowserProps) => {
                 </span>
                 <div className={s.floatingActions}>
                   <ActionButton onClick={handleAccept} icon={faCheck} text="Accept" type="button" />
-                  <SecondaryButton onClick={handleReject} icon={faBan} text="Reject" type="button" />
+                  <SecondaryButton onClick={handleReject} icon={faBan as Icon} text="Reject" type="button" />
                 </div>
               </div>
             )}
