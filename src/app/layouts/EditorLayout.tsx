@@ -5,7 +5,6 @@ import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { useEffect } from 'react';
 import { fetchProject } from '../../services/projects';
 import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
-import { useEditorMenu } from '../../context/EditorMenuContext';
 
 export default function EditorLayout() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -13,7 +12,6 @@ export default function EditorLayout() {
   const session = useSelector((state: RootState) => state.session);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { menuOpen } = useEditorMenu();
 
   useEffect(() => {
     if (!projectId || projects.loading) return;
@@ -31,7 +29,7 @@ export default function EditorLayout() {
 
   return (
     <div className="dashboard-sections">
-      <LateralMenu open={!menuOpen} />
+      <LateralMenu />
       <Outlet />
     </div>
   );

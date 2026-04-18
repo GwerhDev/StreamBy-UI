@@ -1,7 +1,7 @@
 import s from './LateralTab.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { faArchive, faBars } from '@fortawesome/free-solid-svg-icons';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -61,9 +61,7 @@ const SortableProjectItem = ({ project }: { project: ProjectList }) => {
 export const LateralTab = (props: { projectList: ProjectsState, userData: Session }) => {
   const { projectList, userData } = props || {};
   const { loading: projectsLoading } = useSelector((state: RootState) => state.projects);
-  const location = useLocation();
-  const { menuOpen, toggleMenu } = useEditorMenu();
-  const isEditorRoute = location.pathname.startsWith('/editor/');
+  const { toggleMenu } = useEditorMenu();
 
   const filteredList = projectList.list.filter((project: ProjectList) => !project.archived);
 
@@ -159,11 +157,10 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
       </ul>
 
       <ul className={s.user}>
-        {isEditorRoute && (
-          <li className={`${s.archive} ${menuOpen ? s.menuToggleActive : ''}`} onClick={toggleMenu} title="Toggle menu">
-            <FontAwesomeIcon icon={faBars} />
-          </li>
-        )}
+        <li className={s.archive} onClick={toggleMenu} title="Toggle menu">
+          <FontAwesomeIcon icon={faBars} />
+        </li>
+
         <li className={s.archive} onClick={handleGoArchive}>
           <FontAwesomeIcon icon={faArchive} />
         </li>

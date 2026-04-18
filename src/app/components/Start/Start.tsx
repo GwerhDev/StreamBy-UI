@@ -24,8 +24,10 @@ export const Start = () => {
       {
         projectsLoading ? (
           <div className={s.createContainer}>
-            <h2><span className={skeleton.skeleton}></span></h2>
-            <p><span className={skeleton.skeleton}></span></p>
+            <div className={s.title}>
+              <h2>Searching...</h2>
+              <p>(wait for it...)</p>
+            </div>
             <ul>
               {Array.from({ length: 3 }).map((_, index) => (
                 <li key={index} className={`${s.projectCardSkeleton} ${skeleton.skeleton}`}></li>

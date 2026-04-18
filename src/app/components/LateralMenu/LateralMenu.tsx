@@ -10,16 +10,13 @@ import { RootState } from '../../../store';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
 import { CloudStorage } from '../../../interfaces';
+import { useEditorMenu } from '../../../context/EditorMenuContext';
 
 const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
-interface LateralMenuProps {
-  open?: boolean;
-}
-
-export const LateralMenu = ({ open = false }: LateralMenuProps) => {
+export const LateralMenu = () => {
   const navigate = useNavigate();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -30,6 +27,7 @@ export const LateralMenu = ({ open = false }: LateralMenuProps) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
+  const { menuOpen } = useEditorMenu();
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -88,7 +86,7 @@ export const LateralMenu = ({ open = false }: LateralMenuProps) => {
   };
 
   const menuContent = (
-    <div className={s.wrapper} style={!open ? { width: `${menuWidth}px` } : { display: 'none'}}>
+    <div className={s.wrapper} style={!menuOpen ? { width: `${menuWidth}px` } : { display: 'none' }}>
       <div className={s.container}>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>

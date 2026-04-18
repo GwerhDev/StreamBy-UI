@@ -44,6 +44,9 @@ export const CreateCredentialForm = () => {
     }
   };
 
+  if (loading) return <Spinner bg isLoading={loading} />;
+  if (!currentProject) return <div className={s.container}><Spinner bg isLoading={loading} /></div>;
+
   return (
     <div className={s.container}>
       <Spinner bg isLoading={loading} />

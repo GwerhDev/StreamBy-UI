@@ -9,7 +9,7 @@
 
 .pageHeader {
   flex-shrink: 0;
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -118,6 +118,15 @@
   width: 32px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.15);
+}
+
+.backButton {
+  background: transparent;
+}
+
+.backButton:hover {
+  color: var(--color-light-100);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* ── Tab action buttons ──────────────────── */

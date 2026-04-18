@@ -240,7 +240,7 @@ export const ExportEditor: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             type="button"
-            className={s.tabActionBtn}
+            className={s.backButton}
             title="Back to details"
             onClick={() => navigate(`/project/${projectId}/dashboard/exports/${exportId}`)}
           >
