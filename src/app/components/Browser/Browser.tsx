@@ -11,10 +11,11 @@ import { acceptInvitation, rejectInvitation } from '../../../services/members';
 type BrowserProps = {
   children: React.ReactNode;
   preview?: boolean;
+  env?: string;
 };
 
 export const Browser = (props: BrowserProps) => {
-  const { children, preview } = props;
+  const { children, preview, env } = props;
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -46,7 +47,6 @@ export const Browser = (props: BrowserProps) => {
     navigate('/');
   };
 
-
   const path = decodeURIComponent(location.pathname);
   const basePath = `/project/${id}`;
   const relativePath = path.replace(basePath, '');
@@ -66,18 +66,23 @@ export const Browser = (props: BrowserProps) => {
       {
         !preview ?
           <section className={s.location}>
-            <span className={s.breadcrumb} onClick={() => navigate(basePath)}>
-              <FontAwesomeIcon icon={faFolder} />
-            </span>
             {
-              segments.map((seg, i) => (
-                <span key={i} className={s.separator}>
-                  <FontAwesomeIcon icon={faChevronRight} />
-                  <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                    {formatSegment(seg)}
-                  </span>
+              env !== 'notification' &&
+              <>
+                <span className={s.breadcrumb} onClick={() => navigate(basePath)}>
+                  <FontAwesomeIcon icon={faFolder} />
                 </span>
-              ))
+                {
+                  segments.map((seg, i) => (
+                    <span key={i} className={s.separator}>
+                      <FontAwesomeIcon icon={faChevronRight} />
+                      <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
+                        {formatSegment(seg)}
+                      </span>
+                    </span>
+                  ))
+                }
+              </>
             }
           </section>
           :

@@ -6,7 +6,7 @@ export default function NotificationLayout() {
   return (
     <div className="dashboard-sections">
       <NotificationMenu />
-      <Browser>
+      <Browser env="notification">
         <Outlet />
       </Browser>
     </div>
