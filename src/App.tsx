@@ -10,6 +10,7 @@ import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
 import EditorLayout from './app/layouts/EditorLayout';
+import NotificationLayout from './app/layouts/NotificationLayout';
 
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
@@ -72,8 +73,10 @@ function App() {
                 <Route path="/project/create" element={<ProjectCreate />} />
                 <Route path="/user" element={<UserAccount />} />
                 <Route path="/user/archive" element={<UserArchive />} />
-                <Route path="/user/notification/" element={<UserNotification />} />
-                <Route path="/user/notification/:id" element={<UserNotificationDetail />} />
+                <Route element={<NotificationLayout />}>
+                  <Route path="/user/notification" element={<UserNotification />} />
+                  <Route path="/user/notification/:id" element={<UserNotificationDetail />} />
+                </Route>
                 <Route element={<PreviewLayout />}>
                   <Route path="/preview/:projectId" element={<ProjectPreview />} />
                 </Route>
