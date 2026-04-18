@@ -85,7 +85,7 @@ export const Browser = (props: BrowserProps) => {
             <button className={s.backButton} onClick={handleBack}>
               <FontAwesomeIcon icon={faArrowLeft} />
             </button>
-            {!isPending && (
+            {isPending && (
               <div className={s.floatingCard}>
                 <span className={s.message}>
                   <div className={s.floatingIcon}>
