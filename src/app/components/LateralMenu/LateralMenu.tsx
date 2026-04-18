@@ -2,7 +2,7 @@ import s from './LateralMenu.module.css';
 import React, { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
@@ -28,6 +28,8 @@ export const LateralMenu = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const { menuOpen } = useEditorMenu();
+  const { pathname } = useLocation();
+  const isEditorRoute = pathname.startsWith('/editor/');
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -86,7 +88,7 @@ export const LateralMenu = () => {
   };
 
   const menuContent = (
-    <div className={s.wrapper} style={!menuOpen ? { width: `${menuWidth}px` } : { display: 'none' }}>
+    <div className={s.wrapper} style={isEditorRoute || menuOpen ? { display: 'none' } : { width: `${menuWidth}px` }}>
       <div className={s.container}>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>

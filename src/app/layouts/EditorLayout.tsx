@@ -5,6 +5,7 @@ import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { useEffect } from 'react';
 import { fetchProject } from '../../services/projects';
 import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
+import { useEditorMenu } from '../../context/EditorMenuContext';
 
 export default function EditorLayout() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -12,6 +13,10 @@ export default function EditorLayout() {
   const session = useSelector((state: RootState) => state.session);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { closeMenu } = useEditorMenu();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { closeMenu(); }, []);
 
   useEffect(() => {
     if (!projectId || projects.loading) return;
