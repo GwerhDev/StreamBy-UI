@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface SecondaryButtonProps {
   text: string;
-  icon?: Icon;
+  icon?: Icon | any;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   onClick?: (e: React.FormEvent) => void;
