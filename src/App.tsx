@@ -9,6 +9,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
+import EditorLayout from './app/layouts/EditorLayout';
 
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
@@ -33,7 +34,6 @@ const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ def
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
 const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
-const ExportsEdit = lazy(() => import('./app/pages/ExportsEdit').then(module => ({ default: module.ExportsEdit })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
@@ -42,6 +42,7 @@ const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').
 const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module => ({ default: module.ProjectCreate })));
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
+const ExportEditorPage = lazy(() => import('./app/pages/ExportEditorPage').then(module => ({ default: module.ExportEditorPage })));
 const StorageCategory = lazy(() => import('./app/components/Storage/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(module => ({ default: module.CredentialsList })));
 const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
@@ -76,6 +77,9 @@ function App() {
                 <Route element={<PreviewLayout />}>
                   <Route path="/preview/:projectId" element={<ProjectPreview />} />
                 </Route>
+                <Route element={<EditorLayout />}>
+                  <Route path="/editor/:projectId/:exportId" element={<ExportEditorPage />} />
+                </Route>
 
                 <Route path="/project/:id" element={<ProjectLayout />}>
                   <Route path="/project/:id" element={<RootBackground />} />
@@ -86,7 +90,6 @@ function App() {
                   <Route path="/project/:id/dashboard/exports" element={<Exports />} />
                   <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
                   <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
-                  <Route path="/project/:id/dashboard/exports/:exportId/edit" element={<ExportsEdit />} />
 
                   <Route path="/project/:id/storage" element={<Storage />} />
                   <Route path="/project/:id/storage/:storageName" element={<StorageDrive />} />

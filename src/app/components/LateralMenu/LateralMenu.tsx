@@ -15,7 +15,11 @@ const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
-export const LateralMenu = () => {
+interface LateralMenuProps {
+  open?: boolean;
+}
+
+export const LateralMenu = ({ open = false }: LateralMenuProps) => {
   const navigate = useNavigate();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -83,31 +87,27 @@ export const LateralMenu = () => {
     setShowCanvas(false);
   };
 
-  return (
-    <div className={s.wrapper} style={isSmallScreen ? undefined : { width: `${menuWidth}px` }}>
+  const menuContent = (
+    <div className={s.wrapper} style={!open ? { width: `${menuWidth}px` } : { display: 'none'}}>
       <div className={s.container}>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
-            <h4>
-              {name}
-            </h4>
+            <h4>{name}</h4>
             <FontAwesomeIcon icon={faChevronDown} />
           </span>
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
             <ul className={s.projectActionsContainer}>
-              {
-                selfMember?.archived
-                  ?
-                  <li onClick={handleUnarchive} className={s.listButton}>
-                    <FontAwesomeIcon icon={faArchive} />
-                    Unarchive this project
-                  </li>
-                  :
-                  <li onClick={handleArchive} className={s.listButton}>
-                    <FontAwesomeIcon icon={faArchive} />
-                    Archive this project
-                  </li>
-              }
+              {selfMember?.archived ? (
+                <li onClick={handleUnarchive} className={s.listButton}>
+                  <FontAwesomeIcon icon={faArchive} />
+                  Unarchive this project
+                </li>
+              ) : (
+                <li onClick={handleArchive} className={s.listButton}>
+                  <FontAwesomeIcon icon={faArchive} />
+                  Archive this project
+                </li>
+              )}
               <li className={s.listButton}>
                 <FontAwesomeIcon icon={faDoorOpen} />
                 Abandon this project
@@ -270,4 +270,6 @@ export const LateralMenu = () => {
       {!isSmallScreen && <div className={s.resizeHandle} onMouseDown={handleResizeMouseDown} />}
     </div>
   );
-}
+
+  return menuContent;
+};

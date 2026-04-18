@@ -1,219 +1,106 @@
-/* ── Layout ──────────────────────────────── */
-.container {
+.divContainer {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
   position: relative;
-}
-
-.pageHeader {
-  flex-shrink: 0;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.form {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-/* ── Panel group ─────────────────────────── */
-.splitGroup {
-  flex-grow: 1;
-  display: flex;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.colGroup {
-  height: 100%;
-}
-
-/* ── Individual panel ────────────────────── */
-.panelContent {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.panelBody {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  padding: 1rem;
-}
-
-.detailsScroll {
-  flex: 1;
+  justify-content: center;
   overflow-y: auto;
 }
 
-/* ── Footer ──────────────────────────────── */
-.footer {
+.form {
   width: 100%;
+  max-width: 640px;
+  padding: 2rem 1.5rem;
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
-  box-sizing: border-box;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
-/* ── Resize handles ──────────────────────── */
-.resizeHandle {
-  width: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  position: relative;
-  cursor: col-resize;
-  transition: background 0.15s ease;
-  flex-shrink: 0;
+.imageField {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
 }
 
-.resizeHandle:hover,
-.resizeHandle[data-state="active"] {
-  background: var(--color-primary);
-}
-
-.resizeHandle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2px;
-  height: 32px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.resizeHandleH {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  position: relative;
-  cursor: row-resize;
-  transition: background 0.15s ease;
-  flex-shrink: 0;
-}
-
-.resizeHandleH:hover,
-.resizeHandleH[data-state="active"] {
-  background: var(--color-primary);
-}
-
-.resizeHandleH::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 2px;
-  width: 32px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-/* ── Tab action buttons ──────────────────── */
-.tabActionBtn {
-  background: none;
-  border: none;
-  color: var(--color-light-400);
+.imgContainer {
+  width: 10rem;
+  height: 10rem;
+  padding: .2rem;
+  border-radius: 100%;
+  transition-duration: .3s;
+  display: flex;
+  border: dashed;
   cursor: pointer;
-  width: 24px;
-  height: 24px;
-  display: flex;
+  position: relative;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  transition: color 0.15s ease, background 0.15s ease;
+  border-color: var(--color-dark-400);
+  background-color: var(--background-color-dark);
 }
 
-.tabActionBtn:hover {
-  color: var(--color-light-100);
-  background: rgba(255, 255, 255, 0.07);
+.imgContainer:hover {
+  border-color: var(--color-primary);
 }
 
-/* ── Form-specific ───────────────────────── */
+.plusContainer {
+  bottom: 0;
+  right: 1rem;
+  padding: .3rem;
+  border-radius: 100%;
+  display: flex;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+}
+
+.previewImageContainer {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImage {
+  width: 100%;
+  object-fit: cover;
+  aspect-ratio: 1/1;
+}
+
 .allowedOriginsContainer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.responseHint {
-  font-size: 0.82rem;
-  color: var(--color-light-400);
-  margin: 0;
-}
-
-/* ── Connection selector ─────────────────── */
-.connectionsList {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
 }
 
-.connectionItem {
-  gap: 0.75rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
-  border: 1px solid var(--color-dark-400);
-  background-color: var(--color-dark-400);
+.allowedOriginInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.allowedOriginInputContainer button {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0.5rem;
+}
+
+.allowedOriginsContainer > button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: border-color 0.15s;
-}
-
-.connectionItem:hover {
-  border-color: var(--color-light-300);
-}
-
-.connectionSelected {
-  border-color: var(--color-button-primary) !important;
-  background-color: var(--color-dark-300);
-}
-
-.methodBadge {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: var(--color-button-primary);
-  color: white;
-  letter-spacing: 0.4px;
-}
-
-.connectionName {
-  font-weight: 600;
-  flex-shrink: 0;
-  font-size: 13px;
-}
-
-.connectionUrl {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--color-light-400);
-  font-size: 11px;
-}
-
-.emptyConnections {
-  width: 100%;
-  text-align: center;
-  padding: 0.75rem 1rem;
-  border: dashed 1px var(--color-dark-400);
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 0.5rem;
+  font-weight: 500;
+  width: fit-content;
 }

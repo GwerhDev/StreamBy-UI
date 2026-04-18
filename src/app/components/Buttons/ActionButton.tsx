@@ -1,8 +1,9 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import s from './ActionButton.module.css';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 export const ActionButton = (props: any) => {
-  const { text, onClick, icon, disabled, href } = props || {};
+  const { text, onClick, icon, disabled, href, isLoading } = props || {};
 
   const handleOnClick = () => {
     return onClick && onClick();
@@ -12,14 +13,31 @@ export const ActionButton = (props: any) => {
     <>
       {
         href
-          ? <a href={href} className={s.container} onClick={handleOnClick}>
-            {icon && <FontAwesomeIcon icon={icon} />}
-            {text}
+          ?
+          <a href={href} className={s.container} onClick={handleOnClick}>
+            {
+              isLoading
+                ?
+                <FontAwesomeIcon icon={faSpinner} spin />
+                :
+                <>
+                  {icon && <FontAwesomeIcon icon={icon} />}
+                  {text}
+                </>
+            }
           </a>
           :
           <button disabled={disabled} className={s.container} onClick={handleOnClick}>
-            {icon && <FontAwesomeIcon icon={icon} />}
-            {text}
+            {
+              isLoading
+                ?
+                <FontAwesomeIcon icon={faSpinner} spin />
+                :
+                <>
+                  {icon && <FontAwesomeIcon icon={icon} />}
+                  {text}
+                </>
+            }
           </button>
       }
     </>

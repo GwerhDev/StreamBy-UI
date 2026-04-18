@@ -92,12 +92,11 @@ export const CreateProjectForm = () => {
     setDisabled(!name || !selectedDatabase || loading);
   }, [name, selectedDatabase, loading]);
 
-  if (loading) return <div>Loading databases...</div>;
+  if (loading) return <Spinner bg isLoading={loader} />;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={s.divContainer}>
-      <Spinner bg isLoading={loader} />
       <form className={s.form} onSubmit={handleOnSubmit}>
         <CustomForm
           readOnly={false}

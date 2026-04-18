@@ -75,3 +75,7 @@
 .archive:hover {
   color: var(--color-light-100);
 }
+
+.menuToggleActive {
+  color: var(--color-primary);
+}

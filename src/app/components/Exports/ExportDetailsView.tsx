@@ -11,7 +11,8 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeleteExportModal } from '../Modals/DeleteExportModal';
 import {
   faCode, faFileLines, faLink, faGlobe, faClock,
-  faPenToSquare, faTrash, faSitemap, faTableColumns, faXmark,
+  faTrash, faSitemap, faTableColumns, faXmark,
+  faFeather,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -37,8 +38,8 @@ interface ColumnState { id: string; rows: PanelState[]; }
 
 const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
   details: { label: 'Details', icon: faFileLines },
-  nodes:   { label: 'Nodes',   icon: faSitemap  },
-  response:{ label: 'Response',icon: faCode      },
+  nodes: { label: 'Nodes', icon: faSitemap },
+  response: { label: 'Response', icon: faCode },
 };
 const ALL_TABS: TabId[] = ['details', 'nodes', 'response'];
 
@@ -224,7 +225,6 @@ export const ExportDetailsView: React.FC = () => {
 
   return (
     <div className={s.container}>
-
       <div className={s.pageHeader}>
         <SectionHeader
           icon={faCode}
@@ -232,6 +232,10 @@ export const ExportDetailsView: React.FC = () => {
           badge={exportDetails.method}
           subtitle={exportDetails.description}
         />
+        <div className={s.buttonsContainer}>
+          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/editor/${id}/${exportId}`)} />
+          <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
+        </div>
       </div>
 
       <PanelGroup orientation="horizontal" className={s.splitGroup}>
@@ -324,11 +328,6 @@ export const ExportDetailsView: React.FC = () => {
           </React.Fragment>
         ))}
       </PanelGroup>
-
-      <div className={s.footer}>
-        <ActionButton icon={faPenToSquare} text="Edit" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/edit`)} />
-        <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
-      </div>
 
       {showDeleteModal && (
         <DeleteExportModal
