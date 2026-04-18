@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
-import { getStorageFiles, deleteStorageFile, updateStorageFile } from '../../../services/storage';
+import { getStorageFiles, deleteStorageFile, renameStorageFile } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
 
@@ -39,20 +39,20 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
 
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
-  const handleDelete = async (key: string) => {
+  const handleDelete = async (id: string) => {
     if (!projectId) return;
     try {
-      await deleteStorageFile(projectId, category, key);
-      setFiles(prev => prev.filter(f => f.key !== key));
+      await deleteStorageFile(projectId, id);
+      setFiles(prev => prev.filter(f => f.id !== id));
     } catch {
       // error dispatched by service
     }
   };
 
-  const handleUpdate = async (key: string, newFile: File) => {
+  const handleRename = async (id: string, displayName: string) => {
     if (!projectId) return;
-    await updateStorageFile(projectId, category, key, newFile);
-    fetchFiles();
+    const file = await renameStorageFile(projectId, id, displayName);
+    if (file) setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
   };
 
   const handleUploadSuccess = () => {
@@ -104,12 +104,12 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
       ) : (
         <ul className={s.grid}>
           {displayedFiles.map(file => (
-            <li key={file.key}>
+            <li key={file.id}>
               <StorageCard
                 file={file}
                 category={category}
                 onDelete={handleDelete}
-                onUpdate={handleUpdate}
+                onRename={handleRename}
               />
             </li>
           ))}

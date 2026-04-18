@@ -9,7 +9,7 @@ import { StorageFile, StorageCategory } from '../../../interfaces';
 import { RootState } from '../../../store';
 import { StorageCard } from './StorageCard';
 import { getRecentFiles } from '../../../services/storageDrive';
-import { deleteStorageFile, updateStorageFile } from '../../../services/storage';
+import { deleteStorageFile, renameStorageFile } from '../../../services/storage';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 const CATEGORIES = [
@@ -37,18 +37,16 @@ export const StorageDrive = () => {
 
   useEffect(() => { fetchRecent(); }, [fetchRecent]);
 
-  const handleDelete = async (key: string) => {
-    const file = recentFiles.find(f => f.key === key);
-    if (!file || !projectId) return;
-    await deleteStorageFile(projectId, file.category, key);
-    setRecentFiles(prev => prev.filter(f => f.key !== key));
+  const handleDelete = async (id: string) => {
+    if (!projectId) return;
+    await deleteStorageFile(projectId, id);
+    setRecentFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  const handleUpdate = async (key: string, newFile: File) => {
-    const file = recentFiles.find(f => f.key === key);
-    if (!file || !projectId) return;
-    await updateStorageFile(projectId, file.category, key, newFile);
-    fetchRecent();
+  const handleRename = async (id: string, displayName: string) => {
+    if (!projectId) return;
+    const file = await renameStorageFile(projectId, id, displayName);
+    if (file) setRecentFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
   };
 
   return (
@@ -92,12 +90,12 @@ export const StorageDrive = () => {
         ) : (
           <ul className={s.fileGrid}>
             {recentFiles.map(file => (
-              <li key={file.key}>
+              <li key={file.id}>
                 <StorageCard
                   file={file}
                   category={file.category as StorageCategory}
                   onDelete={handleDelete}
-                  onUpdate={handleUpdate}
+                  onRename={handleRename}
                 />
               </li>
             ))}

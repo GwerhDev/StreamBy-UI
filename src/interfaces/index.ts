@@ -207,11 +207,13 @@ export interface FieldDefinition {
 export type StorageCategory = 'images' | 'audios' | 'videos' | '3d-models';
 
 export interface StorageFile {
-  key: string;
-  name: string;
+  id: string;
+  displayName: string;
+  storageKey: string;
   size: number;
   url: string;
   contentType: string;
-  lastModified: string;
   category: StorageCategory;
+  uploadedBy: string;
+  createdAt: string;
 }

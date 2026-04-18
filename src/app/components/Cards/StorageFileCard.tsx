@@ -43,8 +43,8 @@ export function StorageFileCard({ file }: StorageFileCardProps) {
           <FontAwesomeIcon icon={icon} />
         </div>
         <div>
-          <p className={s.name} title={file.name}>{file.name}</p>
-          <p className={s.meta}>{formatBytes(file.size)} · {timeAgo(file.lastModified)}</p>
+          <p className={s.name} title={file.displayName}>{file.displayName}</p>
+          <p className={s.meta}>{formatBytes(file.size)} · {timeAgo(file.createdAt)}</p>
         </div>
       </div>
       <div className={s.right}>

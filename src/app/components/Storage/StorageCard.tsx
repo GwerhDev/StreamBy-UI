@@ -3,15 +3,15 @@ import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
-  faXmark, faCopy, faCheck, faEye, faArrowsRotate,
+  faXmark, faCopy, faCheck, faEye, faPencil,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 
 interface StorageCardProps {
   file: StorageFile;
   category: StorageCategory;
-  onDelete: (key: string) => void;
-  onUpdate?: (key: string, file: File) => Promise<void>;
+  onDelete: (id: string) => void;
+  onRename?: (id: string, displayName: string) => Promise<void>;
   selected?: boolean;
   onSelect?: (file: StorageFile) => void;
 }
@@ -30,17 +30,10 @@ const categoryIcon = {
   '3d-models': faCubes,
 };
 
-const acceptTypes: Record<StorageCategory, string> = {
-  images: 'image/*',
-  audios: 'audio/*',
-  videos: 'video/*',
-  '3d-models': '.glb,.gltf,.obj,.fbx,.stl,.ply',
-};
-
 const CTX_W = 188;
 const CTX_H = 200;
 
-export function StorageCard({ file, category, onDelete, onUpdate, selected: controlledSelected, onSelect }: StorageCardProps) {
+export function StorageCard({ file, category, onDelete, onRename, selected: controlledSelected, onSelect }: StorageCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(false);
   const isControlled = onSelect !== undefined;
@@ -49,11 +42,12 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
   const [copied, setCopied] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [ctxConfirmDelete, setCtxConfirmDelete] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
   const menuRef = useRef<HTMLUListElement>(null);
-  const replaceInputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
-  // Close preview on Escape
   useEffect(() => {
     if (!previewOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePreview(); };
@@ -61,7 +55,6 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
     return () => window.removeEventListener('keydown', onKey);
   }, [previewOpen]);
 
-  // Close context menu on outside click or Escape
   useEffect(() => {
     if (!contextMenu) return;
     const onDown = (e: MouseEvent) => {
@@ -76,9 +69,14 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
     };
   }, [contextMenu]);
 
+  useEffect(() => {
+    if (renaming) renameInputRef.current?.focus();
+  }, [renaming]);
+
   const closePreview = () => {
     setPreviewOpen(false);
     setConfirmDelete(false);
+    setRenaming(false);
   };
 
   const closeCtx = () => {
@@ -97,21 +95,34 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
     else setInternalSelected(true);
   };
 
-  const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = e.target.files?.[0];
-    if (!picked || !onUpdate) return;
-    e.target.value = '';
-    setUpdating(true);
-    try {
-      await onUpdate(file.key, picked);
-    } finally {
-      setUpdating(false);
+  const startRename = () => {
+    setRenameValue(file.displayName);
+    setRenaming(true);
+  };
+
+  const commitRename = async () => {
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === file.displayName || !onRename) {
+      setRenaming(false);
+      return;
     }
+    setRenameLoading(true);
+    try {
+      await onRename(file.id, trimmed);
+    } finally {
+      setRenameLoading(false);
+      setRenaming(false);
+    }
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') commitRename();
+    if (e.key === 'Escape') setRenaming(false);
   };
 
   const handleDelete = () => {
     if (confirmDelete) {
-      onDelete(file.key);
+      onDelete(file.id);
       closePreview();
     } else {
       setConfirmDelete(true);
@@ -120,7 +131,7 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
 
   const handleCtxDelete = () => {
     if (ctxConfirmDelete) {
-      onDelete(file.key);
+      onDelete(file.id);
       closeCtx();
     } else {
       setCtxConfirmDelete(true);
@@ -140,14 +151,6 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
 
   return (
     <>
-      <input
-        ref={replaceInputRef}
-        type="file"
-        accept={acceptTypes[category]}
-        className={s.hiddenInput}
-        onChange={handleReplace}
-      />
-
       <div
         className={`${s.card} ${selected ? s.cardSelected : ''}`}
         tabIndex={0}
@@ -159,7 +162,7 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
       >
         <div className={s.preview}>
           {category === 'images' ? (
-            <img src={file.url} alt={file.name} className={s.image} loading="lazy" />
+            <img src={file.url} alt={file.displayName} className={s.image} loading="lazy" />
           ) : (
             <div className={s.iconPreview}>
               <FontAwesomeIcon
@@ -170,7 +173,20 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
           )}
         </div>
         <div className={s.info}>
-          <p className={s.name} title={file.name}>{file.name}</p>
+          {renaming ? (
+            <input
+              ref={renameInputRef}
+              className={s.renameInput}
+              value={renameValue}
+              onChange={e => setRenameValue(e.target.value)}
+              onKeyDown={handleRenameKeyDown}
+              onBlur={commitRename}
+              disabled={renameLoading}
+              onClick={e => e.stopPropagation()}
+            />
+          ) : (
+            <p className={s.name} title={file.displayName}>{file.displayName}</p>
+          )}
           <span className={s.size}>{formatBytes(file.size)}</span>
         </div>
       </div>
@@ -194,18 +210,18 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
             Copy URL
           </li>
           <li className={s.ctxItem} onClick={closeCtx}>
-            <a target='_blank' href={file.url} download={file.name} className={s.ctxLink}>
+            <a target='_blank' href={file.url} download={file.displayName} className={s.ctxLink}>
               <FontAwesomeIcon icon={faDownload} className={s.ctxIcon} />
               Download
             </a>
           </li>
-          {onUpdate && (
+          {onRename && (
             <li
               className={s.ctxItem}
-              onClick={() => { replaceInputRef.current?.click(); closeCtx(); }}
+              onClick={() => { startRename(); closeCtx(); }}
             >
-              <FontAwesomeIcon icon={faArrowsRotate} className={s.ctxIcon} />
-              Replace
+              <FontAwesomeIcon icon={faPencil} className={s.ctxIcon} />
+              Rename
             </li>
           )}
           <li className={s.ctxDivider} />
@@ -228,7 +244,7 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
             </button>
 
             {category === 'images' && (
-              <img src={file.url} alt={file.name} className={s.previewImage} />
+              <img src={file.url} alt={file.displayName} className={s.previewImage} />
             )}
             {category === 'videos' && (
               <video src={file.url} className={s.previewVideo} controls autoPlay />
@@ -242,32 +258,43 @@ export function StorageCard({ file, category, onDelete, onUpdate, selected: cont
               </div>
             )}
 
-            <p className={s.previewName}>{file.name}</p>
+            {renaming ? (
+              <input
+                className={s.previewRenameInput}
+                value={renameValue}
+                onChange={e => setRenameValue(e.target.value)}
+                onKeyDown={handleRenameKeyDown}
+                onBlur={commitRename}
+                disabled={renameLoading}
+                autoFocus
+              />
+            ) : (
+              <p className={s.previewName}>{file.displayName}</p>
+            )}
 
             <div className={s.previewActions}>
               <button className={s.previewActionBtn} onClick={handleCopyUrl} title="Copy public S3 URL">
                 <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
                 {copied ? 'Copied!' : 'Copy URL'}
               </button>
-              <a href={file.url} download={file.name} className={s.previewActionBtn} title="Download file">
+              <a href={file.url} download={file.displayName} className={s.previewActionBtn} title="Download file">
                 <FontAwesomeIcon icon={faDownload} />
                 Download
               </a>
-              {onUpdate && (
+              {onRename && (
                 <button
                   className={s.previewActionBtn}
-                  onClick={() => replaceInputRef.current?.click()}
-                  disabled={updating}
-                  title="Replace file"
+                  onClick={startRename}
+                  disabled={renameLoading}
+                  title="Rename file"
                 >
-                  <FontAwesomeIcon icon={faArrowsRotate} />
-                  {updating ? 'Replacing...' : 'Replace'}
+                  <FontAwesomeIcon icon={faPencil} />
+                  {renameLoading ? 'Renaming...' : 'Rename'}
                 </button>
               )}
               <button
                 className={`${s.previewActionBtn} ${confirmDelete ? s.previewConfirmDeleteBtn : s.previewDeleteBtn}`}
                 onClick={handleDelete}
-                disabled={updating}
                 title={confirmDelete ? 'Click again to confirm deletion' : 'Delete file'}
               >
                 <FontAwesomeIcon icon={faTrash} />

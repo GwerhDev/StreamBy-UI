@@ -90,6 +90,7 @@ export function UploadModal({ projectId, category, onSuccess, onClose }: UploadM
         const contentType = resolveContentType(file);
         const { url } = await getStorageUploadUrl(projectId, category, file.name, contentType);
         await uploadToPresignedUrl(url, file, contentType);
+        // url, fileId, storageKey, displayName available here if needed
       }));
       onSuccess();
     } finally {
