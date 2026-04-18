@@ -213,7 +213,7 @@
 
 .buttonsContainer {
   width: 100%;
-  max-width: 300px;
+  max-width: 200px;
   display: flex;
   justify-content: flex-end;
 }
