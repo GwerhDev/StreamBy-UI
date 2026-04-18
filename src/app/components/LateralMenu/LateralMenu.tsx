@@ -35,7 +35,7 @@ export const LateralMenu = () => {
     if (isEditorRoute) {
       closeMenu();
     }
-  }, [location, closeMenu]);
+  }, [location]);
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
