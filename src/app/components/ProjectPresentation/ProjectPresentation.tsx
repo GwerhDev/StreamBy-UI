@@ -69,7 +69,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
       </div>
 
       <div className={s.stats}>
-        <ProjectStats />
+        <ProjectStats readonly={preview} />
         <ProjectCharts />
       </div>
     </div>

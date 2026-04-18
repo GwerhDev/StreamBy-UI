@@ -2,10 +2,12 @@ import s from './ProjectPreviewContent.module.css';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faXmark, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faEnvelope, faBan } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { ProjectPresentation } from '../ProjectPresentation/ProjectPresentation';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 
 export const ProjectPreviewContent = () => {
   const session = useSelector((state: RootState) => state.session);
@@ -41,14 +43,8 @@ export const ProjectPreviewContent = () => {
             </p>
           </div>
           <div className={s.floatingActions}>
-            <button className={s.acceptBtn} onClick={handleAccept}>
-              <FontAwesomeIcon icon={faCheck} />
-              Accept
-            </button>
-            <button className={s.rejectBtn} onClick={handleReject}>
-              <FontAwesomeIcon icon={faXmark} />
-              Reject
-            </button>
+            <ActionButton onClick={handleAccept} icon={faCheck} text="Accept" type="button" />
+            <SecondaryButton onClick={handleReject} icon={faBan} text="Reject" type="button" />
           </div>
         </div>
       )}

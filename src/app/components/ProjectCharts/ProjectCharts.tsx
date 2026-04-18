@@ -1,8 +1,8 @@
+import s from './ProjectCharts.module.css';
+import skeleton from '../Loader/Skeleton.module.css';
 import { useSelector } from 'react-redux';
 import { ResponsivePie } from '@nivo/pie';
 import { RootState } from '../../../store';
-import s from './ProjectCharts.module.css';
-import skeleton from '../Loader/Skeleton.module.css';
 
 export const ProjectCharts = () => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
