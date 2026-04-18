@@ -208,10 +208,13 @@ export type StorageCategory = 'images' | 'audios' | 'videos' | '3d-models';
 
 export interface StorageFile {
   id: string;
+  key: string;
+  name: string;
   displayName: string;
   storageKey: string;
   size: number;
   url: string;
+  lastModified: string;
   contentType: string;
   category: StorageCategory;
   uploadedBy: string;
