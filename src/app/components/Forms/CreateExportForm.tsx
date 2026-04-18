@@ -44,15 +44,15 @@ export function CreateExportForm() {
       <form className={s.form} onSubmit={handleSubmit}>
         <CustomForm
           readOnly={false}
-          header={{ icon: faDiagramProject, title: 'New Project', subtitle: 'Fill the form to create a new project' }}
+          header={{ icon: faDiagramProject, title: 'New Export', subtitle: 'Fill the form to create a new Export' }}
           fields={[
             {
               icon: faDiagramProject,
-              label: "Project's name",
+              label: "Export's name",
               value: name || '—',
               editComponent: (
                 <LabeledInput
-                  label="Project's name" type="text" placeholder=""
+                  label="Export's name" type="text" placeholder=""
                   id="name-input" name="name-input" htmlFor="name-input"
                   value={name} onChange={e => setName(e.target.value)}
                 />
@@ -60,7 +60,7 @@ export function CreateExportForm() {
             },
             {
               icon: faFileLines,
-              label: 'Description',
+              label: 'Description (optional)',
               value: description || '—',
               editComponent: (
                 <LabeledInput
@@ -75,7 +75,7 @@ export function CreateExportForm() {
           actions={
             <>
               <ActionButton disabled={disabled} icon={faDiagramProject} text="Create" type="submit" />
-              <SecondaryButton disabled={disabled} icon={faXmark} onClick={handleCancel} text="Cancel" />
+              <SecondaryButton icon={faXmark} onClick={handleCancel} text="Cancel" />
             </>
           }
         />

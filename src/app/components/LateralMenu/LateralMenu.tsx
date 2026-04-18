@@ -27,9 +27,17 @@ export const LateralMenu = () => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
-  const { menuOpen } = useEditorMenu();
-  const { pathname } = useLocation();
-  const isEditorRoute = pathname.startsWith('/editor/');
+  const { menuOpen, closeMenu, openMenu } = useEditorMenu();
+  const location = useLocation();
+
+  useEffect(() => {
+    const isEditorRoute = location.pathname.startsWith('/editor/');
+    if (isEditorRoute) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }, [location]);
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -88,7 +96,7 @@ export const LateralMenu = () => {
   };
 
   const menuContent = (
-    <div className={s.wrapper} style={isEditorRoute || menuOpen ? { display: 'none' } : { width: `${menuWidth}px` }}>
+    <div className={s.wrapper} style={!menuOpen ? { display: 'none' } : { width: `${menuWidth}px` }}>
       <div className={s.container}>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
