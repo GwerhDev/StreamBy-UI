@@ -15,7 +15,7 @@ const EditorMenuContext = createContext<EditorMenuCtx>({
 });
 
 export const EditorMenuProvider = ({ children }: { children: React.ReactNode }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(true);
   return (
     <EditorMenuContext.Provider value={{ menuOpen, toggleMenu: () => setMenuOpen(o => !o), openMenu: () => setMenuOpen(true), closeMenu: () => setMenuOpen(false) }}>
       {children}

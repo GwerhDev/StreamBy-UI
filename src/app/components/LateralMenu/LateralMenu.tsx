@@ -27,17 +27,15 @@ export const LateralMenu = () => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
-  const { menuOpen, closeMenu, openMenu } = useEditorMenu();
+  const { menuOpen, closeMenu } = useEditorMenu();
   const location = useLocation();
 
   useEffect(() => {
     const isEditorRoute = location.pathname.startsWith('/editor/');
     if (isEditorRoute) {
       closeMenu();
-    } else {
-      openMenu();
     }
-  }, [location]);
+  }, [location, closeMenu]);
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
