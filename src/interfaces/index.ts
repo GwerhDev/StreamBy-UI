@@ -29,7 +29,7 @@ export interface Project {
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
   apiConnections?: ApiConnection[];
-  members?: { userId: string; role: string, archived: boolean }[];
+  members?: { userId?: string; role: string; archived?: boolean; status?: 'pending' | 'active' }[];
   rootFolders?: string[];
   settings?: {
     allowUpload?: boolean;
@@ -57,10 +57,16 @@ export interface DeleteCredentialFormProps {
   handleDeleteCredential: (e: React.FormEvent) => void;
 }
 
+export interface MembershipInfo {
+  isMember: boolean;
+  status: 'pending' | 'active' | null;
+}
+
 export interface CurrentProjectState {
   data: Project | null;
   loading: boolean;
   error: string | null;
+  membership: MembershipInfo | null;
 }
 
 export interface CurrentExportState {
@@ -101,6 +107,7 @@ export interface Member {
   userId: string;
   username: string;
   profilePic?: string;
+  status: 'pending' | 'active';
 }
 
 export interface Directory {

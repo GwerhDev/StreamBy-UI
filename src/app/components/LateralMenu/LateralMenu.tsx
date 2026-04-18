@@ -21,6 +21,8 @@ export const LateralMenu = () => {
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const storages = useSelector((state: RootState) => state.management.storages);
   const { name, id, members } = currentProject.data || {};
+  const selfMember = members?.find(m => m.userId === session.userId);
+  const isPending = selfMember?.status === 'pending';
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
@@ -94,7 +96,7 @@ export const LateralMenu = () => {
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
             <ul className={s.projectActionsContainer}>
               {
-                members?.filter((m: { userId: string; }) => m.userId === session.userId)?.[0].archived
+                selfMember?.archived
                   ?
                   <li onClick={handleUnarchive} className={s.listButton}>
                     <FontAwesomeIcon icon={faArchive} />
@@ -132,7 +134,13 @@ export const LateralMenu = () => {
             </div>
 
             <ul className={s.menuList}>
-              {
+              {isPending ? (
+                <Link to={`/preview/${id}`}>
+                  <li className={location.pathname.startsWith(`/preview/${id}`) ? s.activeLink : ''}>
+                    Preview
+                  </li>
+                </Link>
+              ) : (
                 dashboardDirectoryList.map(({ name, icon, path }, index) => {
                   const linkPath = `/project/${id}/${path}`;
                   const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
@@ -145,119 +153,117 @@ export const LateralMenu = () => {
                     </Link>
                   );
                 })
-              }
+              )}
             </ul>
 
-            <span className={s.section}>
-              <Link to={`/project/${id}/storage`}>
-                <h4>STORAGE</h4>
-              </Link>
-              <FontAwesomeIcon icon={faBox} />
-            </span>
-            <div className={s.storageList}>
-              {storages.map((storage: CloudStorage) => {
-                const isExpanded = expandedStorages.has(storage.value);
-                const linkPath = `/project/${id}/storage/${storage.value}`;
-                const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+            {!isPending && (
+              <>
+                <span className={s.section}>
+                  <Link to={`/project/${id}/storage`}>
+                    <h4>STORAGE</h4>
+                  </Link>
+                  <FontAwesomeIcon icon={faBox} />
+                </span>
+                <div className={s.storageList}>
+                  {storages.map((storage: CloudStorage) => {
+                    const isExpanded = expandedStorages.has(storage.value);
+                    const linkPath = `/project/${id}/storage/${storage.value}`;
+                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
 
-                return (
-                  <React.Fragment key={storage.value}>
-                    <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                      <FontAwesomeIcon
-                        icon={faChevronDown}
-                        className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
-                        onClick={() => toggleStorage(storage.value)}
-                      />
-                      <Link to={linkPath} className={s.serviceName}>
-                        <FontAwesomeIcon icon={faCloud} className={s.serviceIcon} />
-                        <span>{storage.name}</span>
+                    return (
+                      <React.Fragment key={storage.value}>
+                        <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                          <FontAwesomeIcon
+                            icon={faChevronDown}
+                            className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                            onClick={() => toggleStorage(storage.value)}
+                          />
+                          <Link to={linkPath} className={s.serviceName}>
+                            <FontAwesomeIcon icon={faCloud} className={s.serviceIcon} />
+                            <span>{storage.name}</span>
+                          </Link>
+                        </div>
+                        {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
+                          const linkPath = `/project/${id}/storage/${storage.value}/${path}`;
+                          const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                          return (
+                            <Link key={index} to={linkPath}>
+                              <div className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
+                                {icon && <FontAwesomeIcon icon={icon} />}
+                                {name}
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+
+                <span className={s.section}>
+                  <Link to={`/project/${id}/database`}>
+                    <h4>DATABASE</h4>
+                  </Link>
+                  <FontAwesomeIcon icon={faDatabase} />
+                </span>
+                <ul className={s.menuList}>
+                  {databaseDirectoryList.map(({ name, icon, path }, index) => {
+                    const linkPath = `/project/${id}/${path}`;
+                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                    return (
+                      <Link key={index} to={linkPath}>
+                        <li className={isActive ? s.activeLink : ''}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </li>
                       </Link>
-                    </div>
-                    {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
-                      const linkPath = `/project/${id}/storage/${storage.value}/${path}`;
-                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                      return (
-                        <Link key={index} to={linkPath}>
-                          <div className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
-                            {icon && <FontAwesomeIcon icon={icon} />}
-                            {name}
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </ul>
 
-            <span className={s.section}>
-              <Link to={`/project/${id}/database`}>
-                <h4>DATABASE</h4>
-              </Link>
-              <FontAwesomeIcon icon={faDatabase} />
-            </span>
-            <ul className={s.menuList}>
-              {
-                databaseDirectoryList.map(({ name, icon, path }, index) => {
-                  const linkPath = `/project/${id}/${path}`;
-                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                  return (
-                    <Link key={index} to={linkPath}>
-                      <li className={isActive ? s.activeLink : ''}>
-                        {icon && <FontAwesomeIcon icon={icon} />}
-                        {name}
-                      </li>
-                    </Link>
-                  );
-                })
-              }
-            </ul>
+                <span className={s.section}>
+                  <Link to={`/project/${id}/connections`}>
+                    <h4>CONNECTIONS</h4>
+                  </Link>
+                  <FontAwesomeIcon icon={faTowerBroadcast} />
+                </span>
+                <ul className={s.menuList}>
+                  {apiDirectoryList.map(({ name, icon, path }, index) => {
+                    const linkPath = `/project/${id}/${path}`;
+                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                    return (
+                      <Link key={index} to={linkPath}>
+                        <li className={isActive ? s.activeLink : ''}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </li>
+                      </Link>
+                    );
+                  })}
+                </ul>
 
-            <span className={s.section}>
-              <Link to={`/project/${id}/connections`}>
-                <h4>CONNECTIONS</h4>
-              </Link>
-              <FontAwesomeIcon icon={faTowerBroadcast} />
-            </span>
-            <ul className={s.menuList}>
-              {
-                apiDirectoryList.map(({ name, icon, path }, index) => {
-                  const linkPath = `/project/${id}/${path}`;
-                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                  return (
-                    <Link key={index} to={linkPath}>
-                      <li className={isActive ? s.activeLink : ''}>
-                        {icon && <FontAwesomeIcon icon={icon} />}
-                        {name}
-                      </li>
-                    </Link>
-                  );
-                })
-              }
-            </ul>
-
-            <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/settings`) ? s.activeLink : ''}`}>
-              <Link to={`/project/${id}/settings`}>
-                <h4>SETTINGS</h4>
-              </Link>
-              <FontAwesomeIcon icon={faGear} />
-            </span>
-            <ul className={s.menuList}>
-              {
-                settingsDirectoryList.map(({ name, icon, path }, index) => {
-                  const linkPath = `/project/${id}/${path}`;
-                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                  return (
-                    <Link key={index} to={linkPath}>
-                      <li className={isActive ? s.activeLink : ''}>
-                        {icon && <FontAwesomeIcon icon={icon} />}
-                        {name}
-                      </li>
-                    </Link>
-                  );
-                })
-              }
-            </ul>
+                <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/settings`) ? s.activeLink : ''}`}>
+                  <Link to={`/project/${id}/settings`}>
+                    <h4>SETTINGS</h4>
+                  </Link>
+                  <FontAwesomeIcon icon={faGear} />
+                </span>
+                <ul className={s.menuList}>
+                  {settingsDirectoryList.map(({ name, icon, path }, index) => {
+                    const linkPath = `/project/${id}/${path}`;
+                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                    return (
+                      <Link key={index} to={linkPath}>
+                        <li className={isActive ? s.activeLink : ''}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </li>
+                      </Link>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       </div>

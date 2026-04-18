@@ -20,6 +20,7 @@ export function useProjects() {
     if (logged && !loading && databases && databases.length > 0 && projectList.list.length === 0) {
       refreshProjects();
     }
+    //eslint-disable-next-line
   }, [logged, loading, databases, refreshProjects]);
 
   return { projectList, refreshProjects };

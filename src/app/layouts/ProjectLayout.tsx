@@ -29,6 +29,8 @@ export default function ProjectLayout() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const session = useSelector((state: RootState) => state.session);
+
   useEffect(() => {
     if (!id || projects.loading) return;
     (async () => {
@@ -37,11 +39,15 @@ export default function ProjectLayout() {
         const data = await fetchProject(id, navigate);
         dispatch(setCurrentProject(data));
 
+        const selfMember = data?.members?.find((m: { userId: string }) => m.userId === session.userId);
+        if (selfMember?.status === 'pending') {
+          navigate(`/preview/${id}`, { replace: true });
+        }
       } catch (err) {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch, navigate, projects.loading]);
+  }, [id, dispatch, navigate, projects.loading, session.userId]);
 
   return (
     <>
@@ -51,9 +57,9 @@ export default function ProjectLayout() {
           shouldHideBrowser &&
           <Browser>
             <Outlet />
-          </Browser >
+          </Browser>
         }
-      </div >
+      </div>
       <DeleteProjectModal currentProject={currentProject} />
     </>
   );

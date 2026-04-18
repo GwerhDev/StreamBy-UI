@@ -1,14 +1,24 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { RootState } from './store';
 import { useSelector } from 'react-redux';
+
 import { useInitSession } from './hooks/useInitSession';
-import { Loader } from './app/components/Loader';
-import { Toast } from './app/components/Toast/Toast';
-import { RootBackground } from './app/components/Backgrounds/RootBackground';
-import { lazy, Suspense } from 'react';
+import { useWebSocket } from './hooks/useWebSocket';
+
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
+import PreviewLayout from './app/layouts/PreviewLayout';
 
+import { Loader } from './app/components/Loader';
+import { ToastNotification } from './app/components/Notifications/ToastNotification';
+import { RootBackground } from './app/components/Backgrounds/RootBackground';
+
+import { UserNotification } from './app/pages/UserNotification';
+import { UserNotificationDetail } from './app/pages/UserNotificationDetail';
+import { ProjectPreview } from './app/pages/ProjectPreview';
+
+const Api = lazy(() => import('./app/pages/Api').then(module => ({ default: module.Api })));
 const Home = lazy(() => import('./app/pages/Home').then(module => ({ default: module.Home })));
 const Images = lazy(() => import('./app/pages/Images').then(module => ({ default: module.Images })));
 const Videos = lazy(() => import('./app/pages/Videos').then(module => ({ default: module.Videos })));
@@ -19,32 +29,32 @@ const Members = lazy(() => import('./app/pages/Members').then(module => ({ defau
 const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ default: module.Overview })));
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Database = lazy(() => import('./app/pages/Database').then(module => ({ default: module.Database })));
-const Api = lazy(() => import('./app/pages/Api').then(module => ({ default: module.Api })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
 const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
+const ExportsEdit = lazy(() => import('./app/pages/ExportsEdit').then(module => ({ default: module.ExportsEdit })));
+const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
 const ThreeDModels = lazy(() => import('./app/pages/ThreeDModels').then(module => ({ default: module.ThreeDModels })));
 const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').then(module => ({ default: module.StorageDrive })));
-const StorageCategory = lazy(() => import('./app/components/Storage/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module => ({ default: module.ProjectCreate })));
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
-const ExportsEdit = lazy(() => import('./app/pages/ExportsEdit').then(module => ({ default: module.ExportsEdit })));
-const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
+const StorageCategory = lazy(() => import('./app/components/Storage/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(module => ({ default: module.CredentialsList })));
 const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
-const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
-const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
-const ApiConnectionDetail = lazy(() => import('./app/pages/ApiConnectionDetail').then(module => ({ default: module.ApiConnectionDetail })));
 const ApiConnectionEdit = lazy(() => import('./app/pages/ApiConnectionEdit').then(module => ({ default: module.ApiConnectionEdit })));
+const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
+const ApiConnectionDetail = lazy(() => import('./app/pages/ApiConnectionDetail').then(module => ({ default: module.ApiConnectionDetail })));
+const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
   const { loader } = session;
   useInitSession();
+  useWebSocket();
 
   return (
     <>
@@ -61,6 +71,11 @@ function App() {
                 <Route path="/project/create" element={<ProjectCreate />} />
                 <Route path="/user" element={<UserAccount />} />
                 <Route path="/user/archive" element={<UserArchive />} />
+                <Route path="/user/notification/" element={<UserNotification />} />
+                <Route path="/user/notification/:id" element={<UserNotificationDetail />} />
+                <Route element={<PreviewLayout />}>
+                  <Route path="/preview/:projectId" element={<ProjectPreview />} />
+                </Route>
 
                 <Route path="/project/:id" element={<ProjectLayout />}>
                   <Route path="/project/:id" element={<RootBackground />} />
@@ -106,7 +121,7 @@ function App() {
             </Routes>
           </Suspense>
       }
-      <Toast />
+      <ToastNotification />
     </>
   );
 }

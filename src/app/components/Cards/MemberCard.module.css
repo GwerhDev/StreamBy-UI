@@ -50,6 +50,17 @@
   flex-shrink: 0;
 }
 
+/* ── Pending badge ───────────────────────── */
+.pendingBadge {
+  font-size: 0.68rem;
+  color: #facc15;
+  background-color: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  flex-shrink: 0;
+}
+
 /* ── Role badge (readonly) ───────────────── */
 .roleBadge {
   font-size: 0.72rem;

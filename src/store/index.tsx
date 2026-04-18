@@ -5,6 +5,7 @@ import currentProjectReducer from './currentProjectSlice';
 import currentExportReducer from './currentExportSlice';
 import managementReducer from './managementSlice';
 import apiResponsesReducer from './apiResponsesSlice';
+import notificationsReducer from './notificationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     currentExport: currentExportReducer,
     management: managementReducer,
     apiResponses: apiResponsesReducer,
+    notifications: notificationsReducer,
   },
 });
 

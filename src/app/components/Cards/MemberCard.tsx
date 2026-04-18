@@ -17,27 +17,36 @@ interface MemberCardProps {
 }
 
 export const MemberCard = ({ member, isAdmin, isSelf, onRoleChange, onRemove }: MemberCardProps) => {
+  const isPending = member.status === 'pending';
+
   return (
     <div className={s.card}>
       <span className={s.avatar}>{member.username[0].toUpperCase()}</span>
       <div className={s.info}>
         <span className={s.username}>{member.username}</span>
         {isSelf && <span className={s.selfBadge}>you</span>}
+        {isPending && <span className={s.pendingBadge}>pending</span>}
       </div>
 
       {isAdmin && !isSelf ? (
         <div className={s.actions}>
-          <DropdownInput
-            value={member.role}
-            onChange={v => onRoleChange?.(v)}
-            options={ROLES.map(r => ({ value: r, label: r }))}
-          />
-          <button className={s.removeBtn} onClick={onRemove} title="Remove member">
+          {!isPending && (
+            <DropdownInput
+              value={member.role}
+              onChange={v => onRoleChange?.(v)}
+              options={ROLES.map(r => ({ value: r, label: r }))}
+            />
+          )}
+          <button
+            className={s.removeBtn}
+            onClick={onRemove}
+            title={isPending ? 'Cancel invitation' : 'Remove member'}
+          >
             <FontAwesomeIcon icon={faTrash} />
           </button>
         </div>
       ) : (
-        <span className={s.roleBadge}>{member.role}</span>
+        !isPending && <span className={s.roleBadge}>{member.role}</span>
       )}
     </div>
   );

@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CurrentProjectState, Project } from '../interfaces';
+import { CurrentProjectState, MembershipInfo, Project } from '../interfaces';
 
 const initialState: CurrentProjectState = {
   data: { id: "", name: "" },
   loading: true,
   error: null,
+  membership: null,
 };
 
 const currentProjectSlice = createSlice({
@@ -16,10 +17,14 @@ const currentProjectSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setMembership: (state, action: PayloadAction<MembershipInfo | null>) => {
+      state.membership = action.payload;
+    },
     clearCurrentProject: (state) => {
       state.data = initialState.data;
       state.loading = false;
       state.error = null;
+      state.membership = null;
     },
     setProjectLoading: (state) => {
       state.loading = true;
@@ -27,5 +32,5 @@ const currentProjectSlice = createSlice({
   },
 });
 
-export const { setCurrentProject, clearCurrentProject, setProjectLoading } = currentProjectSlice.actions;
+export const { setCurrentProject, setMembership, clearCurrentProject, setProjectLoading } = currentProjectSlice.actions;
 export default currentProjectSlice.reducer;

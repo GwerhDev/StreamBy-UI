@@ -1,14 +1,35 @@
 import s from './Browser.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { faChevronRight, faFolder } from '@fortawesome/free-solid-svg-icons';
-import { PropsWithChildren } from 'react';
+import { faArrowLeft, faChevronRight, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 
-export const Browser = (props: PropsWithChildren) => {
-  const { children } = props;
+type BrowserProps = {
+  children: React.ReactNode;
+  preview?: boolean;
+};
+
+export const Browser = (props: BrowserProps) => {
+  const { children, preview } = props;
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const { projectId } = useParams<{ projectId: string }>();
+  const { membership } = useSelector((state: RootState) => state.currentProject);
+
+  const isPending = membership?.isMember && membership?.status === 'pending';
+
+  const handleBack = () => {
+    if (location.key !== 'default') {
+      navigate(-1);
+    } else if (isPending) {
+      navigate('/');
+    } else {
+      navigate(`/project/${projectId}/dashboard/overview`);
+    }
+  };
+
 
   const path = decodeURIComponent(location.pathname);
   const basePath = `/project/${id}`;
@@ -26,21 +47,31 @@ export const Browser = (props: PropsWithChildren) => {
 
   return (
     <div className={s.container}>
-      <section className={s.location}>
-        <span className={s.breadcrumb} onClick={() => navigate(basePath)}>
-          <FontAwesomeIcon icon={faFolder} />
-        </span>
-        {
-          segments.map((seg, i) => (
-            <span key={i} className={s.separator}>
-              <FontAwesomeIcon icon={faChevronRight} />
-              <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                {formatSegment(seg)}
-              </span>
+      {
+        !preview ?
+          <section className={s.location}>
+            <span className={s.breadcrumb} onClick={() => navigate(basePath)}>
+              <FontAwesomeIcon icon={faFolder} />
             </span>
-          ))
-        }
-      </section>
+            {
+              segments.map((seg, i) => (
+                <span key={i} className={s.separator}>
+                  <FontAwesomeIcon icon={faChevronRight} />
+                  <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
+                    {formatSegment(seg)}
+                  </span>
+                </span>
+              ))
+            }
+          </section>
+          :
+          <span>
+            <button className={s.backBtn} onClick={handleBack}>
+              <FontAwesomeIcon icon={faArrowLeft} />
+              Back
+            </button>
+          </span>
+      }
       <section className={s.content}>
         {children}
       </section>

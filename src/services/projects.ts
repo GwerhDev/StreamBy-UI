@@ -3,7 +3,7 @@ import { API_BASE } from "../config/api";
 import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
 import { setProjects } from '../store/projectsSlice';
-import { setCurrentProject } from '../store/currentProjectSlice';
+import { setCurrentProject, setMembership } from '../store/currentProjectSlice';
 
 export async function createProject(payload: { name: string; description?: string; dbType: string; allowedOrigin?: string[] }) {
   try {
@@ -171,6 +171,27 @@ export async function fetchProject(projectId: string | undefined, navigate: Navi
   }
 }
 
+export async function fetchProjectPreview(projectId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/preview`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to fetch project preview');
+    }
+    const { project, membership } = await res.json();
+    store.dispatch(setCurrentProject(project));
+    store.dispatch(setMembership(membership ?? null));
+    return { project, membership };
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch project preview.', type: 'error' }));
+    throw error;
+  }
+}
+
 export async function deleteProject(projectId: string | undefined) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
@@ -261,6 +282,8 @@ export async function fetchProjectMembers(projectId: string) {
       const errorData = await res.json();
       throw new Error(errorData.message || `Failed to fetch project members`);
     }
+
+    
     const { members } = await res.json();
     return members;
   } catch (error: any) {

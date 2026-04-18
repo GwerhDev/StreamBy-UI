@@ -1,12 +1,12 @@
+import s from './ToastNotification.module.css';
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { removeApiResponse } from '../../../store/apiResponsesSlice';
-import s from './Toast.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
-export const Toast: React.FC = () => {
+export const ToastNotification: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const { responses } = useSelector((state: RootState) => state.apiResponses);
 
