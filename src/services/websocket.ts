@@ -2,7 +2,7 @@ import { API_BASE } from '../config/api';
 import { store } from '../store';
 import { addNotification } from '../store/notificationsSlice';
 import { addApiResponse } from '../store/apiResponsesSlice';
-import { fetchNotifications } from './notifications';
+import { fetchNotifications } from '../store/notificationsSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/ws';
 
@@ -31,7 +31,7 @@ function handleMessage(event: MessageEvent) {
     const msg = JSON.parse(event.data as string);
     if (msg.type === 'connected') {
       reconnectDelay = 1000;
-      fetchNotifications();
+      store.dispatch(fetchNotifications());
     } else if (msg.type === 'notification') {
       store.dispatch(addNotification(msg.data));
       store.dispatch(addApiResponse({ message: msg.data.message, type: 'success' }));

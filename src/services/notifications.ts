@@ -1,17 +1,6 @@
 import { API_BASE } from '../config/api';
 import { store } from '../store';
-import { setNotifications, markRead, markAllRead } from '../store/notificationsSlice';
-
-export async function fetchNotifications() {
-  try {
-    const res = await fetch(`${API_BASE}/streamby/notifications`, { credentials: 'include' });
-    if (!res.ok) return;
-    const { data } = await res.json();
-    store.dispatch(setNotifications(data));
-  } catch {
-    // Non-critical — silent fail
-  }
-}
+import { markRead, markAllRead } from '../store/notificationsSlice';
 
 export async function markNotificationRead(id: string) {
   store.dispatch(markRead(id));

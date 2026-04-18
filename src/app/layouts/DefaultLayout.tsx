@@ -4,6 +4,7 @@ import { RootState, AppDispatch } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useProjects } from '../../hooks/useProjects';
 import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
+import { fetchNotifications } from '../../store/notificationsSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
@@ -20,6 +21,7 @@ export default function DefaultLayout() {
   useEffect(() => {
     dispatch(fetchDatabases());
     dispatch(fetchStorages());
+    dispatch(fetchNotifications());
   }, [dispatch]);
 
   return (
