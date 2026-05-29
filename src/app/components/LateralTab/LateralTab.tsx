@@ -2,7 +2,7 @@ import s from './LateralTab.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { faArchive, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -161,12 +161,8 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
           <FontAwesomeIcon icon={faBars} />
         </li>
 
-        <li className={s.archive} onClick={handleGoArchive}>
-          <FontAwesomeIcon icon={faArchive} />
-        </li>
-
         <li>
-          <ProfileButton userData={userData} />
+          <ProfileButton userData={userData} onGoArchive={handleGoArchive} />
         </li>
 
         <li>

@@ -2,7 +2,7 @@ import s from "./ProfileButton.module.css";
 import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faHome, faLayerGroup, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faArchive, faGear, faHome, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearCurrentProject } from "../../../store/currentProjectSlice";
@@ -11,10 +11,11 @@ import { Session } from "../../../interfaces";
 
 interface ProfileButtonProps {
   userData: Session;
+  onGoArchive?: () => void;
 };
 
 export const ProfileButton = (props: ProfileButtonProps) => {
-  const { userData } = props;
+  const { userData, onGoArchive } = props;
   const { profilePic, username } = userData;
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,8 +61,8 @@ export const ProfileButton = (props: ProfileButtonProps) => {
               <a title="Account" target="_blank" href={ACCOUNT_BASE}>
                 <FontAwesomeIcon icon={faUser} />
               </a>
-              <button title="Apps">
-                <FontAwesomeIcon icon={faLayerGroup} />
+              <button title="Archive" onClick={() => { onGoArchive?.(); setShowCanvas(false); }}>
+                <FontAwesomeIcon icon={faArchive} />
               </button>
               <button title="Settings">
                 <FontAwesomeIcon icon={faGear} />
