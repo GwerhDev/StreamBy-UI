@@ -64,6 +64,40 @@
   cursor: not-allowed;
 }
 
+.toolbarDivider {
+  width: 1px;
+  height: 14px;
+  background: #3a3a3a;
+  flex-shrink: 0;
+  margin: 0 0.15rem;
+}
+
+.wrapToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #888;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.18rem 0.35rem;
+  border-radius: 4px;
+  transition: color 0.13s ease;
+}
+
+.wrapToggle:hover {
+  color: #ccc;
+}
+
+.wrapCheckbox {
+  width: 11px;
+  height: 11px;
+  cursor: pointer;
+  accent-color: #38B6FF;
+  flex-shrink: 0;
+  margin: 0;
+}
+
 .statusValid {
   display: inline-flex;
   align-items: center;
@@ -105,6 +139,13 @@
   pointer-events: none;
 }
 
+/* Each logical line — height is 1× in standard mode, N× in wrap mode */
+.lineNumGroup {
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
 .lineNum {
   padding-right: 0.65rem;
   font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
@@ -112,6 +153,8 @@
   line-height: 1.5;
   color: #4a4a4a;
   text-align: right;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* ─── Editor Area ─────────────────────────────────────────────────────────── */
@@ -138,7 +181,6 @@
   position: absolute;
   inset: 0;
   width: 100%;
-  /* min-height drives the editor area size */
   min-height: 300px;
   padding: 0.75rem;
   font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
@@ -146,13 +188,19 @@
   line-height: 1.5;
   tab-size: 2;
   -moz-tab-size: 2;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre;
   overflow: auto;
   box-sizing: border-box;
   border: none;
   outline: none;
   margin: 0;
+}
+
+/* Word-wrap mode — toggled via checkbox */
+.wrapMode {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-x: hidden !important;
 }
 
 /* ─── Highlight layer ─────────────────────────────────────────────────────── */
@@ -162,7 +210,7 @@
   pointer-events: none;
   background: #1e1e1e;
   color: #adadad;
-  overflow: hidden; /* scrolled manually via JS */
+  overflow: hidden;
   border-radius: 0;
 }
 
@@ -175,8 +223,6 @@
   caret-color: #aeafad;
   -webkit-text-fill-color: transparent;
   resize: none;
-  /* Selection color visible through transparent text */
-  selection-color: rgba(56, 182, 255, 0.3);
 }
 
 .textarea::selection {

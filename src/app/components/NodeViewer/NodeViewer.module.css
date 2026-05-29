@@ -586,3 +586,133 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* ─── Node Actions (sidebar) ──────────────────────────────────────────────── */
+
+.nodeActions {
+  padding: 0.65rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.75rem;
+  background: var(--color-dark-600);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 8px;
+  color: var(--color-light-200);
+  font-size: 0.79rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.actionButton:hover {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fbbf24;
+}
+
+/* ─── JSON Editor Modal ───────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.modalContainer {
+  background: var(--color-dark-700);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(920px, 100%);
+  height: min(700px, 90vh);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-light-100);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalBody {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.modalError {
+  margin: 0;
+  padding: 0.4rem 1.2rem;
+  font-size: 0.73rem;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border-top: 1px solid rgba(248, 113, 113, 0.2);
+  flex-shrink: 0;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.85rem 1.2rem;
+  border-top: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.cancelButton {
+  padding: 0.42rem 1rem;
+  background: var(--color-dark-500);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 8px;
+  color: var(--color-light-300);
+  font-size: 0.81rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelButton:hover {
+  background: var(--color-dark-400);
+  color: var(--color-light-100);
+}
+
+.modalEditor {
+  flex: 1 !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  border: none !important;
+}

@@ -1,4 +1,6 @@
 import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 import { getConnectionResponse } from '../../../services/connections';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
@@ -286,12 +288,17 @@ const CORE_NODE_IDS = ['client', 'streamby'];
 export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, apiConnections = [], projectId,
 }, ref) => {
+  const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [connFetching, setConnFetching] = useState(false);
   const [connResult, setConnResult] = useState<unknown>(null);
   const [connError, setConnError] = useState<string | null>(null);
+  const [showJsonModal, setShowJsonModal] = useState(false);
+  const [modalJsonValue, setModalJsonValue] = useState('{}');
+  const [modalJsonValid, setModalJsonValid] = useState(true);
 
   const initialJsonRef = useRef(exportDetails.json);
   const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
@@ -437,9 +444,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node.type === 'jsonInputNode') return {
       title: 'JSON Data',
       description: 'Static JSON that feeds the data layer. Connect its output to a Data Source or directly to StreamBy bottom.',
-      fields: editMode
-        ? [{ key: 'jsonString', label: 'JSON Content', value: node.data.jsonString || '{}', editable: true, inputType: 'json' as const }]
-        : [],
+      fields: [],
     };
 
     if (node.type === 'apiConnectionNode') {
@@ -494,6 +499,30 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const handleClosePanel  = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
   const handleFieldChange = useCallback((key: string, value: string | boolean) => { setLocalData(prev => ({ ...prev, [key]: value })); if (key === 'jsonString') setJsonError(null); }, []);
 
+  const handleOpenJsonModal = useCallback(() => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    const current = (localData.jsonString as string) ?? (node?.data?.jsonString as string) ?? '{}';
+    setModalJsonValue(current);
+    setModalJsonValid(true);
+    setShowJsonModal(true);
+  }, [nodes, selectedNodeId, localData]);
+
+  const handleJsonModalSave = useCallback(() => {
+    if (!selectedNodeId) return;
+    try {
+      JSON.parse(modalJsonValue);
+      setNodes(prev => prev.map(n =>
+        n.id === selectedNodeId ? { ...n, data: { ...n.data, jsonString: modalJsonValue } } : n
+      ));
+      setShowJsonModal(false);
+      setJsonError(null);
+      setLocalData({});
+      setSelectedNodeId(null);
+    } catch {
+      setJsonError('Invalid JSON — fix the syntax before saving.');
+    }
+  }, [modalJsonValue, selectedNodeId, setNodes]);
+
   const handleSave = useCallback(() => {
     if (!selectedNodeId) return;
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -504,7 +533,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         JSON.parse(jsonStr);
         setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, jsonString: jsonStr } } : n));
         setJsonError(null); setLocalData({}); setSelectedNodeId(null);
-      } catch { setJsonError('JSON inválido — verifica la sintaxis.'); }
+      } catch { setJsonError('Invalid JSON — fix the syntax.'); }
       return;
     }
 
@@ -548,6 +577,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   };
 
   return (
+    <>
     <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
       <div className={s.canvasArea}>
 
@@ -600,6 +630,16 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             </div>
 
             <p className={s.detailDescription}>{selectedDetail.description}</p>
+
+            {isJsonNode && (
+              <div className={s.nodeActions}>
+                <button type="button" className={s.actionButton} onClick={handleOpenJsonModal}>
+                  <FontAwesomeIcon icon={faCode} />
+                  {editMode ? 'Edit JSON' : 'View JSON'}
+                </button>
+              </div>
+            )}
+
             {selectedDetail.fields.length > 0 && <div className={s.detailFields}>
               {selectedDetail.fields.map(field => (
                 <div key={field.key} className={s.detailField}>
@@ -610,12 +650,6 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         <input type="checkbox" checked={Boolean(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.checked)} className={s.fieldCheckbox} />
                         <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
                       </label>
-                    ) : field.inputType === 'json' ? (
-                      <JsonEditor
-                        value={String(getFieldDisplayValue(field))}
-                        onChange={(jsonString) => handleFieldChange(field.key, jsonString)}
-                        jsonError={jsonError}
-                      />
                     ) : field.inputType === 'select' && field.options?.length ? (
                       <select value={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldSelect}>
                         <option value="">Select connection…</option>
@@ -631,20 +665,6 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               ))}
             </div>}
             {jsonError && <p className={s.jsonError}>{jsonError}</p>}
-
-            {isJsonNode && (() => {
-              const raw = (localData.jsonString as string) ?? (selectedNode?.data?.jsonString as string) ?? '{}';
-              let parsed: unknown = null;
-              try { parsed = JSON.parse(raw); } catch { /* invalid */ }
-              return parsed != null ? (
-                <div className={s.jsonPreviewSection}>
-                  <div className={s.previewHeader}>
-                    <span className={s.fieldLabel}>Preview</span>
-                  </div>
-                  <div className={s.jsonPre}><JsonViewer data={parsed as JSON} /></div>
-                </div>
-              ) : null;
-            })()}
 
             {isApiNode && projectId && (
               <div className={s.jsonPreviewSection}>
@@ -674,12 +694,58 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               </div>
             )}
             {editMode && isCoreNode && !onSave && (
-              <div className={s.editHint}><FontAwesomeIcon icon={faInfoCircle} /><span>Reposiciona y conecta nodos en modo edición.</span></div>
+              <div className={s.editHint}><FontAwesomeIcon icon={faInfoCircle} /><span>Reposition and connect nodes in edit mode.</span></div>
             )}
           </div>
         )}
       </div>
     </div>
+
+    {showJsonModal && (
+      <div className={s.modalOverlay} onClick={() => { setShowJsonModal(false); setJsonError(null); }}>
+        <div className={s.modalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faCode} style={{ color: H_RIGHT }} />
+              {editMode ? 'Edit JSON Data' : 'View JSON Data'}
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => { setShowJsonModal(false); setJsonError(null); }}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+          <div className={s.modalBody}>
+            <JsonEditor
+              value={modalJsonValue}
+              onChange={(jsonString, _, isValid) => {
+                setModalJsonValue(jsonString);
+                setModalJsonValid(isValid);
+              }}
+              jsonError={null}
+              className={s.modalEditor}
+              readOnly={!editMode}
+              userId={sessionUserId}
+            />
+          </div>
+          {jsonError && <p className={s.modalError}>{jsonError}</p>}
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => { setShowJsonModal(false); setJsonError(null); }}>
+              {editMode ? 'Cancel' : 'Close'}
+            </button>
+            {editMode && (
+              <button
+                type="button"
+                className={s.saveButton}
+                onClick={handleJsonModalSave}
+                disabled={!modalJsonValid}
+              >
+                <FontAwesomeIcon icon={faFloppyDisk} /> Save Changes
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 });
 
