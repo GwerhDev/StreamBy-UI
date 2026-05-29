@@ -16,7 +16,7 @@ const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
-export const LateralMenu = () => {
+export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) => {
   const navigate = useNavigate();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
@@ -96,6 +96,11 @@ export const LateralMenu = () => {
   const menuContent = (
     <div className={s.wrapper} style={!menuOpen ? { display: 'none' } : { width: `${menuWidth}px` }}>
       <div className={s.container}>
+        {children ? (
+          <div className={s.outterMenuContainer}>
+            <div className={s.menuContainer}>{children}</div>
+          </div>
+        ) : (<>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
             <h4>{name}</h4>
@@ -272,6 +277,7 @@ export const LateralMenu = () => {
             )}
           </div>
         </div>
+        </>)}
       </div>
       {!isSmallScreen && <div className={s.resizeHandle} onMouseDown={handleResizeMouseDown} />}
     </div>

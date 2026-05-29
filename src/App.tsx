@@ -10,6 +10,7 @@ import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
 import NotificationLayout from './app/layouts/NotificationLayout';
+import UserLayout from './app/layouts/UserLayout';
 
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
@@ -34,6 +35,7 @@ const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ def
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
 const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
+const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module => ({ default: module.UserSettings })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
@@ -72,6 +74,9 @@ function App() {
                 <Route path="/project/create" element={<ProjectCreate />} />
                 <Route path="/user" element={<UserAccount />} />
                 <Route path="/user/archive" element={<UserArchive />} />
+                <Route element={<UserLayout />}>
+                  <Route path="/user/settings" element={<UserSettings />} />
+                </Route>
                 <Route element={<NotificationLayout />}>
                   <Route path="/user/notification" element={<UserNotification />} />
                   <Route path="/user/notification/:id" element={<UserNotificationDetail />} />

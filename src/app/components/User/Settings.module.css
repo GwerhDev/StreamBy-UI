@@ -1,0 +1,125 @@
+.page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+}
+
+.contentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.contentHeaderIcon {
+  font-size: 1rem;
+  color: var(--color-light-400);
+}
+
+.contentTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-light-100);
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-dark-300);
+  border-radius: 10px;
+  background: var(--color-dark-700);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.item:hover:not(.itemDisabled) {
+  border-color: var(--color-dark-100);
+  background: var(--color-dark-600);
+}
+
+.itemDisabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.itemLink {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.itemIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--color-dark-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: var(--color-light-300);
+  flex-shrink: 0;
+}
+
+.itemText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.itemLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-light-100);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.itemDescription {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+  line-height: 1.4;
+}
+
+.itemArrow {
+  font-size: 0.72rem;
+  color: var(--color-light-500);
+  flex-shrink: 0;
+}
+
+.soonBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.42rem;
+  border-radius: 4px;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  vertical-align: middle;
+}
+

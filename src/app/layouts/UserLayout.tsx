@@ -1,0 +1,45 @@
+import { Link, Outlet, useSearchParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faUser, faPalette, faBell, faCode, faShield, faCreditCard,
+} from '@fortawesome/free-solid-svg-icons';
+import { LateralMenu } from '../components/LateralMenu/LateralMenu';
+import { Browser } from '../components/Browser/Browser';
+import lm from '../components/LateralMenu/LateralMenu.module.css';
+
+const CATEGORIES = [
+  { id: 'account',       label: 'Account',       icon: faUser       },
+  { id: 'appearance',    label: 'Appearance',     icon: faPalette    },
+  { id: 'notifications', label: 'Notifications',  icon: faBell       },
+  { id: 'editor',        label: 'Editor',         icon: faCode       },
+  { id: 'security',      label: 'Security',       icon: faShield     },
+  { id: 'billing',       label: 'Plan & Billing', icon: faCreditCard },
+];
+
+export default function UserLayout() {
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') ?? 'account';
+
+  return (
+    <div className="dashboard-sections">
+      <LateralMenu>
+        <span className={lm.section}>
+          <h4>SETTINGS</h4>
+        </span>
+        <ul className={lm.menuList}>
+          {CATEGORIES.map(cat => (
+            <Link key={cat.id} to={`/user/settings?tab=${cat.id}`}>
+              <li className={activeTab === cat.id ? lm.activeLink : ''}>
+                <FontAwesomeIcon icon={cat.icon} />
+                {cat.label}
+              </li>
+            </Link>
+          ))}
+        </ul>
+      </LateralMenu>
+      <Browser>
+        <Outlet />
+      </Browser>
+    </div>
+  );
+}

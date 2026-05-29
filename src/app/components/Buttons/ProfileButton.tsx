@@ -50,7 +50,7 @@ export const ProfileButton = (props: ProfileButtonProps) => {
 
   return (
     <div className={s.container} ref={containerRef}>
-      <span className={s.canvas}>
+      <span className={`${s.canvas}${showCanvas ? ` ${s.canvasOpen}` : ''}`}>
         {showCanvas && <ProfileCanvas userData={userData} />}
         <div className={s.profileButtonContainer}>
           {showCanvas && (
@@ -64,7 +64,7 @@ export const ProfileButton = (props: ProfileButtonProps) => {
               <button title="Archive" onClick={() => { onGoArchive?.(); setShowCanvas(false); }}>
                 <FontAwesomeIcon icon={faArchive} />
               </button>
-              <button title="Settings">
+              <button title="Settings" onClick={() => { setShowCanvas(false); navigate('/user/settings'); }}>
                 <FontAwesomeIcon icon={faGear} />
               </button>
             </ul>
