@@ -11,7 +11,6 @@ import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
 import NotificationLayout from './app/layouts/NotificationLayout';
 import UserLayout from './app/layouts/UserLayout';
-import HomeLayout from './app/layouts/HomeLayout';
 
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
