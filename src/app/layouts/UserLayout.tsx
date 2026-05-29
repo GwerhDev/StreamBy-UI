@@ -4,7 +4,6 @@ import {
   faUser, faPalette, faBell, faCode, faShield, faCreditCard,
 } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
-import { Browser } from '../components/Browser/Browser';
 import lm from '../components/LateralMenu/LateralMenu.module.css';
 
 const CATEGORIES = [
@@ -37,9 +36,9 @@ export default function UserLayout() {
           ))}
         </ul>
       </LateralMenu>
-      <Browser>
+      <div style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}>
         <Outlet />
-      </Browser>
+      </div>
     </div>
   );
 }
