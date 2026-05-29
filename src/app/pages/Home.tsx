@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Start } from '../components/Start/Start';
 import { HomeMenu } from '../components/LateralMenu/HomeMenu';
@@ -9,8 +9,8 @@ export const Home = () => {
   const { closeMenu, openMenu } = useEditorMenu();
   const projects = useSelector((state: RootState) => state.projects);
 
-  // Always start closed
-  useEffect(() => { closeMenu(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Close before first paint to avoid flash
+  useLayoutEffect(() => { closeMenu(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Once loading finishes, open only if no active projects
   useEffect(() => {
