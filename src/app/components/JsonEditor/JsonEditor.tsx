@@ -6,8 +6,11 @@ import {
   faCompress,
   faCheck,
   faTriangleExclamation,
+  faLink,
 } from '@fortawesome/free-solid-svg-icons';
 import { loadEditorPrefs, saveEditorPrefs } from '../../../utils/editorPrefs';
+import { AssetPickerModal } from '../Modals/AssetPickerModal';
+import type { StorageFile } from '../../../interfaces';
 
 // ─── Syntax Highlighter ────────────────────────────────────────────────────
 
@@ -58,18 +61,21 @@ interface JsonEditorProps {
   className?: string;
   readOnly?: boolean;
   userId?: string;
+  projectId?: string;
 }
 
 export const JsonEditor: React.FC<JsonEditorProps> = ({
-  value, onChange, jsonError, className, readOnly = false, userId,
+  value, onChange, jsonError, className, readOnly = false, userId, projectId,
 }) => {
   const textareaRef    = useRef<HTMLTextAreaElement>(null);
   const highlightRef   = useRef<HTMLDivElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
   const pendingCursor  = useRef<number | null>(null);
   const measureCtx     = useRef<CanvasRenderingContext2D | null>(null);
+  const savedSelection = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
 
-  const [wordWrap,     setWordWrapRaw] = useState(false);
+  const [wordWrap,        setWordWrapRaw]   = useState(false);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
   const [innerWidth,   setInnerWidth]  = useState(0);
   const [lineHeightPx, setLineHeightPx] = useState(20.16);
   const [prefsLoaded,  setPrefsLoaded] = useState(false);
@@ -164,6 +170,30 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
     }
   }, []);
 
+  // Save cursor before asset button steals focus
+  const handleAssetBtnMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (textareaRef.current) {
+      savedSelection.current = {
+        start: textareaRef.current.selectionStart,
+        end:   textareaRef.current.selectionEnd,
+      };
+    }
+  }, []);
+
+  const handleInsertAssets = useCallback((files: StorageFile[]) => {
+    const { start, end } = savedSelection.current;
+    const insertText = files.length === 1
+      ? `"${files[0].url}"`
+      : JSON.stringify(files.map(f => f.url));
+    const newValue  = value.substring(0, start) + insertText + value.substring(end);
+    const newCursor = start + insertText.length;
+    const { data: d, isValid: v } = parseJson(newValue);
+    onChange(newValue, d, v);
+    pendingCursor.current = newCursor;
+    setShowAssetPicker(false);
+  }, [value, onChange]);
+
   const handleFormat = useCallback(() => {
     if (!data) return;
     onChange(JSON.stringify(data, null, 2), data, true);
@@ -181,6 +211,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   const hlClass   = `${s.highlightLayer} ${wordWrap ? s.wrapMode : ''}`;
 
   return (
+    <>
     <div className={`${s.container}${className ? ` ${className}` : ''}`}>
       {/* ── Toolbar ── */}
       <div className={s.toolbar}>
@@ -193,6 +224,17 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
               <button type="button" className={s.toolbarBtn} onClick={handleMinify} disabled={!isValid} title="Minify JSON">
                 <FontAwesomeIcon icon={faCompress} /> Minify
               </button>
+              {projectId && (
+                <button
+                  type="button"
+                  className={`${s.toolbarBtn} ${s.toolbarBtnAsset}`}
+                  onMouseDown={handleAssetBtnMouseDown}
+                  onClick={() => setShowAssetPicker(true)}
+                  title="Insert asset URL at cursor"
+                >
+                  <FontAwesomeIcon icon={faLink} /> Asset
+                </button>
+              )}
               <span className={s.toolbarDivider} />
             </>
           )}
@@ -263,6 +305,15 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         </div>
       </div>
     </div>
+
+    {showAssetPicker && projectId && (
+      <AssetPickerModal
+        projectId={projectId}
+        onInsert={handleInsertAssets}
+        onClose={() => setShowAssetPicker(false)}
+      />
+    )}
+    </>
   );
 };
 

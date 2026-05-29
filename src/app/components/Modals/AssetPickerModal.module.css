@@ -1,0 +1,384 @@
+/* ─── Overlay ─────────────────────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* ─── Modal ───────────────────────────────────────────────────────────────── */
+
+.modal {
+  background: var(--color-dark-700);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(860px, 100%);
+  height: min(620px, 90vh);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-light-100);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.closeBtn:hover {
+  color: var(--color-light-100);
+  background: var(--color-dark-400);
+}
+
+/* ─── Hidden file input ───────────────────────────────────────────────────── */
+
+.hiddenInput {
+  display: none;
+}
+
+/* ─── Tabs ────────────────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.tabList {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-light-400);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: var(--color-dark-500);
+  color: var(--color-light-200);
+}
+
+.tabActive {
+  background: var(--color-dark-500);
+  border-color: var(--color-dark-200);
+  color: var(--color-light-100);
+}
+
+.tabCount {
+  font-size: 0.68rem;
+  background: var(--color-dark-400);
+  color: var(--color-light-400);
+  padding: 0.05rem 0.35rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ─── Upload button ───────────────────────────────────────────────────────── */
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  background: var(--color-dark-500);
+  border: 1px solid var(--color-dark-200);
+  border-radius: 6px;
+  color: var(--color-light-300);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.uploadBtn:hover:not(:disabled) {
+  background: var(--color-dark-400);
+  border-color: var(--color-primary);
+  color: var(--color-light-100);
+}
+
+.uploadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Upload progress ─────────────────────────────────────────────────────── */
+
+.uploadProgressBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: rgba(56, 182, 255, 0.07);
+  border-bottom: 1px solid rgba(56, 182, 255, 0.2);
+  font-size: 0.78rem;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ─── Search ──────────────────────────────────────────────────────────────── */
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--color-light-200);
+  font-size: 0.82rem;
+}
+
+.searchInput::placeholder {
+  color: var(--color-light-500);
+}
+
+.searchClear {
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  transition: color 0.13s;
+}
+
+.searchClear:hover {
+  color: var(--color-light-100);
+}
+
+/* ─── Grid ────────────────────────────────────────────────────────────────── */
+
+.grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.loadingRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--color-light-400);
+  font-size: 0.82rem;
+  padding: 2rem 0;
+}
+
+.emptyNote {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--color-light-400);
+  font-size: 0.82rem;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+/* ─── File Tile ───────────────────────────────────────────────────────────── */
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid var(--color-dark-300);
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: var(--color-dark-600);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.tile:hover {
+  border-color: var(--color-dark-100);
+  background: var(--color-dark-500);
+}
+
+.tileSelected {
+  border-color: var(--color-primary) !important;
+  background: rgba(56, 182, 255, 0.08) !important;
+  box-shadow: 0 0 0 2px rgba(56, 182, 255, 0.15);
+}
+
+.tileThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--color-dark-800);
+}
+
+.tileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileIcon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: var(--color-light-400);
+}
+
+.tileCheckmark {
+  position: absolute;
+  inset: 0;
+  background: rgba(56, 182, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.tileName {
+  font-size: 0.71rem;
+  color: var(--color-light-200);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.tileSize {
+  font-size: 0.65rem;
+  color: var(--color-light-500);
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  border-top: 1px solid var(--color-dark-300);
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.selectionInfo {
+  font-size: 0.78rem;
+  color: var(--color-light-400);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cancelBtn {
+  padding: 0.42rem 1rem;
+  background: var(--color-dark-500);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 8px;
+  color: var(--color-light-300);
+  font-size: 0.81rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelBtn:hover {
+  background: var(--color-dark-400);
+  color: var(--color-light-100);
+}
+
+.insertBtn {
+  padding: 0.42rem 1.1rem;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.81rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  min-width: 90px;
+}
+
+.insertBtn:hover:not(:disabled) {
+  background: var(--color-button-primary-hover);
+}
+
+.insertBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

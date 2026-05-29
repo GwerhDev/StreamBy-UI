@@ -724,6 +724,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               className={s.modalEditor}
               readOnly={!editMode}
               userId={sessionUserId}
+              projectId={projectId}
             />
           </div>
           {jsonError && <p className={s.modalError}>{jsonError}</p>}
