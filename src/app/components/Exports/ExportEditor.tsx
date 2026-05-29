@@ -40,9 +40,11 @@ export const ExportEditor: React.FC = () => {
   const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
   const { id: projectId, exportId } = useParams<{ id: string; exportId: string }>();
 
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting,   setSubmitting]   = useState(false);
   const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
   const [schemaVersion, setSchemaVersion] = useState(0);
+  const [isDragging,   setIsDragging]   = useState(false);
+  const [dropTarget,   setDropTarget]   = useState<{ panelId: string; zone: 'top' | 'bottom' | 'left' | 'right' } | null>(null);
   const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
   const prevEdgesKey  = useRef<string>('');
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
@@ -55,6 +57,91 @@ export const ExportEditor: React.FC = () => {
       setSchemaVersion(v => v + 1);
     }
   }, []);
+
+  // Reset drag state on dragend (fires even if drop is cancelled)
+  useEffect(() => {
+    const onDragEnd = () => { setIsDragging(false); setDropTarget(null); dragRef.current = null; };
+    window.addEventListener('dragend', onDragEnd);
+    return () => window.removeEventListener('dragend', onDragEnd);
+  }, []);
+
+  const getDropZone = (e: React.DragEvent, el: HTMLElement): 'top' | 'bottom' | 'left' | 'right' => {
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    return Math.abs(x - 0.5) > Math.abs(y - 0.5)
+      ? (x < 0.5 ? 'left' : 'right')
+      : (y < 0.5 ? 'top' : 'bottom');
+  };
+
+  const handlePanelBodyDragOver = useCallback((e: React.DragEvent<HTMLDivElement>, panelId: string) => {
+    if (!dragRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = getDropZone(e, e.currentTarget);
+    setDropTarget(prev => (prev?.panelId === panelId && prev?.zone === zone ? prev : { panelId, zone }));
+  }, []);
+
+  const handlePanelBodyDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropTarget(null);
+  }, []);
+
+  const splitAndDropTab = useCallback((targetPanelId: string, zone: 'top' | 'bottom' | 'left' | 'right') => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    dragRef.current = null;
+    setDropTarget(null);
+    setIsDragging(false);
+
+    setColumns(prev => {
+      let next: ColumnState[] = prev.map(col => ({ ...col, rows: [...col.rows] }));
+
+      // Remove tab from source if not original
+      if (!drag.isOriginal) {
+        next = next.map(col => ({
+          ...col,
+          rows: col.rows
+            .map(row => {
+              if (row.id !== drag.fromPanelId) return row;
+              const tabs = row.tabs.filter(t => t !== drag.tab);
+              if (!tabs.length) return null as unknown as PanelState;
+              return { ...row, tabs, activeTab: row.activeTab === drag.tab ? tabs[0] : row.activeTab };
+            })
+            .filter(Boolean) as PanelState[],
+        })).filter(col => col.rows.length > 0);
+      }
+
+      // Find target panel after possible source removal
+      let tCol = -1, tRow = -1;
+      for (let ci = 0; ci < next.length; ci++)
+        for (let ri = 0; ri < next[ci].rows.length; ri++)
+          if (next[ci].rows[ri].id === targetPanelId) { tCol = ci; tRow = ri; }
+      if (tCol === -1) return next;
+
+      const newPanel: PanelState = { id: uid(), tabs: [drag.tab], activeTab: drag.tab, isOriginal: false };
+
+      if (zone === 'right') {
+        next.splice(tCol + 1, 0, { id: uid(), rows: [newPanel] });
+      } else if (zone === 'left') {
+        next.splice(tCol, 0, { id: uid(), rows: [newPanel] });
+      } else {
+        next = next.map((col, ci) => {
+          if (ci !== tCol) return col;
+          const rows = [...col.rows];
+          rows.splice(zone === 'bottom' ? tRow + 1 : tRow, 0, newPanel);
+          return { ...col, rows };
+        });
+      }
+      return next;
+    });
+  }, []);
+
+  const handlePanelBodyDrop = useCallback((e: React.DragEvent<HTMLDivElement>, panelId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragRef.current || !dropTarget) return;
+    splitAndDropTab(panelId, dropTarget.zone);
+  }, [dropTarget, splitAndDropTab]);
 
   const [columns, setColumns] = useState<ColumnState[]>([
     { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'nodes', isOriginal: true }] },
@@ -240,6 +327,7 @@ export const ExportEditor: React.FC = () => {
       onDragStart: (e: DragEvent<HTMLButtonElement>) => {
         dragRef.current = { fromPanelId: panel.id, tab: tid, isOriginal: panel.isOriginal };
         e.dataTransfer.effectAllowed = 'move';
+        setIsDragging(true);
       },
     }));
 
@@ -299,7 +387,18 @@ export const ExportEditor: React.FC = () => {
                               </>
                             }
                           />
-                          <div className={s.panelBody}>
+                          <div
+                            className={s.panelBody}
+                            onDragOver={isDragging ? e => handlePanelBodyDragOver(e, panel.id) : undefined}
+                            onDragLeave={isDragging ? handlePanelBodyDragLeave : undefined}
+                            onDrop={isDragging ? e => handlePanelBodyDrop(e, panel.id) : undefined}
+                          >
+                            {isDragging && (
+                              <div
+                                className={`${s.splitOverlay}${dropTarget?.panelId === panel.id ? ` ${s[`splitOverlay_${dropTarget.zone}`]}` : ''}`}
+                                aria-hidden
+                              />
+                            )}
                             {panel.activeTab === 'nodes' && exportForViewer && (
                               <NodeViewer
                                 ref={nodeViewerRef}

@@ -40,7 +40,20 @@
   display: flex;
   overflow: hidden;
   padding: 1rem;
+  position: relative;
 }
+
+.splitOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+.splitOverlay_top    { background: linear-gradient(to top,    transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-top-width:    3px; }
+.splitOverlay_bottom { background: linear-gradient(to bottom, transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-bottom-width: 3px; }
+.splitOverlay_left   { background: linear-gradient(to left,   transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-left-width:   3px; }
+.splitOverlay_right  { background: linear-gradient(to right,  transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-right-width:  3px; }
 
 .detailsScroll {
   flex: 1;
