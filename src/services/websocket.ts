@@ -4,7 +4,7 @@ import { addNotification } from '../store/notificationsSlice';
 import { addApiResponse } from '../store/apiResponsesSlice';
 import { fetchNotifications } from '../store/notificationsSlice';
 
-const WS_URL = API_BASE.replace(/^http/, 'ws') + '/ws';
+const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 
 let socket: WebSocket | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
