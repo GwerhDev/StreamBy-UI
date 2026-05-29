@@ -31,7 +31,7 @@ export const LateralMenu = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const isEditorRoute = location.pathname.startsWith('/editor/');
+    const isEditorRoute = location.pathname.endsWith('/editor');
     if (isEditorRoute) {
       closeMenu();
     }

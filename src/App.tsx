@@ -9,7 +9,6 @@ import { useWebSocket } from './hooks/useWebSocket';
 import DefaultLayout from './app/layouts/DefaultLayout';
 import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
-import EditorLayout from './app/layouts/EditorLayout';
 import NotificationLayout from './app/layouts/NotificationLayout';
 
 import { Loader } from './app/components/Loader';
@@ -80,10 +79,6 @@ function App() {
                 <Route element={<PreviewLayout />}>
                   <Route path="/preview/:projectId" element={<ProjectPreview />} />
                 </Route>
-                <Route element={<EditorLayout />}>
-                  <Route path="/editor/:projectId/:exportId" element={<ExportEditorPage />} />
-                </Route>
-
                 <Route path="/project/:id" element={<ProjectLayout />}>
                   <Route path="/project/:id" element={<RootBackground />} />
                   <Route path="/project/:id/dashboard" element={<Dashboard />} />
@@ -93,6 +88,7 @@ function App() {
                   <Route path="/project/:id/dashboard/exports" element={<Exports />} />
                   <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
                   <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
+                  <Route path="/project/:id/dashboard/exports/:exportId/editor" element={<ExportEditorPage />} />
 
                   <Route path="/project/:id/storage" element={<Storage />} />
                   <Route path="/project/:id/storage/:storageName" element={<StorageDrive />} />

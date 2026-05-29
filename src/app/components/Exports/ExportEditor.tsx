@@ -38,12 +38,23 @@ export const ExportEditor: React.FC = () => {
   const dispatch = useDispatch();
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
-  const { projectId, exportId } = useParams<{ projectId: string; exportId: string }>();
+  const { id: projectId, exportId } = useParams<{ id: string; exportId: string }>();
 
   const [submitting, setSubmitting] = useState(false);
   const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
+  const [schemaVersion, setSchemaVersion] = useState(0);
   const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
+  const prevEdgesKey  = useRef<string>('');
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
+
+  const handleSchemaChange = useCallback((schema: { nodes: object[]; edges: object[] }) => {
+    liveSchemaRef.current = schema;
+    const edgesKey = (schema.edges as Array<{ id?: string }>).map(e => e.id ?? '').sort().join(',');
+    if (edgesKey !== prevEdgesKey.current) {
+      prevEdgesKey.current = edgesKey;
+      setSchemaVersion(v => v + 1);
+    }
+  }, []);
 
   const [columns, setColumns] = useState<ColumnState[]>([
     { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'nodes', isOriginal: true }] },
@@ -242,7 +253,7 @@ export const ExportEditor: React.FC = () => {
             type="button"
             className={s.backButton}
             title="Back to details"
-            onClick={() => navigate(`/project/${projectId}/dashboard/exports/${exportId}`)}
+            onClick={() => navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true })}
           >
             <FontAwesomeIcon icon={faArrowLeft} />
           </button>
@@ -295,7 +306,7 @@ export const ExportEditor: React.FC = () => {
                                 exportDetails={exportForViewer}
                                 editMode
                                 onSave={handleNodeSave}
-                                onChange={schema => { liveSchemaRef.current = schema; }}
+                                onChange={handleSchemaChange}
                                 apiConnections={currentProject.data?.apiConnections || []}
                                 projectId={projectId}
                               />
@@ -304,6 +315,7 @@ export const ExportEditor: React.FC = () => {
                               <ResponsePreview
                                 projectId={projectId!}
                                 schema={liveSchemaRef.current}
+                                schemaVersion={schemaVersion}
                                 savedApiResponse={exportDetails.apiResponse}
                               />
                             )}

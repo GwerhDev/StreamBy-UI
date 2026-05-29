@@ -233,7 +233,7 @@ export const ExportDetailsView: React.FC = () => {
           subtitle={exportDetails.description}
         />
         <div className={s.buttonsContainer}>
-          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/editor/${id}/${exportId}`)} />
+          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/editor`)} />
           <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
         </div>
       </div>

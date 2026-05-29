@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { getConnectionResponse } from '../../../services/connections';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,6 +9,7 @@ interface ResponsePreviewProps {
   projectId: string;
   schema: { nodes: object[]; edges: object[] } | null | undefined;
   savedApiResponse?: JSON | null;
+  schemaVersion?: number;
 }
 
 type SchemaNode = { id: string; type?: string; data?: Record<string, unknown> };
@@ -61,18 +62,42 @@ async function simulateLiveResponse(
   return values.length === 1 ? values[0] : values;
 }
 
-export function ResponsePreview({ projectId, schema, savedApiResponse }: ResponsePreviewProps) {
+export function ResponsePreview({ projectId, schema, savedApiResponse, schemaVersion = 0 }: ResponsePreviewProps) {
   const [liveResult, setLiveResult] = useState<unknown>(null);
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const prevSchemaRef = useRef<string>('');
 
+  // schemaVersion is an integer counter that increments whenever edge topology changes.
+  // Adding it as a dep alongside `schema` guarantees recomputation even if React
+  // somehow reuses the same schema object reference across renders.
   const hasLiveNodes = useMemo(() => {
     const incoming = getIncomingNodes(schema);
     return incoming.some(n => LIVE_TYPES.includes(n.type ?? ''));
-  }, [schema]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema, schemaVersion]);
 
-  const staticResult = useMemo(() => computeStaticResponse(schema), [schema]);
+  const staticResult = useMemo(
+    () => computeStaticResponse(schema),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [schema, schemaVersion],
+  );
+
+  // Auto-refresh live nodes when schema changes (only if already fetched once)
+  useEffect(() => {
+    if (!hasLiveNodes || !hasFetched) return;
+    const key = `${schemaVersion}:${JSON.stringify(schema)}`;
+    if (key === prevSchemaRef.current) return;
+    prevSchemaRef.current = key;
+    setFetching(true);
+    setFetchError(null);
+    simulateLiveResponse(schema, projectId)
+      .then(result => { setLiveResult(result); })
+      .catch(err => { setFetchError((err as { message: string }).message || 'Preview failed.'); })
+      .finally(() => setFetching(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema, schemaVersion, hasLiveNodes, hasFetched, projectId]);
 
   const handlePreview = async () => {
     setFetching(true);
@@ -88,9 +113,17 @@ export function ResponsePreview({ projectId, schema, savedApiResponse }: Respons
     }
   };
 
+  // Use savedApiResponse only when there is no live schema (legacy exports without nodeSchema)
+  const hasSchema     = schema != null;
   const displayResult = hasLiveNodes
-    ? (hasFetched ? liveResult : (savedApiResponse as unknown ?? null))
-    : (staticResult ?? (savedApiResponse as unknown ?? null));
+    ? (hasFetched ? liveResult : (hasSchema ? null : (savedApiResponse as unknown ?? null)))
+    : (staticResult ?? (hasSchema ? null : (savedApiResponse as unknown ?? null)));
+
+  const emptyHint = hasLiveNodes
+    ? 'Click Preview to simulate the backend response.'
+    : hasSchema
+      ? 'No data source connected to StreamBy.'
+      : 'No response available.';
 
   return (
     <div className={s.root}>
@@ -115,13 +148,7 @@ export function ResponsePreview({ projectId, schema, savedApiResponse }: Respons
 
       {displayResult != null
         ? <div className={s.viewer}><JsonViewer data={displayResult as JSON} /></div>
-        : !fetchError && (
-          <p className={s.hint}>
-            {hasLiveNodes
-              ? 'Click Preview to simulate the backend response.'
-              : 'No response available.'}
-          </p>
-        )
+        : !fetchError && <p className={s.hint}>{emptyHint}</p>
       }
     </div>
   );

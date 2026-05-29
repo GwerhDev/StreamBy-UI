@@ -52,8 +52,22 @@ export function UpdateExportForm() {
   const [selectedAllowedOrigins, setSelectedAllowedOrigins] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
   const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
+  const [schemaVersion, setSchemaVersion] = useState(0);
   const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
+  const prevEdgesKey  = useRef<string>('');
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
+
+  // Always updates the ref immediately (synchronous, no batching).
+  // Only calls setSchemaVersion when edge topology changes — that triggers the re-render
+  // that makes ResponsePreview read the fresh liveSchemaRef.current.
+  const handleSchemaChange = useCallback((schema: { nodes: object[]; edges: object[] }) => {
+    liveSchemaRef.current = schema;
+    const edgesKey = (schema.edges as Array<{ id?: string }>).map(e => e.id ?? '').sort().join(',');
+    if (edgesKey !== prevEdgesKey.current) {
+      prevEdgesKey.current = edgesKey;
+      setSchemaVersion(v => v + 1);
+    }
+  }, []);
 
   const [columns, setColumns] = useState<ColumnState[]>([
     { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'details', isOriginal: true }] },
@@ -67,6 +81,11 @@ export function UpdateExportForm() {
     setDescription(data.description || '');
     setSelectedAllowedOrigins(data.allowedOrigin || []);
     setIsPrivate(data.private || false);
+    if (data.nodeSchema) {
+      const s = data.nodeSchema as { nodes: object[]; edges: Array<{ id?: string }> };
+      prevEdgesKey.current = s.edges.map(e => e.id ?? '').sort().join(',');
+      liveSchemaRef.current = s as { nodes: object[]; edges: object[] };
+    }
   };
 
   useEffect(() => {
@@ -384,7 +403,7 @@ export function UpdateExportForm() {
                                 exportDetails={exportForViewer}
                                 editMode
                                 onSave={handleNodeSave}
-                                onChange={schema => { liveSchemaRef.current = schema; }}
+                                onChange={handleSchemaChange}
                                 apiConnections={currentProject.data?.apiConnections || []}
                                 projectId={id}
                               />
@@ -393,6 +412,7 @@ export function UpdateExportForm() {
                               <ResponsePreview
                                 projectId={id!}
                                 schema={liveSchemaRef.current}
+                                schemaVersion={schemaVersion}
                                 savedApiResponse={exportDetails.apiResponse}
                               />
                             )}

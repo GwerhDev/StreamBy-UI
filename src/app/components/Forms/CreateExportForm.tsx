@@ -28,7 +28,7 @@ export function CreateExportForm() {
     setLoading(true);
     try {
       const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'] });
-      navigate(`/editor/${projectId}/${response.exportId}`);
+      navigate(`/project/${projectId}/dashboard/exports/${response.exportId}/editor`);
     } catch (err) {
       console.error(err);
     } finally {
