@@ -138,14 +138,16 @@ export function StorageCard({ file, category, onDelete, onRename, selected: cont
     }
   };
 
+  const cleanUrl = (url: string) => url.split('?')[0];
+
   const handleCopyUrl = async () => {
-    await navigator.clipboard.writeText(file.url);
+    await navigator.clipboard.writeText(cleanUrl(file.url));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCtxCopy = async () => {
-    await navigator.clipboard.writeText(file.url);
+    await navigator.clipboard.writeText(cleanUrl(file.url));
     closeCtx();
   };
 

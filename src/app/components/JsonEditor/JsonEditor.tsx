@@ -181,11 +181,13 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
     }
   }, []);
 
+  const cleanUrl = (url: string) => url.split('?')[0];
+
   const handleInsertAssets = useCallback((files: StorageFile[]) => {
     const { start, end } = savedSelection.current;
     const insertText = files.length === 1
-      ? `"${files[0].url}"`
-      : JSON.stringify(files.map(f => f.url));
+      ? `"${cleanUrl(files[0].url)}"`
+      : JSON.stringify(files.map(f => cleanUrl(f.url)));
     const newValue  = value.substring(0, start) + insertText + value.substring(end);
     const newCursor = start + insertText.length;
     const { data: d, isValid: v } = parseJson(newValue);

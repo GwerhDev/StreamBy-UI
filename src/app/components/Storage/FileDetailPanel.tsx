@@ -43,8 +43,10 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate }:
   const [updating, setUpdating] = useState(false);
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
+  const cleanUrl = (url: string) => url.split('?')[0];
+
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(file.url);
+    await navigator.clipboard.writeText(cleanUrl(file.url));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -110,7 +112,7 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate }:
         </div>
 
         <div className={s.urlRow}>
-          <p className={s.urlText} title={file.url}>{file.url}</p>
+          <p className={s.urlText} title={cleanUrl(file.url)}>{cleanUrl(file.url)}</p>
           <button className={s.copyBtn} onClick={handleCopy} title="Copy URL">
             <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
           </button>
