@@ -10,7 +10,7 @@ import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { deleteDbConnection, fetchBuiltinDatabases } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
-import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+
 import { DbConnection } from '../../../interfaces';
 
 export const DbConnectionList = () => {

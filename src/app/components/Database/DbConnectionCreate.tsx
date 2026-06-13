@@ -2,7 +2,6 @@ import s from './Database.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faXmark, faTag, faLayerGroup, faKey, faFileLines } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
