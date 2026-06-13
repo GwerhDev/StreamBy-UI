@@ -1,7 +1,7 @@
 import s from './Browser.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { faArrowLeft, faBan, faCheck, faChevronRight, faEnvelope, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBan, faCheck, faChevronRight, faEnvelope, faFolder, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -22,6 +22,8 @@ export const Browser = (props: BrowserProps) => {
   const { id } = useParams();
   const { projectId } = useParams<{ projectId: string }>();
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
+  const currentExport = useSelector((state: RootState) => state.currentExport.data);
+
 
   const isPending = membership?.isMember && membership?.status === 'pending';
 
@@ -54,8 +56,12 @@ export const Browser = (props: BrowserProps) => {
 
   const segments = relativePath.split('/').filter(Boolean);
 
-  const formatSegment = (seg: string) =>
-    seg.replace(/[_-]/g, ' ');
+  const isMongoId = (seg: string) => /^[a-f0-9]{24}$/.test(seg);
+
+  const formatSegment = (seg: string) => {
+    if (currentExport && seg === currentExport.id) return currentExport.name;
+    return seg.replace(/[_-]/g, ' ');
+  };
 
   const handleNavigate = (index: number) => {
     const partial = segments.slice(0, index + 1).join('/');
@@ -78,7 +84,9 @@ export const Browser = (props: BrowserProps) => {
                     <span key={i} className={s.separator}>
                       <FontAwesomeIcon icon={faChevronRight} />
                       <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                        {formatSegment(seg)}
+                        {isMongoId(seg) && seg !== currentExport?.id
+                          ? <FontAwesomeIcon icon={faSpinner} spin />
+                          : formatSegment(seg)}
                       </span>
                     </span>
                   ))

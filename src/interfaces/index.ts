@@ -19,6 +19,19 @@ export interface ApiConnectionPayload {
   prefix?: string;
 }
 
+export type StorageConnectionType = 's3' | 'gcs' | 'r2' | 'azure';
+
+export interface StorageConnection {
+  id: string;
+  name: string;
+  type: StorageConnectionType;
+  credentialId: string;
+  projectId: string;
+  createdAt?: string;
+  description?: string;
+  isBuiltin?: boolean;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -30,6 +43,7 @@ export interface Project {
   exports?: Export[];
   apiConnections?: ApiConnection[];
   dbConnections?: DbConnection[];
+  storageConnections?: StorageConnection[];
   members?: { userId?: string; role: string; archived?: boolean; status?: 'pending' | 'active' }[];
   rootFolders?: string[];
   settings?: {
@@ -142,6 +156,8 @@ export interface Export {
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
   useConnections?: boolean;
   useCredentials?: boolean;
+  devMode?: boolean;
+  devPorts?: number[];
 }
 
 export interface ExportPayload {

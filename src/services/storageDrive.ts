@@ -3,12 +3,12 @@ import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
 import { StorageFile } from '../interfaces';
 
-export async function getRecentFiles(projectId: string): Promise<StorageFile[]> {
+export async function getRecentFiles(projectId: string, connId: string): Promise<StorageFile[]> {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/lasts`, {
-      method: 'GET',
-      credentials: 'include',
-    });
+    const res = await fetch(
+      `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}/files/lasts`,
+      { method: 'GET', credentials: 'include' },
+    );
 
     if (!res.ok) {
       const errorData = await res.json();

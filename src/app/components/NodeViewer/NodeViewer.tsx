@@ -28,7 +28,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faUser, faBolt, faDatabase, faGlobe, faXmark, faFloppyDisk,
   faInfoCircle, faArrowsRotate, faFilter, faKey, faWrench,
-  faPlus, faCode, faArrowRight,
+  faPlus, faCode, faArrowRight, faGear,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Node Data Types ───────────────────────────────────────────────────────
@@ -291,8 +291,8 @@ const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: st
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 interface DetailField {
-  key: string; label: string; value: string;
-  editable?: boolean; inputType?: 'text' | 'checkbox' | 'json' | 'select';
+  key: string; label: string; value: string; displayValue?: string;
+  editable?: boolean; disabled?: boolean; inputType?: 'text' | 'checkbox' | 'json' | 'select';
   options?: { value: string; label: string }[];
 }
 interface NodeDetail { title: string; description: string; fields: DetailField[]; }
@@ -314,6 +314,7 @@ export interface NodeViewerHandle {
 }
 
 const CORE_NODE_IDS = ['client', 'streamby'];
+const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
 
 export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId,
@@ -336,8 +337,18 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [panelRecordsLoading, setPanelRecordsLoading] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [configModalData, setConfigModalData] = useState({ private: false, allowedOrigin: '*', devMode: false, devPorts: '3000, 5173, 8080, 4200' });
   const [filterModalConfig, setFilterModalConfig] = useState<FilterNodeConfig>({ ...EMPTY_FILTER_CONFIG });
   const [includeFieldsText, setIncludeFieldsText] = useState('');
+  const [filterModalLabel, setFilterModalLabel] = useState('');
+  const [filterModalSubtitle, setFilterModalSubtitle] = useState('');
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [clientModalData, setClientModalData] = useState({ name: '', method: 'GET' });
+  const [showDataSourceModal, setShowDataSourceModal] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
+  const [nodeLabelModalData, setNodeLabelModalData] = useState({ label: '', subtitle: '' });
 
   // Built-in DBs + external connections combined
   const allDbConnections: DbConnection[] = useMemo(() => {
@@ -484,8 +495,9 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       title: 'Client',
       description: 'Consumer making requests to this StreamBy endpoint.',
       fields: [
+        { key: 'name',     label: 'Export Name', value: exportDetails.name || '' },
         { key: 'method',   label: 'HTTP Method', value: exportDetails.method || 'GET' },
-        { key: 'endpoint', label: 'Endpoint',    value: `/streamby/${exportDetails.projectId}/get-export/${exportDetails.name}` },
+        { key: 'endpoint', label: 'Endpoint',    value: `/streamby/${projectId}/get-export/${exportDetails.name}` },
       ],
     };
 
@@ -493,8 +505,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       title: 'StreamBy Middleware',
       description: 'Core engine. Connect data sources below, process nodes above, and output filters to the right.',
       fields: [
-        { key: 'private',       label: 'Private',          value: exportDetails.private ? 'Yes' : 'No', editable: true, inputType: 'checkbox' },
-        { key: 'allowedOrigin', label: 'Allowed Origins',  value: exportDetails.allowedOrigin?.join(', ') || '*' },
+        { key: 'allowedOrigin', label: 'Allowed Origins', value: exportDetails.allowedOrigin?.join(', ') || '*' },
+        { key: 'devMode',       label: 'Dev Mode',        value: exportDetails.devMode ? 'Enabled' : 'Disabled' },
       ],
     };
 
@@ -505,47 +517,30 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     if (node.type === 'apiConnectionNode') {
-      const options = apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` }));
+      const conn = apiConnections.find(c => c.id === (node.data.connectionId as string));
+      const displayValue = conn ? `${conn.name} — ${conn.apiUrl}` : ((node.data.connectionId as string) ? (node.data.connectionId as string) : 'Not configured');
       return {
         title: 'API Connection',
         description: 'External API that StreamBy queries via the data layer.',
-        fields: [{ key: 'connectionId', label: 'Connection', value: node.data.connectionId || '', editable: true, inputType: 'select', options }],
+        fields: [{ key: 'connectionId', label: 'Connection', value: (node.data.connectionId as string) || '', displayValue }],
       };
     }
 
     if (node.type === 'dataSourceNode') {
-      const linkedToStreamBy = edges.some(
-        e => (e.source === node.id && e.target === 'streamby') ||
-             (e.source === 'streamby' && e.target === node.id),
-      );
-      const dbOptions = linkedToStreamBy
-        ? [
-            { value: '', label: 'Select a connection' },
-            ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
-          ]
-        : [{ value: '', label: 'Connect to StreamBy first' }];
-      const tableOptions = panelTablesLoading
-        ? [{ value: '', label: 'Loading…' }]
-        : [
-            { value: '', label: 'Select a table / collection' },
-            ...panelTables.map(t => ({ value: t, label: t })),
-          ];
-      const recordOptions = panelRecordsLoading
-        ? [{ value: '', label: 'Loading…' }]
-        : [
-            { value: '', label: 'All records' },
-            ...panelRecords.map(r => ({ value: r.id, label: r.label })),
-          ];
-      const selectedConnectionId = (localData.connectionId as string) ?? (node.data.connectionId as string) ?? '';
-      const selectedTableName    = (localData.tableName    as string) ?? (node.data.tableName    as string) ?? '';
+      const selectedConnectionId = (node.data.connectionId as string) ?? '';
+      const selectedTableName    = (node.data.tableName    as string) ?? '';
+      const selectedRecordId     = (node.data.recordId     as string) ?? '';
+      const connectionLabel      = allDbConnections.find(c => c.id === selectedConnectionId)?.name ?? selectedConnectionId;
+      const recordLabel          = panelRecords.find(r => r.id === selectedRecordId)?.label ?? selectedRecordId;
+
       const fields: DetailField[] = [
-        { key: 'connectionId', label: 'DB Connection', value: selectedConnectionId, editable: true, inputType: 'select' as const, options: dbOptions },
+        { key: 'connectionId', label: 'DB Connection', value: selectedConnectionId, displayValue: connectionLabel || 'Not configured' },
       ];
       if (selectedConnectionId) {
-        fields.push({ key: 'tableName', label: 'Table / Collection', value: selectedTableName, editable: true, inputType: 'select' as const, options: tableOptions });
+        fields.push({ key: 'tableName', label: 'Table / Collection', value: selectedTableName, displayValue: selectedTableName || 'Not selected' });
       }
       if (selectedConnectionId && selectedTableName) {
-        fields.push({ key: 'recordId', label: 'Record', value: (node.data.recordId as string) || '', editable: true, inputType: 'select' as const, options: recordOptions });
+        fields.push({ key: 'recordId', label: 'Record', value: selectedRecordId, displayValue: recordLabel || 'All records' });
       }
       return {
         title: 'Data Source',
@@ -558,8 +553,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       title: node.data.label,
       description: 'Processing step applied to data before it reaches the output layer.',
       fields: [
-        { key: 'label',    label: 'Name',        value: node.data.label,    editable: true, inputType: 'text' },
-        { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
+        { key: 'label',    label: 'Name',        value: node.data.label as string },
+        { key: 'subtitle', label: 'Description', value: node.data.subtitle as string },
       ],
     };
 
@@ -576,14 +571,14 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         title: node.data.label as string,
         description: summary,
         fields: [
-          { key: 'label',    label: 'Name',        value: node.data.label as string,    editable: true, inputType: 'text' as const },
-          { key: 'subtitle', label: 'Description', value: node.data.subtitle as string, editable: true, inputType: 'text' as const },
+          { key: 'label',    label: 'Name',        value: node.data.label as string },
+          { key: 'subtitle', label: 'Description', value: node.data.subtitle as string },
         ],
       };
     }
 
     return null;
-  }, [exportDetails, nodes, edges, localData, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
+  }, [exportDetails, nodes, edges, apiConnections, allDbConnections, panelRecords, projectId]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
@@ -592,14 +587,16 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isApiNode      = selectedNode?.type === 'apiConnectionNode';
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
   const isCoreNode     = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
-  const canSave        = editMode && hasChanges && (isJsonNode || isApiNode || isDbSourceNode || !isCoreNode || !!onSave);
+  const canSave        = editMode && hasChanges && !isApiNode && !isDbSourceNode && (isJsonNode || !isCoreNode || !!onSave);
+
+  // Stable primitives from the saved node data — avoids re-running effects on every ReactFlow state update
+  const savedNodeConnId  = (selectedNode?.data?.connectionId as string) ?? '';
+  const savedNodeTable   = (selectedNode?.data?.tableName    as string) ?? '';
 
   // Auto-fetch tables/collections for the selected DB connection in the DataSource panel
   useEffect(() => {
     if (!isDbSourceNode || !projectId) return;
-    const connId = (localData.connectionId as string)
-      ?? (nodes.find(n => n.id === selectedNodeId)?.data?.connectionId as string)
-      ?? '';
+    const connId = (localData.connectionId as string) ?? savedNodeConnId;
     if (!connId) { setPanelTables([]); return; }
     let cancelled = false;
     setPanelTablesLoading(true);
@@ -608,13 +605,13 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       .catch(() => { if (!cancelled) setPanelTables([]); })
       .finally(() => { if (!cancelled) setPanelTablesLoading(false); });
     return () => { cancelled = true; };
-  }, [isDbSourceNode, selectedNodeId, localData.connectionId, projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDbSourceNode, selectedNodeId, localData.connectionId, savedNodeConnId, projectId]);
 
   useEffect(() => {
     if (!isDbSourceNode || !projectId) return;
-    const node = nodes.find(n => n.id === selectedNodeId);
-    const connId  = (localData.connectionId as string) ?? (node?.data?.connectionId as string) ?? '';
-    const table   = (localData.tableName as string)    ?? (node?.data?.tableName as string)    ?? '';
+    const connId = (localData.connectionId as string) ?? savedNodeConnId;
+    const table  = (localData.tableName    as string) ?? savedNodeTable;
     if (!connId || !table) { setPanelRecords([]); return; }
     let cancelled = false;
     setPanelRecordsLoading(true);
@@ -628,7 +625,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }).catch(() => { if (!cancelled) setPanelRecords([]); })
       .finally(() => { if (!cancelled) setPanelRecordsLoading(false); });
     return () => { cancelled = true; };
-  }, [isDbSourceNode, selectedNodeId, localData.connectionId, localData.tableName, projectId, nodes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDbSourceNode, selectedNodeId, localData.connectionId, localData.tableName, savedNodeConnId, savedNodeTable, projectId]);
 
   const resetConnFetch = () => { setConnFetching(false); setConnResult(null); setConnError(null); };
   const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
@@ -702,13 +700,15 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setLocalData({});
   }, [selectedNodeId, localData, nodes, apiConnections, allDbConnections, onSave, setNodes]);
 
-  const handleConnFetch = useCallback(async () => {
+  const handleOpenApiPreview = useCallback(async () => {
     if (!projectId || !selectedNodeId) return;
     const node = nodes.find(n => n.id === selectedNodeId);
     const connectionId = (node?.data?.connectionId as string) ?? '';
     if (!connectionId) return;
-    setConnFetching(true);
+    setConnResult(null);
     setConnError(null);
+    setShowPreviewModal(true);
+    setConnFetching(true);
     try {
       const result = await getConnectionResponse(projectId, connectionId);
       setConnResult(result);
@@ -749,8 +749,80 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       limit:        existing.limit,
     });
     setIncludeFieldsText((existing.includeFields ?? []).join(', '));
+    setFilterModalLabel((node?.data?.label as string) ?? '');
+    setFilterModalSubtitle((node?.data?.subtitle as string) ?? '');
     setShowFilterModal(true);
   }, [nodes, selectedNodeId]);
+
+  const handleOpenConfigModal = useCallback(() => {
+    setConfigModalData({
+      private: false,
+      allowedOrigin: exportDetails.allowedOrigin?.join(', ') || '*',
+      devMode: exportDetails.devMode ?? false,
+      devPorts: (exportDetails.devPorts ?? [3000, 5173, 8080, 4200]).join(', '),
+    });
+    setShowConfigModal(true);
+  }, [exportDetails]);
+
+  const handleSaveConfigModal = useCallback(() => {
+    if (!onSave) return;
+    onSave({
+      allowedOrigin: configModalData.allowedOrigin.split(',').map(s => s.trim()).filter(Boolean),
+      devMode: configModalData.devMode,
+      devPorts: configModalData.devPorts.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n) && n > 0),
+    });
+    setShowConfigModal(false);
+  }, [configModalData, onSave]);
+
+  const handleOpenClientModal = useCallback(() => {
+    setClientModalData({ name: exportDetails.name || '', method: exportDetails.method || 'GET' });
+    setShowClientModal(true);
+  }, [exportDetails]);
+
+  const handleSaveClientModal = useCallback(() => {
+    if (!onSave) return;
+    onSave({ name: clientModalData.name, method: clientModalData.method });
+    setShowClientModal(false);
+  }, [clientModalData, onSave]);
+
+  const handleOpenDataSourceModal = useCallback(() => {
+    setLocalData({});
+    setShowDataSourceModal(true);
+  }, []);
+
+  const handleSaveDataSourceModal = useCallback(() => {
+    handleSave();
+    setShowDataSourceModal(false);
+  }, [handleSave]);
+
+  const handleOpenApiModal = useCallback(() => {
+    setLocalData({});
+    setShowApiModal(true);
+  }, []);
+
+  const handleSaveApiModal = useCallback(() => {
+    handleSave();
+    setShowApiModal(false);
+  }, [handleSave]);
+
+  const handleOpenNodeLabelModal = useCallback(() => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    setNodeLabelModalData({
+      label: (node?.data?.label as string) ?? '',
+      subtitle: (node?.data?.subtitle as string) ?? '',
+    });
+    setShowNodeLabelModal(true);
+  }, [nodes, selectedNodeId]);
+
+  const handleSaveNodeLabelModal = useCallback(() => {
+    if (!selectedNodeId) return;
+    setNodes(prev => prev.map(n =>
+      n.id === selectedNodeId
+        ? { ...n, data: { ...n.data, label: nodeLabelModalData.label, subtitle: nodeLabelModalData.subtitle } }
+        : n,
+    ));
+    setShowNodeLabelModal(false);
+  }, [nodeLabelModalData, selectedNodeId, setNodes]);
 
   const handleFilterModalSave = useCallback(() => {
     if (!selectedNodeId) return;
@@ -762,10 +834,12 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (filterModalConfig.wrapKey)              clean.wrapKey      = filterModalConfig.wrapKey;
     if (filterModalConfig.limit)               clean.limit         = filterModalConfig.limit;
     setNodes(prev => prev.map(n =>
-      n.id === selectedNodeId ? { ...n, data: { ...n.data, filterConfig: clean } } : n
+      n.id === selectedNodeId
+        ? { ...n, data: { ...n.data, filterConfig: clean, label: filterModalLabel, subtitle: filterModalSubtitle } }
+        : n
     ));
     setShowFilterModal(false);
-  }, [selectedNodeId, filterModalConfig, includeFieldsText, setNodes]);
+  }, [selectedNodeId, filterModalConfig, includeFieldsText, filterModalLabel, filterModalSubtitle, setNodes]);
 
   const getFieldDisplayValue = (field: DetailField): string | boolean => {
     if (localData[field.key] !== undefined) return localData[field.key];
@@ -828,6 +902,24 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
             <p className={s.detailDescription}>{selectedDetail.description}</p>
 
+            {selectedNodeId === 'streamby' && onSave && (
+              <div className={s.nodeActions}>
+                <button type="button" className={s.actionButton} onClick={handleOpenConfigModal}>
+                  <FontAwesomeIcon icon={faGear} />
+                  Configure
+                </button>
+              </div>
+            )}
+
+            {selectedNodeId === 'client' && onSave && editMode && (
+              <div className={s.nodeActions}>
+                <button type="button" className={s.actionButton} onClick={handleOpenClientModal}>
+                  <FontAwesomeIcon icon={faGear} />
+                  Configure
+                </button>
+              </div>
+            )}
+
             {isJsonNode && (
               <div className={s.nodeActions}>
                 <button type="button" className={s.actionButton} onClick={handleOpenJsonModal}>
@@ -837,16 +929,42 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               </div>
             )}
 
-            {isDbSourceNode && projectId && (
+            {(isDbSourceNode || isApiNode) && projectId && (() => {
+              const credentialed = edges.some(
+                e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === selectedNodeId,
+              );
+              const hasConnection = !!(selectedNode?.data?.connectionId as string);
+              const hasTable      = !!(selectedNode?.data?.tableName as string);
+              return (
+                <div className={s.nodeActions}>
+                  {editMode && credentialed && (
+                    <button
+                      type="button"
+                      className={s.actionButton}
+                      onClick={isApiNode ? handleOpenApiModal : handleOpenDataSourceModal}
+                    >
+                      <FontAwesomeIcon icon={faGear} />
+                      Configure
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={s.actionButton}
+                    onClick={isApiNode ? handleOpenApiPreview : handleOpenPreview}
+                    disabled={!credentialed || !hasConnection || (isDbSourceNode && !hasTable)}
+                  >
+                    <FontAwesomeIcon icon={faArrowsRotate} />
+                    Preview
+                  </button>
+                </div>
+              );
+            })()}
+
+            {selectedNode?.type === 'processNode' && editMode && (
               <div className={s.nodeActions}>
-                <button
-                  type="button"
-                  className={s.actionButton}
-                  onClick={handleOpenPreview}
-                  disabled={!(selectedNode?.data?.connectionId as string) || !(selectedNode?.data?.tableName as string)}
-                >
-                  <FontAwesomeIcon icon={faArrowsRotate} />
-                  Preview
+                <button type="button" className={s.actionButton} onClick={handleOpenNodeLabelModal}>
+                  <FontAwesomeIcon icon={faGear} />
+                  Configure
                 </button>
               </div>
             )}
@@ -875,39 +993,18 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         value={String(getFieldDisplayValue(field))}
                         onChange={v => handleFieldChange(field.key, v)}
                         options={field.options}
+                        disabled={field.disabled}
                       />
                     ) : (
                       <input type="text" defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldInput} placeholder={field.label} />
                     )
                   ) : (
-                    <span className={s.fieldValue}>{field.value}</span>
+                    <span className={s.fieldValue}>{field.displayValue ?? field.value}</span>
                   )}
                 </div>
               ))}
             </div>}
             {jsonError && <p className={s.jsonError}>{jsonError}</p>}
-
-            {isApiNode && projectId && (
-              <div className={s.jsonPreviewSection}>
-                <div className={s.previewHeader}>
-                  <span className={s.fieldLabel}>Response</span>
-                  <button
-                    type="button"
-                    className={s.fetchButton}
-                    onClick={handleConnFetch}
-                    disabled={connFetching || !((selectedNode?.data?.connectionId as string) ?? '')}
-                  >
-                    <FontAwesomeIcon icon={faArrowsRotate} spin={connFetching} />
-                    {connFetching ? 'Fetching…' : 'Fetch'}
-                  </button>
-                </div>
-                {connError && <p className={s.previewError}>{connError}</p>}
-                {connResult != null
-                  ? <div className={s.jsonPre}><JsonViewer data={connResult as JSON} /></div>
-                  : !connError && <p className={s.jsonEmptyNote}>Click Fetch to preview the API response.</p>
-                }
-              </div>
-            )}
 
 
             {canSave && (
@@ -974,8 +1071,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         <div className={s.modalContainer} onClick={e => e.stopPropagation()}>
           <div className={s.modalHeader}>
             <span className={s.modalTitle}>
-              <FontAwesomeIcon icon={faDatabase} style={{ color: H_BOTTOM }} />
-              Preview Records
+              <FontAwesomeIcon icon={isApiNode ? faGlobe : faDatabase} style={{ color: isApiNode ? H_LEFT : H_BOTTOM }} />
+              {isApiNode ? 'Preview Response' : 'Preview Records'}
             </span>
             <button className={s.panelClose} type="button" onClick={() => { setShowPreviewModal(false); setConnResult(null); setConnError(null); }}>
               <FontAwesomeIcon icon={faXmark} />
@@ -1000,6 +1097,67 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       </div>
     )}
 
+    {showConfigModal && (
+      <div className={s.modalOverlay} onClick={() => setShowConfigModal(false)}>
+        <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faGear} />
+              StreamBy Configuration
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => setShowConfigModal(false)}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+
+          <div className={s.configModalBody}>
+            <div className={s.configRow}>
+              <div className={s.configRowHeader}>
+                <div>
+                  <label className={s.configLabel}>Allowed Origins</label>
+                  <p className={s.configHint}>Comma-separated list of origins. Use <code>*</code> to inherit from the project settings.</p>
+                </div>
+              </div>
+              <input type="text" className={s.configInput}
+                value={configModalData.allowedOrigin}
+                onChange={e => setConfigModalData(p => ({ ...p, allowedOrigin: e.target.value }))}
+                placeholder="https://example.com, https://other.com" />
+            </div>
+
+            <div className={s.configRow}>
+              <div className={s.configRowHeader}>
+                <div>
+                  <label className={s.configLabel}>Dev Mode</label>
+                  <p className={s.configHint}>Auto-allow requests from localhost on the ports below — no need to add them to allowed origins.</p>
+                </div>
+                <button
+                  type="button"
+                  className={`${s.toggle} ${configModalData.devMode ? s.toggleOn : ''}`}
+                  onClick={() => setConfigModalData(p => ({ ...p, devMode: !p.devMode }))}
+                  aria-pressed={configModalData.devMode}
+                >
+                  <span className={s.toggleThumb} />
+                </button>
+              </div>
+              {configModalData.devMode && (
+                <input type="text" className={s.configInput}
+                  value={configModalData.devPorts}
+                  onChange={e => setConfigModalData(p => ({ ...p, devPorts: e.target.value }))}
+                  placeholder="3000, 5173, 8080, 4200" />
+              )}
+            </div>
+          </div>
+
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => setShowConfigModal(false)}>Cancel</button>
+            <button type="button" className={s.saveButton} onClick={handleSaveConfigModal}>
+              <FontAwesomeIcon icon={faFloppyDisk} /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     {showFilterModal && (
       <div className={s.modalOverlay} onClick={() => setShowFilterModal(false)}>
         <div className={s.filterModalContainer} onClick={e => e.stopPropagation()}>
@@ -1014,6 +1172,21 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
           </div>
 
           <div className={s.filterModalBody}>
+            {/* NODE LABEL */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Node Label</div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input type="text" placeholder="Name" className={s.fieldInput}
+                  value={filterModalLabel}
+                  onChange={e => setFilterModalLabel(e.target.value)}
+                />
+                <input type="text" placeholder="Description" className={s.fieldInput}
+                  value={filterModalSubtitle}
+                  onChange={e => setFilterModalSubtitle(e.target.value)}
+                />
+              </div>
+            </div>
+
             {/* CONDITIONS */}
             <div className={s.filterSection}>
               <div className={s.filterSectionTitle}>Conditions</div>
@@ -1144,6 +1317,182 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         </div>
       </div>
     )}
+    {showClientModal && (
+      <div className={s.modalOverlay} onClick={() => setShowClientModal(false)}>
+        <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faUser} />
+              Client Configuration
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => setShowClientModal(false)}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+          <div className={s.configModalBody}>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>Export Name</label>
+              <input type="text" className={s.configInput}
+                value={clientModalData.name}
+                onChange={e => setClientModalData(p => ({ ...p, name: e.target.value }))}
+                placeholder="export-name"
+              />
+            </div>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>HTTP Method</label>
+              <DropdownInput
+                value={clientModalData.method}
+                onChange={v => setClientModalData(p => ({ ...p, method: v }))}
+                options={HTTP_METHODS}
+              />
+            </div>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>Endpoint</label>
+              <p className={s.configHint}>{`/streamby/${projectId}/get-export/${clientModalData.name || exportDetails.name || '…'}`}</p>
+            </div>
+          </div>
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => setShowClientModal(false)}>Cancel</button>
+            <button type="button" className={s.saveButton} onClick={handleSaveClientModal}>
+              <FontAwesomeIcon icon={faFloppyDisk} /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showDataSourceModal && selectedNodeId && (() => {
+      const node = nodes.find(n => n.id === selectedNodeId);
+      const connId   = (localData.connectionId as string) ?? (node?.data?.connectionId as string) ?? '';
+      const table    = (localData.tableName    as string) ?? (node?.data?.tableName    as string) ?? '';
+      const recId    = (localData.recordId     as string) ?? (node?.data?.recordId     as string) ?? '';
+      const dbOptionsFull = [
+        { value: '', label: 'Select a connection' },
+        ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
+      ];
+      const tableOpts = panelTablesLoading
+        ? [{ value: '', label: 'Loading…' }]
+        : [{ value: '', label: 'Select a table / collection' }, ...panelTables.map(t => ({ value: t, label: t }))];
+      const recordOpts = panelRecordsLoading
+        ? [{ value: '', label: 'Loading…' }]
+        : [{ value: '', label: 'All records' }, ...panelRecords.map(r => ({ value: r.id, label: r.label }))];
+      return (
+        <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowDataSourceModal(false); }}>
+          <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+            <div className={s.modalHeader}>
+              <span className={s.modalTitle}>
+                <FontAwesomeIcon icon={faDatabase} style={{ color: '#a855f7' }} />
+                Data Source Configuration
+              </span>
+              <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowDataSourceModal(false); }}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+            <div className={s.configModalBody}>
+              <div className={s.configRow}>
+                <label className={s.configLabel}>DB Connection</label>
+                <DropdownInput value={connId} onChange={v => handleFieldChange('connectionId', v)} options={dbOptionsFull} />
+              </div>
+              {connId && (
+                <div className={s.configRow}>
+                  <label className={s.configLabel}>Table / Collection</label>
+                  <DropdownInput value={table} onChange={v => handleFieldChange('tableName', v)} options={tableOpts} />
+                </div>
+              )}
+              {connId && table && (
+                <div className={s.configRow}>
+                  <label className={s.configLabel}>Record</label>
+                  <DropdownInput value={recId} onChange={v => handleFieldChange('recordId', v)} options={recordOpts} />
+                </div>
+              )}
+            </div>
+            <div className={s.modalFooter}>
+              <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowDataSourceModal(false); }}>Cancel</button>
+              <button type="button" className={s.saveButton} onClick={handleSaveDataSourceModal}>
+                <FontAwesomeIcon icon={faFloppyDisk} /> Save
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
+    {showApiModal && selectedNodeId && (() => {
+      const node = nodes.find(n => n.id === selectedNodeId);
+      const connId = (localData.connectionId as string) ?? (node?.data?.connectionId as string) ?? '';
+      const options = [
+        { value: '', label: 'Select a connection' },
+        ...apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` })),
+      ];
+      return (
+        <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowApiModal(false); }}>
+          <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+            <div className={s.modalHeader}>
+              <span className={s.modalTitle}>
+                <FontAwesomeIcon icon={faGlobe} style={{ color: '#38B6FF' }} />
+                API Connection Configuration
+              </span>
+              <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowApiModal(false); }}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+            <div className={s.configModalBody}>
+              <div className={s.configRow}>
+                <label className={s.configLabel}>Connection</label>
+                <DropdownInput value={connId} onChange={v => handleFieldChange('connectionId', v)} options={options} />
+              </div>
+            </div>
+            <div className={s.modalFooter}>
+              <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowApiModal(false); }}>Cancel</button>
+              <button type="button" className={s.saveButton} onClick={handleSaveApiModal}>
+                <FontAwesomeIcon icon={faFloppyDisk} /> Save
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
+    {showNodeLabelModal && (
+      <div className={s.modalOverlay} onClick={() => setShowNodeLabelModal(false)}>
+        <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faWrench} />
+              Configure Node
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => setShowNodeLabelModal(false)}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+          <div className={s.configModalBody}>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>Name</label>
+              <input type="text" className={s.configInput}
+                value={nodeLabelModalData.label}
+                onChange={e => setNodeLabelModalData(p => ({ ...p, label: e.target.value }))}
+                placeholder="Node name"
+              />
+            </div>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>Description</label>
+              <input type="text" className={s.configInput}
+                value={nodeLabelModalData.subtitle}
+                onChange={e => setNodeLabelModalData(p => ({ ...p, subtitle: e.target.value }))}
+                placeholder="Short description"
+              />
+            </div>
+          </div>
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => setShowNodeLabelModal(false)}>Cancel</button>
+            <button type="button" className={s.saveButton} onClick={handleSaveNodeLabelModal}>
+              <FontAwesomeIcon icon={faFloppyDisk} /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     </>
   );
 });

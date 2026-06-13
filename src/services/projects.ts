@@ -199,6 +199,10 @@ export async function deleteProject(projectId: string | undefined) {
       credentials: 'include',
     });
 
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to delete project');
+    }
     const response = await res.json();
     store.dispatch(addApiResponse({ message: response.message, type: 'success' }));
     if (response.projects) store.dispatch(setProjects(response.projects));

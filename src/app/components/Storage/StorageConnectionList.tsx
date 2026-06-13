@@ -1,70 +1,79 @@
-import s from './Database.module.css';
+import s from '../Database/Database.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
+import { faCloud, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
-import { deleteDbConnection, fetchBuiltinDatabases } from '../../../services/database';
+import { fetchStorageConnections, deleteStorageConnection } from '../../../services/storageConnections';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
+import { StorageConnection } from '../../../interfaces';
 
-import { DbConnection } from '../../../interfaces';
+const STORAGE_LABELS: Record<string, string> = {
+  s3:    'AWS S3',
+  gcs:   'Google Cloud Storage',
+  r2:    'Cloudflare R2',
+  azure: 'Azure Blob Storage',
+};
 
-export const DbConnectionList = () => {
+const STORAGE_BADGE_CLASS: Record<string, string> = {
+  s3:    s.badgePg,
+  gcs:   s.badgeMg,
+  r2:    s.badgeBuiltin,
+  azure: s.badgePg,
+};
+
+export const StorageConnectionList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
-  const connections: DbConnection[] = project?.dbConnections ?? [];
 
-  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
-
-  useEffect(() => {
-    fetchBuiltinDatabases().then(setBuiltinDbs);
-  }, [projectId]);
-
-  const builtinConns: DbConnection[] = builtinDbs.map(db => ({
-    id: db.name,
-    name: db.name,
-    dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-    credentialId: '',
-    projectId: projectId!,
-    isBuiltin: true,
-  }));
-
-  const allConnections = [...builtinConns, ...connections];
-
+  const [connections, setConnections] = useState<StorageConnection[]>([]);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const handleCreate = () => navigate(`/project/${projectId}/database/create`);
+  useEffect(() => {
+    if (!projectId) return;
+    setFetchLoading(true);
+    fetchStorageConnections(projectId).then(data => {
+      setConnections(data);
+      setFetchLoading(false);
+    });
+  }, [projectId]);
+
+  const handleCreate = () => navigate(`/project/${projectId}/storage/create`);
 
   const handleDelete = async (e: React.MouseEvent, connId: string) => {
     e.stopPropagation();
     if (!projectId || !project) return;
     setDeleting(connId);
-    const ok = await deleteDbConnection(projectId, connId);
+    const ok = await deleteStorageConnection(projectId, connId);
     if (ok) {
+      setConnections(prev => prev.filter(c => c.id !== connId));
       dispatch(setCurrentProject({
         ...project,
-        dbConnections: connections.filter(c => c.id !== connId),
+        storageConnections: (project.storageConnections ?? []).filter(c => c.id !== connId),
       }));
     }
     setDeleting(null);
   };
 
+  const isLoading = loading || fetchLoading;
+
   return (
     <div className={s.container}>
       <SectionHeader
-        icon={faDatabase}
-        title="Database Connections"
-        subtitle="Manage database connections for this project."
-        action={allConnections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
+        icon={faCloud}
+        title="Storage Connections"
+        subtitle="Manage storage connections for this project."
+        action={connections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
       />
 
-      {loading ? (
+      {isLoading ? (
         <ul>
           {Array.from({ length: 3 }).map((_, i) => (
             <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
@@ -72,15 +81,18 @@ export const DbConnectionList = () => {
         </ul>
       ) : (
         <ul>
-          {allConnections.map(conn => (
-            <li key={conn.id} onClick={() => navigate(`/project/${projectId}/database/${conn.id}`, { state: { dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name } })}>
+          {connections.map(conn => (
+            <li
+              key={conn.id}
+              onClick={() => navigate(`/project/${projectId}/storage/${conn.id}`)}
+            >
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
-                  <FontAwesomeIcon icon={faDatabase} />
+                  <FontAwesomeIcon icon={faCloud} />
                 </span>
                 <span className={s.cardInfo}>
                   <h4>{conn.name}</h4>
-                  <small>{conn.isBuiltin ? 'Project built-in database' : (conn.description || conn.dbType)}</small>
+                  <small>{conn.isBuiltin ? 'Project built-in storage' : (conn.description || STORAGE_LABELS[conn.type] || conn.type)}</small>
                 </span>
               </span>
               <span className={s.cardRight}>
@@ -89,8 +101,8 @@ export const DbConnectionList = () => {
                     <FontAwesomeIcon icon={faCube} />
                   </span>
                 )}
-                <span className={`${s.badge} ${conn.dbType === 'postgresql' ? s.badgePg : s.badgeMg}`}>
-                  {conn.dbType === 'postgresql' ? 'PostgreSQL' : 'MongoDB'}
+                <span className={`${s.badge} ${STORAGE_BADGE_CLASS[conn.type] ?? s.badgePg}`}>
+                  {STORAGE_LABELS[conn.type] || conn.type}
                 </span>
                 {!conn.isBuiltin && (
                   <button

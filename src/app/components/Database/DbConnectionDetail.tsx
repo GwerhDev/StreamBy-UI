@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faPlus, faTableColumns } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faPlus, faTableColumns, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
-import { fetchTables } from '../../../services/database';
+import { fetchTables, deleteTable } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
@@ -28,6 +28,9 @@ export const DbConnectionDetail = () => {
 
   const [tables, setTables] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = useCallback(async () => {
     if (!projectId || !connId) return;
@@ -43,7 +46,30 @@ export const DbConnectionDetail = () => {
   const handleCreate = () => navigate(`/project/${projectId}/database/${connId}/create`, { state: connState });
   const handleTable = (tableName: string) => navigate(`/project/${projectId}/database/${connId}/${encodeURIComponent(tableName)}`, { state: connState });
 
+  const openDeleteModal = (e: React.MouseEvent, tableName: string) => {
+    e.stopPropagation();
+    setPendingDelete(tableName);
+    setDeleteConfirm('');
+  };
+
+  const closeDeleteModal = () => {
+    setPendingDelete(null);
+    setDeleteConfirm('');
+  };
+
+  const handleDelete = async () => {
+    if (!projectId || !connId || !pendingDelete) return;
+    setDeleteLoading(true);
+    const ok = await deleteTable(projectId, connId, pendingDelete);
+    setDeleteLoading(false);
+    if (ok) {
+      setTables(prev => prev.filter(t => t !== pendingDelete));
+      closeDeleteModal();
+    }
+  };
+
   const typeName = conn?.dbType === 'postgresql' ? 'Tables' : 'Collections';
+  const itemLabel = conn?.dbType === 'postgresql' ? 'table' : 'collection';
 
   return (
     <div className={s.container}>
@@ -51,7 +77,7 @@ export const DbConnectionDetail = () => {
         icon={faDatabase}
         title={conn?.name ?? 'Database'}
         subtitle={`Browse ${typeName.toLowerCase()} in this ${conn?.dbType ?? 'database'} connection.`}
-        action={<ActionButton icon={faPlus} text={`New ${conn?.dbType === 'postgresql' ? 'table' : 'collection'}`} onClick={handleCreate} />}
+        action={<ActionButton icon={faPlus} text={`New ${itemLabel}`} onClick={handleCreate} />}
       />
 
       {loading ? (
@@ -68,8 +94,52 @@ export const DbConnectionDetail = () => {
             <div key={t} className={s.tableCard} onClick={() => handleTable(t)}>
               <FontAwesomeIcon icon={faTableColumns} className={s.tableCardIcon} />
               <span className={s.tableCardName}>{t}</span>
+              <button
+                type="button"
+                className={s.tableCardDelete}
+                onClick={e => openDeleteModal(e, t)}
+                title={`Delete ${itemLabel}`}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {pendingDelete && (
+        <div className={s.modalOverlay} onClick={closeDeleteModal}>
+          <div className={s.modal} onClick={e => e.stopPropagation()}>
+            <div className={s.modalTitle}>
+              <FontAwesomeIcon icon={faTrash} style={{ color: 'var(--color-danger-200, #f87171)' }} />
+              Delete {itemLabel}
+            </div>
+            <p style={{ fontSize: '0.88rem', color: 'var(--color-light-300)', margin: 0 }}>
+              Type <strong>{pendingDelete}</strong> to confirm deletion. This action cannot be undone.
+            </p>
+            <input
+              type="text"
+              className={s.nameInput}
+              placeholder={pendingDelete}
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              autoFocus
+            />
+            <div className={s.modalActions}>
+              <button
+                type="button"
+                className={s.deleteBtn}
+                onClick={handleDelete}
+                disabled={deleteConfirm !== pendingDelete || deleteLoading}
+                style={{ padding: '0.5rem 1rem', opacity: deleteConfirm !== pendingDelete ? 0.4 : 1 }}
+              >
+                <FontAwesomeIcon icon={faTrash} /> {deleteLoading ? 'Deleting…' : 'Delete'}
+              </button>
+              <button type="button" className={s.deleteBtn} onClick={closeDeleteModal} style={{ padding: '0.5rem 1rem', color: 'var(--color-light-300)' }}>
+                <FontAwesomeIcon icon={faXmark} /> Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

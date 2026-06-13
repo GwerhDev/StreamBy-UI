@@ -167,6 +167,21 @@ export async function updateRecord(
   }
 }
 
+export async function deleteTable(projectId: string, connId: string, tableName: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    store.dispatch(addApiResponse({ message: 'Collection deleted.', type: 'success' }));
+    return true;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete collection.', type: 'error' }));
+    return false;
+  }
+}
+
 export async function deleteRecord(
   projectId: string,
   connId: string,

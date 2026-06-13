@@ -23,26 +23,26 @@ const categoryMeta: Record<StorageCategory, { label: string; icon: typeof faImag
 };
 
 export function StorageList({ category, previewLimit }: StorageListProps) {
-  const { id: projectId, storageName } = useParams<{ id: string; storageName: string }>();
+  const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const meta = categoryMeta[category];
 
   const fetchFiles = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || !connId) return;
     setLoading(true);
-    const data = await getStorageFiles(projectId, category);
+    const data = await getStorageFiles(projectId, connId, category);
     setFiles(data || []);
     setLoading(false);
-  }, [projectId, category]);
+  }, [projectId, connId, category]);
 
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
   const handleDelete = async (id: string) => {
-    if (!projectId) return;
+    if (!projectId || !connId) return;
     try {
-      await deleteStorageFile(projectId, id);
+      await deleteStorageFile(projectId, connId, id);
       setFiles(prev => prev.filter(f => f.id !== id));
     } catch {
       // error dispatched by service
@@ -50,8 +50,8 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
   };
 
   const handleRename = async (id: string, displayName: string) => {
-    if (!projectId) return;
-    const file = await renameStorageFile(projectId, id, displayName);
+    if (!projectId || !connId) return;
+    const file = await renameStorageFile(projectId, connId, id, displayName);
     if (file) setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
   };
 
@@ -61,7 +61,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
   };
 
   const displayedFiles = previewLimit ? files.slice(0, previewLimit) : files;
-  const viewAllPath = `/project/${projectId}/storage/${storageName}/${category}`;
+  const viewAllPath = `/project/${projectId}/storage/${connId}/${category}`;
 
   return (
     <div className={s.mainPanel}>
@@ -129,9 +129,10 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
         </ul>
       )}
 
-      {uploadModalOpen && projectId && (
+      {uploadModalOpen && projectId && connId && (
         <UploadModal
           projectId={projectId}
+          connId={connId}
           category={category}
           onSuccess={handleUploadSuccess}
           onClose={() => setUploadModalOpen(false)}

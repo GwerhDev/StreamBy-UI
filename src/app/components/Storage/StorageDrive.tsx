@@ -20,7 +20,7 @@ const CATEGORIES = [
 ] as const;
 
 export const StorageDrive = () => {
-  const { storageName } = useParams<{ storageName: string }>();
+  const { connId } = useParams<{ connId: string }>();
   const projectId = useSelector((state: RootState) => state.currentProject.data?.id);
   const navigate = useNavigate();
 
@@ -28,24 +28,24 @@ export const StorageDrive = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchRecent = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || !connId) return;
     setLoading(true);
-    const files = await getRecentFiles(projectId);
+    const files = await getRecentFiles(projectId, connId);
     setRecentFiles(files);
     setLoading(false);
-  }, [projectId]);
+  }, [projectId, connId]);
 
   useEffect(() => { fetchRecent(); }, [fetchRecent]);
 
   const handleDelete = async (id: string) => {
-    if (!projectId) return;
-    await deleteStorageFile(projectId, id);
+    if (!projectId || !connId) return;
+    await deleteStorageFile(projectId, connId, id);
     setRecentFiles(prev => prev.filter(f => f.id !== id));
   };
 
   const handleRename = async (id: string, displayName: string) => {
-    if (!projectId) return;
-    const file = await renameStorageFile(projectId, id, displayName);
+    if (!projectId || !connId) return;
+    const file = await renameStorageFile(projectId, connId, id, displayName);
     if (file) setRecentFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
   };
 
@@ -63,7 +63,7 @@ export const StorageDrive = () => {
             <li
               key={key}
               className={s.categoryCard}
-              onClick={() => navigate(`/project/${projectId}/storage/${storageName}/${key}`)}
+              onClick={() => navigate(`/project/${projectId}/storage/${connId}/${key}`)}
             >
               <FontAwesomeIcon icon={icon} className={s.categoryIcon} />
               <h4 className={s.categoryLabel}>{label}</h4>

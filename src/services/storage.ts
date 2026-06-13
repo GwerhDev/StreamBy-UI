@@ -3,9 +3,12 @@ import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
 import { StorageCategory } from '../interfaces';
 
-export async function getStorageFiles(projectId: string, category: StorageCategory) {
+const CONN_BASE = (projectId: string, connId: string) =>
+  `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
+
+export async function getStorageFiles(projectId: string, connId: string, category: StorageCategory) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/${category}`, {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${category}`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -24,10 +27,10 @@ export async function getStorageFiles(projectId: string, category: StorageCatego
   }
 }
 
-export async function getStorageUploadUrl(projectId: string, category: StorageCategory, fileName: string, contentType: string) {
+export async function getStorageUploadUrl(projectId: string, connId: string, category: StorageCategory, fileName: string, contentType: string) {
   try {
-    const params = new URLSearchParams({ fileName, contentType });
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/${category}/upload-url?${params}`, {
+    const params = new URLSearchParams({ fileName, contentType, category });
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/upload-url?${params}`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -67,9 +70,9 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   }
 }
 
-export async function renameStorageFile(projectId: string, fileId: string, displayName: string) {
+export async function renameStorageFile(projectId: string, connId: string, fileId: string, displayName: string) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/files/${fileId}`, {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -91,9 +94,9 @@ export async function renameStorageFile(projectId: string, fileId: string, displ
   }
 }
 
-export async function deleteStorageFile(projectId: string, fileId: string) {
+export async function deleteStorageFile(projectId: string, connId: string, fileId: string) {
   try {
-    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/storage/files/${fileId}`, {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}`, {
       method: 'DELETE',
       credentials: 'include',
     });

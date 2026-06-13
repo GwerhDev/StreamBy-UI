@@ -54,6 +54,9 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
 
   useEffect(() => {
+    setExpandedDbs(new Set());
+    setDbTables({});
+    setDbTablesLoading(new Set());
     if (id) fetchBuiltinDatabases().then(setBuiltinDbs);
   }, [id]);
 
@@ -214,30 +217,36 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                   <FontAwesomeIcon icon={faBox} />
                 </span>
                 <div className={s.storageList}>
-                  {storages.map((storage: CloudStorage) => {
-                    const isExpanded = expandedStorages.has(storage.value);
-                    const linkPath = `/project/${id}/storage/${storage.value}`;
+                  {[
+                    ...storages.map((storage: CloudStorage, i: number) => ({
+                      id: i === 0 ? 'builtin' : `builtin-${i}`,
+                      name: storage.name,
+                    })),
+                    ...(currentProject.data?.storageConnections ?? []),
+                  ].map(conn => {
+                    const isExpanded = expandedStorages.has(conn.id);
+                    const linkPath = `/project/${id}/storage/${conn.id}`;
                     const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
 
                     return (
-                      <React.Fragment key={storage.value}>
+                      <React.Fragment key={conn.id}>
                         <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
                           <FontAwesomeIcon
                             icon={faChevronDown}
                             className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
-                            onClick={() => toggleStorage(storage.value)}
+                            onClick={() => toggleStorage(conn.id)}
                           />
                           <Link to={linkPath} className={s.serviceName}>
                             <FontAwesomeIcon icon={faCloud} className={s.serviceIcon} />
-                            <span>{storage.name}</span>
+                            <span>{conn.name}</span>
                           </Link>
                         </div>
                         {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
-                          const linkPath = `/project/${id}/storage/${storage.value}/${path}`;
-                          const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                          const catPath = `/project/${id}/storage/${conn.id}/${path}`;
+                          const isCatActive = location.pathname === catPath || location.pathname.startsWith(`${catPath}/`);
                           return (
-                            <Link key={index} to={linkPath}>
-                              <div className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
+                            <Link key={index} to={catPath}>
+                              <div className={`${s.storageItem} ${isCatActive ? s.activeLink : ''}`}>
                                 {icon && <FontAwesomeIcon icon={icon} />}
                                 {name}
                               </div>

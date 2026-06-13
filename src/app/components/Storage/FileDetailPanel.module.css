@@ -120,8 +120,6 @@
 .fieldLabel {
   font-size: 0.72rem;
   color: var(--color-light-400);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 

@@ -1,5 +1,6 @@
 /* ── Container ───────────────────────────── */
 .container {
+  width: 100%;
   gap: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -53,8 +54,6 @@
 .fieldLabel {
   font-size: 0.72rem;
   color: var(--color-light-400);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .fieldValue {

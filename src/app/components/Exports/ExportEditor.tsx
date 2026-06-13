@@ -18,7 +18,7 @@ import { Export } from '../../../interfaces';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
+import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 
 type TabId = 'nodes' | 'response';
 interface PanelState { id: string; tabs: TabId[]; activeTab: TabId; isOriginal: boolean; }
@@ -159,7 +159,6 @@ export const ExportEditor: React.FC = () => {
 
   useEffect(() => {
     if (!projectId || !exportId) { dispatch(setExportError('Missing IDs.')); return; }
-    if (exportDetails?.id === exportId) return;
     const doFetch = async () => {
       dispatch(setExportLoading());
       try {
@@ -174,17 +173,22 @@ export const ExportEditor: React.FC = () => {
     //eslint-disable-next-line
   }, [projectId, exportId]);
 
-  useEffect(() => {
-    return () => { dispatch(clearCurrentExport()); };
-    //eslint-disable-next-line
-  }, []);
-
   const exportForViewer = useMemo<Export | null>(() => {
     if (!exportDetails) return null;
     return { ...exportDetails, nodeSchema: pendingSchema ?? exportDetails.nodeSchema };
   }, [exportDetails, pendingSchema]);
 
-  const handleNodeSave = () => { };
+  const handleNodeSave = useCallback((updates: Record<string, string | boolean | object | null>) => {
+    if (!exportDetails) return;
+    const parsed: Record<string, unknown> = { ...updates };
+    if (typeof parsed.allowedOrigin === 'string') {
+      parsed.allowedOrigin = (parsed.allowedOrigin as string).split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (typeof parsed.devPorts === 'string') {
+      parsed.devPorts = (parsed.devPorts as string).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n) && n > 0);
+    }
+    dispatch(setCurrentExport({ ...exportDetails, ...parsed } as typeof exportDetails));
+  }, [dispatch, exportDetails]);
 
   const handleSubmit = async () => {
     if (!projectId || !exportId) return;
@@ -200,8 +204,11 @@ export const ExportEditor: React.FC = () => {
       });
       const payload = {
         name: exportDetails?.name ?? '',
+        method: exportDetails?.method ?? 'GET',
         allowedOrigin: exportDetails?.allowedOrigin ?? ['*'],
         private: exportDetails?.private ?? false,
+        devMode: exportDetails?.devMode ?? false,
+        devPorts: exportDetails?.devPorts ?? [],
         useConnections,
         useCredentials,
         ...(nodeSchema ? { nodeSchema } : {}),

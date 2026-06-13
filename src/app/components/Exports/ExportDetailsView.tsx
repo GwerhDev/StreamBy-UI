@@ -18,7 +18,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
-import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
+import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { ResponsePreview } from './ResponsePreview';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
@@ -69,7 +69,6 @@ export const ExportDetailsView: React.FC = () => {
 
   useEffect(() => {
     if (!id || !exportId) { dispatch(setExportError('Project ID or Export ID is missing.')); return; }
-    if (exportDetails?.id === exportId) return;
     const doFetch = async () => {
       dispatch(setExportLoading());
       try {
@@ -84,10 +83,6 @@ export const ExportDetailsView: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, exportId]);
 
-  useEffect(() => {
-    return () => { dispatch(clearCurrentExport()); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const splitRight = useCallback((colIdx: number, rowIdx: number) => {
     setColumns(prev => {

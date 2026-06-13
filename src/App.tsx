@@ -22,10 +22,8 @@ import { ProjectPreview } from './app/pages/ProjectPreview';
 
 const Api = lazy(() => import('./app/pages/Api').then(module => ({ default: module.Api })));
 const Home = lazy(() => import('./app/pages/Home').then(module => ({ default: module.Home })));
-const Images = lazy(() => import('./app/pages/Images').then(module => ({ default: module.Images })));
-const Videos = lazy(() => import('./app/pages/Videos').then(module => ({ default: module.Videos })));
-const Audios = lazy(() => import('./app/pages/Audios').then(module => ({ default: module.Audios })));
-const Storage = lazy(() => import('./app/components/Storage/Storage').then(module => ({ default: module.Storage })));
+const StorageConnectionList = lazy(() => import('./app/components/Storage/StorageConnectionList').then(module => ({ default: module.StorageConnectionList })));
+const StorageConnectionCreate = lazy(() => import('./app/components/Storage/StorageConnectionCreate').then(module => ({ default: module.StorageConnectionCreate })));
 const Exports = lazy(() => import('./app/pages/Exports').then(module => ({ default: module.Exports })));
 const Members = lazy(() => import('./app/pages/Members').then(module => ({ default: module.Members })));
 const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ default: module.Overview })));
@@ -38,7 +36,6 @@ const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module =
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
-const ThreeDModels = lazy(() => import('./app/pages/ThreeDModels').then(module => ({ default: module.ThreeDModels })));
 const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').then(module => ({ default: module.StorageDrive })));
 const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module => ({ default: module.ProjectCreate })));
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
@@ -99,13 +96,10 @@ function App() {
                   <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
                   <Route path="/project/:id/dashboard/exports/:exportId/editor" element={<ExportEditorPage />} />
 
-                  <Route path="/project/:id/storage" element={<Storage />} />
-                  <Route path="/project/:id/storage/:storageName" element={<StorageDrive />} />
-                  <Route path="/project/:id/storage/:storageName/:contentType" element={<StorageCategory />} />
-                  <Route path="/project/:id/storage/images" element={<Images />} />
-                  <Route path="/project/:id/storage/videos" element={<Videos />} />
-                  <Route path="/project/:id/storage/audios" element={<Audios />} />
-                  <Route path="/project/:id/storage/3d-models" element={<ThreeDModels />} />
+                  <Route path="/project/:id/storage" element={<StorageConnectionList />} />
+                  <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
+                  <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
+                  <Route path="/project/:id/storage/:connId/:contentType" element={<StorageCategory />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
                   <Route path="/project/:id/database/create" element={<DatabaseConnectionCreate />} />

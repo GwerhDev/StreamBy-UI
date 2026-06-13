@@ -8,6 +8,7 @@ import { Spinner } from '../Spinner';
 
 interface UploadModalProps {
   projectId: string;
+  connId: string;
   category: StorageCategory;
   onSuccess: () => void;
   onClose: () => void;
@@ -50,7 +51,7 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-export function UploadModal({ projectId, category, onSuccess, onClose }: UploadModalProps) {
+export function UploadModal({ projectId, connId, category, onSuccess, onClose }: UploadModalProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -88,7 +89,7 @@ export function UploadModal({ projectId, category, onSuccess, onClose }: UploadM
     try {
       await Promise.all(files.map(async (file) => {
         const contentType = resolveContentType(file);
-        const { url } = await getStorageUploadUrl(projectId, category, file.name, contentType);
+        const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
         await uploadToPresignedUrl(url, file, contentType);
         // url, fileId, storageKey, displayName available here if needed
       }));

@@ -124,11 +124,21 @@ async function simulateLiveResponse(
         catch { return null; }
       }
       if (src.type === 'apiConnectionNode') {
+        const schemaEdges = ((schema as any)?.edges ?? []) as SchemaEdge[];
+        const linkedToStreamBy = schemaEdges.some(
+          e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === src.id,
+        );
+        if (!linkedToStreamBy) return null;
         const connectionId = src.data?.connectionId as string;
         if (!connectionId) return null;
         return getConnectionResponse(projectId, connectionId);
       }
       if (src.type === 'dataSourceNode') {
+        const schemaEdges = ((schema as any)?.edges ?? []) as SchemaEdge[];
+        const linkedToStreamBy = schemaEdges.some(
+          e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === src.id,
+        );
+        if (!linkedToStreamBy) return null;
         const connectionId = src.data?.connectionId as string;
         const tableName    = src.data?.tableName as string;
         const recordId     = src.data?.recordId   as string | undefined;

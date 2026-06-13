@@ -21,14 +21,14 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     try {
       setLoader(true);
       await deleteProject(currentProject?.data?.id);
-      setLoader(false);
+      const modal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
+      if (modal) modal.style.display = 'none';
+      navigate('/');
     } catch (error) {
-      setLoader(false);
       console.error('Error deleting project:', error);
+    } finally {
+      setLoader(false);
     }
-    const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
-    if (logoutModal) logoutModal.style.display = 'none';
-    navigate('/');
   };
 
   const handleCancel = () => {
