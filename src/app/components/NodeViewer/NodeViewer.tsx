@@ -514,10 +514,16 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
 
     if (node.type === 'dataSourceNode') {
-      const dbOptions = [
-        { value: '', label: 'Select a connection' },
-        ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
-      ];
+      const linkedToStreamBy = edges.some(
+        e => (e.source === node.id && e.target === 'streamby') ||
+             (e.source === 'streamby' && e.target === node.id),
+      );
+      const dbOptions = linkedToStreamBy
+        ? [
+            { value: '', label: 'Select a connection' },
+            ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
+          ]
+        : [{ value: '', label: 'Connect to StreamBy first' }];
       const tableOptions = panelTablesLoading
         ? [{ value: '', label: 'Loading…' }]
         : [
@@ -570,7 +576,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
 
     return null;
-  }, [exportDetails, nodes, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
+  }, [exportDetails, nodes, edges, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
