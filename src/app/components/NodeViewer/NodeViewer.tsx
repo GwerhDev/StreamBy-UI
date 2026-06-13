@@ -536,14 +536,21 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             { value: '', label: 'All records' },
             ...panelRecords.map(r => ({ value: r.id, label: r.label })),
           ];
+      const selectedConnectionId = (localData.connectionId as string) ?? (node.data.connectionId as string) ?? '';
+      const selectedTableName    = (localData.tableName    as string) ?? (node.data.tableName    as string) ?? '';
+      const fields: DetailField[] = [
+        { key: 'connectionId', label: 'DB Connection', value: selectedConnectionId, editable: true, inputType: 'select' as const, options: dbOptions },
+      ];
+      if (selectedConnectionId) {
+        fields.push({ key: 'tableName', label: 'Table / Collection', value: selectedTableName, editable: true, inputType: 'select' as const, options: tableOptions });
+      }
+      if (selectedConnectionId && selectedTableName) {
+        fields.push({ key: 'recordId', label: 'Record', value: (node.data.recordId as string) || '', editable: true, inputType: 'select' as const, options: recordOptions });
+      }
       return {
         title: 'Data Source',
         description: 'External database table or collection used by this export.',
-        fields: [
-          { key: 'connectionId', label: 'DB Connection',      value: (node.data.connectionId as string) || '', editable: true, inputType: 'select' as const, options: dbOptions },
-          { key: 'tableName',    label: 'Table / Collection', value: (node.data.tableName as string) || (node.data.subtitle as string) || '', editable: true, inputType: 'select' as const, options: tableOptions },
-          { key: 'recordId',     label: 'Record',             value: (node.data.recordId as string) || '',    editable: true, inputType: 'select' as const, options: recordOptions },
-        ],
+        fields,
       };
     }
 
@@ -576,7 +583,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
 
     return null;
-  }, [exportDetails, nodes, edges, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
+  }, [exportDetails, nodes, edges, localData, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
