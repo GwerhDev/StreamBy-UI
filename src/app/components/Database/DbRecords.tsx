@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTableColumns, faPlus, faXmark, faFloppyDisk, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faTableColumns, faPlus, faXmark, faFloppyDisk, faChevronLeft, faChevronRight, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
-import { fetchRecords, insertRecord } from '../../../services/database';
+import { fetchRecords, insertRecord, updateRecord, deleteRecord } from '../../../services/database';
 import { ExternalDbType } from '../../../interfaces';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -14,6 +14,19 @@ import { JsonEditor } from '../JsonEditor/JsonEditor';
 import JsonViewer from '../JsonViewer/JsonViewer';
 
 const PAGE_SIZE = 50;
+
+function getRecordId(r: any): string {
+  return String(r._id ?? r.id ?? '');
+}
+
+function getRecordLabel(r: any): string {
+  return r._name || r.name || r.title || r.label || r.email || r.slug || r.key || getRecordId(r);
+}
+
+function recordToEditJson(r: any): string {
+  const { _id, ...rest } = r;
+  return JSON.stringify(rest, null, 2);
+}
 
 export const DbRecords = () => {
   const { id: projectId, connId, tableName: rawTableName } = useParams<{ id: string; connId: string; tableName: string }>();
@@ -33,10 +46,24 @@ export const DbRecords = () => {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
+
+  // Insert state
   const [showInsert, setShowInsert] = useState(false);
+  const [insertName, setInsertName] = useState('');
   const [insertJson, setInsertJson] = useState('{\n  \n}');
   const [insertValid, setInsertValid] = useState(true);
   const [inserting, setInserting] = useState(false);
+
+  // Edit state
+  const [editRecord, setEditRecord] = useState<any | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editJson, setEditJson] = useState('{}');
+  const [editValid, setEditValid] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!projectId || !connId || !tableName) return;
@@ -52,12 +79,14 @@ export const DbRecords = () => {
     if (!projectId || !connId || !tableName || !insertValid) return;
     setInserting(true);
     try {
-      const record = JSON.parse(insertJson);
+      const base = JSON.parse(insertJson);
+      const record = insertName ? { _name: insertName, ...base } : base;
       const result = await insertRecord(projectId, connId, tableName, record);
       if (result) {
         setShowInsert(false);
+        setInsertName('');
         setInsertJson('{\n  \n}');
-        if (offset === 0) load();
+        load();
       }
     } catch {
       // json parse error; service already shows toast
@@ -66,7 +95,42 @@ export const DbRecords = () => {
     }
   };
 
-  // Build columns from first record
+  const openEdit = (r: any) => {
+    setEditRecord(r);
+    setEditName(r._name || '');
+    setEditJson(recordToEditJson(r));
+    setEditValid(true);
+  };
+
+  const handleEdit = async () => {
+    if (!projectId || !connId || !tableName || !editRecord || !editValid) return;
+    setSaving(true);
+    try {
+      const base = JSON.parse(editJson);
+      const updates = editName ? { _name: editName, ...base } : base;
+      const result = await updateRecord(projectId, connId, tableName, getRecordId(editRecord), updates);
+      if (result) {
+        setEditRecord(null);
+        load();
+      }
+    } catch {
+      // json parse error
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!projectId || !connId || !tableName || !deleteTarget) return;
+    setDeleting(true);
+    const ok = await deleteRecord(projectId, connId, tableName, getRecordId(deleteTarget));
+    if (ok) {
+      setDeleteTarget(null);
+      load();
+    }
+    setDeleting(false);
+  };
+
   const columns = records.length > 0 ? Object.keys(records[0]).filter(k => k !== '_id') : [];
 
   return (
@@ -87,9 +151,20 @@ export const DbRecords = () => {
       ) : records.length === 0 ? (
         <p className={s.noRecords}>No records found. Insert the first one!</p>
       ) : isMongo ? (
-        <div style={{ width: '100%' }}>
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {records.map((r, i) => (
-            <div key={i} style={{ marginBottom: '0.75rem', background: 'var(--color-dark-300)', borderRadius: '0.75rem', padding: '0.75rem 1rem' }}>
+            <div key={i} className={s.recordCard}>
+              <div className={s.recordCardHeader}>
+                <span className={s.recordCardName}>{getRecordLabel(r)}</span>
+                <span className={s.recordActions}>
+                  <button className={s.editBtn} title="Edit" onClick={() => openEdit(r)}>
+                    <FontAwesomeIcon icon={faPencil} />
+                  </button>
+                  <button className={s.deleteBtn} title="Delete" onClick={() => setDeleteTarget(r)}>
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </span>
+              </div>
               <JsonViewer data={r as JSON} />
             </div>
           ))}
@@ -98,16 +173,31 @@ export const DbRecords = () => {
         <div className={s.tableWrapper}>
           <table className={s.recordsTable}>
             <thead>
-              <tr>{columns.map(col => <th key={col}>{col}</th>)}</tr>
+              <tr>
+                {columns.map(col => <th key={col}>{col}</th>)}
+                <th style={{ width: '5rem' }}></th>
+              </tr>
             </thead>
             <tbody>
               {records.map((row, i) => (
                 <tr key={i}>
                   {columns.map(col => (
                     <td key={col} title={String(row[col] ?? '')}>
-                      {row[col] === null || row[col] === undefined ? <em style={{ color: 'var(--color-light-400)' }}>null</em> : String(row[col])}
+                      {row[col] === null || row[col] === undefined
+                        ? <em style={{ color: 'var(--color-light-400)' }}>null</em>
+                        : String(row[col])}
                     </td>
                   ))}
+                  <td>
+                    <span className={s.recordActions}>
+                      <button className={s.editBtn} title="Edit" onClick={() => openEdit(row)}>
+                        <FontAwesomeIcon icon={faPencil} />
+                      </button>
+                      <button className={s.deleteBtn} title="Delete" onClick={() => setDeleteTarget(row)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -130,14 +220,18 @@ export const DbRecords = () => {
         </div>
       )}
 
-      {/* Insert record modal */}
+      {/* Insert modal */}
       {showInsert && (
         <div className={s.modalOverlay} onClick={() => setShowInsert(false)}>
           <div className={s.modal} onClick={e => e.stopPropagation()}>
-            <div className={s.modalTitle}>
-              <FontAwesomeIcon icon={faPlus} />
-              Insert record into <em>{tableName}</em>
-            </div>
+            <div className={s.modalTitle}><FontAwesomeIcon icon={faPlus} /> Insert record into <em>{tableName}</em></div>
+            <input
+              className={s.nameInput}
+              type="text"
+              placeholder="Display name (optional)"
+              value={insertName}
+              onChange={e => setInsertName(e.target.value)}
+            />
             <JsonEditor
               value={insertJson}
               onChange={(str, _, valid) => { setInsertJson(str); setInsertValid(valid); }}
@@ -145,17 +239,50 @@ export const DbRecords = () => {
               projectId={projectId}
             />
             <div className={s.modalActions}>
-              <ActionButton
-                icon={faFloppyDisk}
-                text={inserting ? 'Inserting…' : 'Insert'}
-                disabled={!insertValid || inserting}
-                onClick={handleInsert}
-              />
-              <ActionButton
-                icon={faXmark}
-                text="Cancel"
-                onClick={() => setShowInsert(false)}
-              />
+              <ActionButton icon={faFloppyDisk} text={inserting ? 'Inserting…' : 'Insert'} disabled={!insertValid || inserting} onClick={handleInsert} />
+              <ActionButton icon={faXmark} text="Cancel" onClick={() => setShowInsert(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit modal */}
+      {editRecord && (
+        <div className={s.modalOverlay} onClick={() => setEditRecord(null)}>
+          <div className={s.modal} onClick={e => e.stopPropagation()}>
+            <div className={s.modalTitle}><FontAwesomeIcon icon={faPencil} /> Edit record</div>
+            <input
+              className={s.nameInput}
+              type="text"
+              placeholder="Display name (optional)"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+            />
+            <JsonEditor
+              value={editJson}
+              onChange={(str, _, valid) => { setEditJson(str); setEditValid(valid); }}
+              readOnly={false}
+              projectId={projectId}
+            />
+            <div className={s.modalActions}>
+              <ActionButton icon={faFloppyDisk} text={saving ? 'Saving…' : 'Save'} disabled={!editValid || saving} onClick={handleEdit} />
+              <ActionButton icon={faXmark} text="Cancel" onClick={() => setEditRecord(null)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteTarget && (
+        <div className={s.modalOverlay} onClick={() => setDeleteTarget(null)}>
+          <div className={s.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+            <div className={s.modalTitle}><FontAwesomeIcon icon={faTrash} /> Delete record</div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-light-300)', margin: 0 }}>
+              Delete <strong>{getRecordLabel(deleteTarget)}</strong>? This cannot be undone.
+            </p>
+            <div className={s.modalActions}>
+              <ActionButton icon={faTrash} text={deleting ? 'Deleting…' : 'Delete'} disabled={deleting} onClick={handleDelete} />
+              <ActionButton icon={faXmark} text="Cancel" onClick={() => setDeleteTarget(null)} />
             </div>
           </div>
         </div>

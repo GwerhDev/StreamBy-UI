@@ -142,3 +142,47 @@ export async function insertRecord(
     return null;
   }
 }
+
+export async function updateRecord(
+  projectId: string,
+  connId: string,
+  tableName: string,
+  recordId: string,
+  updates: Record<string, unknown>,
+): Promise<any | null> {
+  try {
+    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    const { data } = await res.json();
+    store.dispatch(addApiResponse({ message: 'Record updated successfully.', type: 'success' }));
+    return data;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update record.', type: 'error' }));
+    return null;
+  }
+}
+
+export async function deleteRecord(
+  projectId: string,
+  connId: string,
+  tableName: string,
+  recordId: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    store.dispatch(addApiResponse({ message: 'Record deleted.', type: 'success' }));
+    return true;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete record.', type: 'error' }));
+    return false;
+  }
+}

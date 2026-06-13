@@ -608,7 +608,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       if (cancelled) return;
       setPanelRecords(records.map((r: any) => {
         const id = String(r._id ?? r.id ?? '');
-        const display = r.name || r.title || r.label || r.email || r.slug || r.key;
+        const display = r._name || r.name || r.title || r.label || r.email || r.slug || r.key;
         return { id, label: display ? `${display}` : id };
       }));
     }).catch(() => { if (!cancelled) setPanelRecords([]); })
