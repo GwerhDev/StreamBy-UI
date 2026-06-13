@@ -1,4 +1,5 @@
 import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { DropdownInput } from '../Inputs/DropdownInput';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { getConnectionResponse } from '../../../services/connections';
@@ -857,10 +858,11 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
                       </label>
                     ) : field.inputType === 'select' && field.options?.length ? (
-                      <select value={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldSelect}>
-                        <option value="">Select connection…</option>
-                        {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                      </select>
+                      <DropdownInput
+                        value={String(getFieldDisplayValue(field))}
+                        onChange={v => handleFieldChange(field.key, v)}
+                        options={field.options}
+                      />
                     ) : (
                       <input type="text" defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldInput} placeholder={field.label} />
                     )
