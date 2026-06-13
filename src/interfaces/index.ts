@@ -29,6 +29,7 @@ export interface Project {
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
   apiConnections?: ApiConnection[];
+  dbConnections?: DbConnection[];
   members?: { userId?: string; role: string; archived?: boolean; status?: 'pending' | 'active' }[];
   rootFolders?: string[];
   settings?: {
@@ -166,6 +167,30 @@ export interface User {
 
 export interface Database {
   value: string;
+  name: string;
+}
+
+export type ExternalDbType = 'postgresql' | 'mongodb';
+
+export interface DbConnection {
+  id: string;
+  name: string;
+  dbType: ExternalDbType;
+  credentialId: string;
+  projectId: string;
+  createdAt?: string;
+  description?: string;
+  isBuiltin?: boolean;
+}
+
+export interface DbColumnDefinition {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
+}
+
+export interface DbTable {
   name: string;
 }
 

@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { createExport } from '../../../services/exports';
+import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { faDiagramProject, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { LabeledSelect } from '../Selects/LabeledSelect';
+import { faDiagramProject, faDatabase, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
@@ -19,7 +21,17 @@ export function CreateExportForm() {
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
   const [description, setDescription] = useState('');
+  const [storageDbId, setStorageDbId] = useState('');
+  const [builtinDbs, setBuiltinDbs] = useState<{ value: string; label: string }[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchBuiltinDatabases().then(dbs => {
+      const options = dbs.map(db => ({ value: db.name, label: db.name }));
+      setBuiltinDbs(options);
+      if (options.length > 0 && !storageDbId) setStorageDbId(options[0].value);
+    });
+  }, [projectId]);
 
   useEffect(() => { setDisabled(!name || loading); }, [name, loading]);
 
@@ -27,7 +39,7 @@ export function CreateExportForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'] });
+      const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
       navigate(`/project/${projectId}/dashboard/exports/${response.exportId}/editor`);
     } catch (err) {
       console.error(err);
@@ -72,7 +84,19 @@ export function CreateExportForm() {
                 />
               ),
             },
-
+            {
+              icon: faDatabase,
+              label: 'Storage database',
+              value: storageDbId || '—',
+              editComponent: (
+                <LabeledSelect
+                  label="Storage database" id="storage-db" name="storage-db" htmlFor="storage-db"
+                  value={storageDbId}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStorageDbId(e.target.value)}
+                  options={builtinDbs}
+                />
+              ),
+            },
           ]}
           actions={
             <>

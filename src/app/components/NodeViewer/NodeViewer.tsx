@@ -20,7 +20,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, ApiConnection } from '../../../interfaces';
+import { Export, ApiConnection, DbConnection } from '../../../interfaces';
+import { fetchRecords, fetchBuiltinDatabases, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -34,6 +35,33 @@ import {
 interface BaseNodeData { label: string; subtitle: string; }
 interface ProcessNodeData extends BaseNodeData { icon: IconDefinition; bgColor: string; iconColor: string; }
 interface JsonInputNodeData extends BaseNodeData { jsonString: string; }
+
+// ─── Filter Node Config ────────────────────────────────────────────────────
+
+interface FilterCondition { field: string; op: string; value: string; }
+export interface FilterNodeConfig {
+  conditions?:    FilterCondition[];
+  includeFields?: string[];
+  renameFields?:  Array<{ from: string; to: string }>;
+  wrapKey?:       string;
+  limit?:         number;
+}
+
+const EMPTY_FILTER_CONFIG: FilterNodeConfig = {
+  conditions: [], includeFields: [], renameFields: [], wrapKey: '', limit: undefined,
+};
+
+const CONDITION_OPS = [
+  { value: 'eq',         label: '= equals' },
+  { value: 'neq',        label: '≠ not equals' },
+  { value: 'gt',         label: '> greater than' },
+  { value: 'lt',         label: '< less than' },
+  { value: 'gte',        label: '>= ≥' },
+  { value: 'lte',        label: '<= ≤' },
+  { value: 'contains',   label: '⊃ contains' },
+  { value: 'startsWith', label: '▷ starts with' },
+  { value: 'endsWith',   label: '◁ ends with' },
+];
 
 // ─── Handle color tokens ───────────────────────────────────────────────────
 // Left=input blue, Top=process purple, Bottom=data green, Right=output amber
@@ -276,6 +304,7 @@ export interface NodeViewerProps {
   onSave?: (updates: Record<string, string | boolean | object | null>) => void;
   onChange?: (schema: { nodes: Node[]; edges: Edge[] }) => void;
   apiConnections?: ApiConnection[];
+  dbConnections?: DbConnection[];
   projectId?: string;
 }
 
@@ -286,7 +315,7 @@ export interface NodeViewerHandle {
 const CORE_NODE_IDS = ['client', 'streamby'];
 
 export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], projectId,
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId,
 }, ref) => {
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
 
@@ -299,6 +328,31 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [modalJsonValue, setModalJsonValue] = useState('{}');
   const [modalJsonValid, setModalJsonValid] = useState(true);
+  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
+  const [panelTables, setPanelTables] = useState<string[]>([]);
+  const [panelTablesLoading, setPanelTablesLoading] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterModalConfig, setFilterModalConfig] = useState<FilterNodeConfig>({ ...EMPTY_FILTER_CONFIG });
+  const [includeFieldsText, setIncludeFieldsText] = useState('');
+
+  // Built-in DBs + external connections combined
+  const allDbConnections: DbConnection[] = useMemo(() => {
+    const builtins: DbConnection[] = builtinDbs.map(db => ({
+      id: db.name,
+      name: db.name,
+      dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
+      isBuiltin: true,
+      credentialId: '',
+      projectId: projectId ?? '',
+    }));
+    return [...builtins, ...dbConnections];
+  }, [builtinDbs, dbConnections, projectId]);
+
+  // Fetch built-in DBs once
+  useEffect(() => {
+    if (projectId) fetchBuiltinDatabases().then(setBuiltinDbs);
+  }, [projectId]);
 
   const initialJsonRef = useRef(exportDetails.json);
   const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
@@ -456,14 +510,26 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       };
     }
 
-    if (node.type === 'dataSourceNode') return {
-      title: 'Data Source',
-      description: 'Database collection used by this export.',
-      fields: [
-        { key: 'label',    label: 'Name',       value: node.data.label,    editable: true, inputType: 'text' },
-        { key: 'subtitle', label: 'Collection', value: node.data.subtitle, editable: true, inputType: 'text' },
-      ],
-    };
+    if (node.type === 'dataSourceNode') {
+      const dbOptions = [
+        { value: '', label: 'Select a connection' },
+        ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
+      ];
+      const tableOptions = panelTablesLoading
+        ? [{ value: '', label: 'Loading…' }]
+        : [
+            { value: '', label: 'Select a table / collection' },
+            ...panelTables.map(t => ({ value: t, label: t })),
+          ];
+      return {
+        title: 'Data Source',
+        description: 'External database table or collection used by this export.',
+        fields: [
+          { key: 'connectionId', label: 'DB Connection',      value: (node.data.connectionId as string) || '', editable: true, inputType: 'select' as const, options: dbOptions },
+          { key: 'tableName',    label: 'Table / Collection', value: (node.data.tableName as string) || (node.data.subtitle as string) || '', editable: true, inputType: 'select' as const, options: tableOptions },
+        ],
+      };
+    }
 
     if (node.type === 'processNode') return {
       title: node.data.label,
@@ -474,25 +540,52 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       ],
     };
 
-    if (node.type === 'filterNode') return {
-      title: node.data.label,
-      description: 'Output filter applied to the response before it reaches the client.',
-      fields: [
-        { key: 'label',    label: 'Name',        value: node.data.label,    editable: true, inputType: 'text' },
-        { key: 'subtitle', label: 'Description', value: node.data.subtitle, editable: true, inputType: 'text' },
-      ],
-    };
+    if (node.type === 'filterNode') {
+      const cfg = (node.data.filterConfig as FilterNodeConfig) ?? {};
+      const summary = [
+        cfg.conditions?.length    && `${cfg.conditions.length} condition(s)`,
+        cfg.includeFields?.length && `pick ${cfg.includeFields.length} field(s)`,
+        cfg.renameFields?.length  && `rename ${cfg.renameFields.length} field(s)`,
+        cfg.wrapKey               && `wrap → "${cfg.wrapKey}"`,
+        cfg.limit                 && `limit ${cfg.limit}`,
+      ].filter(Boolean).join(' · ') || 'Not configured';
+      return {
+        title: node.data.label as string,
+        description: summary,
+        fields: [
+          { key: 'label',    label: 'Name',        value: node.data.label as string,    editable: true, inputType: 'text' as const },
+          { key: 'subtitle', label: 'Description', value: node.data.subtitle as string, editable: true, inputType: 'text' as const },
+        ],
+      };
+    }
 
     return null;
-  }, [exportDetails, nodes, apiConnections, editMode]);
+  }, [exportDetails, nodes, apiConnections, allDbConnections, panelTables, panelTablesLoading, editMode]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
   const hasChanges     = Object.keys(localData).length > 0;
   const isJsonNode     = selectedNode?.type === 'jsonInputNode';
   const isApiNode      = selectedNode?.type === 'apiConnectionNode';
+  const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
   const isCoreNode     = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
-  const canSave        = editMode && hasChanges && (isJsonNode || isApiNode || !isCoreNode || !!onSave);
+  const canSave        = editMode && hasChanges && (isJsonNode || isApiNode || isDbSourceNode || !isCoreNode || !!onSave);
+
+  // Auto-fetch tables/collections for the selected DB connection in the DataSource panel
+  useEffect(() => {
+    if (!isDbSourceNode || !projectId) return;
+    const connId = (localData.connectionId as string)
+      ?? (nodes.find(n => n.id === selectedNodeId)?.data?.connectionId as string)
+      ?? '';
+    if (!connId) { setPanelTables([]); return; }
+    let cancelled = false;
+    setPanelTablesLoading(true);
+    fetchTables(projectId, connId)
+      .then(tables => { if (!cancelled) setPanelTables(tables); })
+      .catch(() => { if (!cancelled) setPanelTables([]); })
+      .finally(() => { if (!cancelled) setPanelTablesLoading(false); });
+    return () => { cancelled = true; };
+  }, [isDbSourceNode, selectedNodeId, localData.connectionId, projectId]);
 
   const resetConnFetch = () => { setConnFetching(false); setConnResult(null); setConnError(null); };
   const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
@@ -532,7 +625,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       try {
         JSON.parse(jsonStr);
         setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, jsonString: jsonStr } } : n));
-        setJsonError(null); setLocalData({}); setSelectedNodeId(null);
+        setJsonError(null); setLocalData({});
       } catch { setJsonError('Invalid JSON — fix the syntax.'); }
       return;
     }
@@ -541,7 +634,19 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       const connId = (localData.connectionId as string) ?? node.data.connectionId;
       const conn = apiConnections.find(c => c.id === connId);
       if (conn) setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: conn.name, subtitle: conn.apiUrl, connectionId: conn.id } } : n));
-      setLocalData({}); setSelectedNodeId(null);
+      setLocalData({});
+      return;
+    }
+
+    if (node?.type === 'dataSourceNode') {
+      const connectionId = (localData.connectionId as string) ?? (node.data.connectionId as string) ?? '';
+      const tableName = (localData.tableName as string) ?? (node.data.tableName as string) ?? '';
+      const dbConn = allDbConnections.find(c => c.id === connectionId);
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? {
+        ...n,
+        data: { ...n.data, connectionId, tableName, subtitle: tableName, ...(dbConn && { label: dbConn.name }) },
+      } : n));
+      setLocalData({});
       return;
     }
 
@@ -550,8 +655,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     } else if (onSave) {
       onSave(localData as Record<string, string | boolean>);
     }
-    setLocalData({}); setSelectedNodeId(null);
-  }, [selectedNodeId, localData, nodes, apiConnections, onSave, setNodes]);
+    setLocalData({});
+  }, [selectedNodeId, localData, nodes, apiConnections, allDbConnections, onSave, setNodes]);
 
   const handleConnFetch = useCallback(async () => {
     if (!projectId || !selectedNodeId) return;
@@ -569,6 +674,54 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       setConnFetching(false);
     }
   }, [projectId, selectedNodeId, nodes]);
+
+  const handleOpenPreview = useCallback(async () => {
+    if (!projectId || !selectedNodeId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    const connectionId = (node?.data?.connectionId as string) ?? '';
+    const tableName = (node?.data?.tableName as string) ?? '';
+    if (!connectionId || !tableName) return;
+    setConnResult(null);
+    setConnError(null);
+    setShowPreviewModal(true);
+    setConnFetching(true);
+    try {
+      const records = await fetchRecords(projectId, connectionId, tableName, 10);
+      setConnResult(records);
+    } catch (err: unknown) {
+      setConnError((err as { message: string }).message || 'Fetch failed.');
+    } finally {
+      setConnFetching(false);
+    }
+  }, [projectId, selectedNodeId, nodes]);
+
+  const handleOpenFilterModal = useCallback(() => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    const existing = (node?.data?.filterConfig as FilterNodeConfig) ?? {};
+    setFilterModalConfig({
+      conditions:   existing.conditions   ?? [],
+      renameFields: existing.renameFields ?? [],
+      wrapKey:      existing.wrapKey      ?? '',
+      limit:        existing.limit,
+    });
+    setIncludeFieldsText((existing.includeFields ?? []).join(', '));
+    setShowFilterModal(true);
+  }, [nodes, selectedNodeId]);
+
+  const handleFilterModalSave = useCallback(() => {
+    if (!selectedNodeId) return;
+    const includeFields = includeFieldsText.split(',').map(f => f.trim()).filter(Boolean);
+    const clean: FilterNodeConfig = {};
+    if (filterModalConfig.conditions?.length) clean.conditions    = filterModalConfig.conditions;
+    if (includeFields.length)                 clean.includeFields = includeFields;
+    if (filterModalConfig.renameFields?.length) clean.renameFields = filterModalConfig.renameFields;
+    if (filterModalConfig.wrapKey)              clean.wrapKey      = filterModalConfig.wrapKey;
+    if (filterModalConfig.limit)               clean.limit         = filterModalConfig.limit;
+    setNodes(prev => prev.map(n =>
+      n.id === selectedNodeId ? { ...n, data: { ...n.data, filterConfig: clean } } : n
+    ));
+    setShowFilterModal(false);
+  }, [selectedNodeId, filterModalConfig, includeFieldsText, setNodes]);
 
   const getFieldDisplayValue = (field: DetailField): string | boolean => {
     if (localData[field.key] !== undefined) return localData[field.key];
@@ -640,6 +793,29 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               </div>
             )}
 
+            {isDbSourceNode && projectId && (
+              <div className={s.nodeActions}>
+                <button
+                  type="button"
+                  className={s.actionButton}
+                  onClick={handleOpenPreview}
+                  disabled={!(selectedNode?.data?.connectionId as string) || !(selectedNode?.data?.tableName as string)}
+                >
+                  <FontAwesomeIcon icon={faArrowsRotate} />
+                  Preview
+                </button>
+              </div>
+            )}
+
+            {selectedNode?.type === 'filterNode' && editMode && (
+              <div className={s.nodeActions}>
+                <button type="button" className={s.actionButton} onClick={handleOpenFilterModal}>
+                  <FontAwesomeIcon icon={faFilter} />
+                  Configure
+                </button>
+              </div>
+            )}
+
             {selectedDetail.fields.length > 0 && <div className={s.detailFields}>
               {selectedDetail.fields.map(field => (
                 <div key={field.key} className={s.detailField}>
@@ -687,6 +863,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 }
               </div>
             )}
+
 
             {canSave && (
               <div className={s.panelActions}>
@@ -742,6 +919,182 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 <FontAwesomeIcon icon={faFloppyDisk} /> Save Changes
               </button>
             )}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showPreviewModal && (
+      <div className={s.modalOverlay} onClick={() => { setShowPreviewModal(false); setConnResult(null); setConnError(null); }}>
+        <div className={s.modalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faDatabase} style={{ color: H_BOTTOM }} />
+              Preview Records
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => { setShowPreviewModal(false); setConnResult(null); setConnError(null); }}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+          <div className={s.modalBody}>
+            {connFetching && <p className={s.jsonEmptyNote}><FontAwesomeIcon icon={faArrowsRotate} spin /> Fetching records…</p>}
+            {connError && <p className={s.modalError}>{connError}</p>}
+            {!connFetching && connResult != null && (
+              <JsonViewer data={connResult as JSON} />
+            )}
+            {!connFetching && connResult == null && !connError && (
+              <p className={s.jsonEmptyNote}>No records returned.</p>
+            )}
+          </div>
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => { setShowPreviewModal(false); setConnResult(null); setConnError(null); }}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showFilterModal && (
+      <div className={s.modalOverlay} onClick={() => setShowFilterModal(false)}>
+        <div className={s.filterModalContainer} onClick={e => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              <FontAwesomeIcon icon={faFilter} style={{ color: H_RIGHT }} />
+              Configure {nodes.find(n => n.id === selectedNodeId)?.data?.label as string ?? 'Filter'}
+            </span>
+            <button className={s.panelClose} type="button" onClick={() => setShowFilterModal(false)}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+
+          <div className={s.filterModalBody}>
+            {/* CONDITIONS */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Conditions</div>
+              <p className={s.filterSectionHint}>Filter array records where all conditions match.</p>
+              {(filterModalConfig.conditions ?? []).map((cond, i) => (
+                <div key={i} className={s.conditionRow}>
+                  <input
+                    type="text" placeholder="field" value={cond.field}
+                    className={s.fieldInput}
+                    onChange={e => setFilterModalConfig(prev => {
+                      const c = [...(prev.conditions ?? [])];
+                      c[i] = { ...c[i], field: e.target.value };
+                      return { ...prev, conditions: c };
+                    })}
+                  />
+                  <select
+                    value={cond.op} className={s.fieldSelect}
+                    onChange={e => setFilterModalConfig(prev => {
+                      const c = [...(prev.conditions ?? [])];
+                      c[i] = { ...c[i], op: e.target.value };
+                      return { ...prev, conditions: c };
+                    })}
+                  >
+                    {CONDITION_OPS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                  <input
+                    type="text" placeholder="value" value={cond.value}
+                    className={s.fieldInput}
+                    onChange={e => setFilterModalConfig(prev => {
+                      const c = [...(prev.conditions ?? [])];
+                      c[i] = { ...c[i], value: e.target.value };
+                      return { ...prev, conditions: c };
+                    })}
+                  />
+                  <button type="button" className={s.conditionRemoveBtn}
+                    onClick={() => setFilterModalConfig(prev => ({ ...prev, conditions: (prev.conditions ?? []).filter((_, j) => j !== i) }))}>
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
+              ))}
+              <button type="button" className={s.addRowBtn}
+                onClick={() => setFilterModalConfig(prev => ({ ...prev, conditions: [...(prev.conditions ?? []), { field: '', op: 'eq', value: '' }] }))}>
+                <FontAwesomeIcon icon={faPlus} /> Add condition
+              </button>
+            </div>
+
+            {/* INCLUDE FIELDS */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Include Fields</div>
+              <p className={s.filterSectionHint}>Comma-separated field names to include. Leave empty to include all fields.</p>
+              <input
+                type="text" placeholder="e.g. name, email, status"
+                className={s.fieldInput}
+                value={includeFieldsText}
+                onChange={e => setIncludeFieldsText(e.target.value)}
+              />
+            </div>
+
+            {/* RENAME FIELDS */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Rename Fields</div>
+              <p className={s.filterSectionHint}>Rename output field keys.</p>
+              {(filterModalConfig.renameFields ?? []).map((pair, i) => (
+                <div key={i} className={s.renameRow}>
+                  <input
+                    type="text" placeholder="from" value={pair.from}
+                    className={s.fieldInput}
+                    onChange={e => setFilterModalConfig(prev => {
+                      const r = [...(prev.renameFields ?? [])];
+                      r[i] = { ...r[i], from: e.target.value };
+                      return { ...prev, renameFields: r };
+                    })}
+                  />
+                  <span className={s.renameArrow}>→</span>
+                  <input
+                    type="text" placeholder="to" value={pair.to}
+                    className={s.fieldInput}
+                    onChange={e => setFilterModalConfig(prev => {
+                      const r = [...(prev.renameFields ?? [])];
+                      r[i] = { ...r[i], to: e.target.value };
+                      return { ...prev, renameFields: r };
+                    })}
+                  />
+                  <button type="button" className={s.conditionRemoveBtn}
+                    onClick={() => setFilterModalConfig(prev => ({ ...prev, renameFields: (prev.renameFields ?? []).filter((_, j) => j !== i) }))}>
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
+              ))}
+              <button type="button" className={s.addRowBtn}
+                onClick={() => setFilterModalConfig(prev => ({ ...prev, renameFields: [...(prev.renameFields ?? []), { from: '', to: '' }] }))}>
+                <FontAwesomeIcon icon={faPlus} /> Add rename
+              </button>
+            </div>
+
+            {/* WRAP KEY */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Wrap in Key</div>
+              <p className={s.filterSectionHint}>Wrap the entire response in an object key. E.g. "data" → {`{ data: [...] }`}</p>
+              <input
+                type="text" placeholder='e.g. data'
+                className={s.fieldInput}
+                value={filterModalConfig.wrapKey ?? ''}
+                onChange={e => setFilterModalConfig(prev => ({ ...prev, wrapKey: e.target.value }))}
+              />
+            </div>
+
+            {/* LIMIT */}
+            <div className={s.filterSection}>
+              <div className={s.filterSectionTitle}>Limit Records</div>
+              <p className={s.filterSectionHint}>Truncate arrays to this many items. Leave empty for no limit.</p>
+              <input
+                type="number" min={1} placeholder='e.g. 100'
+                className={s.fieldInput}
+                style={{ width: '100px' }}
+                value={filterModalConfig.limit ?? ''}
+                onChange={e => setFilterModalConfig(prev => ({ ...prev, limit: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </div>
+          </div>
+
+          <div className={s.modalFooter}>
+            <button type="button" className={s.cancelButton} onClick={() => setShowFilterModal(false)}>Cancel</button>
+            <button type="button" className={s.saveButton} onClick={handleFilterModalSave}>
+              <FontAwesomeIcon icon={faFloppyDisk} /> Save
+            </button>
           </div>
         </div>
       </div>

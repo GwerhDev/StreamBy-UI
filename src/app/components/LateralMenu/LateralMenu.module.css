@@ -141,6 +141,8 @@
   display: flex;
   align-items: center;
   transition: background-color 0.1s ease, color 0.1s ease;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .serviceName {
@@ -151,6 +153,14 @@
   color: rgb(199, 199, 199);
   display: flex;
   align-items: center;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.serviceName span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .section {
@@ -230,6 +240,10 @@
   cursor: pointer;
   user-select: none;
   transition: background-color 0.1s ease, color 0.1s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .storageItem:hover {

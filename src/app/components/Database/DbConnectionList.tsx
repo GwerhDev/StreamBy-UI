@@ -1,0 +1,112 @@
+import s from './Database.module.css';
+import skeleton from '../Loader/Skeleton.module.css';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDatabase, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { RootState } from '../../../store';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { deleteDbConnection, fetchBuiltinDatabases } from '../../../services/database';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { ActionButton } from '../Buttons/ActionButton';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { DbConnection } from '../../../interfaces';
+
+export const DbConnectionList = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id: projectId } = useParams<{ id: string }>();
+  const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  const connections: DbConnection[] = project?.dbConnections ?? [];
+
+  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
+
+  useEffect(() => {
+    fetchBuiltinDatabases().then(setBuiltinDbs);
+  }, [projectId]);
+
+  const builtinConns: DbConnection[] = builtinDbs.map(db => ({
+    id: db.name,
+    name: db.name,
+    dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
+    credentialId: '',
+    projectId: projectId!,
+    isBuiltin: true,
+  }));
+
+  const allConnections = [...builtinConns, ...connections];
+
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleCreate = () => navigate(`/project/${projectId}/database/create`);
+
+  const handleDelete = async (e: React.MouseEvent, connId: string) => {
+    e.stopPropagation();
+    if (!projectId || !project) return;
+    setDeleting(connId);
+    const ok = await deleteDbConnection(projectId, connId);
+    if (ok) {
+      dispatch(setCurrentProject({
+        ...project,
+        dbConnections: connections.filter(c => c.id !== connId),
+      }));
+    }
+    setDeleting(null);
+  };
+
+  return (
+    <div className={s.container}>
+      <SectionHeader
+        icon={faDatabase}
+        title="Database Connections"
+        subtitle="Manage database connections for this project."
+        action={<ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} />}
+      />
+
+      {loading ? (
+        <ul>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
+          ))}
+        </ul>
+      ) : (
+        <ul>
+          {allConnections.map(conn => (
+            <li key={conn.id} onClick={() => navigate(`/project/${projectId}/database/${conn.id}`, { state: { dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name } })}>
+              <span className={s.cardLeft}>
+                <span className={s.cardIcon}>
+                  <FontAwesomeIcon icon={faDatabase} />
+                </span>
+                <span className={s.cardInfo}>
+                  <h4>{conn.name}</h4>
+                  <small>{conn.isBuiltin ? 'Project built-in database' : (conn.description || conn.dbType)}</small>
+                </span>
+              </span>
+              <span className={s.cardRight}>
+                {conn.isBuiltin && <span className={`${s.badge} ${s.badgeBuiltin}`}>Built-in</span>}
+                <span className={`${s.badge} ${conn.dbType === 'postgresql' ? s.badgePg : s.badgeMg}`}>
+                  {conn.dbType === 'postgresql' ? 'PostgreSQL' : 'MongoDB'}
+                </span>
+                {!conn.isBuiltin && (
+                  <button
+                    className={s.deleteBtn}
+                    disabled={deleting === conn.id}
+                    onClick={e => handleDelete(e, conn.id)}
+                    title="Delete connection"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                )}
+              </span>
+            </li>
+          ))}
+          <li className={s.createItem} onClick={handleCreate}>
+            <FontAwesomeIcon icon={faPlus} />
+            <h4>New connection</h4>
+          </li>
+        </ul>
+      )}
+    </div>
+  );
+};

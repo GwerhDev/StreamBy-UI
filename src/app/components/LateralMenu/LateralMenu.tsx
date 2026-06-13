@@ -1,11 +1,13 @@
-import s from './LateralMenu.module.css';
+﻿import s from './LateralMenu.module.css';
 import React, { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { apiDirectoryList, dashboardDirectoryList, databaseDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
+import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
+import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
+import { DbConnection } from '../../../interfaces';
 import { RootState } from '../../../store';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
@@ -27,6 +29,9 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
+  const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
+  const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
+  const [dbTablesLoading, setDbTablesLoading] = useState<Set<string>>(new Set());
   const { menuOpen, closeMenu } = useEditorMenu();
   const location = useLocation();
 
@@ -44,6 +49,39 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
       else next.add(value);
       return next;
     });
+  };
+
+  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
+
+  useEffect(() => {
+    if (id) fetchBuiltinDatabases().then(setBuiltinDbs);
+  }, [id]);
+
+  const builtinDbConns: DbConnection[] = builtinDbs.map(db => ({
+    id: db.name,
+    name: db.name,
+    dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
+    credentialId: '',
+    projectId: id ?? '',
+    isBuiltin: true,
+  }));
+  const externalDbConns: DbConnection[] = currentProject.data?.dbConnections ?? [];
+  const allDbConns = [...builtinDbConns, ...externalDbConns];
+
+  const toggleDb = async (connId: string) => {
+    const willExpand = !expandedDbs.has(connId);
+    setExpandedDbs(prev => {
+      const next = new Set(prev);
+      if (next.has(connId)) next.delete(connId);
+      else next.add(connId);
+      return next;
+    });
+    if (willExpand && !dbTables[connId]) {
+      setDbTablesLoading(prev => new Set([...prev, connId]));
+      const tables = await fetchTables(id || '', connId);
+      setDbTables(prev => ({ ...prev, [connId]: tables }));
+      setDbTablesLoading(prev => { const s = new Set(prev); s.delete(connId); return s; });
+    }
   };
 
   useEffect(() => {
@@ -211,26 +249,53 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                   })}
                 </div>
 
-                <span className={s.section}>
+                <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/database`) ? s.activeLink : ''}`}>
                   <Link to={`/project/${id}/database`}>
                     <h4>DATABASE</h4>
                   </Link>
                   <FontAwesomeIcon icon={faDatabase} />
                 </span>
-                <ul className={s.menuList}>
-                  {databaseDirectoryList.map(({ name, icon, path }, index) => {
-                    const linkPath = `/project/${id}/${path}`;
-                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                <div className={s.storageList}>
+                  {allDbConns.map(conn => {
+                    const isExpanded = expandedDbs.has(conn.id);
+                    const connPath = `/project/${id}/database/${conn.id}`;
+                    const isActive = location.pathname === connPath || location.pathname.startsWith(`${connPath}/`);
+                    const tables = dbTables[conn.id] || [];
+                    const isLoading = dbTablesLoading.has(conn.id);
                     return (
-                      <Link key={index} to={linkPath}>
-                        <li className={isActive ? s.activeLink : ''}>
-                          {icon && <FontAwesomeIcon icon={icon} />}
-                          {name}
-                        </li>
-                      </Link>
+                      <React.Fragment key={conn.id}>
+                        <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                          <FontAwesomeIcon
+                            icon={faChevronDown}
+                            className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                            onClick={() => toggleDb(conn.id)}
+                          />
+                          <Link to={connPath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }} className={s.serviceName}>
+                            <FontAwesomeIcon icon={faDatabase} className={s.serviceIcon} />
+                            <span>{conn.name}</span>
+                          </Link>
+                        </div>
+                        {isExpanded && (
+                          isLoading ? (
+                            <div className={s.storageItem} style={{ opacity: 0.5 }}>Loadingâ€¦</div>
+                          ) : tables.length === 0 ? (
+                            <div className={s.storageItem} style={{ opacity: 0.4 }}>No tables</div>
+                          ) : tables.map(tableName => {
+                            const tablePath = `${connPath}/${encodeURIComponent(tableName)}`;
+                            return (
+                              <Link key={tableName} to={tablePath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }}>
+                                <div className={`${s.storageItem} ${location.pathname === tablePath ? s.activeLink : ''}`}>
+                                  <FontAwesomeIcon icon={faTableColumns} />
+                                  {tableName}
+                                </div>
+                              </Link>
+                            );
+                          })
+                        )}
+                      </React.Fragment>
                     );
                   })}
-                </ul>
+                </div>
 
                 <span className={s.section}>
                   <Link to={`/project/${id}/connections`}>
@@ -285,3 +350,4 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
   return menuContent;
 };
+

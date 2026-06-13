@@ -1,0 +1,349 @@
+.container {
+  gap: 1rem;
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.emptyState {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardSkeleton {
+  width: 100%;
+  height: 60px;
+  border-radius: 1rem;
+}
+
+.container ul {
+  gap: 1rem;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.container ul li {
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  background-color: var(--color-dark-300);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+}
+
+.container ul li:hover {
+  background-color: var(--color-dark-200);
+}
+
+.createItem {
+  background-color: transparent !important;
+  border: dashed 0.2rem var(--color-dark-100) !important;
+  justify-content: center !important;
+  gap: 0.5rem;
+}
+
+.createItem:hover {
+  border-color: var(--color-light-200) !important;
+}
+
+/* Card internals */
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.cardIcon {
+  border-radius: 100%;
+  width: 2rem;
+  aspect-ratio: 1/1;
+  border: solid 3px var(--color-button-primary-hover);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: white;
+  opacity: 0.7;
+}
+
+.cardInfo {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex-grow: 1;
+}
+
+.cardInfo h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cardInfo small {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cardRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badgePg { background-color: #1e3a5f; color: #60a5fa; }
+.badgeMg { background-color: #0d2a1e; color: #34d399; }
+.badgeBuiltin { background-color: #2d1f4e; color: #c084fc; }
+
+/* Delete button */
+.deleteBtn {
+  padding: 0.4rem 0.6rem;
+  background: transparent;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  transition: color 0.15s;
+}
+
+.deleteBtn:hover { color: var(--color-danger-200); }
+
+/* Table grid (for tables list) */
+.tableGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.tableCard {
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--color-dark-300);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.tableCard:hover { background-color: var(--color-dark-200); }
+
+.tableCardIcon { color: var(--color-light-400); font-size: 0.9rem; flex-shrink: 0; }
+.tableCardName { font-size: 0.9rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Records table */
+.recordsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.recordsTable th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  background-color: var(--color-dark-300);
+  font-weight: 600;
+  color: var(--color-light-300);
+  border-bottom: 1px solid var(--color-dark-100);
+}
+
+.recordsTable td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-dark-200);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordsTable tr:last-child td { border-bottom: none; }
+.recordsTable tr:hover td { background-color: var(--color-dark-300); }
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 1rem;
+  background-color: var(--color-dark-300);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.pageBtn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  background: var(--color-dark-300);
+  border: none;
+  color: var(--color-light-200);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.pageBtn:disabled { opacity: 0.4; cursor: default; }
+.pageBtn:not(:disabled):hover { background: var(--color-dark-200); }
+
+/* Modal overlay */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--color-dark-400);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: min(480px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Column builder */
+.columnBuilder {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.columnRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.columnRow input, .columnRow select {
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-dark-300);
+  border: 1px solid var(--color-dark-100);
+  color: var(--color-light-100);
+  font-size: 0.82rem;
+  width: 100%;
+}
+
+.columnRowLabel {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+  text-align: center;
+}
+
+.checkCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-light-300);
+}
+
+.removeColBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem;
+  border-radius: 0.3rem;
+}
+
+.removeColBtn:hover { color: var(--color-danger, #f87171); }
+
+.addColBtn {
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-dark-300);
+  border: dashed 1px var(--color-dark-100);
+  color: var(--color-light-300);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.addColBtn:hover { border-color: var(--color-light-300); }
+
+/* Form wrapper */
+.formWrapper {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+
+.sectionLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-light-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.noRecords {
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-light-400);
+  font-size: 0.9rem;
+}

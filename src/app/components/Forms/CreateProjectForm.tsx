@@ -2,7 +2,7 @@ import s from './CreateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faGlobe, faDatabase, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faGlobe, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
@@ -12,7 +12,6 @@ import {
   uploadProjectImage,
 } from '../../../services/projects';
 import { useNavigate } from 'react-router-dom';
-import { LabeledSelect } from '../Selects/LabeledSelect';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { Spinner } from '../Spinner';
@@ -26,23 +25,16 @@ export const CreateProjectForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
   const [allowedOrigin, setAllowedOrigin] = useState<string[]>([""]);
-  const [selectedDatabase, setSelectedDatabase] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const { databases, loading, error } = useSelector((state: RootState) => state.management);
-
-  useEffect(() => {
-    if (databases.length > 0 && !selectedDatabase) {
-      setSelectedDatabase(databases[0].value);
-    }
-  }, [databases, selectedDatabase]);
+  const { loading, error } = useSelector((state: RootState) => state.management);
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, dbType: selectedDatabase, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') });
+      const response = await createProject({ name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') });
       const { projectId } = response || {};
 
       if (imageFile && projectId) {
@@ -89,8 +81,8 @@ export const CreateProjectForm = () => {
   };
 
   useEffect(() => {
-    setDisabled(!name || !selectedDatabase || loading);
-  }, [name, selectedDatabase, loading]);
+    setDisabled(!name || loading);
+  }, [name, loading]);
 
   if (loading) return <Spinner bg isLoading={loader} />;
   if (error) return <div>Error: {error}</div>;
@@ -151,19 +143,6 @@ export const CreateProjectForm = () => {
                   label="Description (optional)" type="text" placeholder=""
                   id="description-input" name="description-input" htmlFor="description-input"
                   value={description} onChange={e => setDescription(e.target.value)}
-                />
-              ),
-            },
-            {
-              icon: faDatabase,
-              label: 'Database type',
-              value: selectedDatabase || '—',
-              editComponent: (
-                <LabeledSelect
-                  label="Database type" id="database-select" name="database-select" htmlFor="database-select"
-                  value={selectedDatabase}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDatabase(e.target.value)}
-                  options={databases}
                 />
               ),
             },

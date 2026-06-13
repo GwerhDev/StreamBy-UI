@@ -1,8 +1,4 @@
-import { databaseDirectoryList } from "../../config/consts"
-import { DirectoryList } from "../components/Dashboard/DirectoryList"
+// This page is no longer used — routing now goes directly to DatabaseConnections.
+// Kept as a redirect-compatible fallback.
+export const Database = () => null;
 
-export const Database = () => {
-  return (
-    <DirectoryList list={databaseDirectoryList} />
-  )
-}

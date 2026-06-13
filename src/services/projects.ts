@@ -5,7 +5,7 @@ import { addApiResponse } from '../store/apiResponsesSlice';
 import { setProjects } from '../store/projectsSlice';
 import { setCurrentProject, setMembership } from '../store/currentProjectSlice';
 
-export async function createProject(payload: { name: string; description?: string; dbType: string; allowedOrigin?: string[] }) {
+export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[] }) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/create`, {
       method: 'POST',

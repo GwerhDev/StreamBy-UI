@@ -1,8 +1,8 @@
 import s from './ProjectPresentation.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
-import { faEdit, faDatabase, faTable, faEye } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ interface ProjectPresentationProps {
 
 export const ProjectPresentation = ({ preview = false }: ProjectPresentationProps) => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
-  const { image, name, description, dbType } = currentProject || {};
+  const { image, name, description } = currentProject || {};
   const navigate = useNavigate();
 
   const handleEdit = () => {
@@ -35,14 +35,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
               )}
             </span>
           </li>
-          <>
-            {!loading && dbType && (
-              <li className={`${s.dbType} ${loading ? skeleton.skeleton : ''}`}>
-                <FontAwesomeIcon icon={dbType === 'sql' ? faTable : faDatabase} title={dbType} />
-                <span>{dbType}</span>
-              </li>
-            )}
-          </>
+
         </ul>
         <ul className={s.details}>
           <li className={s.title} >

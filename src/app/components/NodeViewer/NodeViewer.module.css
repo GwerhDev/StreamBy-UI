@@ -716,3 +716,141 @@
   border-radius: 0 !important;
   border: none !important;
 }
+
+/* ─── Filter Config Modal ─────────────────────────────────────────────────── */
+
+.filterModalContainer {
+  background: var(--color-dark-700);
+  border: 1px solid var(--color-dark-300);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(580px, 100%);
+  max-height: 90vh;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+.filterModalBody {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0.6rem 1.2rem 0.2rem;
+}
+
+.filterSection {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-dark-300);
+}
+
+.filterSection:last-child {
+  border-bottom: none;
+}
+
+.filterSectionTitle {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-light-400);
+  margin-bottom: 0.55rem;
+}
+
+.filterSectionHint {
+  font-size: 0.7rem;
+  color: var(--color-light-400);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+.conditionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.conditionRow .fieldInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.conditionRow .fieldSelect {
+  flex: 0 0 110px;
+  min-width: 0;
+}
+
+.conditionRemoveBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-light-400);
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.78rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.conditionRemoveBtn:hover {
+  color: #f87171;
+}
+
+.renameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.renameRow .fieldInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.renameArrow {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--color-light-400);
+}
+
+.addRowBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: 1px dashed var(--color-dark-200);
+  border-radius: 6px;
+  color: var(--color-light-400);
+  font-size: 0.73rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 0.1rem;
+}
+
+.addRowBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filterInputSmall {
+  font-size: 0.79rem !important;
+  padding: 0.32rem 0.5rem !important;
+  background: var(--color-dark-900) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--color-dark-100) !important;
+  border-radius: 4px 4px 0 0 !important;
+  color: var(--color-light-200) !important;
+  width: 80px !important;
+  transition: border-color 0.18s ease !important;
+}
+
+.filterInputSmall:focus {
+  border-bottom-color: var(--color-primary) !important;
+  outline: none !important;
+}

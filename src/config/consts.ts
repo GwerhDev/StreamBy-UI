@@ -1,4 +1,4 @@
-import { faBarsProgress, faBoxesStacked, faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield } from "@fortawesome/free-solid-svg-icons";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
@@ -13,10 +13,7 @@ export const storageDirectoryList = [
   { name: "3D Models", icon: faCubes, path: "3d-models" },
 ];
 
-export const databaseDirectoryList = [
-  { name: "Collections", icon: faBoxesStacked, path: "database/collections" },
-  { name: "Records", icon: faBarsProgress, path: "database/records" },
-];
+// databaseDirectoryList removed — Database section now uses dynamic DB connections routing.
 
 export const apiDirectoryList = [
   { name: "API", icon: faCode, path: "connections/api" },

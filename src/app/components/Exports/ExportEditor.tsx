@@ -52,8 +52,13 @@ export const ExportEditor: React.FC = () => {
   const handleSchemaChange = useCallback((schema: { nodes: object[]; edges: object[] }) => {
     liveSchemaRef.current = schema;
     const edgesKey = (schema.edges as Array<{ id?: string }>).map(e => e.id ?? '').sort().join(',');
-    if (edgesKey !== prevEdgesKey.current) {
-      prevEdgesKey.current = edgesKey;
+    const filterKey = (schema.nodes as Array<{ id?: string; data?: Record<string, unknown> }>)
+      .filter(n => n.data?.filterConfig)
+      .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
+      .join('|');
+    const key = `${edgesKey}~~${filterKey}`;
+    if (key !== prevEdgesKey.current) {
+      prevEdgesKey.current = key;
       setSchemaVersion(v => v + 1);
     }
   }, []);
@@ -407,6 +412,7 @@ export const ExportEditor: React.FC = () => {
                                 onSave={handleNodeSave}
                                 onChange={handleSchemaChange}
                                 apiConnections={currentProject.data?.apiConnections || []}
+                                dbConnections={currentProject.data?.dbConnections || []}
                                 projectId={projectId}
                               />
                             )}

@@ -30,7 +30,6 @@ const Exports = lazy(() => import('./app/pages/Exports').then(module => ({ defau
 const Members = lazy(() => import('./app/pages/Members').then(module => ({ default: module.Members })));
 const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ default: module.Overview })));
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
-const Database = lazy(() => import('./app/pages/Database').then(module => ({ default: module.Database })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
@@ -52,6 +51,11 @@ const ApiConnectionEdit = lazy(() => import('./app/pages/ApiConnectionEdit').the
 const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
 const ApiConnectionDetail = lazy(() => import('./app/pages/ApiConnectionDetail').then(module => ({ default: module.ApiConnectionDetail })));
 const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
+const DatabaseConnections      = lazy(() => import('./app/pages/DatabaseConnections').then(module => ({ default: module.DatabaseConnections })));
+const DatabaseConnectionCreate = lazy(() => import('./app/pages/DatabaseConnectionCreate').then(module => ({ default: module.DatabaseConnectionCreate })));
+const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnectionDetail').then(module => ({ default: module.DatabaseConnectionDetail })));
+const DatabaseTableCreate      = lazy(() => import('./app/pages/DatabaseTableCreate').then(module => ({ default: module.DatabaseTableCreate })));
+const DatabaseRecords          = lazy(() => import('./app/pages/DatabaseRecords').then(module => ({ default: module.DatabaseRecords })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -103,7 +107,11 @@ function App() {
                   <Route path="/project/:id/storage/audios" element={<Audios />} />
                   <Route path="/project/:id/storage/3d-models" element={<ThreeDModels />} />
 
-                  <Route path="/project/:id/database" element={<Database />} />
+                  <Route path="/project/:id/database" element={<DatabaseConnections />} />
+                  <Route path="/project/:id/database/create" element={<DatabaseConnectionCreate />} />
+                  <Route path="/project/:id/database/:connId/create" element={<DatabaseTableCreate />} />
+                  <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
+                  <Route path="/project/:id/database/:connId" element={<DatabaseConnectionDetail />} />
 
                   <Route path="/project/:id/connections" element={<Api />} />
                   <Route path="/project/:id/connections/api" element={<ApiConnectionsList />} />
