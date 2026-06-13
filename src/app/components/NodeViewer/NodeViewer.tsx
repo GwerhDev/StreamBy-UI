@@ -331,6 +331,8 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
   const [panelTables, setPanelTables] = useState<string[]>([]);
   const [panelTablesLoading, setPanelTablesLoading] = useState(false);
+  const [panelRecords, setPanelRecords] = useState<Array<{ id: string; label: string }>>([]);
+  const [panelRecordsLoading, setPanelRecordsLoading] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterModalConfig, setFilterModalConfig] = useState<FilterNodeConfig>({ ...EMPTY_FILTER_CONFIG });
@@ -521,12 +523,19 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             { value: '', label: 'Select a table / collection' },
             ...panelTables.map(t => ({ value: t, label: t })),
           ];
+      const recordOptions = panelRecordsLoading
+        ? [{ value: '', label: 'Loading…' }]
+        : [
+            { value: '', label: 'All records' },
+            ...panelRecords.map(r => ({ value: r.id, label: r.label })),
+          ];
       return {
         title: 'Data Source',
         description: 'External database table or collection used by this export.',
         fields: [
           { key: 'connectionId', label: 'DB Connection',      value: (node.data.connectionId as string) || '', editable: true, inputType: 'select' as const, options: dbOptions },
           { key: 'tableName',    label: 'Table / Collection', value: (node.data.tableName as string) || (node.data.subtitle as string) || '', editable: true, inputType: 'select' as const, options: tableOptions },
+          { key: 'recordId',     label: 'Record',             value: (node.data.recordId as string) || '',    editable: true, inputType: 'select' as const, options: recordOptions },
         ],
       };
     }
@@ -560,7 +569,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
 
     return null;
-  }, [exportDetails, nodes, apiConnections, allDbConnections, panelTables, panelTablesLoading, editMode]);
+  }, [exportDetails, nodes, apiConnections, allDbConnections, panelTables, panelTablesLoading, panelRecords, panelRecordsLoading, editMode]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode   = nodes.find(n => n.id === selectedNodeId) ?? null;
@@ -586,6 +595,26 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       .finally(() => { if (!cancelled) setPanelTablesLoading(false); });
     return () => { cancelled = true; };
   }, [isDbSourceNode, selectedNodeId, localData.connectionId, projectId]);
+
+  useEffect(() => {
+    if (!isDbSourceNode || !projectId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    const connId  = (localData.connectionId as string) ?? (node?.data?.connectionId as string) ?? '';
+    const table   = (localData.tableName as string)    ?? (node?.data?.tableName as string)    ?? '';
+    if (!connId || !table) { setPanelRecords([]); return; }
+    let cancelled = false;
+    setPanelRecordsLoading(true);
+    fetchRecords(projectId, connId, table, 200).then(records => {
+      if (cancelled) return;
+      setPanelRecords(records.map((r: any) => {
+        const id = String(r._id ?? r.id ?? '');
+        const display = r.name || r.title || r.label || r.email || r.slug || r.key;
+        return { id, label: display ? `${display}` : id };
+      }));
+    }).catch(() => { if (!cancelled) setPanelRecords([]); })
+      .finally(() => { if (!cancelled) setPanelRecordsLoading(false); });
+    return () => { cancelled = true; };
+  }, [isDbSourceNode, selectedNodeId, localData.connectionId, localData.tableName, projectId, nodes]);
 
   const resetConnFetch = () => { setConnFetching(false); setConnResult(null); setConnError(null); };
   const handleNodeClick   = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
@@ -640,11 +669,12 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node?.type === 'dataSourceNode') {
       const connectionId = (localData.connectionId as string) ?? (node.data.connectionId as string) ?? '';
-      const tableName = (localData.tableName as string) ?? (node.data.tableName as string) ?? '';
+      const tableName    = (localData.tableName as string)    ?? (node.data.tableName as string)    ?? '';
+      const recordId     = (localData.recordId  as string)    ?? (node.data.recordId  as string)    ?? '';
       const dbConn = allDbConnections.find(c => c.id === connectionId);
       setNodes(prev => prev.map(n => n.id === selectedNodeId ? {
         ...n,
-        data: { ...n.data, connectionId, tableName, subtitle: tableName, ...(dbConn && { label: dbConn.name }) },
+        data: { ...n.data, connectionId, tableName, recordId, subtitle: tableName, ...(dbConn && { label: dbConn.name }) },
       } : n));
       setLocalData({});
       return;

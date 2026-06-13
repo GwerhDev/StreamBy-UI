@@ -56,7 +56,11 @@ export const ExportEditor: React.FC = () => {
       .filter(n => n.data?.filterConfig)
       .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
       .join('|');
-    const key = `${edgesKey}~~${filterKey}`;
+    const recordKey = (schema.nodes as Array<{ id?: string; type?: string; data?: Record<string, unknown> }>)
+      .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
+      .map(n => `${n.id}:${n.data!.recordId as string}`)
+      .join('|');
+    const key = `${edgesKey}~~${filterKey}~~${recordKey}`;
     if (key !== prevEdgesKey.current) {
       prevEdgesKey.current = key;
       setSchemaVersion(v => v + 1);

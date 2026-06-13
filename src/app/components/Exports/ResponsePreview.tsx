@@ -131,8 +131,11 @@ async function simulateLiveResponse(
       if (src.type === 'dataSourceNode') {
         const connectionId = src.data?.connectionId as string;
         const tableName    = src.data?.tableName as string;
+        const recordId     = src.data?.recordId   as string | undefined;
         if (!connectionId || !tableName) return null;
-        return fetchRecords(projectId, connectionId, tableName, 50);
+        const records = await fetchRecords(projectId, connectionId, tableName, 500);
+        if (recordId) return (records as any[]).find((r: any) => String(r._id ?? r.id ?? '') === recordId) ?? null;
+        return records;
       }
       return null;
     })
