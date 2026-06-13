@@ -83,7 +83,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
 
   const fetchCategory = useCallback((cat: StorageCategory) => {
     setLoading(true);
-    getStorageFiles(projectId, cat).then(files => {
+    getStorageFiles(projectId, 'builtin', cat).then(files => {
       setCache(prev => ({ ...prev, [cat]: files ?? [] }));
       setLoading(false);
     });
@@ -133,7 +133,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
     for (const file of files) {
       try {
         setUploadProgress(`Uploading ${file.name}…`);
-        const { url } = await getStorageUploadUrl(projectId, activeCategory, file.name, file.type);
+        const { url } = await getStorageUploadUrl(projectId, 'builtin', activeCategory, file.name, file.type);
         await uploadToPresignedUrl(url, file, file.type);
         succeeded++;
       } catch {

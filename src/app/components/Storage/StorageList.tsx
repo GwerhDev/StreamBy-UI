@@ -76,7 +76,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
             Upload
           </button>
         )}
-        {previewLimit && storageName && (
+        {previewLimit && connId && (
           <Link to={viewAllPath} className={s.viewAllLink}>
             View all
             <FontAwesomeIcon icon={faArrowRight} />
@@ -113,7 +113,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
               />
             </li>
           ))}
-          {previewLimit && files.length > previewLimit && storageName ? (
+          {previewLimit && files.length > previewLimit && connId ? (
             <li>
               <Link to={viewAllPath} className={s.viewAllCard}>
                 <FontAwesomeIcon icon={faArrowRight} className={s.uploadCardIcon} />
