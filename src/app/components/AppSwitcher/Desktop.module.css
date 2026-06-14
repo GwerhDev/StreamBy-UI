@@ -90,6 +90,7 @@
 }
 
 .item:hover {
+  background-color: transparent;
   border-color: var(--app-color);
   transform: translateY(-4px);
 }
