@@ -115,7 +115,18 @@ export type Session = {
   userId?: string;
   role?: string;
   profilePic?: string;
+  plan?: string;
 };
+
+export interface ExploreProject {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  memberCount: number;
+  isMember: boolean;
+  hasPendingRequest: boolean;
+}
 
 export interface Member {
   role: string;

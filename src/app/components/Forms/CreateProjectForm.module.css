@@ -104,3 +104,61 @@
   font-weight: 500;
   width: fit-content;
 }
+
+.visibilityField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.switchLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-light-400);
+}
+
+.switch {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: right 0.2s;
+}
+
+.switchOff {
+  background-color: var(--color-dark-400);
+}
+
+.switchOff::after {
+  right: auto;
+  left: 3px;
+}
+
+.switchDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.upgradeBadge {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  margin: 0;
+}

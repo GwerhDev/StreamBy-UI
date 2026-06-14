@@ -2,7 +2,7 @@ import s from './CreateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faGlobe, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faGlobe, faLock, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
@@ -25,16 +25,19 @@ export const CreateProjectForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
   const [allowedOrigin, setAllowedOrigin] = useState<string[]>([""]);
+  const [isPublic, setIsPublic] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const { loading, error } = useSelector((state: RootState) => state.management);
+  const session = useSelector((state: RootState) => state.session);
+  const isFreemium = session.plan === 'freemium';
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') });
+      const response = await createProject({ name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== ''), public: isPublic });
       const { projectId } = response || {};
 
       if (imageFile && projectId) {
@@ -144,6 +147,26 @@ export const CreateProjectForm = () => {
                   id="description-input" name="description-input" htmlFor="description-input"
                   value={description} onChange={e => setDescription(e.target.value)}
                 />
+              ),
+            },
+            {
+              icon: faLock,
+              label: 'Visibility',
+              value: null,
+              editComponent: (
+                <div className={s.visibilityField}>
+                  <label className={s.switchLabel}>
+                    <span>{isPublic ? 'Public' : 'Private'}</span>
+                    <button
+                      type="button"
+                      className={`${s.switch} ${!isPublic ? s.switchOff : ''} ${isFreemium ? s.switchDisabled : ''}`}
+                      onClick={() => !isFreemium && setIsPublic(v => !v)}
+                    />
+                  </label>
+                  {isFreemium && (
+                    <p className={s.upgradeBadge}>Private projects require a Subscriber plan</p>
+                  )}
+                </div>
               ),
             },
             {

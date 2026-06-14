@@ -1,8 +1,8 @@
 import s from './LateralTab.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { faBars, faRocket, faGear } from '@fortawesome/free-solid-svg-icons';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -24,6 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { ProjectButton } from '../Buttons/ProjectButton';
 import { ProfileButton } from '../Buttons/ProfileButton';
 import { AddProjectButton } from '../Buttons/AddProjectButton';
+import { ExploreButton } from '../Buttons/ExploreButton';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
 import { ProjectList, Session } from '../../../interfaces';
 import streambyIcon from '../../../assets/streamby-icon.svg';
@@ -61,7 +62,11 @@ const SortableProjectItem = ({ project }: { project: ProjectList }) => {
 export const LateralTab = (props: { projectList: ProjectsState, userData: Session }) => {
   const { projectList, userData } = props || {};
   const { loading: projectsLoading } = useSelector((state: RootState) => state.projects);
-  const { toggleMenu } = useEditorMenu();
+  const { toggleMenu, menuOpen } = useEditorMenu();
+  const { pathname } = useLocation();
+  const isProjectRoute = pathname.startsWith('/project/') && pathname !== '/project/create';
+  const isSettingsRoute = pathname.startsWith('/user/');
+  const menuIcon = isProjectRoute ? faBars : isSettingsRoute ? faGear : faRocket;
 
   const filteredList = projectList.list.filter((project: ProjectList) => !project.archived);
 
@@ -122,6 +127,11 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
     navigate("/user/archive");
   };
 
+  const handleGoExplore = () => {
+    dispatch(clearCurrentProject());
+    navigate('/explore');
+  };
+
   return (
     <div className={s.container}>
       <span className={s.iconContainer}>
@@ -154,11 +164,16 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
           )
         }
         <AddProjectButton onClick={handleOnclick} />
+        <ExploreButton onClick={handleGoExplore} />
       </ul>
 
       <ul className={s.user}>
-        <li className={s.archive} onClick={toggleMenu} title="Toggle menu">
-          <FontAwesomeIcon icon={faBars} />
+        <li
+          className={`${s.archive} ${menuOpen ? s.menuToggleActive : ''}`}
+          onClick={toggleMenu}
+          title="Toggle menu"
+        >
+          <FontAwesomeIcon icon={menuIcon} />
         </li>
 
         <li>

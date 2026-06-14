@@ -1,0 +1,23 @@
+.container {
+  margin: 0;
+  padding: 0;
+  width: 3rem;
+  height: 3rem;
+  aspect-ratio: 1/1;
+  border-radius: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-dark-400);
+  cursor: pointer;
+}
+
+.container:hover {
+  background-color: var(--color-dark-100);
+}
+
+.active {
+  color: var(--color-primary);
+  background-color: var(--color-dark-200);
+}

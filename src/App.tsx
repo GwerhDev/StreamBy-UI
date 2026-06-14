@@ -53,6 +53,7 @@ const DatabaseConnectionCreate = lazy(() => import('./app/pages/DatabaseConnecti
 const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnectionDetail').then(module => ({ default: module.DatabaseConnectionDetail })));
 const DatabaseTableCreate      = lazy(() => import('./app/pages/DatabaseTableCreate').then(module => ({ default: module.DatabaseTableCreate })));
 const DatabaseRecords          = lazy(() => import('./app/pages/DatabaseRecords').then(module => ({ default: module.DatabaseRecords })));
+const Explore                  = lazy(() => import('./app/pages/Explore').then(module => ({ default: module.Explore })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -73,6 +74,7 @@ function App() {
               <Route element={<DefaultLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/project/create" element={<ProjectCreate />} />
+                <Route path="/explore" element={<Explore />} />
                 <Route path="/user" element={<UserAccount />} />
                 <Route path="/user/archive" element={<UserArchive />} />
                 <Route element={<UserLayout />}>

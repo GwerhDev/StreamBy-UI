@@ -4,8 +4,24 @@ import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
 import { setProjects } from '../store/projectsSlice';
 import { setCurrentProject, setMembership } from '../store/currentProjectSlice';
+import { ExploreProject } from '../interfaces';
 
-export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[] }) {
+export async function exploreProjects(): Promise<ExploreProject[]> {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/explore`, { credentials: 'include' });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to explore projects');
+    }
+    const { projects } = await res.json();
+    return projects;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to explore projects.', type: 'error' }));
+    throw error;
+  }
+}
+
+export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public?: boolean }) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/create`, {
       method: 'POST',

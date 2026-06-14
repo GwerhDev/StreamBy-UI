@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faRocket, faBoxOpen, faFileExport, faPlug,
-  faBook, faCode, faClockRotateLeft, faUsers,
+  faBook, faCode, faClockRotateLeft, faUsers, faCompass,
 } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from './LateralMenu';
 import lm from './LateralMenu.module.css';
@@ -10,6 +10,7 @@ import s from './HomeMenu.module.css';
 
 const GETTING_STARTED = [
   { icon: faRocket,     label: 'Create a project',         to: '/project/create', soon: false },
+  { icon: faCompass,    label: 'Explore projects',         to: '/explore',        soon: false },
   { icon: faBoxOpen,    label: 'Upload your first asset',  to: null,              soon: true  },
   { icon: faFileExport, label: 'Create your first export', to: null,              soon: true  },
   { icon: faPlug,       label: 'Connect an API',           to: null,              soon: true  },
