@@ -497,7 +497,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       fields: [
         { key: 'name',     label: 'Export Name', value: exportDetails.name || '' },
         { key: 'method',   label: 'HTTP Method', value: exportDetails.method || 'GET' },
-        { key: 'endpoint', label: 'Endpoint',    value: `/streamby/${projectId}/get-export/${exportDetails.name}` },
+        { key: 'endpoint', label: 'Endpoint',    value: `/streamby/${projectId}/export/${exportDetails.name}` },
       ],
     };
 
@@ -1348,7 +1348,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             </div>
             <div className={s.configRow}>
               <label className={s.configLabel}>Endpoint</label>
-              <p className={s.configHint}>{`/streamby/${projectId}/get-export/${clientModalData.name || exportDetails.name || '…'}`}</p>
+              <p className={s.configHint}>{`/streamby/${projectId}/export/${clientModalData.name || exportDetails.name || '…'}`}</p>
             </div>
           </div>
           <div className={s.modalFooter}>

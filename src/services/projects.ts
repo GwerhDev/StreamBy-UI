@@ -339,6 +339,27 @@ export async function getStorages() {
   }
 }
 
+export async function updateProjectOrigins(projectId: string, origins: string[]) {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/origins`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ origins }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to update project origins');
+    }
+    const { project } = await res.json();
+    return project;
+  } catch (error: any) {
+    console.error(error);
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to update project origins.', type: 'error' }));
+    throw error;
+  }
+}
+
 export async function createCredential(projectId: string, key: string, value: string) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/credentials`, {

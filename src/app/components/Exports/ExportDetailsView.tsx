@@ -18,7 +18,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
-import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
+import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { ResponsePreview } from './ResponsePreview';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
@@ -68,7 +68,12 @@ export const ExportDetailsView: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!id || !exportId) { dispatch(setExportError('Project ID or Export ID is missing.')); return; }
+    if (!id || !exportId) {
+      dispatch(clearCurrentExport());
+      dispatch(setExportError('Project ID or Export ID is missing.'));
+      return;
+    }
+    dispatch(clearCurrentExport());
     const doFetch = async () => {
       dispatch(setExportLoading());
       try {
@@ -283,7 +288,7 @@ export const ExportDetailsView: React.FC = () => {
   if (error) return <div>Error: {error}</div>;
   if (!exportDetails) return <div>Export details not available.</div>;
 
-  const endpointPath = `/streamby/${id}/get-export/${exportDetails.name}`;
+  const endpointPath = `/streamby/${id}/export/${exportDetails.name}`;
   const fullEndpoint = `${API_BASE}${endpointPath}`;
 
   return (

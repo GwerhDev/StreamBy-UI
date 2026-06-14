@@ -1,24 +1,78 @@
 import s from "./ExportList.module.css";
 import skeleton from '../Loader/Skeleton.module.css';
-import { useSelector } from "react-redux";
+import { useState } from 'react';
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../store";
 import { Export } from "../../../interfaces";
 import { ExportCard } from "../Cards/ExportCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faFileExport } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faFileExport, faCode } from "@fortawesome/free-solid-svg-icons";
 import { ActionButton } from "../Buttons/ActionButton";
 import { SectionHeader } from "../SectionHeader/SectionHeader";
 import { EmptyBackground } from "../Backgrounds/EmptyBackground";
+import { DevModeModal } from "./DevModeModal";
+import { updateProjectOrigins } from "../../../services/projects";
+import { setCurrentProject } from "../../../store/currentProjectSlice";
+
+const LOCALHOST_RE = /^https?:\/\/localhost:(\d+)$/;
+
+function extractLocalhostPorts(origins: string[] = []): number[] {
+  return origins
+    .map(o => { const m = o.match(LOCALHOST_RE); return m ? parseInt(m[1], 10) : null; })
+    .filter((n): n is number => n !== null);
+}
 
 export function ExportList() {
+  const dispatch = useDispatch();
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
-  const { exports, id } = currentProjectData || {};
+  const { exports, id, allowedOrigin } = currentProjectData || {};
   const navigate = useNavigate();
+
+  const devModeActive = (allowedOrigin ?? []).some(o => LOCALHOST_RE.test(o));
+  const activePorts = extractLocalhostPorts(allowedOrigin);
+
+  const [showDevModal, setShowDevModal] = useState(false);
+  const [devLoading, setDevLoading] = useState(false);
 
   const handleCreateExport = () => {
     navigate(`/project/${id}/dashboard/exports/create`);
   };
+
+  const applyDevMode = async (active: boolean, ports: number[]) => {
+    if (!id) return;
+    setDevLoading(true);
+    try {
+      const baseOrigins = (allowedOrigin ?? []).filter(o => !LOCALHOST_RE.test(o));
+      const localhostOrigins = active ? ports.map(p => `http://localhost:${p}`) : [];
+      const newOrigins = [...baseOrigins, ...localhostOrigins];
+      const updatedProject = await updateProjectOrigins(id, newOrigins);
+      dispatch(setCurrentProject({ ...currentProjectData!, allowedOrigin: updatedProject?.allowedOrigin ?? newOrigins }));
+    } finally {
+      setShowDevModal(false);
+      setDevLoading(false);
+    }
+  };
+
+  const handleDevToggle = () => {
+    if (devModeActive) {
+      applyDevMode(false, []);
+    } else {
+      setShowDevModal(true);
+    }
+  };
+
+  const devToggleButton = exports?.length ? (
+    <button
+      className={`${s.devToggle} ${devModeActive ? s.devToggleActive : ''}`}
+      onClick={handleDevToggle}
+      disabled={devLoading}
+      title={devModeActive ? 'Deactivate Dev Mode' : 'Activate Dev Mode'}
+    >
+      <FontAwesomeIcon icon={faCode} />
+      {devModeActive ? 'Dev Mode ON' : 'Dev Mode'}
+    </button>
+  ) : undefined;
 
   return (
     <div className={s.container}>
@@ -26,9 +80,11 @@ export function ExportList() {
         icon={faFileExport}
         title="Exports"
         subtitle="Get started by creating a new export"
-        action={!currentProjectLoading && !exports?.length
-          ? <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
-          : undefined}
+        action={currentProjectLoading ? undefined : (
+          !exports?.length
+            ? <ActionButton icon={faPlus} text='Create export' onClick={handleCreateExport} />
+            : devToggleButton
+        )}
       />
       {currentProjectLoading ? (
         <ul>
@@ -54,6 +110,14 @@ export function ExportList() {
             </h4>
           </li>
         </ul>
+      )}
+
+      {showDevModal && (
+        <DevModeModal
+          initialPorts={activePorts}
+          onConfirm={ports => applyDevMode(true, ports)}
+          onClose={() => setShowDevModal(false)}
+        />
       )}
     </div>
   );

@@ -72,7 +72,7 @@ export async function updateExport(projectId: string, exportId: string, payload:
 }
 
 export async function previewExport(projectId: string, exportName: string) {
-  const res = await fetch(`${API_BASE}/streamby/${projectId}/get-export/${exportName}`, {
+  const res = await fetch(`${API_BASE}/streamby/${projectId}/export/${exportName}`, {
     method: 'GET',
     credentials: 'include',
   });

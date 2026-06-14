@@ -224,20 +224,26 @@ export const DbRecords = () => {
       {showInsert && (
         <div className={s.modalOverlay} onClick={() => setShowInsert(false)}>
           <div className={s.modal} onClick={e => e.stopPropagation()}>
-            <div className={s.modalTitle}><FontAwesomeIcon icon={faPlus} /> Insert record into <em>{tableName}</em></div>
-            <input
-              className={s.nameInput}
-              type="text"
-              placeholder="Display name (optional)"
-              value={insertName}
-              onChange={e => setInsertName(e.target.value)}
-            />
-            <JsonEditor
-              value={insertJson}
-              onChange={(str, _, valid) => { setInsertJson(str); setInsertValid(valid); }}
-              readOnly={false}
-              projectId={projectId}
-            />
+            <div className={s.modalHeader}>
+              <div className={s.modalTitle}><FontAwesomeIcon icon={faPlus} /> Insert record into <em>{tableName}</em></div>
+              <button className={s.modalClose} onClick={() => setShowInsert(false)}>×</button>
+            </div>
+            <div className={s.modalBody}>
+              <input
+                className={s.nameInput}
+                type="text"
+                placeholder="Display name (optional)"
+                value={insertName}
+                onChange={e => setInsertName(e.target.value)}
+              />
+              <JsonEditor
+                value={insertJson}
+                onChange={(str, _, valid) => { setInsertJson(str); setInsertValid(valid); }}
+                readOnly={false}
+                projectId={projectId}
+                className={s.modalJsonEditor}
+              />
+            </div>
             <div className={s.modalActions}>
               <ActionButton icon={faFloppyDisk} text={inserting ? 'Inserting…' : 'Insert'} disabled={!insertValid || inserting} onClick={handleInsert} />
               <ActionButton icon={faXmark} text="Cancel" onClick={() => setShowInsert(false)} />
@@ -250,20 +256,26 @@ export const DbRecords = () => {
       {editRecord && (
         <div className={s.modalOverlay} onClick={() => setEditRecord(null)}>
           <div className={s.modal} onClick={e => e.stopPropagation()}>
-            <div className={s.modalTitle}><FontAwesomeIcon icon={faPencil} /> Edit record</div>
-            <input
-              className={s.nameInput}
-              type="text"
-              placeholder="Display name (optional)"
-              value={editName}
-              onChange={e => setEditName(e.target.value)}
-            />
-            <JsonEditor
-              value={editJson}
-              onChange={(str, _, valid) => { setEditJson(str); setEditValid(valid); }}
-              readOnly={false}
-              projectId={projectId}
-            />
+            <div className={s.modalHeader}>
+              <div className={s.modalTitle}><FontAwesomeIcon icon={faPencil} /> Edit record</div>
+              <button className={s.modalClose} onClick={() => setEditRecord(null)}>×</button>
+            </div>
+            <div className={s.modalBody}>
+              <input
+                className={s.nameInput}
+                type="text"
+                placeholder="Display name (optional)"
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+              />
+              <JsonEditor
+                value={editJson}
+                onChange={(str, _, valid) => { setEditJson(str); setEditValid(valid); }}
+                readOnly={false}
+                projectId={projectId}
+                className={s.modalJsonEditor}
+              />
+            </div>
             <div className={s.modalActions}>
               <ActionButton icon={faFloppyDisk} text={saving ? 'Saving…' : 'Save'} disabled={!editValid || saving} onClick={handleEdit} />
               <ActionButton icon={faXmark} text="Cancel" onClick={() => setEditRecord(null)} />
@@ -275,8 +287,11 @@ export const DbRecords = () => {
       {/* Delete confirmation */}
       {deleteTarget && (
         <div className={s.modalOverlay} onClick={() => setDeleteTarget(null)}>
-          <div className={s.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
-            <div className={s.modalTitle}><FontAwesomeIcon icon={faTrash} /> Delete record</div>
+          <div className={s.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className={s.modalHeader}>
+              <div className={s.modalTitle}><FontAwesomeIcon icon={faTrash} /> Delete record</div>
+              <button className={s.modalClose} onClick={() => setDeleteTarget(null)}>×</button>
+            </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--color-light-300)', margin: 0 }}>
               Delete <strong>{getRecordLabel(deleteTarget)}</strong>? This cannot be undone.
             </p>
