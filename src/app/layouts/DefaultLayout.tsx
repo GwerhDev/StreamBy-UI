@@ -36,6 +36,7 @@ export default function DefaultLayout() {
         {APP_SWITCHER_URL && <Desktop />}
         <motion.div
           className='app-window'
+          data-minimized={minimized}
           onClick={minimized ? () => dispatch(setMinimized(false)) : undefined}
           animate={minimized
             ? { scale: 0.52, y: '-8%', borderRadius: 16 }
