@@ -26,6 +26,9 @@
   --color-danger-500: rgb(74, 33, 33);
 
   --background-color-dark: #1a1a1c;
+  --bg-elev: #202024;
+  --fg: oklch(0.94 0.003 0);
+  --font-sans: 'Poppins', -apple-system, system-ui, sans-serif;
   --background-color-light: #2f2f2f;
   --background-color-dark-transparency: #1e1e1ead;
   --background-gradient-color: linear-gradient(to right top, var(--background-color-dark), var(--background-color-light));

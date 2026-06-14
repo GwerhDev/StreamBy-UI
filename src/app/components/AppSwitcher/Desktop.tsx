@@ -41,10 +41,6 @@ export const Desktop = () => {
     }
   };
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) dispatch(setMinimized(false));
-  };
-
   const launcherContent = categories.length === 0
     ? Array.from({ length: 4 }, (_, i) => (
         <div key={i} className={s.skeletonItem}>
@@ -81,14 +77,7 @@ export const Desktop = () => {
 
   return (
     <>
-      {/* Dark background overlay — z-index 1, behind app-window */}
-      <div
-        className={s.desktop}
-        data-minimized={minimized}
-        aria-hidden={!minimized}
-        onClick={handleOverlayClick}
-      />
-      {/* Launcher — z-index 3, above app-window */}
+      <div className={s.desktop} data-minimized={minimized} aria-hidden={!minimized} />
       <div className={s.launcherWrapper}>
         <AnimatePresence>
           {minimized && (
