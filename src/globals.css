@@ -252,6 +252,26 @@ a:hover {
   color: rgb(180, 191, 206);
 }
 
+.app-window {
+  position: relative;
+  z-index: 2;
+  flex-grow: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-window[data-minimized="true"] {
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.app-window[data-minimized="true"] > * {
+  pointer-events: none;
+}
+
 .dashboard-container {
   width: 100vw;
   flex-grow: 1;

@@ -22,6 +22,7 @@
     "@nivo/pie": "^0.99.0",
     "@reduxjs/toolkit": "^2.6.1",
     "chart.js": "^4.5.0",
+    "framer-motion": "^12.40.0",
     "jsoneditor": "^10.2.0",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",

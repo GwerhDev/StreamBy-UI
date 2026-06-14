@@ -272,3 +272,17 @@ export interface StorageFile {
   uploadedBy: string;
   createdAt: string;
 }
+
+export interface SwitcherApp {
+  label: string;
+  url: string;
+  icon: string;
+  color?: string;
+  description?: string;
+}
+
+export interface SwitcherCategory {
+  id: string;
+  name: string;
+  apps: SwitcherApp[];
+}
