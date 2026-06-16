@@ -2,15 +2,20 @@
   gap: 1rem;
   width: 100%;
   max-width: 1024px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
 .statCard {
   width: 100%;
   background-color: var(--color-dark-300);
-  padding: 1.5rem;
+  padding: 1.5rem 1rem;
   border-radius: 1rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .clickable {
@@ -22,13 +27,25 @@
   background-color: var(--color-dark-200);
 }
 
+.readonly {
+  cursor: default;
+}
+
+.statIcon {
+  font-size: 1.1rem;
+  color: var(--color-light-400);
+  margin-bottom: 0.2rem;
+}
+
 .statCard h4 {
-  margin-bottom: 0.5rem;
-  color: var(--color-text-primary);
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-light-400);
 }
 
 .statCard p {
-  font-size: 2em;
+  font-size: 1.8em;
   font-weight: bold;
   color: var(--color-primary);
+  margin: 0;
 }
