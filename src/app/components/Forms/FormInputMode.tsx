@@ -8,17 +8,17 @@ import { faNetworkWired, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-
 
 // Props for the main component
 interface FormInputModeProps {
-  jsonData: any;
-  onJsonDataChange: (newData: any) => void;
+  jsonData: Record<string, unknown> | unknown[] | null;
+  onJsonDataChange: (newData: Record<string, unknown> | unknown[]) => void;
   jsonError: string | null;
 }
 
 // Props for the recursive field component
 interface JsonFieldProps {
   fieldKey: string | number;
-  fieldValue: any;
+  fieldValue: unknown;
   path: (string | number)[];
-  onUpdate: (path: (string | number)[], value: any) => void;
+  onUpdate: (path: (string | number)[], value: unknown) => void;
   onDelete: (path: (string | number)[]) => void;
   onKeyChange: (path: (string | number)[], newKey: string) => void;
   disabled: boolean;

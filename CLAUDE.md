@@ -195,6 +195,23 @@ src/
 
 ---
 
+## Testing
+
+Framework: **Vitest** + `@testing-library/react` + `happy-dom`.
+
+```bash
+npm run test        # watch mode
+npm run test:run    # single run (CI)
+npm run test:ui     # Vitest browser UI
+```
+
+- Test files: co-located with component — `ComponentName.test.tsx`
+- Setup file: `src/test/setup.ts` (imports `@testing-library/jest-dom` matchers)
+- Reference test: `src/app/components/Buttons/ActionButton.test.tsx`
+- Coverage minimum per component: renders, prop variants, user interactions, loading state, disabled/empty state
+
+---
+
 ## Conventions
 
 - Component and page names: **PascalCase**

@@ -24,6 +24,17 @@
   --color-danger-300: rgb(147, 63, 63);
   --color-danger-400: rgb(147, 63, 63);
   --color-danger-500: rgb(74, 33, 33);
+  --color-danger-text: #e0626f;
+  --color-danger-text-hover: #f07280;
+  --color-danger-subtle: rgba(220, 53, 69, 0.15);
+  --color-danger-subtle-border: rgba(220, 53, 69, 0.25);
+
+  --color-warning: #facc15;
+  --color-warning-subtle: rgba(250, 204, 21, 0.1);
+  --color-warning-subtle-border: rgba(250, 204, 21, 0.25);
+
+  --color-primary-subtle: rgba(56, 182, 255, 0.1);
+  --color-primary-subtle-border: rgba(56, 182, 255, 0.25);
 
   --background-color-dark: #1a1a1c;
   --bg-elev: #202024;

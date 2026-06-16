@@ -7,7 +7,7 @@ import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { LabeledSelect } from '../Selects/LabeledSelect';
+import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { faDiagramProject, faDatabase, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CustomForm } from './CustomForm';

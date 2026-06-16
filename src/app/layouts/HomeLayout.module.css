@@ -21,8 +21,12 @@
   letter-spacing: 0.05em;
   padding: 0.08rem 0.38rem;
   border-radius: 4px;
-  background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning-subtle-border);
   flex-shrink: 0;
+}
+
+.sectionGap {
+  margin-top: var(--size-2);
 }

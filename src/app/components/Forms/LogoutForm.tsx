@@ -3,7 +3,12 @@ import { PrimaryButton } from "../Buttons/PrimaryButton";
 import { SecondaryButton } from "../Buttons/SecondaryButton";
 import { faRightFromBracket, faXmark } from "@fortawesome/free-solid-svg-icons";
 
-export const LogoutForm = (props: any) => {
+interface LogoutFormProps {
+  handleLogout?: () => void;
+  handleCancelLogout?: () => void;
+}
+
+export const LogoutForm = (props: LogoutFormProps) => {
   const { handleLogout, handleCancelLogout } = props || {};
 
   return (

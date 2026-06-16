@@ -14,13 +14,15 @@ const initialState: ApiResponsesState = {
   responses: [],
 };
 
+let _nextId = 0;
+
 const apiResponsesSlice = createSlice({
   name: 'apiResponses',
   initialState,
   reducers: {
     addApiResponse: (state, action: PayloadAction<{ message: string; type: 'success' | 'error' }>) => {
       const newResponse: ApiResponse = {
-        id: Date.now().toString(), // Simple unique ID
+        id: (++_nextId).toString(),
         ...action.payload,
       };
       state.responses.push(newResponse);

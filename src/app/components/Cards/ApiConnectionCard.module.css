@@ -48,7 +48,7 @@
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
-  padding: 3px 7px;
+  padding: var(--size-1) var(--size-2);
   border-radius: 4px;
   background-color: var(--color-button-primary);
   color: white;

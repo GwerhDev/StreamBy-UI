@@ -1,10 +1,10 @@
 import s from './SecondaryButton.module.css';
-import { Icon } from '@fortawesome/fontawesome-svg-core';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface SecondaryButtonProps {
   text: string;
-  icon?: Icon | any;
+  icon?: IconDefinition;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   onClick?: (e: React.FormEvent) => void;

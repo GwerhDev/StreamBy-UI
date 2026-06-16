@@ -1,7 +1,11 @@
 import s from './AddProjectButton.module.css';
 import addIcon from '../../../assets/add-icon.svg';
 
-export const AddProjectButton = (props: any) => {
+interface AddProjectButtonProps {
+  onClick?: () => void;
+}
+
+export const AddProjectButton = (props: AddProjectButtonProps) => {
   const { onClick } = props || {};
 
   const handleOnClick = () => {

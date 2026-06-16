@@ -1,8 +1,18 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import s from './ActionButton.module.css';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-export const ActionButton = (props: any) => {
+interface ActionButtonProps {
+  text?: string;
+  onClick?: () => void;
+  icon?: IconDefinition;
+  disabled?: boolean;
+  href?: string;
+  isLoading?: boolean;
+}
+
+export const ActionButton = (props: ActionButtonProps) => {
   const { text, onClick, icon, disabled, href, isLoading } = props || {};
 
   const handleOnClick = () => {

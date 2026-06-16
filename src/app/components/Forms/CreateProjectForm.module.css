@@ -159,6 +159,6 @@
 
 .upgradeBadge {
   font-size: 0.75rem;
-  color: #f59e0b;
+  color: var(--color-warning);
   margin: 0;
 }

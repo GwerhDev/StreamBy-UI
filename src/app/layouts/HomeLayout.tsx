@@ -56,7 +56,7 @@ export default function HomeLayout() {
           ))}
         </ul>
 
-        <span className={lm.section} style={{ marginTop: '0.5rem' }}>
+        <span className={`${lm.section} ${s.sectionGap}`}>
           <h4>RESOURCES</h4>
         </span>
         <ul className={lm.menuList}>
