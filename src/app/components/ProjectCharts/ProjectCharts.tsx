@@ -1,11 +1,15 @@
 import s from './ProjectCharts.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ResponsivePie } from '@nivo/pie';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faHardDrive, faImage, faVideo, faMusic, faCube } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
+import { DbConnection, StorageConnection } from '../../../interfaces';
+import { fetchBuiltinDatabases } from '../../../services/database';
+import { fetchStorageConnections } from '../../../services/storageConnections';
 
 const STORAGE_MOCK = [
   { id: 'Images',   label: 'Images',   value: 0, color: 'var(--color-primary)' },
@@ -30,6 +34,28 @@ export const ProjectCharts = () => {
   const navigate = useNavigate();
 
   const id = currentProject?.id ?? '';
+
+  const [allDbConns, setAllDbConns] = useState<DbConnection[]>([]);
+  const [allStorageConns, setAllStorageConns] = useState<StorageConnection[]>([]);
+
+  useEffect(() => {
+    fetchBuiltinDatabases().then(builtins => {
+      const builtinConns: DbConnection[] = builtins.map(db => ({
+        id: db.name,
+        name: db.name,
+        dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
+        credentialId: '',
+        projectId: id,
+        isBuiltin: true,
+      }));
+      setAllDbConns([...builtinConns, ...(currentProject?.dbConnections ?? [])]);
+    });
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchStorageConnections(id).then(setAllStorageConns);
+  }, [id]);
 
   const memberRolesData = Object.entries(
     currentProject?.members?.reduce((acc: Record<string, number>, member) => {
@@ -71,7 +97,7 @@ export const ProjectCharts = () => {
     ],
   };
 
-  const hasStorage = (currentProject?.storageConnections?.length ?? 0) > 0;
+  const hasStorage = allStorageConns.length > 0;
   const storagePieData = hasStorage ? STORAGE_MOCK : STORAGE_PLACEHOLDER;
 
   return (
@@ -99,9 +125,9 @@ export const ProjectCharts = () => {
             <h4 className={loading ? skeleton.skeleton : ''}>{loading ? '' : 'Database'}</h4>
           </div>
           {!loading && (
-            (currentProject?.dbConnections?.length ?? 0) > 0 ? (
+            allDbConns.length > 0 ? (
               <ul className={s.connList}>
-                {currentProject!.dbConnections!.map(conn => (
+                {allDbConns.map(conn => (
                   <li key={conn.id} className={s.connRow}>
                     <span className={s.connName}>{conn.name}</span>
                     <span className={s.connBadge}>{DB_TYPE_LABEL[conn.dbType] ?? conn.dbType}</span>
