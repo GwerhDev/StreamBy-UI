@@ -8,8 +8,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faHardDrive, faImage, faVideo, faMusic, faCube } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { DbConnection, StorageConnection } from '../../../interfaces';
-import { fetchBuiltinDatabases } from '../../../services/database';
+import { fetchBuiltinDatabases, fetchTables } from '../../../services/database';
 import { fetchStorageConnections } from '../../../services/storageConnections';
+import { getStorageCategoryStats } from '../../../services/storage';
 
 // Literal colors — nivo cannot resolve CSS variables
 const STORAGE_CATEGORIES = [
@@ -19,8 +20,19 @@ const STORAGE_CATEGORIES = [
   { id: '3D Models', label: '3D Models', color: '#e05555', icon: faCube  },
 ];
 
-const STORAGE_MOCK_DATA = STORAGE_CATEGORIES.map(c => ({ id: c.id, label: c.label, value: 0 }));
 const STORAGE_EMPTY_DATA = [{ id: 'empty', label: '', value: 1 }];
+
+const CATEGORY_API_TO_UI: Record<string, string> = {
+  images: 'Images', videos: 'Videos', audios: 'Audio', '3d-models': '3D Models',
+};
+
+function formatBytes(b: number): string {
+  if (b === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(b) / Math.log(k));
+  return `${(b / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
 
 const DB_TYPE_LABEL: Record<string, string> = {
   postgresql: 'PostgreSQL',
@@ -36,10 +48,13 @@ export const ProjectCharts = () => {
   const [allStorageConns, setAllStorageConns] = useState<StorageConnection[]>([]);
   const [fetchingDb, setFetchingDb] = useState(true);
   const [fetchingStorage, setFetchingStorage] = useState(true);
+  const [storageStats, setStorageStats] = useState<Record<string, { count: number; size: number }>>({});
+  const [dbTableCounts, setDbTableCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    if (!id) return;
     setFetchingDb(true);
-    fetchBuiltinDatabases().then(builtins => {
+    fetchBuiltinDatabases().then(async builtins => {
       const builtinConns: DbConnection[] = builtins.map(db => ({
         id: db.name,
         name: db.name,
@@ -48,7 +63,16 @@ export const ProjectCharts = () => {
         projectId: id,
         isBuiltin: true,
       }));
-      setAllDbConns([...builtinConns, ...(currentProject?.dbConnections ?? [])]);
+      const allConns = [...builtinConns, ...(currentProject?.dbConnections ?? [])];
+      setAllDbConns(allConns);
+
+      const tableResults = await Promise.all(
+        allConns.map(async conn => {
+          const tables = await fetchTables(id, conn.id).catch(() => [] as string[]);
+          return [conn.id, tables.length] as const;
+        })
+      );
+      setDbTableCounts(Object.fromEntries(tableResults));
       setFetchingDb(false);
     });
   }, [id]);
@@ -56,8 +80,21 @@ export const ProjectCharts = () => {
   useEffect(() => {
     if (!id) return;
     setFetchingStorage(true);
-    fetchStorageConnections(id).then(conns => {
+    fetchStorageConnections(id).then(async conns => {
       setAllStorageConns(conns);
+
+      const statsPerConn = await Promise.all(conns.map(c => getStorageCategoryStats(id, c.id)));
+      const merged: Record<string, { count: number; size: number }> = {};
+      for (const connStats of statsPerConn) {
+        for (const [apiCat, vals] of Object.entries(connStats)) {
+          const uiId = CATEGORY_API_TO_UI[apiCat] ?? apiCat;
+          merged[uiId] = {
+            count: (merged[uiId]?.count ?? 0) + vals.count,
+            size: (merged[uiId]?.size ?? 0) + vals.size,
+          };
+        }
+      }
+      setStorageStats(merged);
       setFetchingStorage(false);
     });
   }, [id]);
@@ -70,7 +107,9 @@ export const ProjectCharts = () => {
   ).map(([id, value]) => ({ id, value }));
 
   const hasStorage = allStorageConns.length > 0;
-  const storagePieData = hasStorage ? STORAGE_MOCK_DATA : STORAGE_EMPTY_DATA;
+  const storagePieData = hasStorage
+    ? STORAGE_CATEGORIES.map(c => ({ id: c.id, label: c.label, value: storageStats[c.id]?.count ?? 0 }))
+    : STORAGE_EMPTY_DATA;
   const storagePieColors = hasStorage
     ? STORAGE_CATEGORIES.map(c => c.color)
     : ['#2f2f2f'];
@@ -141,6 +180,7 @@ export const ProjectCharts = () => {
                   <li key={conn.id} className={s.connRow}>
                     <span className={s.connName}>{conn.name}</span>
                     <span className={s.connBadge}>{DB_TYPE_LABEL[conn.dbType] ?? conn.dbType}</span>
+                    <span className={s.connTableCount}>{dbTableCounts[conn.id] ?? 0} tables</span>
                   </li>
                 ))}
               </ul>
@@ -188,7 +228,9 @@ export const ProjectCharts = () => {
                   <li key={cat} className={s.categoryRow}>
                     <FontAwesomeIcon icon={icon} style={{ color }} className={s.categoryIcon} />
                     <span className={s.categoryLabel}>{label}</span>
-                    <span className={s.categoryCount}>0 files</span>
+                    <span className={s.categoryCount}>
+                      {storageStats[cat]?.count ?? 0} files · {formatBytes(storageStats[cat]?.size ?? 0)}
+                    </span>
                   </li>
                 ))}
               </ul>

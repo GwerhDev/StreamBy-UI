@@ -114,6 +114,12 @@
   padding: 0.1rem 0.45rem;
 }
 
+.connTableCount {
+  font-size: 0.72rem;
+  color: var(--color-light-400);
+  margin-left: auto;
+}
+
 /* Storage layout */
 
 .storageLayout {

@@ -1,7 +1,7 @@
 import { API_BASE } from "../config/api";
 import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
-import { StorageCategory } from '../interfaces';
+import { StorageCategory, StorageFile } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
   `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
@@ -25,6 +25,20 @@ export async function getStorageFiles(projectId: string, connId: string, categor
     store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch storage files.', type: 'error' }));
     return [];
   }
+}
+
+export async function getStorageCategoryStats(
+  projectId: string,
+  connId: string
+): Promise<Record<string, { count: number; size: number }>> {
+  const categories: StorageCategory[] = ['images', 'audios', 'videos', '3d-models'];
+  const results = await Promise.all(
+    categories.map(async cat => {
+      const files: StorageFile[] = await getStorageFiles(projectId, connId, cat);
+      return { cat, count: files.length, size: files.reduce((s, f) => s + (f.size ?? 0), 0) };
+    })
+  );
+  return Object.fromEntries(results.map(r => [r.cat, { count: r.count, size: r.size }]));
 }
 
 export async function getStorageUploadUrl(projectId: string, connId: string, category: StorageCategory, fileName: string, contentType: string) {
