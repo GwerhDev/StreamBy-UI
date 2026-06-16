@@ -35,6 +35,21 @@ const ALL_TABS: TabId[] = ['nodes', 'response'];
 let _c = 0;
 const uid = () => `e${++_c}`;
 
+function schemaKey(nodeSchema: unknown): string {
+  if (!nodeSchema) return '';
+  const schema = nodeSchema as { nodes: Array<{ id?: string; type?: string; data?: Record<string, unknown> }>; edges: Array<{ id?: string }> };
+  const edgesKey = schema.edges.map(e => e.id ?? '').sort().join(',');
+  const filterKey = schema.nodes
+    .filter(n => n.data?.filterConfig)
+    .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
+    .join('|');
+  const recordKey = schema.nodes
+    .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
+    .map(n => `${n.id}:${n.data!.recordId as string}`)
+    .join('|');
+  return `${edgesKey}~~${filterKey}~~${recordKey}`;
+}
+
 export const ExportEditor: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -50,21 +65,14 @@ export const ExportEditor: React.FC = () => {
   const [isDragging,   setIsDragging]   = useState(false);
   const [dropTarget,   setDropTarget]   = useState<{ panelId: string; zone: 'top' | 'bottom' | 'left' | 'right' } | null>(null);
   const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
-  const prevEdgesKey  = useRef<string>('');
+  // Initialize from whatever is already in the slice — avoids false dirty when NodeViewer
+  // mounts immediately because a previous navigation left data in Redux.
+  const prevEdgesKey  = useRef<string>(schemaKey(exportDetails?.nodeSchema));
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
 
   const handleSchemaChange = useCallback((schema: { nodes: object[]; edges: object[] }) => {
     liveSchemaRef.current = schema;
-    const edgesKey = (schema.edges as Array<{ id?: string }>).map(e => e.id ?? '').sort().join(',');
-    const filterKey = (schema.nodes as Array<{ id?: string; data?: Record<string, unknown> }>)
-      .filter(n => n.data?.filterConfig)
-      .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
-      .join('|');
-    const recordKey = (schema.nodes as Array<{ id?: string; type?: string; data?: Record<string, unknown> }>)
-      .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
-      .map(n => `${n.id}:${n.data!.recordId as string}`)
-      .join('|');
-    const key = `${edgesKey}~~${filterKey}~~${recordKey}`;
+    const key = schemaKey(schema);
     if (key !== prevEdgesKey.current) {
       prevEdgesKey.current = key;
       setSchemaVersion(v => v + 1);
@@ -168,8 +176,12 @@ export const ExportEditor: React.FC = () => {
       dispatch(setExportLoading());
       try {
         const data = await getExport(projectId, exportId);
-        if (data) dispatch(setCurrentExport(data));
-        else dispatch(setExportError('Export not found.'));
+        if (data) {
+          prevEdgesKey.current = schemaKey(data.nodeSchema);
+          dispatch(setCurrentExport(data));
+        } else {
+          dispatch(setExportError('Export not found.'));
+        }
       } catch (err: unknown) {
         dispatch(setExportError((err as { message: string }).message || 'Failed to fetch export.'));
       }
@@ -177,22 +189,6 @@ export const ExportEditor: React.FC = () => {
     doFetch();
     //eslint-disable-next-line
   }, [projectId, exportId]);
-
-  // Seed prevEdgesKey from the loaded schema so the first onChange doesn't mark dirty
-  useEffect(() => {
-    if (!exportDetails?.nodeSchema) return;
-    const schema = exportDetails.nodeSchema as { nodes: Array<{ id?: string; type?: string; data?: Record<string, unknown> }>; edges: Array<{ id?: string }> };
-    const edgesKey = schema.edges.map(e => e.id ?? '').sort().join(',');
-    const filterKey = schema.nodes
-      .filter(n => n.data?.filterConfig)
-      .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
-      .join('|');
-    const recordKey = schema.nodes
-      .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
-      .map(n => `${n.id}:${n.data!.recordId as string}`)
-      .join('|');
-    prevEdgesKey.current = `${edgesKey}~~${filterKey}~~${recordKey}`;
-  }, [exportDetails?.id]);
 
   const exportForViewer = useMemo<Export | null>(() => {
     if (!exportDetails) return null;
