@@ -24,7 +24,7 @@ export const ProjectStats = ({ readonly }: ProjectStatsProps) => {
   const stats = [
     { icon: faUsers,      label: 'Members',          value: currentProject?.members?.length ?? 0,             path: `/project/${id}/dashboard/members` },
     { icon: faFileExport, label: 'Exports',           value: currentProject?.exports?.length ?? 0,             path: `/project/${id}/dashboard/exports` },
-    { icon: faDatabase,   label: 'DB Connections',    value: currentProject?.dbConnections?.length ?? 0,       path: `/project/${id}/database` },
+    { icon: faDatabase,   label: 'Database',          value: currentProject?.dbConnections?.length ?? 0,       path: `/project/${id}/database` },
     { icon: faHardDrive,  label: 'Storage',           value: currentProject?.storageConnections?.length ?? 0,  path: `/project/${id}/storage` },
     { icon: faPlug,       label: 'API Connections',   value: currentProject?.apiConnections?.length ?? 0,      path: `/project/${id}/api-connections` },
     { icon: faKey,        label: 'Credentials',       value: currentProject?.credentials?.length ?? 0,         path: null },

@@ -7,7 +7,7 @@
 
 .chartCard {
   width: 100%;
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: 1rem;
   text-align: center;
   background-color: var(--color-dark-300);
@@ -24,7 +24,138 @@
   color: var(--color-text-primary);
 }
 
-.chartPlaceholder {
+.emptyText {
+  color: var(--color-light-400);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Resource card (Database + Storage) ── */
+
+.resourceCard {
   width: 100%;
   border-radius: 1rem;
+  background-color: var(--color-dark-300);
+  overflow: hidden;
+}
+
+.resourceSection {
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.resourceSection:hover {
+  background-color: var(--color-dark-200);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-dark-400);
+  margin: 0;
+}
+
+.resourceHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.resourceHeader h4 {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.resourceIcon {
+  color: var(--color-primary);
+  font-size: 0.95rem;
+}
+
+/* Connection list */
+
+.connList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.connRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-dark-400);
+}
+
+.connName {
+  font-size: 0.82rem;
+  color: var(--color-light-200);
+}
+
+.connBadge {
+  font-size: 0.72rem;
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle, rgba(56, 182, 255, 0.1));
+  border: 1px solid rgba(56, 182, 255, 0.25);
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.45rem;
+}
+
+/* Storage layout */
+
+.storageLayout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.storagePie {
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+}
+
+.storageCategories {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.categoryIcon {
+  font-size: 0.8rem;
+  width: 14px;
+}
+
+.categoryLabel {
+  font-size: 0.8rem;
+  color: var(--color-light-200);
+  flex: 1;
+}
+
+.categoryCount {
+  font-size: 0.75rem;
+  color: var(--color-light-400);
+}
+
+.pieTooltip {
+  background: var(--color-dark-400);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--color-light-200);
 }
