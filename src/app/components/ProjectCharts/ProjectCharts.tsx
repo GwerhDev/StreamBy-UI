@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faHardDrive, faImage, faVideo, faMusic, faCube } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { DbConnection, StorageConnection } from '../../../interfaces';
-import { fetchBuiltinDatabases, fetchTables } from '../../../services/database';
+import { fetchTables } from '../../../services/database';
 import { fetchStorageConnections } from '../../../services/storageConnections';
 import { getStorageCategoryStats } from '../../../services/storage';
 
@@ -41,6 +41,7 @@ const DB_TYPE_LABEL: Record<string, string> = {
 
 export const ProjectCharts = () => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
+  const { databases: builtinDatabases } = useSelector((state: RootState) => state.management);
   const navigate = useNavigate();
   const id = currentProject?.id ?? '';
 
@@ -52,30 +53,29 @@ export const ProjectCharts = () => {
   const [dbTableCounts, setDbTableCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !builtinDatabases.length) return;
     setFetchingDb(true);
-    fetchBuiltinDatabases().then(async builtins => {
-      const builtinConns: DbConnection[] = builtins.map(db => ({
-        id: db.name,
-        name: db.name,
-        dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-        credentialId: '',
-        projectId: id,
-        isBuiltin: true,
-      }));
-      const allConns = [...builtinConns, ...(currentProject?.dbConnections ?? [])];
-      setAllDbConns(allConns);
+    const builtinConns: DbConnection[] = builtinDatabases.map(db => ({
+      id: db.name,
+      name: db.name,
+      dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
+      credentialId: '',
+      projectId: id,
+      isBuiltin: true,
+    }));
+    const allConns = [...builtinConns, ...(currentProject?.dbConnections ?? [])];
+    setAllDbConns(allConns);
 
-      const tableResults = await Promise.all(
-        allConns.map(async conn => {
-          const tables = await fetchTables(id, conn.id).catch(() => [] as string[]);
-          return [conn.id, tables.length] as const;
-        })
-      );
-      setDbTableCounts(Object.fromEntries(tableResults));
+    Promise.all(
+      allConns.map(async conn => {
+        const tables = await fetchTables(id, conn.id).catch(() => [] as string[]);
+        return [conn.id, tables.length] as const;
+      })
+    ).then(results => {
+      setDbTableCounts(Object.fromEntries(results));
       setFetchingDb(false);
     });
-  }, [id]);
+  }, [id, builtinDatabases]);
 
   useEffect(() => {
     if (!id) return;

@@ -11,7 +11,6 @@ import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export default function ProjectLayout() {
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const projects = useSelector((state: RootState) => state.projects);
   const session = useSelector((state: RootState) => state.session);
 
   const { id } = useParams();
@@ -23,7 +22,7 @@ export default function ProjectLayout() {
   const shouldHideBrowser = !isSmallScreen || location.pathname !== `/project/${id}`;
 
   useEffect(() => {
-    if (!id || projects.loading) return;
+    if (!id) return;
     (async () => {
       try {
         dispatch(setProjectLoading());
@@ -38,7 +37,7 @@ export default function ProjectLayout() {
         console.error('Error loading project:', err);
       }
     })();
-  }, [id, dispatch, navigate, projects.loading, session.userId]);
+  }, [id]);
 
   return (
     <>
