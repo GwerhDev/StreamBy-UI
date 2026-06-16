@@ -170,7 +170,15 @@
   transition: right 0.2s;
 }
 
+.switch:hover {
+  background-color: var(--color-primary);
+}
+
 .switchOff {
+  background-color: var(--color-dark-400);
+}
+
+.switchOff:hover {
   background-color: var(--color-dark-400);
 }
 
