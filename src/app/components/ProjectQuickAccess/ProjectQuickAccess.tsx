@@ -15,7 +15,7 @@ interface QuickLink {
 const LINKS: QuickLink[] = [
   { icon: faDatabase,  label: 'Database',        description: 'Browse tables and collections',  path: 'database' },
   { icon: faHardDrive, label: 'Storage',          description: 'Manage files and assets',        path: 'storage' },
-  { icon: faPlug,      label: 'API Connections',  description: 'External API integrations',      path: 'api-connections' },
+  { icon: faPlug,      label: 'API Connections',  description: 'External API integrations',      path: 'connections/api' },
   { icon: faUsers,     label: 'Members',          description: 'Manage team access',             path: 'dashboard/members' },
   { icon: faGear,      label: 'Settings',         description: 'Project configuration',          path: 'settings', adminOnly: true },
   { icon: faShield,    label: 'Permissions',      description: 'Allowed origins and access',     path: 'settings/permissions', adminOnly: true },
