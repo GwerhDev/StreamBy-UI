@@ -48,7 +48,7 @@ export const HomeMenu = () => {
       ))}
     </ul>
 
-    <span className={lm.section} style={{ marginTop: '0.5rem' }}><h4>RESOURCES</h4></span>
+    <span className={`${lm.section} ${s.sectionGap}`}><h4>RESOURCES</h4></span>
     <ul className={lm.menuList}>
       {RESOURCES.map(item => (
         <li key={item.label} className={s.disabled}>

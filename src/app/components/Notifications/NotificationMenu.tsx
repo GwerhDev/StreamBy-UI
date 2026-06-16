@@ -1,4 +1,4 @@
-import s from '../LateralMenu/LateralMenu.module.css';
+import s from './NotificationMenu.module.css';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -22,6 +22,13 @@ const TYPE_ICON = {
   warning: faTriangleExclamation,
   error: faCircleXmark,
   info: faCircleInfo,
+};
+
+const TYPE_ICON_CLASS = {
+  success: s.notifIconSuccess,
+  warning: s.notifIconWarning,
+  error: s.notifIconError,
+  info: s.notifIconInfo,
 };
 
 function getDisplayType(type: string): DisplayType {
@@ -90,16 +97,14 @@ export const NotificationMenu = () => {
     <div className={s.wrapper} style={{ width: `${menuWidth}px` }}>
       <div className={s.container}>
         <div className={s.titleButton}>
-          <span className={s.title} style={{ cursor: 'default' }}>
+          <span className={s.title}>
             <h4>Notifications</h4>
           </span>
         </div>
         <div className={s.outterMenuContainer}>
           <div className={s.menuContainer}>
             {notifications.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--color-light-400)', textAlign: 'center', marginTop: '1rem' }}>
-                No notifications
-              </p>
+              <p className={s.emptyText}>No notifications</p>
             ) : (
               <ul className={s.menuList}>
                 {notifications.map(n => {
@@ -108,25 +113,18 @@ export const NotificationMenu = () => {
                   return (
                     <li
                       key={n._id}
-                      className={isActive ? s.activeLink : ''}
+                      className={[s.notifRow, isActive ? s.activeLink : '', n.read ? s.notifRead : ''].filter(Boolean).join(' ')}
                       onClick={() => handleClick(n)}
-                      style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem', opacity: n.read ? 0.65 : 1 }}
                     >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+                      <span className={s.notifHeader}>
                         <FontAwesomeIcon
                           icon={TYPE_ICON[displayType]}
-                          style={{ fontSize: '0.75rem', flexShrink: 0, color: displayType === 'success' ? '#4ade80' : displayType === 'warning' ? '#facc15' : displayType === 'error' ? '#f87171' : '#60a5fa' }}
+                          className={`${s.notifIcon} ${TYPE_ICON_CLASS[displayType]}`}
                         />
-                        <span style={{ fontWeight: 600, fontSize: '0.8rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {getTitle(n.type)}
-                        </span>
-                        {!n.read && (
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0 }} />
-                        )}
+                        <span className={s.notifTitle}>{getTitle(n.type)}</span>
+                        {!n.read && <span className={s.notifDot} />}
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--color-light-400)', paddingLeft: '1.25rem' }}>
-                        {formatTime(n.createdAt)}
-                      </span>
+                      <span className={s.notifTime}>{formatTime(n.createdAt)}</span>
                     </li>
                   );
                 })}

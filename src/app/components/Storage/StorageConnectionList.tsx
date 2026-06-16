@@ -1,4 +1,4 @@
-import s from '../Database/Database.module.css';
+import s from './StorageConnectionList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';

@@ -31,7 +31,7 @@ export default function HomeLayout() {
   useEffect(() => { closeMenu(); }, []);
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+    <div className={s.shell}>
       <LateralMenu>
 
         <span className={lm.section}>

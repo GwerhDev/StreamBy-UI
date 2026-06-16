@@ -65,7 +65,7 @@
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-light-100);
   border: none;
   border-radius: 6px;
   font-size: 0.78rem;
@@ -87,11 +87,11 @@
 
 .fetchError {
   font-size: 0.78rem;
-  color: #f87171;
+  color: var(--color-danger-text);
   margin: 0;
   padding: 0.4rem 0.6rem;
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger-subtle-border);
   border-radius: 6px;
 }
 
@@ -107,7 +107,7 @@
 
 .resizeHandle {
   width: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-dark-400);
   position: relative;
   cursor: col-resize;
   transition: background 0.15s ease;
@@ -128,7 +128,7 @@
   width: 2px;
   height: 32px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .footer {
@@ -137,7 +137,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-dark-300);
   flex-shrink: 0;
   box-sizing: border-box;
 }

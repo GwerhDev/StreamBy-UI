@@ -1,3 +1,10 @@
+.shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .itemRow {
   display: flex;
   align-items: center;

@@ -84,7 +84,7 @@
 }
 
 .hide {
-  background: #000;
+  background: var(--background-color-dark);
 }
 
 .titleButton h4 {
@@ -137,7 +137,7 @@
   font-size: .875rem;
   font-weight: 400;
   border-radius: 4px;
-  color: rgb(199, 199, 199);
+  color: var(--color-light-200);
   display: flex;
   align-items: center;
   transition: background-color 0.1s ease, color 0.1s ease;
@@ -150,7 +150,7 @@
   gap: .75rem;
   font-size: .875rem;
   font-weight: 400;
-  color: rgb(199, 199, 199);
+  color: var(--color-light-200);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -176,7 +176,7 @@
 .serviceHeader:hover {
   cursor: pointer;
   color: var(--color-select-accent);
-  background-color: rgb(77, 77, 77);
+  background-color: var(--color-dark-100);
 }
 
 .serviceName:hover {
@@ -237,7 +237,7 @@
   border-radius: 4px;
   font-size: .875rem;
   font-weight: 400;
-  color: rgb(199, 199, 199);
+  color: var(--color-light-200);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.1s ease, color 0.1s ease;

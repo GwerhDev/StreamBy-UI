@@ -1,0 +1,165 @@
+.wrapper {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+}
+
+@media screen and (min-width: 1024px) {
+  .wrapper {
+    min-width: 160px;
+    max-width: 480px;
+    width: auto;
+  }
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-dark-900);
+  overflow: hidden;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.resizeHandle:hover {
+  background: var(--color-button-primary, #38B6FF);
+}
+
+.titleButton {
+  width: 100%;
+  height: 35px;
+  display: flex;
+  position: relative;
+}
+
+.title {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  padding-inline: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: transparent;
+  border-bottom: solid .5px var(--color-dark-300);
+  color: var(--color-light-300);
+  cursor: default;
+}
+
+.outterMenuContainer {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuContainer {
+  gap: .6rem;
+  flex-grow: 1;
+  min-height: 0;
+  padding: .75rem;
+  display: flex;
+  overflow-y: auto;
+  flex-direction: column;
+}
+
+.menuList {
+  gap: .15rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuList li {
+  width: 100%;
+  gap: .75rem;
+  padding: .28rem .5rem;
+  font-size: .875rem;
+  font-weight: 400;
+  border-radius: 4px;
+  color: var(--color-light-200);
+  display: flex;
+  align-items: center;
+  transition: background-color 0.1s ease, color 0.1s ease;
+  overflow: hidden;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.menuList li:hover {
+  background-color: var(--color-dark-100);
+}
+
+.menuList li.activeLink {
+  background-color: var(--color-dark-100);
+  color: var(--color-select-accent);
+}
+
+.notifRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+}
+
+.notifHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.notifIcon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.notifIconSuccess { color: var(--color-success); }
+.notifIconWarning { color: var(--color-warning); }
+.notifIconError { color: var(--color-danger-text); }
+.notifIconInfo { color: #60a5fa; }
+
+.notifTitle {
+  font-weight: 600;
+  font-size: 0.8rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.notifTime {
+  font-size: 0.7rem;
+  color: var(--color-light-400);
+  padding-left: 1.25rem;
+}
+
+.notifRead {
+  opacity: 0.65;
+}
+
+.emptyText {
+  font-size: 0.8rem;
+  color: var(--color-light-400);
+  text-align: center;
+  margin-top: 1rem;
+}

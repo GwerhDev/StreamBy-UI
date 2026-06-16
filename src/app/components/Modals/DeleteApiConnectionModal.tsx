@@ -1,4 +1,4 @@
-import form from './DeleteApiConnectionModal.module.css';
+import s from './DeleteApiConnectionModal.module.css';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -46,7 +46,7 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
 
   return (
     <ModalShell title={`Delete ${connectionName}`} onClose={onClose}>
-      <form onSubmit={handleSubmit} className={form.container}>
+      <form onSubmit={handleSubmit} className={s.container}>
         <p>Confirm that you want to delete this connection</p>
         <LabeledInput
           type="text"
@@ -58,7 +58,7 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
           htmlFor="confirm-delete"
           placeholder=""
         />
-        <div className={form.buttonContainer}>
+        <div className={s.buttonContainer}>
           <PrimaryButton type="submit" disabled={confirmText !== connectionName || loader} icon={faTrash} text="Delete" />
           <SecondaryButton disabled={loader} icon={faXmark} onClick={onClose} text="Cancel" />
         </div>

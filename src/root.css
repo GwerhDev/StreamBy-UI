@@ -33,6 +33,11 @@
   --color-warning-subtle: rgba(250, 204, 21, 0.1);
   --color-warning-subtle-border: rgba(250, 204, 21, 0.25);
 
+  --color-success: #4ade80;
+  --color-success-subtle: rgba(74, 222, 128, 0.08);
+  --color-success-subtle-border: rgba(74, 222, 128, 0.2);
+  --color-success-hover: rgba(74, 222, 128, 0.2);
+
   --color-primary-subtle: rgba(56, 182, 255, 0.1);
   --color-primary-subtle-border: rgba(56, 182, 255, 0.25);
 

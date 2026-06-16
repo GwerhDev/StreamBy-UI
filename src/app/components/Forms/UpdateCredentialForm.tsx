@@ -5,7 +5,7 @@ import { RootState } from '../../../store';
 import { fetchCredential, updateCredential } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 
-import styles from './UpdateCredentialForm.module.css';
+import s from './UpdateCredentialForm.module.css';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -83,9 +83,9 @@ export const UpdateCredentialForm: React.FC = () => {
   const isDisabled = loading || !key || !value || !isFormDirty;
 
   return (
-    <div className={styles.container}> {/* Use container from UpdateExportForm */}
+    <div className={s.container}> {/* Use container from UpdateExportForm */}
       <form onSubmit={handleSubmit}>
-        <div className={styles.formContainer}>
+        <div className={s.formContainer}>
           <Spinner bg isLoading={loading} />
           <h3>Update Credential</h3>
           <p>Fill the form to update credential {initialCredential?.key}</p>
@@ -113,7 +113,7 @@ export const UpdateCredentialForm: React.FC = () => {
             disabled={loading}
           />
         </div>
-        <span className={styles.buttonContainer}>
+        <span className={s.buttonContainer}>
           <ActionButton disabled={isDisabled} icon={faKey} text="Update" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>

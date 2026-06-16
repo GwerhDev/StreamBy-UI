@@ -54,7 +54,7 @@
     z-index: 200;
     display: flex;
     position: absolute;
-    background: #000;
+    background: var(--background-color-dark);
   }
 
   .floatingCard {
@@ -150,9 +150,9 @@
   gap: 0.4rem;
   padding: 0.4rem 0.9rem;
   border-radius: 6px;
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  background: rgba(74, 222, 128, 0.08);
-  color: #4ade80;
+  border: 1px solid var(--color-success-subtle-border);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -160,7 +160,7 @@
 }
 
 .acceptBtn:hover {
-  background: rgba(74, 222, 128, 0.2);
+  background: var(--color-success-hover);
 }
 
 .rejectBtn {
@@ -169,9 +169,9 @@
   gap: 0.4rem;
   padding: 0.4rem 0.9rem;
   border-radius: 6px;
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  background: rgba(248, 113, 113, 0.06);
-  color: #f87171;
+  border: 1px solid var(--color-danger-subtle-border);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-text);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -179,5 +179,5 @@
 }
 
 .rejectBtn:hover {
-  background: rgba(248, 113, 113, 0.18);
+  background: rgba(220, 53, 69, 0.18);
 }
