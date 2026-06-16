@@ -23,6 +23,7 @@ export const Browser = (props: BrowserProps) => {
   const { projectId } = useParams<{ projectId: string }>();
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
   const currentExport = useSelector((state: RootState) => state.currentExport.data);
+  const storages = useSelector((state: RootState) => state.management.storages);
 
 
   const isPending = membership?.isMember && membership?.status === 'pending';
@@ -58,8 +59,18 @@ export const Browser = (props: BrowserProps) => {
 
   const isMongoId = (seg: string) => /^[a-f0-9]{24}$/.test(seg);
 
+  const resolveBuiltinStorageName = (seg: string): string | null => {
+    const match = seg === 'builtin' ? 0 : /^builtin-(\d+)$/.exec(seg)?.[1];
+    if (match === undefined || match === null) return null;
+    return storages[Number(match)]?.name ?? null;
+  };
+
   const formatSegment = (seg: string) => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
+    const storageName = resolveBuiltinStorageName(seg);
+    if (storageName) return storageName.toLowerCase();
+    const storageConn = currentProject?.storageConnections?.find(c => c.id === seg);
+    if (storageConn) return storageConn.name.toLowerCase();
     return seg.replace(/[_-]/g, ' ');
   };
 

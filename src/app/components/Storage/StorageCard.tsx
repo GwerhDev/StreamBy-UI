@@ -3,15 +3,17 @@ import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
-  faXmark, faCopy, faCheck, faEye, faPencil,
+  faXmark, faCopy, faCheck, faEye, faPencil, faArrowsRotate,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
+import { ReplaceModal } from '../Modals/ReplaceModal';
 
 interface StorageCardProps {
   file: StorageFile;
   category: StorageCategory;
   onDelete: (id: string) => void;
   onRename?: (id: string, displayName: string) => Promise<void>;
+  onReplace?: (id: string, file: File) => Promise<void>;
   selected?: boolean;
   onSelect?: (file: StorageFile) => void;
 }
@@ -33,7 +35,7 @@ const categoryIcon = {
 const CTX_W = 188;
 const CTX_H = 200;
 
-export function StorageCard({ file, category, onDelete, onRename, selected: controlledSelected, onSelect }: StorageCardProps) {
+export function StorageCard({ file, category, onDelete, onRename, onReplace, selected: controlledSelected, onSelect }: StorageCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(false);
   const isControlled = onSelect !== undefined;
@@ -45,6 +47,7 @@ export function StorageCard({ file, category, onDelete, onRename, selected: cont
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const menuRef = useRef<HTMLUListElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
@@ -226,6 +229,15 @@ export function StorageCard({ file, category, onDelete, onRename, selected: cont
               Rename
             </li>
           )}
+          {onReplace && (
+            <li
+              className={s.ctxItem}
+              onClick={() => { closeCtx(); setReplaceModalOpen(true); }}
+            >
+              <FontAwesomeIcon icon={faArrowsRotate} className={s.ctxIcon} />
+              Replace
+            </li>
+          )}
           <li className={s.ctxDivider} />
           <li
             className={`${s.ctxItem} ${ctxConfirmDelete ? s.ctxItemConfirm : s.ctxItemDanger}`}
@@ -283,6 +295,16 @@ export function StorageCard({ file, category, onDelete, onRename, selected: cont
                 <FontAwesomeIcon icon={faDownload} />
                 Download
               </a>
+              {onReplace && (
+                <button
+                  className={s.previewActionBtn}
+                  onClick={() => setReplaceModalOpen(true)}
+                  title="Replace file (keeps same URL)"
+                >
+                  <FontAwesomeIcon icon={faArrowsRotate} />
+                  Replace
+                </button>
+              )}
               {onRename && (
                 <button
                   className={s.previewActionBtn}
@@ -305,6 +327,15 @@ export function StorageCard({ file, category, onDelete, onRename, selected: cont
             </div>
           </div>
         </div>
+      )}
+
+      {replaceModalOpen && onReplace && (
+        <ReplaceModal
+          file={file}
+          category={category}
+          onConfirm={picked => onReplace(file.id, picked)}
+          onClose={() => setReplaceModalOpen(false)}
+        />
       )}
     </>
   );

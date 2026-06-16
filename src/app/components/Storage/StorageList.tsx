@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
-import { getStorageFiles, deleteStorageFile, renameStorageFile } from '../../../services/storage';
+import { getStorageFiles, deleteStorageFile, renameStorageFile, getStorageReplaceUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
 
@@ -53,6 +53,13 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
     if (!projectId || !connId) return;
     const file = await renameStorageFile(projectId, connId, id, displayName);
     if (file) setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
+  };
+
+  const handleReplace = async (id: string, file: File) => {
+    if (!projectId || !connId) return;
+    const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
+    await uploadToPresignedUrl(url, file, file.type);
+    await fetchFiles();
   };
 
   const handleUploadSuccess = () => {
@@ -110,6 +117,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
                 category={category}
                 onDelete={handleDelete}
                 onRename={handleRename}
+                onReplace={handleReplace}
               />
             </li>
           ))}

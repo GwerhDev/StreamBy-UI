@@ -94,6 +94,32 @@ export async function renameStorageFile(projectId: string, connId: string, fileI
   }
 }
 
+export async function getStorageReplaceUrl(
+  projectId: string,
+  connId: string,
+  fileId: string,
+  contentType: string,
+  fileName: string,
+) {
+  try {
+    const params = new URLSearchParams({ contentType, fileName });
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}/replace-url?${params}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Failed to get replace URL');
+    }
+
+    return await res.json() as { url: string; storageKey: string; fileId: string };
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to get replace URL.', type: 'error' }));
+    throw error;
+  }
+}
+
 export async function deleteStorageFile(projectId: string, connId: string, fileId: string) {
   try {
     const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}`, {

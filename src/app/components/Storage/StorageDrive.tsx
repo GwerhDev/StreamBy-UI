@@ -9,7 +9,7 @@ import { StorageFile, StorageCategory } from '../../../interfaces';
 import { RootState } from '../../../store';
 import { StorageCard } from './StorageCard';
 import { getRecentFiles } from '../../../services/storageDrive';
-import { deleteStorageFile, renameStorageFile } from '../../../services/storage';
+import { deleteStorageFile, renameStorageFile, getStorageReplaceUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
 const CATEGORIES = [
@@ -47,6 +47,13 @@ export const StorageDrive = () => {
     if (!projectId || !connId) return;
     const file = await renameStorageFile(projectId, connId, id, displayName);
     if (file) setRecentFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
+  };
+
+  const handleReplace = async (id: string, file: File) => {
+    if (!projectId || !connId) return;
+    const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
+    await uploadToPresignedUrl(url, file, file.type);
+    await fetchRecent();
   };
 
   return (
@@ -96,6 +103,7 @@ export const StorageDrive = () => {
                   category={file.category as StorageCategory}
                   onDelete={handleDelete}
                   onRename={handleRename}
+                  onReplace={handleReplace}
                 />
               </li>
             ))}
