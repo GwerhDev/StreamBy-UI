@@ -1,0 +1,8 @@
+.empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-light-400);
+  font-size: 0.875rem;
+}

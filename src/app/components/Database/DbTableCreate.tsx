@@ -88,7 +88,7 @@ export const DbTableCreate = () => {
         />
 
         {!isMongo && (
-          <div style={{ width: '100%', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className={s.columnSection}>
             <p className={s.sectionLabel}>Columns</p>
 
             <div className={s.columnBuilder}>
@@ -128,7 +128,7 @@ export const DbTableCreate = () => {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+        <div className={s.formActions}>
           <ActionButton disabled={isDisabled} icon={faTableColumns} text={`Create ${entity}`} type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
         </div>

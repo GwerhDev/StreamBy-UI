@@ -190,14 +190,10 @@ export const UpdateProjectForm = () => {
                         htmlFor={`allowed-origin-${index}`}
                         value={origin} onChange={e => handleAllowedOriginChange(index, e.target.value)}
                       />
-                      <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
-                        <FontAwesomeIcon icon={faXmark} />
-                      </button>
+                      <SecondaryButton type="button" icon={faXmark} onClick={() => handleRemoveAllowedOrigin(index)} />
                     </div>
                   ))}
-                  <button type="button" onClick={handleAddAllowedOrigin}>
-                    <FontAwesomeIcon icon={faPlus} /> Add Origin
-                  </button>
+                  <SecondaryButton type="button" icon={faPlus} text="Add Origin" onClick={handleAddAllowedOrigin} />
                 </div>
               ),
             },

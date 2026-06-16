@@ -1,0 +1,56 @@
+.empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-light-400);
+  font-size: 0.875rem;
+}
+
+.container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icon {
+  font-size: 1.25rem;
+}
+
+.iconSuccess { color: var(--color-success); }
+.iconWarning { color: var(--color-warning); }
+.iconError   { color: var(--color-danger-text); }
+.iconInfo    { color: #60a5fa; }
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-light-100);
+  margin: 0;
+}
+
+.message {
+  font-size: 0.875rem;
+  color: var(--color-light-300);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.time {
+  font-size: 0.72rem;
+  color: var(--color-light-400);
+}
+
+.callback {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  text-decoration: underline;
+}

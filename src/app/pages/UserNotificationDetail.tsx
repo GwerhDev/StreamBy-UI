@@ -1,3 +1,4 @@
+import s from './UserNotificationDetail.module.css';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,11 +19,11 @@ const TYPE_ICON = {
   info: faCircleInfo,
 };
 
-const TYPE_COLOR = {
-  success: '#4ade80',
-  warning: '#facc15',
-  error: '#f87171',
-  info: '#60a5fa',
+const TYPE_ICON_CLASS = {
+  success: s.iconSuccess,
+  warning: s.iconWarning,
+  error:   s.iconError,
+  info:    s.iconInfo,
 };
 
 function getDisplayType(type: string): DisplayType {
@@ -46,19 +47,11 @@ export const UserNotificationDetail = () => {
   }, [id, dispatch]);
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: 'var(--color-light-400)', fontSize: '0.875rem' }}>
-        Loading...
-      </div>
-    );
+    return <div className={s.empty}>Loading...</div>;
   }
 
   if (error || !data) {
-    return (
-      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: 'var(--color-light-400)', fontSize: '0.875rem' }}>
-        Notification not found.
-      </div>
-    );
+    return <div className={s.empty}>Notification not found.</div>;
   }
 
   if (data.type === 'member_invited') {
@@ -66,32 +59,20 @@ export const UserNotificationDetail = () => {
   }
 
   const displayType = getDisplayType(data.type);
-  const color = TYPE_COLOR[displayType];
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 640 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <FontAwesomeIcon icon={TYPE_ICON[displayType]} style={{ fontSize: '1.25rem', color }} />
-        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-light-100)', margin: 0 }}>
-          {getTitle(data.type)}
-        </h3>
+    <div className={s.container}>
+      <div className={s.header}>
+        <FontAwesomeIcon icon={TYPE_ICON[displayType]} className={`${s.icon} ${TYPE_ICON_CLASS[displayType]}`} />
+        <h3 className={s.title}>{getTitle(data.type)}</h3>
       </div>
 
-      <p style={{ fontSize: '0.875rem', color: 'var(--color-light-300)', lineHeight: 1.6, margin: 0 }}>
-        {data.message}
-      </p>
+      <p className={s.message}>{data.message}</p>
 
-      <small style={{ fontSize: '0.72rem', color: 'var(--color-light-400)' }}>
-        {new Date(data.createdAt).toLocaleString()}
-      </small>
+      <small className={s.time}>{new Date(data.createdAt).toLocaleString()}</small>
 
       {data.callback && (
-        <a
-          href={data.callback}
-          style={{ fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'underline' }}
-        >
-          Go to resource
-        </a>
+        <a href={data.callback} className={s.callback}>Go to resource</a>
       )}
     </div>
   );

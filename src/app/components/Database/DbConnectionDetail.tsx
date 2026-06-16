@@ -9,6 +9,7 @@ import { RootState } from '../../../store';
 import { fetchTables, deleteTable } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ExternalDbType } from '../../../interfaces';
 
@@ -83,7 +84,7 @@ export const DbConnectionDetail = () => {
       {loading ? (
         <div className={s.tableGrid}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`${s.tableCard} ${skeleton.skeleton}`} style={{ height: '3.5rem' }} />
+            <div key={i} className={`${s.tableCard} ${s.cardSkeletonSm} ${skeleton.skeleton}`} />
           ))}
         </div>
       ) : tables.length === 0 ? (
@@ -111,10 +112,10 @@ export const DbConnectionDetail = () => {
         <div className={s.modalOverlay} onClick={closeDeleteModal}>
           <div className={s.modal} onClick={e => e.stopPropagation()}>
             <div className={s.modalTitle}>
-              <FontAwesomeIcon icon={faTrash} style={{ color: 'var(--color-danger-200, #f87171)' }} />
+              <FontAwesomeIcon icon={faTrash} className={s.modalDangerIcon} />
               Delete {itemLabel}
             </div>
-            <p style={{ fontSize: '0.88rem', color: 'var(--color-light-300)', margin: 0 }}>
+            <p className={s.modalConfirmText}>
               Type <strong>{pendingDelete}</strong> to confirm deletion. This action cannot be undone.
             </p>
             <input
@@ -126,18 +127,13 @@ export const DbConnectionDetail = () => {
               autoFocus
             />
             <div className={s.modalActions}>
-              <button
-                type="button"
-                className={s.deleteBtn}
+              <ActionButton
+                icon={faTrash}
+                text={deleteLoading ? 'Deleting…' : 'Delete'}
                 onClick={handleDelete}
                 disabled={deleteConfirm !== pendingDelete || deleteLoading}
-                style={{ padding: '0.5rem 1rem', opacity: deleteConfirm !== pendingDelete ? 0.4 : 1 }}
-              >
-                <FontAwesomeIcon icon={faTrash} /> {deleteLoading ? 'Deleting…' : 'Delete'}
-              </button>
-              <button type="button" className={s.deleteBtn} onClick={closeDeleteModal} style={{ padding: '0.5rem 1rem', color: 'var(--color-light-300)' }}>
-                <FontAwesomeIcon icon={faXmark} /> Cancel
-              </button>
+              />
+              <SecondaryButton icon={faXmark} text="Cancel" onClick={closeDeleteModal} />
             </div>
           </div>
         </div>

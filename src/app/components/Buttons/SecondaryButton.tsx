@@ -3,7 +3,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface SecondaryButtonProps {
-  text: string;
+  text?: string;
   icon?: IconDefinition;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
