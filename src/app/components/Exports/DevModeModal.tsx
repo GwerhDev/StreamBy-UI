@@ -3,6 +3,8 @@ import { useState, useRef, KeyboardEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCode, faXmark, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { ModalShell } from '../Modals/ModalShell';
 
 const DEFAULT_PORTS = [3000, 5173, 8080, 4200];
 
@@ -39,49 +41,46 @@ export function DevModeModal({ initialPorts, onConfirm, onClose }: DevModeModalP
   };
 
   return (
-    <div className={s.modalOverlay} onClick={onClose}>
-      <div className={s.modal} onClick={e => e.stopPropagation()}>
-        <div className={s.modalHeader}>
-          <div className={s.modalTitle}>
-            <FontAwesomeIcon icon={faCode} /> Dev Mode
-          </div>
-          <button className={s.modalClose} onClick={onClose}>×</button>
-        </div>
-        <div className={s.modalBody}>
-          <p className={s.description}>
-            Localhost requests from these ports will be allowed as CORS origins for all exports while Dev Mode is active.
-          </p>
-          <div className={s.portTags} onClick={() => inputRef.current?.focus()}>
-            {ports.map(port => (
-              <span key={port} className={s.portTag}>
-                :{port}
-                <button
-                  className={s.removeTag}
-                  onClick={e => { e.stopPropagation(); setPorts(prev => prev.filter(p => p !== port)); }}
-                >
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </span>
-            ))}
-          </div>
-          <input
-            ref={inputRef}
-            className={s.portInput}
-            type="number"
-            min={1}
-            max={65535}
-            placeholder="Add port (press Enter)"
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-          />
-        </div>
-        <div className={s.modalActions}>
+    <ModalShell
+      title="Dev Mode"
+      icon={faCode}
+      onClose={onClose}
+      overlayClassName={s.elevated}
+      footer={
+        <>
+          <SecondaryButton icon={faXmark} text="Cancel" onClick={onClose} />
           <ActionButton icon={faCheck} text="Activate" onClick={() => onConfirm(ports)} disabled={ports.length === 0} />
-          <ActionButton icon={faXmark} text="Cancel" onClick={onClose} />
-        </div>
+        </>
+      }
+    >
+      <p className={s.description}>
+        Localhost requests from these ports will be allowed as CORS origins for all exports while Dev Mode is active.
+      </p>
+      <div className={s.portTags} onClick={() => inputRef.current?.focus()}>
+        {ports.map(port => (
+          <span key={port} className={s.portTag}>
+            :{port}
+            <button
+              className={s.removeTag}
+              onClick={e => { e.stopPropagation(); setPorts(prev => prev.filter(p => p !== port)); }}
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </span>
+        ))}
       </div>
-    </div>
+      <input
+        ref={inputRef}
+        className={s.portInput}
+        type="number"
+        min={1}
+        max={65535}
+        placeholder="Add port (press Enter)"
+        value={inputValue}
+        onChange={e => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+      />
+    </ModalShell>
   );
 }

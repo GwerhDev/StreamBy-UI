@@ -2,7 +2,7 @@ import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faGlobe, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faGlobe, faLock, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import {
@@ -27,20 +27,24 @@ export const UpdateProjectForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
   const [allowedOrigin, setAllowedOrigin] = useState<string[]>(currentProjectData?.allowedOrigin || [""]);
+  const [isPublic, setIsPublic] = useState<boolean>(currentProjectData?.public ?? true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const session = useSelector((state: RootState) => state.session);
+  const isFreemium = session.plan === 'freemium';
 
   useEffect(() => {
     setName(currentProjectData?.name || "");
     setPreview(currentProjectData?.image || null);
     setDescription(currentProjectData?.description || "");
     setAllowedOrigin(currentProjectData?.allowedOrigin || []);
+    setIsPublic(currentProjectData?.public ?? true);
   }, [currentProjectData]);
 
   const handleOnSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      const payload = { name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== '') };
+      const payload = { name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== ''), public: isPublic };
       const { projectId } = await updateProject(currentProjectData?.id || '', payload);
 
       if (imageFile && projectId) {
@@ -148,6 +152,26 @@ export const UpdateProjectForm = () => {
                   id="description-input" name="description-input" htmlFor="description-input"
                   value={description} onChange={e => setDescription(e.target.value)}
                 />
+              ),
+            },
+            {
+              icon: faLock,
+              label: 'Visibility',
+              value: null,
+              editComponent: (
+                <div className={s.visibilityField}>
+                  <label className={s.switchLabel}>
+                    <span>{isPublic ? 'Public' : 'Private'}</span>
+                    <button
+                      type="button"
+                      className={`${s.switch} ${!isPublic ? s.switchOff : ''} ${isFreemium ? s.switchDisabled : ''}`}
+                      onClick={() => !isFreemium && setIsPublic(v => !v)}
+                    />
+                  </label>
+                  {isFreemium && (
+                    <p className={s.upgradeBadge}>Private projects require a Subscriber plan</p>
+                  )}
+                </div>
               ),
             },
             {

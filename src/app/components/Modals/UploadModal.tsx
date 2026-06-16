@@ -5,6 +5,9 @@ import { faCloudArrowUp, faXmark, faFile } from '@fortawesome/free-solid-svg-ico
 import { StorageCategory } from '../../../interfaces';
 import { getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { Spinner } from '../Spinner';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { ModalShell } from './ModalShell';
 
 interface UploadModalProps {
   projectId: string;
@@ -91,7 +94,6 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
         const contentType = resolveContentType(file);
         const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
         await uploadToPresignedUrl(url, file, contentType);
-        // url, fileId, storageKey, displayName available here if needed
       }));
       onSuccess();
     } finally {
@@ -99,72 +101,62 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
     }
   };
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   return (
-    <div className={s.backdrop} onClick={handleBackdropClick}>
-      <div className={s.modal}>
-        <Spinner bg isLoading={uploading} />
-        <div className={s.modalHeader}>
-          <h3>Upload {categoryLabels[category]}</h3>
-          <button className={s.closeBtn} onClick={onClose} title="Close">
-            <FontAwesomeIcon icon={faXmark} />
-          </button>
-        </div>
-
-        <div
-          className={`${s.dropZone} ${dragging ? s.dropZoneActive : ''}`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => inputRef.current?.click()}
-        >
-          <FontAwesomeIcon icon={faCloudArrowUp} className={s.dropIcon} />
-          <p className={s.dropText}>
-            Drag & drop files here, or <span className={s.browseLink}>browse</span>
-          </p>
-          <p className={s.dropHint}>Accepted: {acceptTypes[category]}</p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept={acceptTypes[category]}
-            multiple
-            className={s.hiddenInput}
-            onChange={e => addFiles(e.target.files)}
-          />
-        </div>
-
-        {files.length > 0 && (
-          <ul className={s.fileList}>
-            {files.map((file, i) => (
-              <li key={i} className={s.fileItem}>
-                <FontAwesomeIcon icon={faFile} className={s.fileItemIcon} />
-                <span className={s.fileName}>{file.name}</span>
-                <span className={s.fileSize}>{formatBytes(file.size)}</span>
-                <button className={s.removeFileBtn} onClick={() => removeFile(i)} title="Remove">
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className={s.actions}>
-          <button className={s.cancelBtn} onClick={onClose} disabled={uploading}>
-            Cancel
-          </button>
-          <button
-            className={s.uploadBtn}
+    <ModalShell
+      title={`Upload ${categoryLabels[category]}`}
+      icon={faCloudArrowUp}
+      onClose={onClose}
+      footer={
+        <>
+          <SecondaryButton text="Cancel" icon={faXmark} onClick={onClose} disabled={uploading} />
+          <ActionButton
+            text={uploading ? 'Uploading...' : `Upload${files.length > 0 ? ` (${files.length})` : ''}`}
+            icon={faCloudArrowUp}
             onClick={handleUpload}
             disabled={files.length === 0 || uploading}
-          >
-            <FontAwesomeIcon icon={faCloudArrowUp} />
-            {uploading ? 'Uploading...' : `Upload ${files.length > 0 ? `(${files.length})` : ''}`}
-          </button>
-        </div>
+            isLoading={uploading}
+          />
+        </>
+      }
+    >
+      <Spinner bg isLoading={uploading} />
+
+      <div
+        className={`${s.dropZone} ${dragging ? s.dropZoneActive : ''}`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={() => inputRef.current?.click()}
+      >
+        <FontAwesomeIcon icon={faCloudArrowUp} className={s.dropIcon} />
+        <p className={s.dropText}>
+          Drag & drop files here, or <span className={s.browseLink}>browse</span>
+        </p>
+        <p className={s.dropHint}>Accepted: {acceptTypes[category]}</p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={acceptTypes[category]}
+          multiple
+          className={s.hiddenInput}
+          onChange={e => addFiles(e.target.files)}
+        />
       </div>
-    </div>
+
+      {files.length > 0 && (
+        <ul className={s.fileList}>
+          {files.map((file, i) => (
+            <li key={i} className={s.fileItem}>
+              <FontAwesomeIcon icon={faFile} className={s.fileItemIcon} />
+              <span className={s.fileName}>{file.name}</span>
+              <span className={s.fileSize}>{formatBytes(file.size)}</span>
+              <button className={s.removeFileBtn} onClick={() => removeFile(i)} title="Remove">
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </ModalShell>
   );
 }

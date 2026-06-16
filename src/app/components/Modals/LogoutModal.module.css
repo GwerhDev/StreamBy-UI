@@ -8,7 +8,7 @@
   position: fixed;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--size-8);
   backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.496);
+  background-color: rgba(0, 0, 0, 0.55);
 }

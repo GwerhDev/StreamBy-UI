@@ -1,7 +1,7 @@
-import s from './DeleteCredentialModal.module.css';
 import { deleteCredential } from '../../../services/projects';
 import { FormEvent, useState } from 'react';
 import { DeleteCredentialForm } from '../Forms/DeleteCredentialForm';
+import { ModalShell } from './ModalShell';
 
 interface Credential {
   id: string;
@@ -19,8 +19,8 @@ interface DeleteCredentialModalProps {
 export const DeleteCredentialModal = (props: DeleteCredentialModalProps) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
-  const [confirmText, setConfirmText] = useState<string>("");
-  const { projectId, credentialId, currentCredential, onClose } = props || {};
+  const [confirmText, setConfirmText] = useState<string>('');
+  const { projectId, credentialId, currentCredential, onClose } = props;
 
   const handleDeleteCredential = async (e: FormEvent) => {
     e.preventDefault();
@@ -35,31 +35,23 @@ export const DeleteCredentialModal = (props: DeleteCredentialModalProps) => {
     }
   };
 
-  const handleCancel = () => {
-    onClose();
-  };
-
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setConfirmText(value);
-    if (value === currentCredential?.key) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
+    setDisabled(value !== currentCredential?.key);
   };
 
   return (
-    <div className={s.container}>
+    <ModalShell title="Delete Credential" onClose={onClose}>
       <DeleteCredentialForm
         loader={loader}
         disabled={disabled}
         confirmText={confirmText}
         currentCredential={currentCredential}
         handleInput={handleInput}
-        handleCancel={handleCancel}
+        handleCancel={onClose}
         handleDeleteCredential={handleDeleteCredential}
       />
-    </div>
+    </ModalShell>
   );
 };

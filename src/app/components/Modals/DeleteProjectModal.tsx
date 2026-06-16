@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { CurrentProjectState } from '../../../interfaces';
 import { deleteProject } from '../../../services/projects';
 import { DeleteProjectForm } from '../Forms/DeleteProjectForm';
+import { ModalShell } from './ModalShell';
+import { PrimaryButton } from '../Buttons/PrimaryButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 interface DeleteProjectModalProps {
   currentProject: CurrentProjectState | null;
@@ -12,8 +16,8 @@ interface DeleteProjectModalProps {
 export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
-  const [confirmText, setConfirmText] = useState<string>("");
-  const { currentProject } = props || {};
+  const [confirmText, setConfirmText] = useState<string>('');
+  const { currentProject } = props;
   const navigate = useNavigate();
 
   const handleDeleteProject = async (e: FormEvent) => {
@@ -21,8 +25,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     try {
       setLoader(true);
       await deleteProject(currentProject?.data?.id);
-      const modal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
-      if (modal) modal.style.display = 'none';
+      handleCancel();
       navigate('/');
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -32,33 +35,44 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   };
 
   const handleCancel = () => {
-    const logoutModal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
-    if (logoutModal) {
-      logoutModal.style.display = 'none';
-    }
+    const modal = document.getElementById('delete-project-modal') as HTMLDivElement | null;
+    if (modal) modal.style.display = 'none';
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setConfirmText(value);
-    if (value === currentProject?.data?.name) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
+    setDisabled(value !== currentProject?.data?.name);
   };
 
   return (
-    <div className={s.container} id='delete-project-modal'>
-      <DeleteProjectForm
-        currentProject={currentProject}
-        handleDeleteProject={handleDeleteProject}
-        handleCancel={handleCancel}
-        handleInput={handleInput}
-        disabled={disabled}
-        loader={loader}
-        confirmText={confirmText}
-      />
+    <div className={s.container} id="delete-project-modal">
+      <ModalShell
+        title={`Delete ${currentProject?.data?.name ?? 'Project'}?`}
+        onClose={handleCancel}
+        footer={
+          <>
+            <SecondaryButton disabled={loader} icon={faXmark} onClick={handleCancel} text="Cancel" />
+            <PrimaryButton
+              type="submit"
+              form="delete-project-form"
+              disabled={disabled || loader}
+              icon={faTrash}
+              text="Delete"
+            />
+          </>
+        }
+      >
+        <DeleteProjectForm
+          currentProject={currentProject}
+          handleDeleteProject={handleDeleteProject}
+          handleCancel={handleCancel}
+          handleInput={handleInput}
+          disabled={disabled}
+          loader={loader}
+          confirmText={confirmText}
+        />
+      </ModalShell>
     </div>
   );
 };

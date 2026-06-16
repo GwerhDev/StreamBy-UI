@@ -1,4 +1,3 @@
-import s from './DeleteApiConnectionModal.module.css';
 import form from '../Forms/DeleteProjectForm.module.css';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +9,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { deleteApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { RootState } from '../../../store';
+import { ModalShell } from './ModalShell';
 
 interface DeleteApiConnectionModalProps {
   projectId: string;
@@ -45,9 +45,8 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
   };
 
   return (
-    <div className={s.container}>
+    <ModalShell title={`Delete ${connectionName}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className={form.container}>
-        <h2>Delete {connectionName}?</h2>
         <p>Confirm that you want to delete this connection</p>
         <LabeledInput
           type="text"
@@ -64,6 +63,6 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
           <SecondaryButton disabled={loader} icon={faXmark} onClick={onClose} text="Cancel" />
         </div>
       </form>
-    </div>
+    </ModalShell>
   );
 };

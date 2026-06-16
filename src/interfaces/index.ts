@@ -37,6 +37,7 @@ export interface Project {
   name: string;
   description?: string;
   image?: string;
+  public: boolean;
   dbType?: string;
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
@@ -95,8 +96,8 @@ export interface DeleteProjectFormProps {
   handleDeleteProject: (e: React.FormEvent) => void;
   handleCancel: () => void;
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled: boolean;
-  loader: boolean;
+  disabled?: boolean;
+  loader?: boolean;
   confirmText: string;
 }
 

@@ -1,6 +1,7 @@
 import s from './ProjectPresentation.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 
 import { useSelector } from 'react-redux';
@@ -52,7 +53,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
                 {!loading && (
                   <>
                     <ActionButton onClick={() => navigate(`/preview/${currentProject?.id}`)} icon={faEye} text="Preview" type="button" />
-                    <ActionButton onClick={handleEdit} icon={faEdit} text="Edit" type="submit" />
+                    <SecondaryButton onClick={handleEdit} icon={faEdit} text="Edit" />
                   </>
                 )}
               </span>

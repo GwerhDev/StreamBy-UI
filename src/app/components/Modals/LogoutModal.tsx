@@ -4,6 +4,10 @@ import { useDispatch } from 'react-redux';
 import { clearSession } from '../../../store/sessionSlice';
 import { LogoutForm } from '../Forms/LogoutForm';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { ModalShell } from './ModalShell';
+import { PrimaryButton } from '../Buttons/PrimaryButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { faRightFromBracket, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 export const LogoutModal = () => {
   const dispatch = useDispatch();
@@ -12,25 +16,34 @@ export const LogoutModal = () => {
     try {
       await fetchLogout();
       dispatch(addApiResponse({ message: 'Logged out successfully.', type: 'success' }));
-    } catch (error: any) {
-      dispatch(addApiResponse({ message: error.message || 'Failed to log out.', type: 'error' }));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to log out.';
+      dispatch(addApiResponse({ message, type: 'error' }));
     } finally {
-      const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
-      if (logoutModal) logoutModal.style.display = 'none';
+      handleCancelLogout();
       dispatch(clearSession());
     }
   };
 
   const handleCancelLogout = () => {
-    const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
-    if (logoutModal) {
-      logoutModal.style.display = 'none';
-    }
+    const modal = document.getElementById('logout-modal') as HTMLDivElement | null;
+    if (modal) modal.style.display = 'none';
   };
 
   return (
-    <div className={s.container} id='logout-modal'>
-      <LogoutForm handleLogout={handleLogout} handleCancelLogout={handleCancelLogout} />
+    <div className={s.container} id="logout-modal">
+      <ModalShell
+        title="Are you leaving already?"
+        onClose={handleCancelLogout}
+        footer={
+          <>
+            <SecondaryButton icon={faXmark} onClick={handleCancelLogout} text="Cancel" />
+            <PrimaryButton icon={faRightFromBracket} onClick={handleLogout} text="Logout" />
+          </>
+        }
+      >
+        <LogoutForm />
+      </ModalShell>
     </div>
   );
 };

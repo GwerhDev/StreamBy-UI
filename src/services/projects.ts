@@ -21,7 +21,7 @@ export async function exploreProjects(): Promise<ExploreProject[]> {
   }
 }
 
-export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public?: boolean }) {
+export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean }) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/create`, {
       method: 'POST',
@@ -91,7 +91,7 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   }
 }
 
-export async function updateProject(projectId: string, payload: { name: string; description?: string }) {
+export async function updateProject(projectId: string, payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean }) {
   try {
     const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
       method: 'PATCH',
