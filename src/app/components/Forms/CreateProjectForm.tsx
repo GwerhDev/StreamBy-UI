@@ -95,6 +95,7 @@ export const CreateProjectForm = () => {
       <form className={s.form} onSubmit={handleOnSubmit}>
         <CustomForm
           readOnly={false}
+          isLoading={loader}
           header={{ icon: faDiagramProject, title: 'New Project', subtitle: 'Fill the form to create a new project' }}
           fields={[
             {

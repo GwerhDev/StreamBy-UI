@@ -2,6 +2,7 @@ import s from './CustomForm.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ReactNode } from 'react';
+import { Spinner } from '../Spinner';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 
 export interface FieldConfig {
@@ -24,13 +25,14 @@ interface CustomFormProps {
   fields: FieldConfig[];
   actions?: ReactNode;
   readOnly?: boolean;
+  isLoading?: boolean;
 }
 
 function isHeaderConfig(h: unknown): h is CustomFormHeader {
   return typeof h === 'object' && h !== null && 'title' in h && 'icon' in h;
 }
 
-export function CustomForm({ header, fields, actions, readOnly = true }: CustomFormProps) {
+export function CustomForm({ header, fields, actions, readOnly = true, isLoading = false }: CustomFormProps) {
   const visibleFields = fields.filter(f => !f.hidden);
 
   return (
@@ -42,6 +44,7 @@ export function CustomForm({ header, fields, actions, readOnly = true }: CustomF
       )}
 
       <div className={s.fields}>
+        <Spinner bg isLoading={isLoading} />
         {visibleFields.map((field, i) => {
           const isEditing = !readOnly && !!field.editComponent;
           return (

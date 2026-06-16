@@ -49,10 +49,10 @@ export const CreateCredentialForm = () => {
 
   return (
     <div className={s.container}>
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit} className={s.form}>
         <CustomForm
           readOnly={false}
+          isLoading={loading}
           header={{ icon: faKey, title: 'New Credential', subtitle: `Add a credential for ${currentProject?.name}` }}
           fields={[
             {

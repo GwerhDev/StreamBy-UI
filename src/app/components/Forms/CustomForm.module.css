@@ -9,6 +9,7 @@
 
 /* ── Form list ─────────────────────────── */
 .fields {
+  position: relative;
   border-radius: 0.75rem;
   display: flex;
   flex-direction: column;

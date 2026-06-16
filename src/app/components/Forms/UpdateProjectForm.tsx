@@ -14,7 +14,6 @@ import {
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
-import { Spinner } from '../Spinner';
 import { CustomForm } from './CustomForm';
 
 export const UpdateProjectForm = () => {
@@ -96,10 +95,10 @@ export const UpdateProjectForm = () => {
 
   return (
     <div className={s.divContainer}>
-      <Spinner bg isLoading={loader} />
       <form className={s.form} onSubmit={handleOnSubmit}>
         <CustomForm
           readOnly={false}
+          isLoading={loader}
           header={{ icon: faDiagramProject, title: 'Update Project', subtitle: 'Edit your project details below' }}
           fields={[
             {
@@ -160,14 +159,16 @@ export const UpdateProjectForm = () => {
               value: null,
               editComponent: (
                 <div className={s.visibilityField}>
-                  <label className={s.switchLabel}>
-                    <span>{isPublic ? 'Public' : 'Private'}</span>
+                  <div className={s.switchRow}>
+                    <span className={s.visibilityLabel}>
+                      Visibility: <span className={`${s.visibilityBadge} ${isPublic ? s.badgePublic : s.badgePrivate}`}>{isPublic ? 'Public' : 'Private'}</span>
+                    </span>
                     <button
                       type="button"
                       className={`${s.switch} ${!isPublic ? s.switchOff : ''} ${isFreemium ? s.switchDisabled : ''}`}
                       onClick={() => !isFreemium && setIsPublic(v => !v)}
                     />
-                  </label>
+                  </div>
                   {isFreemium && (
                     <p className={s.upgradeBadge}>Private projects require a Subscriber plan</p>
                   )}

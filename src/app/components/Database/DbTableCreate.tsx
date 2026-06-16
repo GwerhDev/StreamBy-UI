@@ -10,7 +10,6 @@ import { DbColumnDefinition, ExternalDbType } from '../../../interfaces';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Spinner } from '../Spinner';
 import { CustomForm } from '../Forms/CustomForm';
 
 const SQL_TYPES = ['TEXT', 'INTEGER', 'BOOLEAN', 'TIMESTAMP', 'UUID', 'JSONB', 'BIGINT', 'FLOAT', 'SERIAL'];
@@ -62,10 +61,10 @@ export const DbTableCreate = () => {
 
   return (
     <div className={s.container}>
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit} className={s.formWrapper}>
         <CustomForm
           readOnly={false}
+          isLoading={loading}
           header={{
             icon: faTableColumns,
             title: `New ${isMongo ? 'Collection' : 'Table'}`,

@@ -10,7 +10,6 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Spinner } from '../Spinner';
 import { CustomForm } from '../Forms/CustomForm';
 
 const DB_TYPES = [
@@ -62,10 +61,10 @@ export const DbConnectionCreate = () => {
 
   return (
     <div className={s.container}>
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit} className={s.formWrapper}>
         <CustomForm
           readOnly={false}
+          isLoading={loading}
           header={{ icon: faDatabase, title: 'New DB Connection', subtitle: `Connect an external database to ${project?.name}` }}
           fields={[
             {

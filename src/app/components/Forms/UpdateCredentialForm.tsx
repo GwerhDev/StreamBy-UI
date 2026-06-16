@@ -84,9 +84,9 @@ export const UpdateCredentialForm: React.FC = () => {
 
   return (
     <div className={styles.container}> {/* Use container from UpdateExportForm */}
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit}>
         <div className={styles.formContainer}>
+          <Spinner bg isLoading={loading} />
           <h3>Update Credential</h3>
           <p>Fill the form to update credential {initialCredential?.key}</p>
 

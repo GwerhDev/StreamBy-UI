@@ -1,6 +1,6 @@
 import s from './AllowedOriginsList.module.css';
-import { useState } from 'react';
-import { faGlobe, faTrash } from '@fortawesome/free-solid-svg-icons';
+import React, { useState } from 'react';
+import { faGlobe, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ActionButton } from '../Buttons/ActionButton';
 import { ResourceList } from '../ResourceList/ResourceList';
@@ -45,7 +45,7 @@ export const AllowedOriginsList = () => {
     }
   };
 
-  const items = allowedOrigins.map(origin => ({
+  const items: { id: string; title?: string; card: React.ReactNode; actions?: React.ReactNode }[] = allowedOrigins.map(origin => ({
     id: origin,
     title: origin,
     card: (
@@ -84,7 +84,7 @@ export const AllowedOriginsList = () => {
           <div className={s.inputActions}>
             <ActionButton text="Add" disabled={!newOrigin.trim() || saving} onClick={handleAdd} />
             <button className={s.cancelButton} onClick={() => { setShowInput(false); setNewOrigin(''); }}>
-              Cancel
+              <FontAwesomeIcon icon={faXmark} />
             </button>
           </div>
         </div>

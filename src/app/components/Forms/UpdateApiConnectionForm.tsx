@@ -9,7 +9,6 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Spinner } from '../Spinner';
 import { faPenToSquare, faXmark, faLink, faLayerGroup, faFileLines, faKey, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
@@ -81,11 +80,11 @@ export const UpdateApiConnectionForm = () => {
 
   return (
     <div className={s.container}>
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit} className={s.form}>
         <div className={s.formWrapper}>
           <CustomForm
             readOnly={false}
+            isLoading={loading}
             header={{ icon: faPenToSquare, title: 'Edit API Connection', subtitle: connection.name }}
             fields={[
               {

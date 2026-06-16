@@ -9,7 +9,6 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Spinner } from '../Spinner';
 import { faTowerBroadcast, faXmark, faLink, faLayerGroup, faFileLines, faKey, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
@@ -71,11 +70,11 @@ export const CreateApiConnectionForm = () => {
 
   return (
     <div className={s.container}>
-      <Spinner bg isLoading={loading} />
       <form onSubmit={handleSubmit} className={s.form}>
         <div className={s.formWrapper}>
           <CustomForm
             readOnly={false}
+            isLoading={loading}
             header={{ icon: faTowerBroadcast, title: 'New API Connection', subtitle: `Configure an external API connection for ${currentProject?.name}` }}
             fields={[
               {
