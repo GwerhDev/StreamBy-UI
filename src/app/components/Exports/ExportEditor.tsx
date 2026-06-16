@@ -4,10 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
 import { getExport, updateExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   faFileExport, faXmark, faCode, faSitemap,
   faTableColumns, faArrowLeft,
-  faSave,
+  faSave, faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,6 +20,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
+import { ModalShell } from '../Modals/ModalShell';
 
 type TabId = 'nodes' | 'response';
 interface PanelState { id: string; tabs: TabId[]; activeTab: TabId; isOriginal: boolean; }
@@ -40,7 +42,9 @@ export const ExportEditor: React.FC = () => {
   const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
   const { id: projectId, exportId } = useParams<{ id: string; exportId: string }>();
 
-  const [submitting,   setSubmitting]   = useState(false);
+  const [submitting,    setSubmitting]    = useState(false);
+  const [isDirty,       setIsDirty]       = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
   const [schemaVersion, setSchemaVersion] = useState(0);
   const [isDragging,   setIsDragging]   = useState(false);
@@ -64,6 +68,7 @@ export const ExportEditor: React.FC = () => {
     if (key !== prevEdgesKey.current) {
       prevEdgesKey.current = key;
       setSchemaVersion(v => v + 1);
+      setIsDirty(true);
     }
   }, []);
 
@@ -188,6 +193,7 @@ export const ExportEditor: React.FC = () => {
       parsed.devPorts = (parsed.devPorts as string).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n) && n > 0);
     }
     dispatch(setCurrentExport({ ...exportDetails, ...parsed } as typeof exportDetails));
+    setIsDirty(true);
   }, [dispatch, exportDetails]);
 
   const handleSubmit = async () => {
@@ -214,11 +220,29 @@ export const ExportEditor: React.FC = () => {
         ...(nodeSchema ? { nodeSchema } : {}),
       };
       await updateExport(projectId, exportId, payload);
+      setIsDirty(false);
     } catch (err) {
       console.error(err);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleBack = () => {
+    if (isDirty) {
+      setShowLeaveModal(true);
+    } else {
+      navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
+    }
+  };
+
+  const handleLeaveConfirm = async () => {
+    await handleSubmit();
+    navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
+  };
+
+  const handleLeaveDiscard = () => {
+    navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
   };
 
   // ── Panel management ──────────────────────────────────────────────────────
@@ -357,14 +381,14 @@ export const ExportEditor: React.FC = () => {
             type="button"
             className={s.backButton}
             title="Back to details"
-            onClick={() => navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true })}
+            onClick={handleBack}
           >
             <FontAwesomeIcon icon={faArrowLeft} />
           </button>
           <SectionHeader icon={faFileExport} title={exportDetails?.name ?? 'Editor'} subtitle={exportDetails?.description} />
 
           <div className={s.buttonsContainer}>
-            <ActionButton isLoading={loading} icon={faSave} text="Save" onClick={handleSubmit} />
+            <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={handleSubmit} />
           </div>
 
         </div>
@@ -446,6 +470,22 @@ export const ExportEditor: React.FC = () => {
           ))}
         </PanelGroup>
       </form>
+
+      {showLeaveModal && (
+        <ModalShell
+          title="Unsaved changes"
+          icon={faTriangleExclamation}
+          onClose={() => setShowLeaveModal(false)}
+          footer={
+            <>
+              <SecondaryButton icon={faXmark} text="Discard" onClick={handleLeaveDiscard} />
+              <ActionButton isLoading={submitting} icon={faSave} text="Save and leave" onClick={handleLeaveConfirm} />
+            </>
+          }
+        >
+          <p>You have unsaved changes. Do you want to save before leaving the editor?</p>
+        </ModalShell>
+      )}
     </div>
   );
 };
