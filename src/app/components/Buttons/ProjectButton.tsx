@@ -1,9 +1,9 @@
 import s from './ProjectButton.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Project } from '../../../interfaces';
+import { ProjectList } from '../../../interfaces';
 
-export const ProjectButton = (props: { project: Project, loading: boolean }) => {
+export const ProjectButton = (props: { project: ProjectList, loading: boolean }) => {
   const { project, loading } = props || {};
   const { name, image, id } = project || {};
   const params = useParams();

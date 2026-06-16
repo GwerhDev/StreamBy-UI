@@ -59,7 +59,7 @@ const JsonField: React.FC<JsonFieldProps> = ({
         <CustomCheckbox
           id={checkboxId}
           name={checkboxId}
-          checked={fieldValue}
+          checked={fieldValue as boolean}
           onChange={handleValueChange}
           label={String(fieldValue)}
         />
@@ -220,7 +220,7 @@ export const FormInputMode: React.FC<FormInputModeProps> = ({ jsonData, onJsonDa
     <div className={s.fieldsSection}>
       <h4>Form</h4>
       {jsonError && <p className={s.errorMessage}>Error: Invalid JSON format. Please switch to JSON mode to fix it. ({jsonError})</p>}
-      {Object.entries(jsonData).map(([key, value]) => (
+      {Object.entries(jsonData ?? {}).map(([key, value]) => (
         <JsonField
           key={key}
           fieldKey={key}

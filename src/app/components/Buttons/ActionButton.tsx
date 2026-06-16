@@ -10,10 +10,12 @@ interface ActionButtonProps {
   disabled?: boolean;
   href?: string;
   isLoading?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  form?: string;
 }
 
 export const ActionButton = (props: ActionButtonProps) => {
-  const { text, onClick, icon, disabled, href, isLoading } = props || {};
+  const { text, onClick, icon, disabled, href, isLoading, type, form } = props || {};
 
   const handleOnClick = () => {
     return onClick && onClick();
@@ -37,7 +39,7 @@ export const ActionButton = (props: ActionButtonProps) => {
             }
           </a>
           :
-          <button disabled={disabled} className={s.container} onClick={handleOnClick}>
+          <button disabled={disabled} className={s.container} onClick={handleOnClick} type={type} form={form}>
             {
               isLoading
                 ?

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CurrentProjectState, MembershipInfo, Project } from '../interfaces';
 
 const initialState: CurrentProjectState = {
-  data: { id: "", name: "" },
+  data: { id: "", name: "", public: false },
   loading: true,
   error: null,
   membership: null,

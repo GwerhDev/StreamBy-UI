@@ -18,21 +18,6 @@ interface ReplaceModalProps {
   onClose: () => void;
 }
 
-const EXTENSION_MIME: Record<string, string> = {
-  glb:  'model/gltf-binary',
-  gltf: 'model/gltf+json',
-  obj:  'model/obj',
-  fbx:  'application/octet-stream',
-  stl:  'model/stl',
-  ply:  'model/ply',
-};
-
-function resolveContentType(file: File): string {
-  if (file.type) return file.type;
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-  return EXTENSION_MIME[ext] ?? 'application/octet-stream';
-}
-
 const acceptTypes: Record<StorageCategory, string> = {
   images: 'image/*',
   audios: 'audio/*',

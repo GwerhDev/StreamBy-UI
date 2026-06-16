@@ -142,7 +142,7 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
           projectsLoading ? (
             Array.from({ length: 1 }).map((_, index) => (
               <li key={index}>
-                <ProjectButton project={{ id: '', name: '', dbType: '' }} loading={true} />
+                <ProjectButton project={{ id: '', name: '', archived: false }} loading={true} />
               </li>
             ))
           ) : (

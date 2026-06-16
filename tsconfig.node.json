@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "composite": true,
+    "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["vite.config.ts"]
 }

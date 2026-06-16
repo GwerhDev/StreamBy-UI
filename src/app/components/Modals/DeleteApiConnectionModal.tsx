@@ -1,4 +1,4 @@
-import form from '../Forms/DeleteProjectForm.module.css';
+import form from './DeleteApiConnectionModal.module.css';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';

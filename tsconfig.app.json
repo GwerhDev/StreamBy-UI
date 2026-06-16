@@ -2,11 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "skipLibCheck": true,
     "tsBuildInfoFile": "./node_modules/.tsbuildinfo",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "allowJs": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts", "src/**/*.spec.tsx", "src/test"]
 }
