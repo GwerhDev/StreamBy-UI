@@ -5,13 +5,24 @@ export async function fetchAuth() {
     const res = await fetch(`${API_BASE}/streamby/auth`, {
       credentials: 'include',
     });
-  
+
     if (!res.ok) return { logged: false };
     return await res.json();
-    
+
   } catch (error) {
     console.error(error);
     return { logged: false };
+  }
+}
+
+export async function fetchSubscription(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/streamby/user/subscription`, { credentials: 'include' });
+    if (!res.ok) return null;
+    const { subscription } = await res.json();
+    return subscription ?? null;
+  } catch {
+    return null;
   }
 }
 

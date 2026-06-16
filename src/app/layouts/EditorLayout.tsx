@@ -1,36 +1,17 @@
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import { Outlet, useParams } from 'react-router-dom';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { useEffect } from 'react';
-import { fetchProject } from '../../services/projects';
-import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
 import { useEditorMenu } from '../../context/EditorMenuContext';
+import { useProjectInit } from '../../hooks/useProjectInit';
 
 export default function EditorLayout() {
   const { projectId } = useParams<{ projectId: string }>();
-  const projects = useSelector((state: RootState) => state.projects);
-  const session = useSelector((state: RootState) => state.session);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { closeMenu } = useEditorMenu();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { closeMenu(); }, []);
 
-  useEffect(() => {
-    if (!projectId || projects.loading) return;
-    (async () => {
-      try {
-        dispatch(setProjectLoading());
-        const data = await fetchProject(projectId, navigate);
-        dispatch(setCurrentProject(data));
-      } catch (err) {
-        console.error('Error loading project:', err);
-      }
-    })();
-    //eslint-disable-next-line
-  }, [projectId, projects.loading, session.userId]);
+  useProjectInit(projectId);
 
   return (
     <div className="dashboard-sections">

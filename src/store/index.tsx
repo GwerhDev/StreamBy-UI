@@ -7,7 +7,6 @@ import managementReducer from './managementSlice';
 import apiResponsesReducer from './apiResponsesSlice';
 import notificationsReducer from './notificationsSlice';
 import currentNotificationReducer from './currentNotificationSlice';
-import desktopReducer from './desktopSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,7 +18,6 @@ export const store = configureStore({
     apiResponses: apiResponsesReducer,
     notifications: notificationsReducer,
     currentNotification: currentNotificationReducer,
-    desktop: desktopReducer,
   },
 });
 

@@ -1,6 +1,5 @@
 import s from './AppSwitcher.module.css';
-import { useDispatch } from 'react-redux';
-import { toggleMinimized } from '../../../store/desktopSlice';
+import { useDesktop } from '../../../context/DesktopContext';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface AppSwitcherProps {
@@ -9,13 +8,13 @@ interface AppSwitcherProps {
 }
 
 export const AppSwitcher = ({ label = 'STREAMBY', projectIcon }: AppSwitcherProps) => {
-  const dispatch = useDispatch();
+  const { toggleMinimized } = useDesktop();
 
   return (
     <div className={s.root}>
       <button
         className={s.trigger}
-        onClick={() => dispatch(toggleMinimized())}
+        onClick={toggleMinimized}
       >
         <span className={s.brandStreamby}>
           {projectIcon

@@ -3,33 +3,24 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import { DeleteProjectModal } from '../components/Modals/DeleteProjectModal';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { fetchProject } from '../../services/projects';
 import { setCurrentProject, setProjectLoading } from '../../store/currentProjectSlice';
 import { Browser } from '../components/Browser/Browser';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export default function ProjectLayout() {
-  const projects = useSelector((state: RootState) => state.projects);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const projects = useSelector((state: RootState) => state.projects);
+  const session = useSelector((state: RootState) => state.session);
 
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
+  const { isSmallScreen } = useResponsiveLayout();
   const shouldHideMenu = isSmallScreen && location.pathname !== `/project/${id}`;
   const shouldHideBrowser = !isSmallScreen || location.pathname !== `/project/${id}`;
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 1024);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const session = useSelector((state: RootState) => state.session);
 
   useEffect(() => {
     if (!id || projects.loading) return;

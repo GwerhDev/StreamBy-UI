@@ -11,7 +11,13 @@ export default function PreviewLayout() {
 
   useEffect(() => {
     if (!projectId || projects.loading) return;
-    fetchProjectPreview(projectId);
+    (async () => {
+      try {
+        await fetchProjectPreview(projectId);
+      } catch (err) {
+        console.error('Error loading project preview:', err);
+      }
+    })();
   }, [projectId, projects.loading]);
 
   return (

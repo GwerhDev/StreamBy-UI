@@ -4,9 +4,7 @@ import s from './Desktop.module.css';
 import { SwitcherApp, SwitcherCategory } from '../../../interfaces';
 import { fetchAppEnv } from '../../../services/appSwitcher';
 import { APP_SWITCHER_URL } from '../../../config/api';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store';
-import { setMinimized } from '../../../store/desktopSlice';
+import { useDesktop } from '../../../context/DesktopContext';
 
 const sameHost = (app: SwitcherApp): boolean => {
   try {
@@ -20,8 +18,7 @@ const looksLikeStreamby = (app: SwitcherApp): boolean =>
   /streamby/i.test(app.url) || /streamby/i.test(app.label);
 
 export const Desktop = () => {
-  const minimized = useSelector((state: RootState) => state.desktop.minimized);
-  const dispatch = useDispatch();
+  const { minimized, setMinimized } = useDesktop();
   const [categories, setCategories] = useState<SwitcherCategory[]>([]);
 
   useEffect(() => {
@@ -35,7 +32,7 @@ export const Desktop = () => {
 
   const handleClick = (app: SwitcherApp) => {
     if (app === currentApp) {
-      dispatch(setMinimized(false));
+      setMinimized(false);
     } else {
       window.location.href = app.url;
     }
