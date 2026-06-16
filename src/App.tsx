@@ -34,6 +34,7 @@ const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => 
 const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
 const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module => ({ default: module.UserSettings })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
+const PermissionsCreate = lazy(() => import('./app/pages/PermissionsCreate').then(module => ({ default: module.PermissionsCreate })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
 const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').then(module => ({ default: module.StorageDrive })));
@@ -117,6 +118,7 @@ function App() {
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
+                  <Route path="/project/:id/settings/permissions/create" element={<PermissionsCreate />} />
                   <Route path="/project/:id/settings/credentials" element={<CredentialsList />} />
                   <Route path="/project/:id/settings/credentials/create" element={<CredentialsCreate />} />
                   <Route path="/project/:id/not-found" element={<NotFound />} />
