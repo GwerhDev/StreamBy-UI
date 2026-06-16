@@ -178,6 +178,22 @@ export const ExportEditor: React.FC = () => {
     //eslint-disable-next-line
   }, [projectId, exportId]);
 
+  // Seed prevEdgesKey from the loaded schema so the first onChange doesn't mark dirty
+  useEffect(() => {
+    if (!exportDetails?.nodeSchema) return;
+    const schema = exportDetails.nodeSchema as { nodes: Array<{ id?: string; type?: string; data?: Record<string, unknown> }>; edges: Array<{ id?: string }> };
+    const edgesKey = schema.edges.map(e => e.id ?? '').sort().join(',');
+    const filterKey = schema.nodes
+      .filter(n => n.data?.filterConfig)
+      .map(n => `${n.id}:${JSON.stringify(n.data!.filterConfig)}`)
+      .join('|');
+    const recordKey = schema.nodes
+      .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
+      .map(n => `${n.id}:${n.data!.recordId as string}`)
+      .join('|');
+    prevEdgesKey.current = `${edgesKey}~~${filterKey}~~${recordKey}`;
+  }, [exportDetails?.id]);
+
   const exportForViewer = useMemo<Export | null>(() => {
     if (!exportDetails) return null;
     return { ...exportDetails, nodeSchema: pendingSchema ?? exportDetails.nodeSchema };
