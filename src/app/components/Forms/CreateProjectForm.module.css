@@ -111,12 +111,39 @@
   gap: 0.4rem;
 }
 
-.switchLabel {
+.switchRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.visibilityLabel {
+  font-size: 0.85rem;
   color: var(--color-light-400);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.visibilityBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 99px;
+  border: 1px solid;
+}
+
+.badgePublic {
+  color: var(--color-primary);
+  border-color: var(--color-primary-subtle-border);
+  background-color: var(--color-primary-subtle);
+}
+
+.badgePrivate {
+  color: var(--color-light-400);
+  border-color: var(--color-dark-300);
+  background-color: var(--color-dark-500);
 }
 
 .switch {

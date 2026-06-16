@@ -156,14 +156,16 @@ export const CreateProjectForm = () => {
               value: null,
               editComponent: (
                 <div className={s.visibilityField}>
-                  <label className={s.switchLabel}>
-                    <span>{isPublic ? 'Public' : 'Private'}</span>
+                  <div className={s.switchRow}>
+                    <span className={s.visibilityLabel}>
+                      Visibility: <span className={`${s.visibilityBadge} ${isPublic ? s.badgePublic : s.badgePrivate}`}>{isPublic ? 'Public' : 'Private'}</span>
+                    </span>
                     <button
                       type="button"
                       className={`${s.switch} ${!isPublic ? s.switchOff : ''} ${isFreemium ? s.switchDisabled : ''}`}
                       onClick={() => !isFreemium && setIsPublic(v => !v)}
                     />
-                  </label>
+                  </div>
                   {isFreemium && (
                     <p className={s.upgradeBadge}>Private projects require a Subscriber plan</p>
                   )}
