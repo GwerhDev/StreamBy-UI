@@ -50,14 +50,14 @@ export const ProjectStats = ({ readonly }: ProjectStatsProps) => {
   return (
     <div className={s.statsContainer}>
       {stats.map(({ icon, label, value, path }) => {
-        const clickable = !!path && !readonly;
+        const clickable = !!path && !readonly && !loading;
         return (
           <div
             key={label}
             className={`${s.statCard} ${clickable ? s.clickable : s.readonly}`}
-            onClick={() => path && go(path)}
+            onClick={() => clickable && go(path!)}
           >
-            <FontAwesomeIcon icon={icon} className={loading ? skeleton.skeleton : s.statIcon} />
+            {!loading && <FontAwesomeIcon icon={icon} className={s.statIcon} />}
             <h4 className={loading ? skeleton.skeleton : ''}>{!loading && label}</h4>
             <p className={loading ? skeleton.skeleton : ''}>{loading ? '' : value}</p>
           </div>

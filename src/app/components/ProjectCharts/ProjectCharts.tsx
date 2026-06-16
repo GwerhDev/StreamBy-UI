@@ -11,18 +11,16 @@ import { DbConnection, StorageConnection } from '../../../interfaces';
 import { fetchBuiltinDatabases } from '../../../services/database';
 import { fetchStorageConnections } from '../../../services/storageConnections';
 
-const STORAGE_MOCK = [
-  { id: 'Images',   label: 'Images',   value: 0, color: 'var(--color-primary)' },
-  { id: 'Videos',   label: 'Videos',   value: 0, color: 'var(--color-warning)' },
-  { id: 'Audio',    label: 'Audio',    value: 0, color: 'var(--color-success)' },
-  { id: '3D Models',label: '3D Models',value: 0, color: 'var(--color-danger)'  },
+// Literal colors — nivo cannot resolve CSS variables
+const STORAGE_CATEGORIES = [
+  { id: 'Images',    label: 'Images',    color: '#38B6FF', icon: faImage },
+  { id: 'Videos',    label: 'Videos',    color: '#f5a623', icon: faVideo },
+  { id: 'Audio',     label: 'Audio',     color: '#4caf82', icon: faMusic },
+  { id: '3D Models', label: '3D Models', color: '#e05555', icon: faCube  },
 ];
 
-const STORAGE_PLACEHOLDER = [
-  { id: 'empty', label: '', value: 1, color: 'var(--color-dark-400)' },
-];
-
-const CATEGORY_ICONS = [faImage, faVideo, faMusic, faCube];
+const STORAGE_MOCK_DATA = STORAGE_CATEGORIES.map(c => ({ id: c.id, label: c.label, value: 0 }));
+const STORAGE_EMPTY_DATA = [{ id: 'empty', label: '', value: 1 }];
 
 const DB_TYPE_LABEL: Record<string, string> = {
   postgresql: 'PostgreSQL',
@@ -32,13 +30,15 @@ const DB_TYPE_LABEL: Record<string, string> = {
 export const ProjectCharts = () => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
   const navigate = useNavigate();
-
   const id = currentProject?.id ?? '';
 
   const [allDbConns, setAllDbConns] = useState<DbConnection[]>([]);
   const [allStorageConns, setAllStorageConns] = useState<StorageConnection[]>([]);
+  const [fetchingDb, setFetchingDb] = useState(true);
+  const [fetchingStorage, setFetchingStorage] = useState(true);
 
   useEffect(() => {
+    setFetchingDb(true);
     fetchBuiltinDatabases().then(builtins => {
       const builtinConns: DbConnection[] = builtins.map(db => ({
         id: db.name,
@@ -49,12 +49,17 @@ export const ProjectCharts = () => {
         isBuiltin: true,
       }));
       setAllDbConns([...builtinConns, ...(currentProject?.dbConnections ?? [])]);
+      setFetchingDb(false);
     });
   }, [id]);
 
   useEffect(() => {
     if (!id) return;
-    fetchStorageConnections(id).then(setAllStorageConns);
+    setFetchingStorage(true);
+    fetchStorageConnections(id).then(conns => {
+      setAllStorageConns(conns);
+      setFetchingStorage(false);
+    });
   }, [id]);
 
   const memberRolesData = Object.entries(
@@ -64,41 +69,14 @@ export const ProjectCharts = () => {
     }, {}) || {}
   ).map(([id, value]) => ({ id, value }));
 
-  const commonPieProps = {
-    innerRadius: 0.5,
-    padAngle: 0.5,
-    cornerRadius: 1,
-    activeOuterRadiusOffset: 1,
-    borderWidth: 1,
-    arcLinkLabelsSkipAngle: 10,
-    arcLinkLabelsTextColor: '#adadad',
-    arcLinkLabelsThickness: 2,
-    arcLinkLabelsColor: '#adadad',
-    arcLabelsSkipAngle: 10,
-    arcLabelsTextColor: '#adadad',
-    margin: { top: 40, right: 80, bottom: 80, left: 80 },
-    legends: [
-      {
-        anchor: 'left' as const,
-        direction: 'row' as const,
-        justify: false,
-        translateX: -75,
-        translateY: 56,
-        itemsSpacing: 0,
-        itemWidth: 100,
-        itemHeight: 18,
-        itemTextColor: '#cccccc',
-        itemDirection: 'left-to-right' as const,
-        itemOpacity: 1,
-        symbolSize: 18,
-        symbolShape: 'circle' as const,
-        effects: [{ on: 'hover' as const, style: { itemTextColor: '#007bff' } }],
-      },
-    ],
-  };
-
   const hasStorage = allStorageConns.length > 0;
-  const storagePieData = hasStorage ? STORAGE_MOCK : STORAGE_PLACEHOLDER;
+  const storagePieData = hasStorage ? STORAGE_MOCK_DATA : STORAGE_EMPTY_DATA;
+  const storagePieColors = hasStorage
+    ? STORAGE_CATEGORIES.map(c => c.color)
+    : ['#2f2f2f'];
+
+  const loadingDb = loading || fetchingDb;
+  const loadingStorage = loading || fetchingStorage;
 
   return (
     <div className={s.chartsContainer}>
@@ -107,7 +85,38 @@ export const ProjectCharts = () => {
         {!loading && (
           memberRolesData.length > 0 ? (
             <div className={s.graphContainer}>
-              <ResponsivePie data={memberRolesData} {...commonPieProps} colors={{ scheme: 'category10' }} />
+              <ResponsivePie
+                data={memberRolesData}
+                innerRadius={0.5}
+                padAngle={0.5}
+                cornerRadius={1}
+                activeOuterRadiusOffset={1}
+                borderWidth={1}
+                arcLinkLabelsSkipAngle={10}
+                arcLinkLabelsTextColor="#adadad"
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor="#adadad"
+                arcLabelsSkipAngle={10}
+                arcLabelsTextColor="#adadad"
+                margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                colors={{ scheme: 'category10' }}
+                legends={[{
+                  anchor: 'left',
+                  direction: 'row',
+                  justify: false,
+                  translateX: -75,
+                  translateY: 56,
+                  itemsSpacing: 0,
+                  itemWidth: 100,
+                  itemHeight: 18,
+                  itemTextColor: '#cccccc',
+                  itemDirection: 'left-to-right',
+                  itemOpacity: 1,
+                  symbolSize: 18,
+                  symbolShape: 'circle',
+                  effects: [{ on: 'hover', style: { itemTextColor: '#007bff' } }],
+                }]}
+              />
             </div>
           ) : (
             <p className={s.emptyText}>No member role data available.</p>
@@ -116,15 +125,16 @@ export const ProjectCharts = () => {
       </div>
 
       <div className={s.resourceCard}>
+        {/* Database section */}
         <div
-          className={s.resourceSection}
-          onClick={() => !loading && id && navigate(`/project/${id}/database`)}
+          className={`${s.resourceSection} ${loadingDb ? s.resourceSectionLoading : s.resourceSectionClickable}`}
+          onClick={() => !loadingDb && id && navigate(`/project/${id}/database`)}
         >
           <div className={s.resourceHeader}>
-            <FontAwesomeIcon icon={faDatabase} className={s.resourceIcon} />
-            <h4 className={loading ? skeleton.skeleton : ''}>{loading ? '' : 'Database'}</h4>
+            {!loadingDb && <FontAwesomeIcon icon={faDatabase} className={s.resourceIcon} />}
+            <h4 className={loadingDb ? skeleton.skeleton : ''}>{loadingDb ? '' : 'Database'}</h4>
           </div>
-          {!loading && (
+          {!loadingDb && (
             allDbConns.length > 0 ? (
               <ul className={s.connList}>
                 {allDbConns.map(conn => (
@@ -142,51 +152,47 @@ export const ProjectCharts = () => {
 
         <div className={s.divider} />
 
+        {/* Storage section */}
         <div
-          className={s.resourceSection}
-          onClick={() => !loading && id && navigate(`/project/${id}/storage`)}
+          className={`${s.resourceSection} ${loadingStorage ? s.resourceSectionLoading : s.resourceSectionClickable}`}
+          onClick={() => !loadingStorage && id && navigate(`/project/${id}/storage`)}
         >
           <div className={s.resourceHeader}>
-            <FontAwesomeIcon icon={faHardDrive} className={s.resourceIcon} />
-            <h4 className={loading ? skeleton.skeleton : ''}>{loading ? '' : 'Storage'}</h4>
+            {!loadingStorage && <FontAwesomeIcon icon={faHardDrive} className={s.resourceIcon} />}
+            <h4 className={loadingStorage ? skeleton.skeleton : ''}>{loadingStorage ? '' : 'Storage'}</h4>
           </div>
-          {!loading && (
-            <>
-              <div className={s.storageLayout}>
-                <div className={s.storagePie}>
-                  <ResponsivePie
-                    data={storagePieData}
-                    innerRadius={0.55}
-                    padAngle={hasStorage ? 0.5 : 0}
-                    cornerRadius={hasStorage ? 2 : 0}
-                    activeOuterRadiusOffset={4}
-                    borderWidth={0}
-                    arcLinkLabelsSkipAngle={360}
-                    arcLabelsSkipAngle={360}
-                    margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                    colors={hasStorage ? storagePieData.map(d => d.color) : ['var(--color-dark-400)']}
-                    enableArcLabels={false}
-                    enableArcLinkLabels={false}
-                    isInteractive={hasStorage}
-                    tooltip={({ datum }) => (
-                      <div className={s.pieTooltip}>{datum.id}: {datum.value} files</div>
-                    )}
-                  />
-                </div>
-                <ul className={s.storageCategories}>
-                  {STORAGE_MOCK.map(({ id: cat, label, color }, i) => (
-                    <li key={cat} className={s.categoryRow}>
-                      <FontAwesomeIcon icon={CATEGORY_ICONS[i]} style={{ color }} className={s.categoryIcon} />
-                      <span className={s.categoryLabel}>{label}</span>
-                      <span className={s.categoryCount}>0 files</span>
-                    </li>
-                  ))}
-                </ul>
+          {!loadingStorage && (
+            <div className={s.storageLayout}>
+              <div className={s.storagePie}>
+                <ResponsivePie
+                  data={storagePieData}
+                  innerRadius={0.6}
+                  padAngle={hasStorage ? 0.5 : 0}
+                  cornerRadius={hasStorage ? 2 : 0}
+                  activeOuterRadiusOffset={hasStorage ? 4 : 0}
+                  borderWidth={0}
+                  arcLinkLabelsSkipAngle={360}
+                  arcLabelsSkipAngle={360}
+                  margin={{ top: 4, right: 4, bottom: 4, left: 4 }}
+                  colors={storagePieColors}
+                  enableArcLabels={false}
+                  enableArcLinkLabels={false}
+                  isInteractive={hasStorage}
+                  tooltip={({ datum }) => (
+                    <div className={s.pieTooltip}>{datum.id}: {datum.value} files</div>
+                  )}
+                />
               </div>
-              {!hasStorage && (
-                <p className={s.emptyText}>No storage connections.</p>
-              )}
-            </>
+              <ul className={s.storageCategories}>
+                {STORAGE_CATEGORIES.map(({ id: cat, label, color, icon }) => (
+                  <li key={cat} className={s.categoryRow}>
+                    <FontAwesomeIcon icon={icon} style={{ color }} className={s.categoryIcon} />
+                    <span className={s.categoryLabel}>{label}</span>
+                    <span className={s.categoryCount}>0 files</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </div>

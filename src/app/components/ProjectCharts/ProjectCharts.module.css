@@ -41,12 +41,20 @@
 
 .resourceSection {
   padding: 1.25rem;
+}
+
+.resourceSectionClickable {
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
 }
 
-.resourceSection:hover {
+.resourceSectionClickable:hover {
   background-color: var(--color-dark-200);
+}
+
+.resourceSectionLoading {
+  cursor: default;
+  pointer-events: none;
 }
 
 .divider {
