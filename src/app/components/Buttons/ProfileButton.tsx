@@ -57,7 +57,7 @@ export const ProfileButton = (props: ProfileButtonProps) => {
               <button title="Home" onClick={handleGoHome}>
                 <FontAwesomeIcon icon={faHome} />
               </button>
-              <button title="Account" onClick={() => { setShowCanvas(false); navigate('/user'); }}>
+              <button title="Account" onClick={() => { setShowCanvas(false); navigate('/user/profile'); }}>
                 <FontAwesomeIcon icon={faUser} />
               </button>
               <button title="Archive" onClick={() => { onGoArchive?.(); setShowCanvas(false); }}>

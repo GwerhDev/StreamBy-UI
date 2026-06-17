@@ -9,7 +9,6 @@ import {
   faMap, faAt, faMobile, faLink, faHashtag, faKey,
   faFingerprint, faTerminal, faBuilding, faChartBar, faUsers, faRocket,
 } from '@fortawesome/free-solid-svg-icons';
-import { ACCOUNT_BASE } from '../../../config/api';
 
 type CategoryId = 'account' | 'appearance' | 'notifications' | 'editor' | 'security' | 'billing';
 
@@ -30,11 +29,10 @@ interface Category {
 
 const SoonBadge = () => <span className={s.soonBadge}>Soon</span>;
 
-const buildCategories = (accountHref: string): Category[] => [
+const buildCategories = (): Category[] => [
   {
     id: 'account', label: 'Account', icon: faUser,
     items: [
-      { icon: faUser,     label: 'Profile',        description: 'Edit your display name and profile picture', href: accountHref },
       { icon: faEnvelope, label: 'Email address',  description: 'Change or verify your email address', soon: true },
       { icon: faLock,     label: 'Password',       description: 'Update your login password', soon: true },
       { icon: faTrash,    label: 'Delete account', description: 'Permanently delete your account and all data', soon: true },
@@ -91,7 +89,7 @@ export const Settings = () => {
   const [searchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'account') as CategoryId;
 
-  const categories = buildCategories(ACCOUNT_BASE);
+  const categories = buildCategories();
   const current = categories.find(c => c.id === activeTab) ?? categories[0];
 
   return (

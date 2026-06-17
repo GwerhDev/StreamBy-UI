@@ -6,7 +6,7 @@ import {
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import lm from '../components/LateralMenu/LateralMenu.module.css';
 
-const CATEGORIES = [
+const SETTINGS_CATEGORIES = [
   { id: 'account',       label: 'Account',       icon: faUser       },
   { id: 'appearance',    label: 'Appearance',     icon: faPalette    },
   { id: 'notifications', label: 'Notifications',  icon: faBell       },
@@ -19,17 +19,29 @@ export default function UserLayout() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') ?? 'account';
+  const isSettingsRoute = pathname === '/user/settings';
 
   return (
     <div className="dashboard-sections">
       <LateralMenu>
         <span className={lm.section}>
+          <h4>PROFILE</h4>
+        </span>
+        <ul className={lm.menuList}>
+          <Link to="/user/profile">
+            <li className={pathname === '/user/profile' ? lm.activeLink : ''}>
+              <FontAwesomeIcon icon={faUser} />
+              Profile
+            </li>
+          </Link>
+        </ul>
+        <span className={lm.section}>
           <h4>SETTINGS</h4>
         </span>
         <ul className={lm.menuList}>
-          {CATEGORIES.map(cat => (
+          {SETTINGS_CATEGORIES.map(cat => (
             <Link key={cat.id} to={`/user/settings?tab=${cat.id}`}>
-              <li className={activeTab === cat.id && pathname === '/user/settings' ? lm.activeLink : ''}>
+              <li className={isSettingsRoute && activeTab === cat.id ? lm.activeLink : ''}>
                 <FontAwesomeIcon icon={cat.icon} />
                 {cat.label}
               </li>
