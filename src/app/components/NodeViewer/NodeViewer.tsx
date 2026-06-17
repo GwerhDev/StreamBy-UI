@@ -1381,7 +1381,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
           <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
             <div className={s.modalHeader}>
               <span className={s.modalTitle}>
-                <FontAwesomeIcon icon={faDatabase} style={{ color: '#a855f7' }} />
+                <FontAwesomeIcon icon={faDatabase} style={{ color: 'var(--color-badge-builtin)' }} />
                 Data Source Configuration
               </span>
               <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowDataSourceModal(false); }}>
@@ -1429,7 +1429,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
           <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
             <div className={s.modalHeader}>
               <span className={s.modalTitle}>
-                <FontAwesomeIcon icon={faGlobe} style={{ color: '#38B6FF' }} />
+                <FontAwesomeIcon icon={faGlobe} style={{ color: 'var(--color-accent)' }} />
                 API Connection Configuration
               </span>
               <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowApiModal(false); }}>

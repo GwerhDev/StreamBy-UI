@@ -123,7 +123,7 @@ export const UpdateProjectForm = () => {
                     type="file"
                     accept="image/*"
                     ref={fileInputRef}
-                    style={{ display: 'none' }}
+                    className={s.hidden}
                     onChange={handleFileChange}
                   />
                 </div>

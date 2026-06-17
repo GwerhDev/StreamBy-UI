@@ -203,7 +203,7 @@
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: linear-gradient(90deg, #3a3a3a, #2a2a2a, #3a3a3a);
+  background: linear-gradient(90deg, var(--color-surface), var(--color-surface-sunken), var(--color-surface));
   background-size: 200% 100%;
   animation: skeletonShine 1.8s infinite;
 }
@@ -212,7 +212,7 @@
   width: 70%;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #3a3a3a, #2a2a2a, #3a3a3a);
+  background: linear-gradient(90deg, var(--color-surface), var(--color-surface-sunken), var(--color-surface));
   background-size: 200% 100%;
   animation: skeletonShine 1.8s infinite 0.1s;
 }
@@ -221,7 +221,7 @@
   width: 50%;
   height: 6px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #3a3a3a, #2a2a2a, #3a3a3a);
+  background: linear-gradient(90deg, var(--color-surface), var(--color-surface-sunken), var(--color-surface));
   background-size: 200% 100%;
   animation: skeletonShine 1.8s infinite 0.2s;
 }

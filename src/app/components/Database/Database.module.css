@@ -122,7 +122,7 @@
   text-transform: uppercase;
 }
 
-.badgePg { background-color: #1e3a5f; color: var(--color-info); }
+.badgePg { background-color: var(--color-info-subtle); color: var(--color-info); }
 .badgeMg { background-color: var(--color-badge-mongo-subtle); color: var(--color-badge-mongo); }
 .badgeBuiltin { background-color: var(--color-badge-builtin-subtle); color: var(--color-badge-builtin); }
 .badgeIcon { padding: 0.2rem 0.45rem; }

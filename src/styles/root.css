@@ -48,6 +48,9 @@
   --color-accent-subtle: rgba(56, 182, 255, 0.1);
   --color-accent-subtle-border: rgba(56, 182, 255, 0.25);
 
+  --color-white: #ffffff;
+  --color-info-subtle: rgba(30, 58, 95, 1);
+
   --color-bg-base: #1a1a1c;
   --color-bg-elevated: #202024;
   --color-fg: oklch(0.94 0.003 0);

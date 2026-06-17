@@ -197,3 +197,5 @@
   color: var(--color-warning);
   margin: 0;
 }
+
+.hidden { display: none; }
