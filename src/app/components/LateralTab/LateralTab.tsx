@@ -2,7 +2,7 @@ import s from './LateralTab.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { faBars, faRocket, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faRocket } from '@fortawesome/free-solid-svg-icons';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -66,7 +66,7 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
   const { pathname } = useLocation();
   const isProjectRoute = pathname.startsWith('/project/') && pathname !== '/project/create';
   const isSettingsRoute = pathname.startsWith('/user/');
-  const menuIcon = isProjectRoute ? faBars : isSettingsRoute ? faGear : faRocket;
+  const menuIcon = isProjectRoute || isSettingsRoute ? faBars : faRocket;
 
   const filteredList = projectList.list.filter((project: ProjectList) => !project.archived);
 
