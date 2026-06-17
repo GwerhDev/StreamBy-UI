@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUser, faPalette, faBell, faCode, faShield, faCreditCard,
+  faUser, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
 } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 import lm from '../components/LateralMenu/LateralMenu.module.css';
@@ -32,6 +32,12 @@ export default function UserLayout() {
             <li className={pathname === '/user/profile' ? lm.activeLink : ''}>
               <FontAwesomeIcon icon={faUser} />
               Profile
+            </li>
+          </Link>
+          <Link to="/user/archive">
+            <li className={pathname === '/user/archive' ? lm.activeLink : ''}>
+              <FontAwesomeIcon icon={faArchive} />
+              Archive
             </li>
           </Link>
         </ul>
