@@ -255,3 +255,6 @@
   color: var(--color-select-accent);
 }
 
+.storageItemLoading { opacity: 0.5; }
+.storageItemMuted   { opacity: 0.4; }
+

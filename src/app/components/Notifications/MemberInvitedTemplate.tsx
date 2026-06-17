@@ -75,7 +75,7 @@ export const MemberInvitedTemplate = ({ notification }: MemberInvitedTemplatePro
                 text="Reject"
                 icon={faBan}
                 onClick={handleReject}
-                disabled={accepting || rejecting || rejecting}
+                disabled={accepting || rejecting}
               />
             </>
           )}

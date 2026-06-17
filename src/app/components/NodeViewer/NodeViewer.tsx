@@ -474,7 +474,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   }, [nodes, setEdges]);
 
   const addNode = useCallback((config: PaletteItem) => {
-    const id = `${config.type}-${Date.now()}`;
+    const id = `${config.type}-${crypto.randomUUID()}`;
     const pos = config.group === 'process' ? { x: 240 + Math.random() * 60, y: -80 + Math.random() * 40 }
               : config.group === 'output'  ? { x: 520 + Math.random() * 60, y: 100 + Math.random() * 40 }
               : /* data */                   { x: 240 + Math.random() * 60, y: 300 + Math.random() * 40 };

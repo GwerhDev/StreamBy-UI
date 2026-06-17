@@ -58,18 +58,17 @@ const notificationsSlice = createSlice({
       const exists = state.items.some(n => n._id === action.payload._id);
       if (!exists) state.items.unshift(action.payload);
     },
-    markRead: (state, action: PayloadAction<string>) => {
-      const item = state.items.find(n => n._id === action.payload);
+    markRead: (state, action: PayloadAction<{ id: string; readAt: string }>) => {
+      const item = state.items.find(n => n._id === action.payload.id);
       if (item) {
         item.read = true;
-        item.readAt = new Date().toISOString();
+        item.readAt = action.payload.readAt;
       }
     },
-    markAllRead: (state) => {
-      const now = new Date().toISOString();
+    markAllRead: (state, action: PayloadAction<string>) => {
       state.items.forEach(n => {
         n.read = true;
-        n.readAt = now;
+        n.readAt = action.payload;
       });
     },
   },

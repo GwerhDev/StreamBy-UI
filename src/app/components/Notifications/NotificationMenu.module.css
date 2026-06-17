@@ -128,7 +128,7 @@
 .notifIconSuccess { color: var(--color-success); }
 .notifIconWarning { color: var(--color-warning); }
 .notifIconError { color: var(--color-danger-text); }
-.notifIconInfo { color: #60a5fa; }
+.notifIconInfo { color: var(--color-info); }
 
 .notifTitle {
   font-weight: 600;

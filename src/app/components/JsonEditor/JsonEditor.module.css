@@ -103,7 +103,7 @@
   width: 11px;
   height: 11px;
   cursor: pointer;
-  accent-color: #38B6FF;
+  accent-color: var(--color-primary);
   flex-shrink: 0;
   margin: 0;
 }

@@ -1,3 +1,5 @@
+.iconRotated { transform: rotate(90deg); }
+
 .container {
   width: 100%;
   flex: 1;

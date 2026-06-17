@@ -134,7 +134,7 @@
 .type_success { color: #4ade80; }
 .type_warning { color: #facc15; }
 .type_error   { color: #f87171; }
-.type_info    { color: #60a5fa; }
+.type_info    { color: var(--color-info); }
 
 /* ── Item content ────────────────────────── */
 .itemBody {

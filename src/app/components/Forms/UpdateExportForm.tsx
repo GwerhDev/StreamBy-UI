@@ -214,7 +214,7 @@ export function UpdateExportForm() {
                                   <FontAwesomeIcon icon={faTableColumns} />
                                 </button>
                                 <button type="button" className={s.tabActionBtn} title="Split down" onClick={() => splitDown(colIdx, rowIdx)}>
-                                  <FontAwesomeIcon icon={faTableColumns} style={{ transform: 'rotate(90deg)' }} />
+                                  <FontAwesomeIcon icon={faTableColumns} className={s.iconRotated} />
                                 </button>
                                 {!panel.isOriginal && (
                                   <button type="button" className={s.tabActionBtn} title="Close panel" onClick={() => closePanel(colIdx, rowIdx)}>

@@ -286,9 +286,9 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                         </div>
                         {isExpanded && (
                           isLoading ? (
-                            <div className={s.storageItem} style={{ opacity: 0.5 }}>Loadingâ€¦</div>
+                            <div className={`${s.storageItem} ${s.storageItemLoading}`}>Loading…</div>
                           ) : tables.length === 0 ? (
-                            <div className={s.storageItem} style={{ opacity: 0.4 }}>No tables</div>
+                            <div className={`${s.storageItem} ${s.storageItemMuted}`}>No tables</div>
                           ) : tables.map(tableName => {
                             const tablePath = `${connPath}/${encodeURIComponent(tableName)}`;
                             return (

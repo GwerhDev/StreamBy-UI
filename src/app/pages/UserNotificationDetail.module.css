@@ -28,7 +28,7 @@
 .iconSuccess { color: var(--color-success); }
 .iconWarning { color: var(--color-warning); }
 .iconError   { color: var(--color-danger-text); }
-.iconInfo    { color: #60a5fa; }
+.iconInfo    { color: var(--color-info); }
 
 .title {
   font-size: 1rem;

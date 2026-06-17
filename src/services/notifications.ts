@@ -3,7 +3,7 @@ import { store } from '../store';
 import { markRead, markAllRead } from '../store/notificationsSlice';
 
 export async function markNotificationRead(id: string) {
-  store.dispatch(markRead(id));
+  store.dispatch(markRead({ id, readAt: new Date().toISOString() }));
   try {
     await fetch(`${API_BASE}/streamby/notifications/${id}/read`, {
       method: 'PATCH',
@@ -15,7 +15,7 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function markAllNotificationsRead() {
-  store.dispatch(markAllRead());
+  store.dispatch(markAllRead(new Date().toISOString()));
   try {
     await fetch(`${API_BASE}/streamby/notifications/read-all`, {
       method: 'PATCH',
