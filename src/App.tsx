@@ -75,7 +75,7 @@ function App() {
               <Route element={<DefaultLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/project/create" element={<ProjectCreate />} />
-                <Route path="/explore" element={<Explore />} />
+                <Route path="/project/explore" element={<Explore />} />
                 <Route element={<UserLayout />}>
                   <Route path="/user/profile" element={<UserAccount />} />
                   <Route path="/user/archive" element={<UserArchive />} />
