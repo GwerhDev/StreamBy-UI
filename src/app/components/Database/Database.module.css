@@ -123,8 +123,8 @@
 }
 
 .badgePg { background-color: #1e3a5f; color: var(--color-info); }
-.badgeMg { background-color: #0d2a1e; color: #34d399; }
-.badgeBuiltin { background-color: #2d1f4e; color: #c084fc; }
+.badgeMg { background-color: var(--color-mongo-subtle); color: var(--color-mongo); }
+.badgeBuiltin { background-color: var(--color-builtin-subtle); color: var(--color-builtin); }
 .badgeIcon { padding: 0.2rem 0.45rem; }
 
 /* Delete button */

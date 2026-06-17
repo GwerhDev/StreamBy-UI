@@ -104,8 +104,8 @@
 }
 
 .badgePg { background-color: var(--color-primary-subtle); color: var(--color-info); }
-.badgeMg { background-color: rgba(52, 211, 153, 0.1); color: #34d399; }
-.badgeBuiltin { background-color: rgba(192, 132, 252, 0.1); color: #c084fc; }
+.badgeMg { background-color: var(--color-mongo-subtle); color: var(--color-mongo); }
+.badgeBuiltin { background-color: var(--color-builtin-subtle); color: var(--color-builtin); }
 .badgeIcon { padding: 0.2rem 0.45rem; }
 
 .deleteBtn {
