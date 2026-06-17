@@ -179,7 +179,7 @@
 }
 
 .tableCard:hover .tableCardDelete { opacity: 1; }
-.tableCardDelete:hover { color: var(--color-danger-200, #f87171); background: transparent; }
+.tableCardDelete:hover { color: var(--color-danger-text); background: transparent; }
 
 /* Records table */
 .recordsTable {
@@ -358,7 +358,7 @@
   border-radius: 0.3rem;
 }
 
-.removeColBtn:hover { color: var(--color-danger, #f87171); }
+.removeColBtn:hover { color: var(--color-danger-text); }
 
 .addColBtn {
   align-self: flex-start;

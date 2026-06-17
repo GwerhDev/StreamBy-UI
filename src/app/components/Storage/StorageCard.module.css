@@ -228,12 +228,12 @@
 }
 
 .previewDeleteBtn {
-  color: #e0626f;
+  color: var(--color-danger-text);
 }
 
 .previewDeleteBtn:hover {
   background-color: rgba(220, 53, 69, 0.18);
-  color: #f07280;
+  color: var(--color-danger-text-hover);
 }
 
 .previewConfirmDeleteBtn {
@@ -311,12 +311,12 @@
 }
 
 .ctxItemDanger {
-  color: #e0626f;
+  color: var(--color-danger-text);
 }
 
 .ctxItemDanger:hover {
   background-color: rgba(220, 53, 69, 0.12);
-  color: #f07280;
+  color: var(--color-danger-text-hover);
 }
 
 .ctxItemConfirm {

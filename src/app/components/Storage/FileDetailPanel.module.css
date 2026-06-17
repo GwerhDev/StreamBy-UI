@@ -204,17 +204,17 @@
 }
 
 .actionBtnDanger {
-  color: var(--color-danger, #f87171);
-  border-color: rgba(248, 113, 113, 0.2);
+  color: var(--color-danger-light);
+  border-color: var(--color-danger-subtle-border);
 }
 
 .actionBtnDanger:hover {
-  background-color: rgba(248, 113, 113, 0.1);
-  color: #f87171;
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger-light);
 }
 
 .actionBtnConfirm {
-  color: #f87171;
+  color: var(--color-danger-light);
   border-color: rgba(248, 113, 113, 0.5);
-  background-color: rgba(248, 113, 113, 0.1);
+  background-color: var(--color-danger-subtle);
 }

@@ -70,11 +70,11 @@
 }
 
 .feedbackAccepted {
-  color: #4ade80;
+  color: var(--color-success);
 }
 
 .feedbackRejected {
-  color: #f87171;
+  color: var(--color-danger-text);
 }
 
 .date {
