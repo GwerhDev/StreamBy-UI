@@ -6,7 +6,6 @@ import { faArchive, faGear, faHome, faUser } from "@fortawesome/free-solid-svg-i
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearCurrentProject } from "../../../store/currentProjectSlice";
-import { ACCOUNT_BASE } from "../../../config/api";
 import { Session } from "../../../interfaces";
 
 interface ProfileButtonProps {
@@ -58,9 +57,9 @@ export const ProfileButton = (props: ProfileButtonProps) => {
               <button title="Home" onClick={handleGoHome}>
                 <FontAwesomeIcon icon={faHome} />
               </button>
-              <a title="Account" target="_blank" href={ACCOUNT_BASE}>
+              <button title="Account" onClick={() => { setShowCanvas(false); navigate('/user'); }}>
                 <FontAwesomeIcon icon={faUser} />
-              </a>
+              </button>
               <button title="Archive" onClick={() => { onGoArchive?.(); setShowCanvas(false); }}>
                 <FontAwesomeIcon icon={faArchive} />
               </button>

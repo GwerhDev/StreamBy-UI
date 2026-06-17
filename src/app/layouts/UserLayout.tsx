@@ -1,4 +1,4 @@
-import { Link, Outlet, useSearchParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUser, faPalette, faBell, faCode, faShield, faCreditCard,
@@ -16,6 +16,7 @@ const CATEGORIES = [
 ];
 
 export default function UserLayout() {
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') ?? 'account';
 
@@ -28,7 +29,7 @@ export default function UserLayout() {
         <ul className={lm.menuList}>
           {CATEGORIES.map(cat => (
             <Link key={cat.id} to={`/user/settings?tab=${cat.id}`}>
-              <li className={activeTab === cat.id ? lm.activeLink : ''}>
+              <li className={activeTab === cat.id && pathname === '/user/settings' ? lm.activeLink : ''}>
                 <FontAwesomeIcon icon={cat.icon} />
                 {cat.label}
               </li>

@@ -76,9 +76,9 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/project/create" element={<ProjectCreate />} />
                 <Route path="/explore" element={<Explore />} />
-                <Route path="/user" element={<UserAccount />} />
-                <Route path="/user/archive" element={<UserArchive />} />
                 <Route element={<UserLayout />}>
+                  <Route path="/user" element={<UserAccount />} />
+                  <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />
                 </Route>
                 <Route element={<NotificationLayout />}>
