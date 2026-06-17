@@ -25,7 +25,7 @@ export default function UserLayout() {
     <div className="dashboard-sections">
       <LateralMenu>
         <span className={lm.section}>
-          <h4>PROFILE</h4>
+          <h4>USER</h4>
         </span>
         <ul className={lm.menuList}>
           <Link to="/user/profile">
