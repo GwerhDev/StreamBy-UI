@@ -184,7 +184,7 @@ export const DbRecords = () => {
                   {columns.map(col => (
                     <td key={col} title={String(row[col] ?? '')}>
                       {row[col] === null || row[col] === undefined
-                        ? <em style={{ color: 'var(--color-light-400)' }}>null</em>
+                        ? <em style={{ color: 'var(--color-text-muted)' }}>null</em>
                         : String(row[col])}
                     </td>
                   ))}
@@ -211,7 +211,7 @@ export const DbRecords = () => {
           <button className={s.pageBtn} disabled={offset === 0} onClick={() => setOffset(o => Math.max(0, o - PAGE_SIZE))}>
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-light-300)' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
             {offset + 1} – {offset + records.length}
           </span>
           <button className={s.pageBtn} disabled={records.length < PAGE_SIZE} onClick={() => setOffset(o => o + PAGE_SIZE)}>
@@ -292,7 +292,7 @@ export const DbRecords = () => {
               <div className={s.modalTitle}><FontAwesomeIcon icon={faTrash} /> Delete record</div>
               <button className={s.modalClose} onClick={() => setDeleteTarget(null)}>×</button>
             </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--color-light-300)', margin: 0 }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: 0 }}>
               Delete <strong>{getRecordLabel(deleteTarget)}</strong>? This cannot be undone.
             </p>
             <div className={s.modalActions}>

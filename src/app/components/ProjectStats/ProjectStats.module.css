@@ -8,7 +8,7 @@
 
 .statCard {
   width: 100%;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   padding: 1.5rem 1rem;
   border-radius: 1rem;
   text-align: center;
@@ -24,7 +24,7 @@
 }
 
 .clickable:hover {
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .readonly {
@@ -33,19 +33,19 @@
 
 .statIcon {
   font-size: 1.1rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   margin-bottom: 0.2rem;
 }
 
 .statCard h4 {
   margin: 0;
   font-size: 0.75rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .statCard p {
   font-size: 1.8em;
   font-weight: bold;
-  color: var(--color-primary);
+  color: var(--color-accent);
   margin: 0;
 }

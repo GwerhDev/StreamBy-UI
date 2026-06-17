@@ -12,7 +12,7 @@
   width: 100%;
   padding: 1rem;
   border-radius: 1rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   display: flex;
   justify-content: center;
 }
@@ -55,7 +55,7 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .plusContainer {
@@ -67,7 +67,7 @@
   position: absolute;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .imageContainer {
@@ -103,19 +103,19 @@
 
 .dbType {
   gap: .5rem;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   border-radius: 1rem;
   padding: .2rem;
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-accent);
 }
 
 .borderAnimate {
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-accent);
   position: relative;
   overflow: hidden;
   /* Para que el pseudo-elemento no se desborde */
@@ -129,7 +129,7 @@
   /* Empieza fuera del elemento */
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right, transparent, var(--color-secondary), transparent);
+  background: linear-gradient(to right, transparent, var(--color-accent-hover), transparent);
   /* Gradiente de escaneo */
   animation: scanBorder 2s linear infinite;
 }

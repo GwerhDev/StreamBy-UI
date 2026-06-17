@@ -6,11 +6,11 @@
   padding: 0;
   left: 0;
   bottom: 0;
-  border: solid .1rem var(--color-dark-400);
+  border: solid .1rem var(--color-surface-sunken);
   border-radius: .6rem;
   padding: .3rem;
   position: absolute;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   transition-duration: .4s;
   min-width: 100%;
   display: flex;
@@ -51,7 +51,7 @@
   padding: .3rem;
   border-radius: .4rem;
   padding-inline: 1.6rem;
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .profileButtonContainer button:hover,
@@ -59,7 +59,7 @@
   padding: .3rem;
   padding-inline: 1.6rem;
   color: white;
-  background-color: var(--color-button-primary-hover);
+  background-color: var(--color-accent-hover);
 }
 
 .profileButton {
@@ -77,11 +77,11 @@
   overflow: hidden;
   align-items: center;
   justify-content: center;
-  border-top: solid var(--color-light-200) 1px;
+  border-top: solid var(--color-text-primary) 1px;
   border-radius: 100%;
-  background: var(--background-gradient-color);
+  background: var(--color-bg-gradient);
   border: solid .15rem;
-  border-color: var(--color-button-primary-hover);
+  border-color: var(--color-accent-hover);
   cursor: pointer;
   aspect-ratio: 1/1;
 }
@@ -94,11 +94,11 @@
   overflow: hidden;
   align-items: center;
   justify-content: center;
-  border-top: solid var(--color-light-200) 1px;
+  border-top: solid var(--color-text-primary) 1px;
   border-radius: 100%;
-  background: var(--background-gradient-color);
+  background: var(--color-bg-gradient);
   border: solid .15rem;
-  border-color: var(--color-button-primary-hover);
+  border-color: var(--color-accent-hover);
   cursor: pointer;
   text-transform: uppercase;
   padding: 1rem;

@@ -52,6 +52,8 @@ Also check for **duplicate components**: if a component in one subdirectory is n
 
 ### 2. Style violations
 
+**CSS Modules scope rule**: Only `src/app/components/` may have `.module.css` files. Pages (`src/app/pages/`) and layouts (`src/app/layouts/`) must NOT have their own `.module.css`. Flag any `.module.css` found alongside a page or layout file — styling must come from global classes in `src/styles/globals.css`.
+
 For every `.module.css` file reviewed:
 
 - **Hardcoded colors**: Any `#xxxxxx`, `rgb()`, or `rgba()` that maps to a `--color-*` token → flag with the correct token. Known violations: `AddProjectButton.module.css`, `ProfileButton.module.css`, `MemberCard.module.css`, `DropdownInput.module.css`, `CreateProjectForm.module.css`.

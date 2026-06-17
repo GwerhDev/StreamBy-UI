@@ -8,8 +8,8 @@
   text-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  border-radius: var(--size-4);
-  background-color: var(--color-light-300);
+  border-radius: var(--space-4);
+  background-color: var(--color-text-secondary);
 }
 
 .container:hover {
@@ -18,5 +18,5 @@
 
 .container:disabled:hover {
   color: black;
-  background-color: var(--color-light-300);
+  background-color: var(--color-text-secondary);
 }

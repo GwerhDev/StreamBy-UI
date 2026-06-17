@@ -10,7 +10,7 @@
 
 /* ── Invite section ──────────────────────── */
 .inviteSection {
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0.75rem;
   padding: 1rem;
@@ -38,16 +38,16 @@
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.15s ease;
-  background-color: var(--color-dark-500);
+  background-color: var(--color-surface-deep);
 }
 
 .searchInput:focus-within {
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .searchIcon {
   font-size: 0.78rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -57,7 +57,7 @@
   border: none;
   padding: 0.5rem 0;
   font-size: 0.875rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   min-width: 0;
 }
 
@@ -69,7 +69,7 @@
   background: none;
   border: none;
   padding: 0.2rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   font-size: 0.8rem;
   display: flex;
@@ -79,7 +79,7 @@
 }
 
 .clearBtn:hover {
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   background: none;
 }
 
@@ -91,7 +91,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -114,7 +114,7 @@
 .dropdownInfo {
   padding: 0.6rem 0.85rem;
   font-size: 0.82rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .dropdownItem {
@@ -124,7 +124,7 @@
   padding: 0.55rem 0.85rem;
   cursor: pointer;
   font-size: 0.875rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   transition: background-color 0.1s ease;
 }
 
@@ -136,14 +136,14 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background-color: var(--color-dark-200);
-  border: 2px solid var(--color-button-primary-hover);
+  background-color: var(--color-surface-hover);
+  border: 2px solid var(--color-accent-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   flex-shrink: 0;
   text-transform: uppercase;
 }
@@ -168,7 +168,7 @@
 }
 
 .memberListItem {
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -184,7 +184,7 @@
 .errorMsg,
 .emptyMsg {
   font-size: 0.875rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 2rem 0;
 }

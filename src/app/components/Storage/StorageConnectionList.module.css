@@ -23,7 +23,7 @@
   width: 100%;
   padding: 1rem 2rem;
   border-radius: 1rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -32,7 +32,7 @@
 }
 
 .container ul li:hover {
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .cardSkeleton {
@@ -54,7 +54,7 @@
   border-radius: 100%;
   width: 2rem;
   aspect-ratio: 1/1;
-  border: solid 3px var(--color-button-primary-hover);
+  border: solid 3px var(--color-accent-hover);
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -83,7 +83,7 @@
 
 .cardInfo small {
   font-size: 0.75rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -103,16 +103,16 @@
   text-transform: uppercase;
 }
 
-.badgePg { background-color: var(--color-primary-subtle); color: var(--color-info); }
-.badgeMg { background-color: var(--color-mongo-subtle); color: var(--color-mongo); }
-.badgeBuiltin { background-color: var(--color-builtin-subtle); color: var(--color-builtin); }
+.badgePg { background-color: var(--color-accent-subtle); color: var(--color-info); }
+.badgeMg { background-color: var(--color-badge-mongo-subtle); color: var(--color-badge-mongo); }
+.badgeBuiltin { background-color: var(--color-badge-builtin-subtle); color: var(--color-badge-builtin); }
 .badgeIcon { padding: 0.2rem 0.45rem; }
 
 .deleteBtn {
   padding: 0.4rem 0.6rem;
   background: transparent;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   border-radius: 0.4rem;
   font-size: 0.85rem;
@@ -123,11 +123,11 @@
 
 .createItem {
   background-color: transparent !important;
-  border: dashed 0.2rem var(--color-dark-100) !important;
+  border: dashed 0.2rem var(--color-surface-raised) !important;
   justify-content: center !important;
   gap: 0.5rem;
 }
 
 .createItem:hover {
-  border-color: var(--color-light-200) !important;
+  border-color: var(--color-text-primary) !important;
 }

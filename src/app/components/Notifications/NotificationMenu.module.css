@@ -18,7 +18,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-dark-900);
+  background-color: var(--color-surface-900);
   overflow: hidden;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .resizeHandle:hover {
-  background: var(--color-button-primary, #38B6FF);
+  background: var(--color-accent, #38B6FF);
 }
 
 .titleButton {
@@ -54,8 +54,8 @@
   align-items: center;
   justify-content: space-between;
   background-color: transparent;
-  border-bottom: solid .5px var(--color-dark-300);
-  color: var(--color-light-300);
+  border-bottom: solid .5px var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: default;
 }
 
@@ -89,7 +89,7 @@
   font-size: .875rem;
   font-weight: 400;
   border-radius: 4px;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   transition: background-color 0.1s ease, color 0.1s ease;
@@ -99,11 +99,11 @@
 }
 
 .menuList li:hover {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }
 
 .menuList li.activeLink {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
   color: var(--color-select-accent);
 }
 
@@ -143,13 +143,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-accent);
   flex-shrink: 0;
 }
 
 .notifTime {
   font-size: 0.7rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   padding-left: 1.25rem;
 }
 
@@ -159,7 +159,7 @@
 
 .emptyText {
   font-size: 0.8rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   text-align: center;
   margin-top: 1rem;
 }

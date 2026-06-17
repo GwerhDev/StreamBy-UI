@@ -38,7 +38,7 @@
   padding: 1rem;
   border-radius: 1rem;
   padding-inline: 2rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -46,7 +46,7 @@
 }
 
 .container ul li:hover {
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .container ul .createConnection {
@@ -64,6 +64,6 @@
 }
 
 .deleteButton:hover {
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   background-color: transparent;
 }

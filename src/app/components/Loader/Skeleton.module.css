@@ -4,7 +4,7 @@
 }
 
 .scan {
-  background: linear-gradient(to right, transparent, var(--color-secondary), transparent);
+  background: linear-gradient(to right, transparent, var(--color-accent-hover), transparent);
   animation: scanBorder 2s linear infinite;
 }
 

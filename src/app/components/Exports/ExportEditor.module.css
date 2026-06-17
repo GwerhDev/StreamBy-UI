@@ -64,22 +64,22 @@
 
 .splitOverlay_top {
   background: linear-gradient(to top, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   border-top-width: 3px;
 }
 .splitOverlay_bottom {
   background: linear-gradient(to bottom, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   border-bottom-width: 3px;
 }
 .splitOverlay_left {
   background: linear-gradient(to left, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   border-left-width: 3px;
 }
 .splitOverlay_right {
   background: linear-gradient(to right, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   border-right-width: 3px;
 }
 
@@ -112,7 +112,7 @@
 
 .resizeHandle:hover,
 .resizeHandle[data-state="active"] {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .resizeHandle::after {
@@ -138,7 +138,7 @@
 
 .resizeHandleH:hover,
 .resizeHandleH[data-state="active"] {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .resizeHandleH::after {
@@ -158,7 +158,7 @@
 }
 
 .backButton:hover {
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -166,7 +166,7 @@
 .tabActionBtn {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   width: 24px;
   height: 24px;
@@ -179,7 +179,7 @@
 }
 
 .tabActionBtn:hover {
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.07);
 }
 
@@ -202,8 +202,8 @@
   gap: 0.75rem;
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
-  border: 1px solid var(--color-dark-400);
-  background-color: var(--color-dark-400);
+  border: 1px solid var(--color-surface-sunken);
+  background-color: var(--color-surface-sunken);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -211,12 +211,12 @@
 }
 
 .connectionItem:hover {
-  border-color: var(--color-light-300);
+  border-color: var(--color-text-secondary);
 }
 
 .connectionSelected {
-  border-color: var(--color-button-primary) !important;
-  background-color: var(--color-dark-300);
+  border-color: var(--color-accent) !important;
+  background-color: var(--color-surface);
 }
 
 .methodBadge {
@@ -225,7 +225,7 @@
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
-  background-color: var(--color-button-primary);
+  background-color: var(--color-accent);
   color: white;
   letter-spacing: 0.4px;
 }
@@ -240,7 +240,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 11px;
 }
 
@@ -248,7 +248,7 @@
   width: 100%;
   text-align: center;
   padding: 0.75rem 1rem;
-  border: dashed 1px var(--color-dark-400);
+  border: dashed 1px var(--color-surface-sunken);
   border-radius: 8px;
   font-size: 13px;
 }

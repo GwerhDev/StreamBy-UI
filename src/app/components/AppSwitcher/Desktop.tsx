@@ -59,7 +59,7 @@ export const Desktop = () => {
                     key={app.url}
                     type="button"
                     className={`${s.item} ${current ? s.current : ''}`}
-                    style={{ '--app-color': app.color ?? 'var(--color-primary)' } as React.CSSProperties}
+                    style={{ '--app-color': app.color ?? 'var(--color-accent)' } as React.CSSProperties}
                     onClick={() => handleClick(app)}
                   >
                     <img src={app.icon} alt="" className={s.appIcon} />

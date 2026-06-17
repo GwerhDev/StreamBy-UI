@@ -18,19 +18,19 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background-color: var(--color-dark-500);
+  background-color: var(--color-surface-deep);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-size: 1rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .name {
   font-size: 0.88rem;
   font-weight: 500;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -38,7 +38,7 @@
 
 .meta {
   font-size: 0.75rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   margin-top: 0.1rem;
   white-space: nowrap;
 }
@@ -55,8 +55,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-light-400);
-  background-color: var(--color-dark-500);
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-deep);
   border-radius: 4px;
   padding: 0.2rem 0.5rem;
 }

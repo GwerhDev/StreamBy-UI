@@ -25,13 +25,13 @@
 
 .sectionIcon {
   font-size: 0.85rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .sectionTitle {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -52,14 +52,14 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-radius: 1rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .categoryCard:hover {
-  background-color: var(--color-dark-200);
-  color: var(--color-primary);
+  background-color: var(--color-surface-hover);
+  color: var(--color-accent);
 }
 
 .categoryIcon {
@@ -89,5 +89,5 @@
 
 .empty {
   font-size: 0.85rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }

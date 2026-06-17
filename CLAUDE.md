@@ -13,33 +13,71 @@
 
 ## Design System
 
-CSS variables defined in `src/globals.css` and `src/root.css`.
+CSS variables defined in `src/styles/root.css`. All global styles live under `src/styles/`:
+- `root.css` — design tokens (all `--color-*`, `--space-*` variables)
+- `base.css` — font imports, reset (`*`), and native HTML element styles (`h1`–`h5`, `button`, `input`, `a`, etc.)
+- `globals.css` — global utility classes (`.dashboard-sections`, `.app-window`, `.loader`, etc.)
 
 ### Colors
+
+**Accent**
 | Variable | Value | Use |
 |---|---|---|
-| `--color-primary` | #38B6FF | Primary accent, active states |
-| `--color-button-primary` | #38B6FF | Action buttons |
-| `--color-button-primary-hover` | #54c0ff | Button hover, image borders |
-| `--color-dark-100` | #515151 | Hover on sidebar buttons |
-| `--color-dark-200` | #464646 | Card hover background |
-| `--color-dark-300` | #3c3c3c | Card background |
-| `--color-dark-400` | #2f2f2f | Sidebar button background, borders |
-| `--color-dark-500` | #212121 | Icon wrap backgrounds |
-| `--color-light-200` | #BEBEBE | Primary text / icon color |
-| `--color-light-400` | #7b7b7b | Secondary/subtitle text |
-| `--background-color-dark` | #1a1a1c | Page background |
-| `--background-color-light` | #2f2f2f | Light surface |
+| `--color-accent` | #38B6FF | Primary accent, active states, action buttons |
+| `--color-accent-hover` | #54c0ff | Hover state for accent elements |
+| `--color-accent-subtle` | rgba(56,182,255,0.1) | Accent tinted backgrounds |
+| `--color-accent-subtle-border` | rgba(56,182,255,0.25) | Accent tinted borders |
+
+**Surface (dark scale)**
+| Variable | Value | Use |
+|---|---|---|
+| `--color-surface-raised` | #515151 | Hover on sidebar buttons |
+| `--color-surface-hover` | #464646 | Card hover background |
+| `--color-surface` | #3c3c3c | Card background |
+| `--color-surface-sunken` | #2f2f2f | Sidebar button bg, borders |
+| `--color-surface-deep` | #212121 | Icon wrap backgrounds |
+| `--color-surface-base` | #1a1a1c | Input focus background |
+
+**Text**
+| Variable | Value | Use |
+|---|---|---|
+| `--color-text-bright` | #e4e4e4 | High emphasis text |
+| `--color-text-primary` | #BEBEBE | Primary text, icons |
+| `--color-text-secondary` | #adadad | Body text |
+| `--color-text-muted` | #7b7b7b | Subtitles, placeholders |
+
+**Backgrounds**
+| Variable | Value | Use |
+|---|---|---|
+| `--color-bg-base` | #1a1a1c | Page background |
+| `--color-bg-surface` | #2f2f2f | Light surface |
+| `--color-bg-elevated` | #202024 | Elevated panels |
+| `--color-bg-gradient` | linear-gradient(…) | App background gradient |
+
+**Semantic**
+| Variable | Use |
+|---|---|
+| `--color-danger-*` | Errors, destructive actions |
+| `--color-warning-*` | Warnings |
+| `--color-success-*` | Success states |
+| `--color-info` | Informational |
+
+**Badges**
+| Variable | Use |
+|---|---|
+| `--color-badge-mongo` / `--color-badge-mongo-subtle` | MongoDB connection badges |
+| `--color-badge-builtin` / `--color-badge-builtin-subtle` | Built-in connection badges |
 
 ### Spacing
-`--size-{1-12}` → 4px to 48px (multiples of 4px).
+`--space-{1-12}` → 4px to 48px (multiples of 4px).
 
 ### Typography
 - Body: Inter, system-ui
 - Display: Poppins, Big Shoulders Inline Display
 
 ### Rules
-- **All styles use CSS Modules** — no inline styles except `style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}` in layout wrappers.
+- **Only components use CSS Modules** — pages (`src/app/pages/`) and layouts (`src/app/layouts/`) must NOT have `.module.css` files. Any styling they need comes from global classes defined in `src/styles/globals.css`.
+- **All component styles use CSS Modules** — no inline styles except `style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}` in layout wrappers.
 - Import modules as `s` (or `skeleton` for skeleton styles).
 
 ---

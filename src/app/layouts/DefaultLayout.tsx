@@ -51,7 +51,7 @@ function DefaultLayoutInner() {
               <span className="title-container">
                 {APP_SWITCHER_URL
                   ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
-                  : (<>{image && <img src={image} alt="" />}<small className="font-bold nowrap">{name || 'StreamBy'}</small></>)
+                  : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)
                 }
               </span>
               <span className='info-buttons'>

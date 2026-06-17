@@ -5,7 +5,7 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -24,13 +24,13 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
@@ -42,14 +42,14 @@
 
 .closeBtn:hover {
   color: white;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
 }
 
 /* ── Preview ── */
 .preview {
   width: 100%;
   aspect-ratio: 4 / 3;
-  background-color: var(--color-dark-500);
+  background-color: var(--color-surface-deep);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,7 +73,7 @@
 
 .fileIcon {
   font-size: 2.5rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   opacity: 0.5;
 }
 
@@ -89,7 +89,7 @@
 .fileName {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   padding: 0.85rem 1.1rem 0.6rem;
   white-space: nowrap;
   overflow: hidden;
@@ -119,13 +119,13 @@
 
 .fieldLabel {
   font-size: 0.72rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .fieldValue {
   font-size: 0.82rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   text-align: right;
   word-break: break-all;
 }
@@ -141,7 +141,7 @@
 
 .urlText {
   font-size: 0.72rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -152,7 +152,7 @@
 .copyBtn {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
@@ -191,7 +191,7 @@
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background-color: rgba(255, 255, 255, 0.04);
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   font-size: 0.82rem;
   cursor: pointer;
   text-decoration: none;

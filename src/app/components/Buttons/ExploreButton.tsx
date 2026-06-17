@@ -16,7 +16,7 @@ export const ExploreButton = (props: { onClick: () => void }) => {
       <FontAwesomeIcon
         icon={faCompass}
         size="lg"
-        color={isActive ? 'var(--color-primary)' : 'var(--color-light-200)'}
+        color={isActive ? 'var(--color-accent)' : 'var(--color-text-primary)'}
       />
     </button>
   );

@@ -7,7 +7,7 @@
 }
 
 .card {
-  background: var(--color-dark-400);
+  background: var(--color-surface-sunken);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
@@ -18,7 +18,7 @@
 
 .message {
   font-size: 0.9rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   line-height: 1.6;
   margin: 0;
 }
@@ -53,14 +53,14 @@
   font-weight: 500;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .previewButton:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
 }
 
 .feedback {
@@ -79,5 +79,5 @@
 
 .date {
   font-size: 0.7rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }

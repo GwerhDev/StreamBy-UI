@@ -9,15 +9,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   cursor: pointer;
 }
 
 .container:hover {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }
 
 .active {
-  color: var(--color-primary);
-  background-color: var(--color-dark-200);
+  color: var(--color-accent);
+  background-color: var(--color-surface-hover);
 }

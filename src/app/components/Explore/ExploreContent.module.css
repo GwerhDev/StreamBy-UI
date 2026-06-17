@@ -29,7 +29,7 @@
 }
 
 .title p {
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .createContainer ul {
@@ -45,7 +45,7 @@
   padding: 1rem;
   border-radius: 1rem;
   padding-inline: 2rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -53,5 +53,5 @@
 }
 
 .createContainer ul li:hover {
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }

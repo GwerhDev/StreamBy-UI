@@ -3,11 +3,11 @@
   width: 100%;
   height: 28px;
   max-width: 500px;
-  border-radius: var(--size-4);
-  color: var(--color-light-200);
+  border-radius: var(--space-4);
+  color: var(--color-text-primary);
   text-wrap: nowrap;
   background-color: transparent;
-  border: solid 2px var(--color-light-200);
+  border: solid 2px var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,5 +15,5 @@
 
 .container:hover {
   color: black;
-  background-color: var(--color-light-200);
+  background-color: var(--color-text-primary);
 }

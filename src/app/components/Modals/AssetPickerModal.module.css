@@ -15,8 +15,8 @@
 /* ─── Modal ───────────────────────────────────────────────────────────────── */
 
 .modal {
-  background: var(--color-dark-600);
-  border: 1px solid var(--color-dark-300);
+  background: var(--color-surface-600);
+  border: 1px solid var(--color-surface);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -33,14 +33,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.85rem 1.2rem;
-  border-bottom: 1px solid var(--color-dark-300);
+  border-bottom: 1px solid var(--color-surface);
   flex-shrink: 0;
 }
 
 .headerTitle {
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -49,7 +49,7 @@
 .closeBtn {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0.2rem 0.35rem;
   font-size: 0.85rem;
@@ -58,8 +58,8 @@
 }
 
 .closeBtn:hover {
-  color: var(--color-light-100);
-  background: var(--color-dark-400);
+  color: var(--color-text-bright);
+  background: var(--color-surface-sunken);
 }
 
 /* ─── Hidden file input ───────────────────────────────────────────────────── */
@@ -76,7 +76,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--color-dark-300);
+  border-bottom: 1px solid var(--color-surface);
   flex-shrink: 0;
 }
 
@@ -95,7 +95,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
@@ -104,20 +104,20 @@
 }
 
 .tab:hover {
-  background: var(--color-dark-500);
-  color: var(--color-light-200);
+  background: var(--color-surface-deep);
+  color: var(--color-text-primary);
 }
 
 .tabActive {
-  background: var(--color-dark-500);
-  border-color: var(--color-dark-200);
-  color: var(--color-light-100);
+  background: var(--color-surface-deep);
+  border-color: var(--color-surface-hover);
+  color: var(--color-text-bright);
 }
 
 .tabCount {
   font-size: 0.68rem;
-  background: var(--color-dark-400);
-  color: var(--color-light-400);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
   padding: 0.05rem 0.35rem;
   border-radius: 10px;
   min-width: 18px;
@@ -131,10 +131,10 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.8rem;
-  background: var(--color-dark-500);
-  border: 1px solid var(--color-dark-200);
+  background: var(--color-surface-deep);
+  border: 1px solid var(--color-surface-hover);
   border-radius: 6px;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
@@ -144,9 +144,9 @@
 }
 
 .uploadBtn:hover:not(:disabled) {
-  background: var(--color-dark-400);
-  border-color: var(--color-primary);
-  color: var(--color-light-100);
+  background: var(--color-surface-sunken);
+  border-color: var(--color-accent);
+  color: var(--color-text-bright);
 }
 
 .uploadBtn:disabled {
@@ -164,7 +164,7 @@
   background: rgba(56, 182, 255, 0.07);
   border-bottom: 1px solid rgba(56, 182, 255, 0.2);
   font-size: 0.78rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   flex-shrink: 0;
 }
 
@@ -175,13 +175,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--color-dark-300);
+  border-bottom: 1px solid var(--color-surface);
   flex-shrink: 0;
 }
 
 .searchIcon {
   font-size: 0.75rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -190,18 +190,18 @@
   background: none;
   border: none;
   outline: none;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   font-size: 0.82rem;
 }
 
 .searchInput::placeholder {
-  color: var(--color-light-500);
+  color: var(--color-text-muted);
 }
 
 .searchClear {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   font-size: 0.75rem;
   padding: 0.1rem 0.25rem;
@@ -210,7 +210,7 @@
 }
 
 .searchClear:hover {
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
 }
 
 /* ─── Grid ────────────────────────────────────────────────────────────────── */
@@ -231,7 +231,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 0.82rem;
   padding: 2rem 0;
 }
@@ -239,7 +239,7 @@
 .emptyNote {
   grid-column: 1 / -1;
   text-align: center;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 0.82rem;
   font-style: italic;
   padding: 2rem 0;
@@ -251,22 +251,22 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border: 1px solid var(--color-dark-300);
+  border: 1px solid var(--color-surface);
   border-radius: 8px;
   padding: 0.5rem;
-  background: var(--color-dark-600);
+  background: var(--color-surface-600);
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
 }
 
 .tile:hover {
-  border-color: var(--color-dark-100);
-  background: var(--color-dark-500);
+  border-color: var(--color-surface-raised);
+  background: var(--color-surface-deep);
 }
 
 .tileSelected {
-  border-color: var(--color-primary) !important;
+  border-color: var(--color-accent) !important;
   background: rgba(56, 182, 255, 0.08) !important;
   box-shadow: 0 0 0 2px rgba(56, 182, 255, 0.15);
 }
@@ -277,7 +277,7 @@
   aspect-ratio: 1;
   border-radius: 5px;
   overflow: hidden;
-  background: var(--color-dark-800);
+  background: var(--color-surface-base);
 }
 
 .tileImg {
@@ -293,7 +293,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .tileCheckmark {
@@ -309,7 +309,7 @@
 
 .tileName {
   font-size: 0.71rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -318,7 +318,7 @@
 
 .tileSize {
   font-size: 0.65rem;
-  color: var(--color-light-500);
+  color: var(--color-text-muted);
 }
 
 /* ─── Footer ──────────────────────────────────────────────────────────────── */
@@ -328,14 +328,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.85rem 1.2rem;
-  border-top: 1px solid var(--color-dark-300);
+  border-top: 1px solid var(--color-surface);
   flex-shrink: 0;
   gap: 1rem;
 }
 
 .selectionInfo {
   font-size: 0.78rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .footerActions {
@@ -346,10 +346,10 @@
 
 .cancelBtn {
   padding: 0.42rem 1rem;
-  background: var(--color-dark-500);
-  border: 1px solid var(--color-dark-300);
+  background: var(--color-surface-deep);
+  border: 1px solid var(--color-surface);
   border-radius: 8px;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   font-size: 0.81rem;
   font-weight: 600;
   cursor: pointer;
@@ -357,13 +357,13 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-dark-400);
-  color: var(--color-light-100);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-bright);
 }
 
 .insertBtn {
   padding: 0.42rem 1.1rem;
-  background: var(--color-primary);
+  background: var(--color-accent);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -375,7 +375,7 @@
 }
 
 .insertBtn:hover:not(:disabled) {
-  background: var(--color-button-primary-hover);
+  background: var(--color-accent-hover);
 }
 
 .insertBtn:disabled {

@@ -19,7 +19,7 @@
   width: 32px;
   aspect-ratio: 1/1;
   border: solid 3px;
-  border-color: var(--color-button-primary-hover);
+  border-color: var(--color-accent-hover);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .badge {
@@ -57,11 +57,11 @@
   font-weight: 700;
   padding: 0.15rem 0.5rem;
   border-radius: 5px;
-  border: 2px solid var(--color-button-primary-hover);
-  color: var(--color-light-200);
+  border: 2px solid var(--color-accent-hover);
+  color: var(--color-text-primary);
 }
 
 .badgePending {
-  border-color: var(--color-dark-100);
-  color: var(--color-light-300);
+  border-color: var(--color-surface-raised);
+  color: var(--color-text-secondary);
 }

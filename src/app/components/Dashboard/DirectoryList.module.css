@@ -17,10 +17,10 @@
   flex-direction: column;
   justify-content: center;
   cursor: pointer;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
 }
 
 .article:hover {
-  background-color: var(--color-dark-100);
-  color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+  color: var(--color-accent);
 }

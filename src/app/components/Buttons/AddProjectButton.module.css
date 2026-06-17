@@ -9,9 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
 }
 
 .container:hover {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }

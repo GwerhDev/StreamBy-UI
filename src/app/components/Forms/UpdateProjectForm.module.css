@@ -34,12 +34,12 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  border-color: var(--color-dark-400);
-  background-color: var(--background-color-dark);
+  border-color: var(--color-surface-sunken);
+  background-color: var(--color-bg-base);
 }
 
 .imgContainer:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .plusContainer {
@@ -51,7 +51,7 @@
   position: absolute;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .previewImageContainer {
@@ -86,7 +86,7 @@
 .allowedOriginInputContainer button {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
   padding: 0.5rem;
@@ -95,7 +95,7 @@
 .allowedOriginsContainer > button {
   background: none;
   border: none;
-  color: var(--color-primary);
+  color: var(--color-accent);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
 
 .visibilityLabel {
   font-size: 0.85rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -135,15 +135,15 @@
 }
 
 .badgePublic {
-  color: var(--color-primary);
-  border-color: var(--color-primary-subtle-border);
-  background-color: var(--color-primary-subtle);
+  color: var(--color-accent);
+  border-color: var(--color-accent-subtle-border);
+  background-color: var(--color-accent-subtle);
 }
 
 .badgePrivate {
-  color: var(--color-light-400);
-  border-color: var(--color-dark-300);
-  background-color: var(--color-dark-500);
+  color: var(--color-text-muted);
+  border-color: var(--color-surface);
+  background-color: var(--color-surface-deep);
 }
 
 .switch {
@@ -151,7 +151,7 @@
   height: 22px;
   border-radius: 11px;
   border: none;
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.2s;
@@ -171,15 +171,15 @@
 }
 
 .switch:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .switchOff {
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
 }
 
 .switchOff:hover {
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
 }
 
 .switchOff::after {

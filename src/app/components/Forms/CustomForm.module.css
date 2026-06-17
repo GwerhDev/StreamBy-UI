@@ -22,7 +22,7 @@
   align-items: flex-start;
   gap: 0.85rem;
   padding: 0.85rem 1.1rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -32,7 +32,7 @@
 
 .fieldIcon {
   font-size: 0.85rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   margin-top: 0.75rem;
   width: 14px;
   flex-shrink: 0;
@@ -40,7 +40,7 @@
 
 .fieldIconEdit {
   font-size: 0.85rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   width: 14px;
   flex-shrink: 0;
 }
@@ -54,12 +54,12 @@
 
 .fieldLabel {
   font-size: 0.72rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .fieldValue {
   font-size: 0.88rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -67,7 +67,7 @@
 }
 
 .fieldLink {
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: none;
 }
 
@@ -85,8 +85,8 @@
 .fieldInput {
   width: 100%;
   font-size: 0.88rem;
-  color: var(--color-light-200);
-  background-color: var(--color-dark-500);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-deep);
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px 4px 0 0;
@@ -96,8 +96,8 @@
 
 .fieldInput:focus {
   outline: none;
-  background-color: var(--color-dark-600);
-  border-bottom-color: var(--color-primary);
+  background-color: var(--color-surface-600);
+  border-bottom-color: var(--color-accent);
 }
 
 .fieldSelect {
@@ -110,7 +110,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   cursor: pointer;
   user-select: none;
 }

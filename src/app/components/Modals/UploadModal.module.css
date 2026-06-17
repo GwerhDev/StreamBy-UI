@@ -1,5 +1,5 @@
 .dropZone {
-  border: 2px dashed var(--color-light-400);
+  border: 2px dashed var(--color-text-muted);
   border-radius: 0.75rem;
   padding: 2rem 1.5rem;
   display: flex;
@@ -13,28 +13,28 @@
 
 .dropZone:hover,
 .dropZoneActive {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-subtle);
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
 }
 
 .dropIcon {
   font-size: 2rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   opacity: 0.7;
 }
 
 .dropText {
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
 }
 
 .browseLink {
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-weight: 600;
 }
 
 .dropHint {
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 0.78rem;
 }
 
@@ -58,12 +58,12 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   border-radius: 8px;
 }
 
 .fileItemIcon {
-  color: var(--color-primary);
+  color: var(--color-accent);
   flex-shrink: 0;
   font-size: 0.85rem;
 }
@@ -75,12 +75,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.85rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
 }
 
 .fileSize {
   font-size: 0.75rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -88,7 +88,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   padding: 0.2rem;
   display: flex;
   align-items: center;

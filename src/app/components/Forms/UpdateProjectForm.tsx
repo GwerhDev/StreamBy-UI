@@ -113,10 +113,10 @@ export const UpdateProjectForm = () => {
                         <img src={preview} alt="preview" className={s.previewImage} />
                       </span>
                     ) : (
-                      <FontAwesomeIcon color="var(--color-dark-400)" size="4x" icon={faFileImage} />
+                      <FontAwesomeIcon color="var(--color-surface-sunken)" size="4x" icon={faFileImage} />
                     )}
                     <span className={s.plusContainer}>
-                      <FontAwesomeIcon color="var(--color-light-200)" icon={faPlus} />
+                      <FontAwesomeIcon color="var(--color-text-primary)" icon={faPlus} />
                     </span>
                   </div>
                   <input

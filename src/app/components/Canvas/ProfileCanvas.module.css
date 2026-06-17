@@ -1,7 +1,7 @@
 .container {
   width: 100%;
   padding: .5rem;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
 }
 
 .container li {

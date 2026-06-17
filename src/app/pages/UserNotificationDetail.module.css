@@ -3,7 +3,7 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 
@@ -33,24 +33,24 @@
 .title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   margin: 0;
 }
 
 .message {
   font-size: 0.875rem;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0;
 }
 
 .time {
   font-size: 0.72rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
 }
 
 .callback {
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: underline;
 }

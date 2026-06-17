@@ -5,7 +5,7 @@
 }
 
 .wrapper:focus {
-  border: solid 1px var(--color-primary);
+  border: solid 1px var(--color-accent);
 }
 
 .trigger {
@@ -14,9 +14,9 @@
   gap: 0.5rem;
   padding: 0.45rem 0.75rem;
   background-color: transparent;
-  border: 1px solid var(--color-dark-100);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 8px;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   font-size: 0.85rem;
   cursor: pointer;
   width: 100%;
@@ -26,7 +26,7 @@
 }
 
 .wrapper:hover .trigger {
-  background-color: var(--color-dark-800);
+  background-color: var(--color-surface-base);
 }
 
 .trigger:disabled {
@@ -43,7 +43,7 @@
 
 .chevron {
   font-size: 0.65rem;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   flex-shrink: 0;
   transition: transform 0.15s ease;
 }
@@ -57,8 +57,8 @@
   z-index: 9999;
   gap: 0;
   flex-direction: column;
-  background-color: var(--color-dark-400);
-  border: 1px solid var(--color-dark-100);
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -81,7 +81,7 @@
   width: 100%;
   padding: 0.55rem 0.85rem;
   font-size: 0.875rem;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: background-color 0.1s ease;
   display: flex;
@@ -92,10 +92,10 @@
 }
 
 .option:hover {
-  background-color: var(--color-primary-subtle);
+  background-color: var(--color-accent-subtle);
 }
 
 .optionActive {
-  color: var(--color-primary);
-  background-color: var(--color-primary-subtle);
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
 }

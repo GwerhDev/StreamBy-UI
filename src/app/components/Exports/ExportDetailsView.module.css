@@ -52,10 +52,10 @@
   z-index: 30;
   transition: background 0.1s ease, border-color 0.1s ease;
 }
-.splitOverlay_top    { background: linear-gradient(to top,    transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-top-width:    3px; }
-.splitOverlay_bottom { background: linear-gradient(to bottom, transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-bottom-width: 3px; }
-.splitOverlay_left   { background: linear-gradient(to left,   transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-left-width:   3px; }
-.splitOverlay_right  { background: linear-gradient(to right,  transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-primary); border-right-width:  3px; }
+.splitOverlay_top    { background: linear-gradient(to top,    transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-accent); border-top-width:    3px; }
+.splitOverlay_bottom { background: linear-gradient(to bottom, transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-accent); border-bottom-width: 3px; }
+.splitOverlay_left   { background: linear-gradient(to left,   transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-accent); border-left-width:   3px; }
+.splitOverlay_right  { background: linear-gradient(to right,  transparent 50%, rgba(56,182,255,0.18) 50%); border-color: var(--color-accent); border-right-width:  3px; }
 
 .detailsScroll {
   flex: 1;
@@ -89,7 +89,7 @@
 .resizeHandle:hover,
 .resizeHandle[data-separator]:hover,
 .resizeHandle[data-state="active"] {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .resizeHandle::after {
@@ -115,7 +115,7 @@
 
 .resizeHandleH:hover,
 .resizeHandleH[data-state="active"] {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .resizeHandleH::after {
@@ -134,7 +134,7 @@
 .tabActionBtn {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   width: 24px;
   height: 24px;
@@ -147,13 +147,13 @@
 }
 
 .tabActionBtn:hover {
-  color: var(--color-light-100);
+  color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.07);
 }
 
 /* ── Field link ──────────────────────────── */
 .fieldLink {
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: none;
 }
 

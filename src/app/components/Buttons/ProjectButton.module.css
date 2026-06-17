@@ -12,7 +12,7 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .containerSkeleton {
@@ -22,7 +22,7 @@
 }
 
 .container span:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .container span {
@@ -39,7 +39,7 @@
 
 .selected {
   border: solid .15rem;
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .image {
@@ -67,13 +67,13 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  background-color: var(--color-dark-400);
+  background-color: var(--color-surface-sunken);
   border-radius: 50%;
   padding: 0.2rem;
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-accent);
 }

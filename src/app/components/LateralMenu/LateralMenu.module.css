@@ -18,7 +18,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-dark-900);
+  background-color: var(--color-surface-900);
   overflow: hidden;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .resizeHandle:hover {
-  background: var(--color-button-primary, #38B6FF);
+  background: var(--color-accent, #38B6FF);
 }
 
 .titleButton {
@@ -54,8 +54,8 @@
   align-items: center;
   justify-content: space-between;
   background-color: transparent;
-  border-bottom: solid .5px var(--color-dark-300);
-  color: var(--color-light-300);
+  border-bottom: solid .5px var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -71,7 +71,7 @@
   padding: .4rem .6rem;
   border-radius: 4px;
   font-size: .875rem;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -80,11 +80,11 @@
 
 .listButton:hover {
   color: var(--color-select-accent);
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }
 
 .hide {
-  background: var(--background-color-dark);
+  background: var(--color-bg-base);
 }
 
 .titleButton h4 {
@@ -97,7 +97,7 @@
 }
 
 .title:hover {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }
 
 .outterMenuContainer {
@@ -137,7 +137,7 @@
   font-size: .875rem;
   font-weight: 400;
   border-radius: 4px;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   transition: background-color 0.1s ease, color 0.1s ease;
@@ -150,7 +150,7 @@
   gap: .75rem;
   font-size: .875rem;
   font-weight: 400;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -169,14 +169,14 @@
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-light-300);
+  color: var(--color-text-secondary);
 }
 
 .menuList li:hover,
 .serviceHeader:hover {
   cursor: pointer;
   color: var(--color-select-accent);
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
 }
 
 .serviceName:hover {
@@ -191,7 +191,7 @@
   align-items: center;
   justify-content: center;
   transition-duration: .4s;
-  color: var(--color-dark-800);
+  color: var(--color-surface-base);
 }
 
 .deleteButton:hover {
@@ -201,7 +201,7 @@
 
 .menuList li.activeLink,
 .serviceHeader.activeLink {
-  background-color: var(--color-dark-100);
+  background-color: var(--color-surface-raised);
   color: var(--color-select-accent);
 }
 
@@ -237,7 +237,7 @@
   border-radius: 4px;
   font-size: .875rem;
   font-weight: 400;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.1s ease, color 0.1s ease;

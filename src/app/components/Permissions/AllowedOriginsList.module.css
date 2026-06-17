@@ -3,7 +3,7 @@
   width: 32px;
   aspect-ratio: 1/1;
   border: solid 3px;
-  border-color: var(--color-button-primary-hover);
+  border-color: var(--color-accent-hover);
   overflow: hidden;
   display: flex;
   flex-shrink: 0;
@@ -25,12 +25,12 @@
 .deleteButton {
   background-color: transparent;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--size-2);
+  padding: var(--space-2);
   flex-shrink: 0;
   transition: color 0.15s ease;
 }

@@ -38,14 +38,14 @@
   padding: 1rem;
   border-radius: 1rem;
   padding-inline: 2rem;
-  background-color: var(--color-dark-300);
+  background-color: var(--color-surface);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
 }
 
 .container ul li:hover {
-  background-color: var(--color-dark-200);
+  background-color: var(--color-surface-hover);
 }
 
 .container ul .createProject {
@@ -57,9 +57,9 @@
 .devToggle {
   padding: 0.4rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--color-dark-100);
-  background: var(--color-dark-300);
-  color: var(--color-light-300);
+  border: 1px solid var(--color-surface-raised);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 0.82rem;
   display: flex;
@@ -70,18 +70,18 @@
 }
 
 .devToggle:hover:not(:disabled) {
-  border-color: var(--color-light-400);
-  color: var(--color-light-100);
+  border-color: var(--color-text-muted);
+  color: var(--color-text-bright);
 }
 
 .devToggle:disabled { opacity: 0.5; cursor: default; }
 
 .devToggleActive {
-  border-color: var(--color-button-primary);
-  background: color-mix(in srgb, var(--color-button-primary) 15%, transparent);
-  color: var(--color-button-primary);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
 }
 
 .devToggleActive:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-button-primary) 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }

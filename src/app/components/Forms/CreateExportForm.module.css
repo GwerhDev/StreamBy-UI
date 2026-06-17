@@ -35,12 +35,12 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  border-color: var(--color-dark-400);
-  background-color: var(--background-color-dark);
+  border-color: var(--color-surface-sunken);
+  background-color: var(--color-bg-base);
 }
 
 .imgContainer:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .plusContainer {
@@ -52,7 +52,7 @@
   position: absolute;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .previewImageContainer {
@@ -87,7 +87,7 @@
 .allowedOriginInputContainer button {
   background: none;
   border: none;
-  color: var(--color-light-400);
+  color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
   padding: 0.5rem;
@@ -96,7 +96,7 @@
 .allowedOriginsContainer > button {
   background: none;
   border: none;
-  color: var(--color-primary);
+  color: var(--color-accent);
   cursor: pointer;
   display: flex;
   align-items: center;

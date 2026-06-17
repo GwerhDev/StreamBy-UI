@@ -72,7 +72,7 @@ const H_TOP    = '#a78bfa';
 const H_BOTTOM = '#34d399';
 const H_RIGHT  = '#fbbf24';
 
-const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-dark-800)', borderColor: color });
+const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-surface-base)', borderColor: color });
 const hOut = (color: string): React.CSSProperties => ({ background: color, borderColor: color });
 
 // ─── Custom Node Components ────────────────────────────────────────────────
@@ -888,7 +888,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             elementsSelectable deleteKeyCode={editMode ? 'Delete' : null}
             fitView fitViewOptions={{ padding: 0.35 }}
           >
-            <Background variant={BackgroundVariant.Dots} color="var(--color-dark-400)" gap={22} size={1} />
+            <Background variant={BackgroundVariant.Dots} color="var(--color-surface-sunken)" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>

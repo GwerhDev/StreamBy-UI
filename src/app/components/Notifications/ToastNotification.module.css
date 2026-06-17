@@ -11,9 +11,9 @@
 .toast {
   display: flex;
   gap: 1rem;
-  padding: var(--size-4);
+  padding: var(--space-4);
   border-radius: 8px;
-  color: var(--color-light-200);
+  color: var(--color-text-primary);
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -21,7 +21,7 @@
 }
 
 .toast.success {
-  background-color: var(--color-dark-500);
+  background-color: var(--color-surface-deep);
 }
 
 .toast.error {
