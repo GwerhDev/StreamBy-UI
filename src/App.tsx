@@ -42,7 +42,6 @@ const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
 const ExportEditorPage = lazy(() => import('./app/pages/ExportEditorPage').then(module => ({ default: module.ExportEditorPage })));
-const StorageCategory = lazy(() => import('./app/components/Storage/StorageCategory').then(module => ({ default: module.StorageCategory })));
 const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(module => ({ default: module.CredentialsList })));
 const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
 const ApiConnectionEdit = lazy(() => import('./app/pages/ApiConnectionEdit').then(module => ({ default: module.ApiConnectionEdit })));
@@ -102,7 +101,7 @@ function App() {
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
-                  <Route path="/project/:id/storage/:connId/:contentType" element={<StorageCategory />} />
+                  <Route path="/project/:id/storage/:connId/:contentType" element={<StorageDrive />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
                   <Route path="/project/:id/database/create" element={<DatabaseConnectionCreate />} />
