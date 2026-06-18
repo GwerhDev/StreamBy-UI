@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface DesktopContextValue {
   minimized: boolean;
@@ -8,7 +8,7 @@ interface DesktopContextValue {
 
 const DesktopContext = createContext<DesktopContextValue | null>(null);
 
-export function DesktopProvider({ children }: { children: React.ReactNode }) {
+export function DesktopProvider({ children }: { children: ReactNode }) {
   const [minimized, setMinimizedState] = useState(false);
 
   const toggleMinimized = () => setMinimizedState(v => !v);

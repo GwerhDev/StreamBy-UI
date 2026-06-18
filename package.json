@@ -23,6 +23,8 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@nivo/pie": "^0.99.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@reduxjs/toolkit": "^2.6.1",
     "chart.js": "^4.5.0",
     "framer-motion": "^12.40.0",
@@ -34,7 +36,8 @@
     "react-resizable-panels": "^4.10.0",
     "react-router-dom": "^7.5.0",
     "reactflow": "^11.11.4",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -45,6 +48,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^4.1.9",
     "autoprefixer": "^10.4.21",

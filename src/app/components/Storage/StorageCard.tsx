@@ -1,5 +1,5 @@
 import s from './StorageCard.module.css';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
@@ -7,6 +7,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { ReplaceModal } from '../Modals/ReplaceModal';
+
+const ModelViewer = lazy(() => import('./ModelViewer').then(m => ({ default: m.ModelViewer })));
+const ModelThumbnail = lazy(() => import('./ModelThumbnail').then(m => ({ default: m.ModelThumbnail })));
 
 interface StorageCardProps {
   file: StorageFile;
@@ -168,6 +171,10 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, sel
         <div className={s.preview}>
           {category === 'images' ? (
             <img src={file.url} alt={file.displayName} className={s.image} loading="lazy" />
+          ) : category === '3d-models' ? (
+            <Suspense fallback={<div className={s.iconPreview}><FontAwesomeIcon icon={faCubes} className={s.fileIcon} /></div>}>
+              <ModelThumbnail url={file.url} />
+            </Suspense>
           ) : (
             <div className={s.iconPreview}>
               <FontAwesomeIcon
@@ -267,9 +274,9 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, sel
               <audio src={file.url} className={s.previewAudio} controls autoPlay />
             )}
             {category === '3d-models' && (
-              <div className={s.previewModelPlaceholder}>
-                <FontAwesomeIcon icon={faCubes} className={s.previewModelIcon} />
-              </div>
+              <Suspense fallback={null}>
+                <ModelViewer url={file.url} />
+              </Suspense>
             )}
 
             {renaming ? (

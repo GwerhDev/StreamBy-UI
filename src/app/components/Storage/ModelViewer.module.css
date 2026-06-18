@@ -1,0 +1,86 @@
+.canvasWrapper {
+  position: relative;
+  width: 72vw;
+  max-width: 900px;
+  height: 62vh;
+  max-height: 580px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, #1a2030 0%, #0b0d11 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.hint {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ── Loader (rendered inside the Canvas via Html) ── */
+
+.loaderHtml {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.loaderRing {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(56, 182, 255, 0.2);
+  border-top-color: #38B6FF;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.loaderText {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.05em;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Unsupported format fallback ── */
+
+.unsupported {
+  width: 72vw;
+  max-width: 900px;
+  height: 62vh;
+  max-height: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  background: var(--color-surface-deep);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+}
+
+.unsupportedIcon {
+  font-size: 3.5rem;
+  color: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+.unsupportedText {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.unsupportedHint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
