@@ -156,6 +156,24 @@ export async function deleteStorageFile(projectId: string, connId: string, fileI
   }
 }
 
+export async function getStorageFolderById(
+  projectId: string,
+  connId: string,
+  folderId: string,
+): Promise<StorageFolder | null> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders/${folderId}`, {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    const { folder } = await res.json();
+    return folder ?? null;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch folder.', type: 'error' }));
+    return null;
+  }
+}
+
 export async function getStorageFolders(
   projectId: string,
   connId: string,

@@ -2,6 +2,7 @@ import s from './StorageDrive.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faImage, faHeadphones, faVideo, faCubes, faCloudArrowUp,
@@ -19,10 +20,13 @@ import {
   getStorageReplaceUrl,
   uploadToPresignedUrl,
   getStorageFolders,
+  getStorageFolderById,
   createStorageFolder,
   renameStorageFolder,
   deleteStorageFolder,
 } from '../../../services/storage';
+import { setCurrentStorageFolder, clearCurrentStorageFolder } from '../../../store/currentStorageFolderSlice';
+import { AppDispatch } from '../../../store';
 
 type SortKey = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
 
@@ -78,6 +82,7 @@ export const StorageDrive = () => {
     id: string; connId: string; segment?: string;
   }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   // segment is either a category ('images', ...) or a folderId (UUID)
   const isCategory = (s?: string): s is StorageCategory =>
@@ -120,6 +125,17 @@ export const StorageDrive = () => {
     setCreatingFolder(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]);
+
+  // Sync current folder name to Redux for breadcrumb
+  useEffect(() => {
+    if (!currentFolderId || !projectId || !connId) {
+      dispatch(clearCurrentStorageFolder());
+      return;
+    }
+    getStorageFolderById(projectId, connId, currentFolderId).then(folder => {
+      if (folder) dispatch(setCurrentStorageFolder(folder));
+    });
+  }, [currentFolderId, projectId, connId, dispatch]);
 
   // Auto-focus inputs
   useEffect(() => { if (creatingFolder) newFolderInputRef.current?.focus(); }, [creatingFolder]);

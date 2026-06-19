@@ -24,6 +24,7 @@ export const Browser = (props: BrowserProps) => {
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
   const currentExport = useSelector((state: RootState) => state.currentExport.data);
   const storages = useSelector((state: RootState) => state.management.storages);
+  const currentStorageFolder = useSelector((state: RootState) => state.currentStorageFolder.data);
 
 
   const isPending = membership?.isMember && membership?.status === 'pending';
@@ -65,12 +66,16 @@ export const Browser = (props: BrowserProps) => {
     return storages[Number(match)]?.name ?? null;
   };
 
+  const isUUID = (seg: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg);
+
   const formatSegment = (seg: string) => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
     const storageName = resolveBuiltinStorageName(seg);
     if (storageName) return storageName.toLowerCase();
     const storageConn = currentProject?.storageConnections?.find(c => c.id === seg);
     if (storageConn) return storageConn.name.toLowerCase();
+    if (currentStorageFolder && seg === currentStorageFolder.id) return currentStorageFolder.name;
     return seg.replace(/[_-]/g, ' ');
   };
 
@@ -95,7 +100,8 @@ export const Browser = (props: BrowserProps) => {
                     <span key={i} className={s.separator}>
                       <FontAwesomeIcon icon={faChevronRight} />
                       <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                        {isMongoId(seg) && seg !== currentExport?.id
+                        {(isMongoId(seg) && seg !== currentExport?.id) ||
+                         (isUUID(seg) && (!currentStorageFolder || currentStorageFolder.id !== seg))
                           ? <FontAwesomeIcon icon={faSpinner} spin />
                           : formatSegment(seg)}
                       </span>
