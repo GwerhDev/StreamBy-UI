@@ -74,18 +74,19 @@ function sortFiles(files: StorageFile[], key: SortKey): StorageFile[] {
 }
 
 export const StorageDrive = () => {
-  const { id: projectId, connId, contentType, folderId } = useParams<{
-    id: string; connId: string; contentType?: string; folderId?: string;
+  const { id: projectId, connId, segment } = useParams<{
+    id: string; connId: string; segment?: string;
   }>();
   const navigate = useNavigate();
 
-  // folderId from URL is the source of truth for current folder
-  const currentFolderId = folderId ?? null;
+  // segment is either a category ('images', ...) or a folderId (UUID)
+  const isCategory = (s?: string): s is StorageCategory =>
+    VALID_CATEGORIES.includes(s as StorageCategory);
 
-  const resolveCategory = (ct?: string): StorageCategory | 'all' =>
-    VALID_CATEGORIES.includes(ct as StorageCategory) ? (ct as StorageCategory) : 'all';
+  const currentFolderId  = segment && !isCategory(segment) ? segment : null;
+  const segmentCategory  = isCategory(segment) ? segment : undefined;
 
-  const [activeCategory, setActiveCategory]       = useState<StorageCategory | 'all'>(() => resolveCategory(contentType));
+  const [activeCategory, setActiveCategory]       = useState<StorageCategory | 'all'>(() => segmentCategory ?? 'all');
   const [files, setFiles]                         = useState<StorageFile[]>([]);
   const [folders, setFolders]                     = useState<StorageFolder[]>([]);
   const [loading, setLoading]                     = useState(true);
@@ -111,21 +112,14 @@ export const StorageDrive = () => {
   const newFolderInputRef    = useRef<HTMLInputElement>(null);
   const renameFolderInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync category with URL contentType param
+  // Sync category and reset state when segment changes (category switch or folder navigation)
   useEffect(() => {
-    setActiveCategory(resolveCategory(contentType));
+    setActiveCategory(segmentCategory ?? 'all');
     setSelectedItem(null);
     setSearch('');
     setCreatingFolder(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contentType]);
-
-  // Reset selection and search when navigating into/out of folders
-  useEffect(() => {
-    setSelectedItem(null);
-    setSearch('');
-    setCreatingFolder(false);
-  }, [folderId]);
+  }, [segment]);
 
   // Auto-focus inputs
   useEffect(() => { if (creatingFolder) newFolderInputRef.current?.focus(); }, [creatingFolder]);
@@ -226,7 +220,7 @@ export const StorageDrive = () => {
   }, [projectId, connId, currentFolderId]);
 
   const openFolder = useCallback((folder: StorageFolder) => {
-    navigate(`/project/${projectId}/storage/${connId}/folder/${folder.id}`);
+    navigate(`/project/${projectId}/storage/${connId}/${folder.id}`);
   }, [navigate, projectId, connId]);
 
   const handleFolderContextMenu = (e: React.MouseEvent, folder: StorageFolder) => {

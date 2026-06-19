@@ -101,8 +101,7 @@ function App() {
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
-                  <Route path="/project/:id/storage/:connId/folder/:folderId" element={<StorageDrive />} />
-                  <Route path="/project/:id/storage/:connId/:contentType" element={<StorageDrive />} />
+                  <Route path="/project/:id/storage/:connId/:segment" element={<StorageDrive />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
                   <Route path="/project/:id/database/create" element={<DatabaseConnectionCreate />} />
