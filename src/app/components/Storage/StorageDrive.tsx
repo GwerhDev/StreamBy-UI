@@ -283,6 +283,7 @@ export const StorageDrive = () => {
 
   const handleFolderContextMenu = (e: React.MouseEvent, folder: StorageFolder) => {
     e.preventDefault();
+    setSelectedItem(folder.id);
     const x = e.clientX + 192 > window.innerWidth ? e.clientX - 192 : e.clientX;
     const y = e.clientY + 100 > window.innerHeight ? e.clientY - 100 : e.clientY;
     setFolderCtx({ id: folder.id, name: folder.name, x, y });

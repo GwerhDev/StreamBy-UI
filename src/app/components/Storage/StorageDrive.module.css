@@ -456,6 +456,12 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+.folderCardSelected {
+  border-color: var(--color-accent, #5c8af5);
+  box-shadow: 0 0 0 2px var(--color-accent, #5c8af5);
+  background: rgba(92, 138, 245, 0.08);
+}
+
 .folderCardDragOver {
   background: rgba(92, 138, 245, 0.12) !important;
   border-color: #5c8af5 !important;
