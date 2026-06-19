@@ -256,6 +256,26 @@ export async function deleteStorageFolder(
   }
 }
 
+export async function moveStorageFolder(
+  projectId: string,
+  connId: string,
+  folderId: string,
+  newParentId: string | null,
+): Promise<void> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders/${folderId}/move`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newParentId }),
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    store.dispatch(addApiResponse({ message: 'Folder moved.', type: 'success' }));
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to move folder.', type: 'error' }));
+  }
+}
+
 export async function moveStorageFile(
   projectId: string,
   connId: string,

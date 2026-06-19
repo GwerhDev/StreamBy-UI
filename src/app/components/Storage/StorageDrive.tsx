@@ -7,11 +7,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faImage, faHeadphones, faVideo, faCubes, faCloudArrowUp,
   faTableCells, faList, faMagnifyingGlass, faChevronDown, faXmark,
-  faFolder, faFolderPlus, faPencil, faTrash,
+  faFolder, faFolderPlus, faPencil, faTrash, faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory, StorageFolder } from '../../../interfaces';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
+import { MoveModal } from '../Modals/MoveModal';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import {
   getStorageFiles,
@@ -137,9 +138,12 @@ export const StorageDrive = () => {
   const [dragOverFolderId, setDragOverFolderId]   = useState<string | null>(null);
   const [uploadingFolderIds, setUploadingFolderIds] = useState<Set<string>>(new Set());
   const [bgDragOver, setBgDragOver]               = useState(false);
+  const [fileCtx, setFileCtx]                     = useState<{ id: string; name: string; x: number; y: number } | null>(null);
+  const [moveItem, setMoveItem]                   = useState<{ type: 'file' | 'folder'; id: string; name: string } | null>(null);
   const uploadMenuRef        = useRef<HTMLDivElement>(null);
   const bgCtxRef             = useRef<HTMLUListElement>(null);
   const folderCtxRef         = useRef<HTMLUListElement>(null);
+  const fileCtxRef           = useRef<HTMLUListElement>(null);
   const newFolderInputRef    = useRef<HTMLInputElement>(null);
   const renameFolderInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,6 +170,18 @@ export const StorageDrive = () => {
   // Auto-focus inputs
   useEffect(() => { if (creatingFolder) newFolderInputRef.current?.focus(); }, [creatingFolder]);
   useEffect(() => { if (renamingFolderId) renameFolderInputRef.current?.focus(); }, [renamingFolderId]);
+
+  // Close file context menu on outside click / Escape
+  useEffect(() => {
+    if (!fileCtx) return;
+    const onDown = (e: MouseEvent) => {
+      if (fileCtxRef.current && !fileCtxRef.current.contains(e.target as Node)) setFileCtx(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFileCtx(null); };
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey); };
+  }, [fileCtx]);
 
   // Close folder context menu on outside click / Escape
   useEffect(() => {
@@ -303,6 +319,14 @@ export const StorageDrive = () => {
             .sort((a, b) => a.name.localeCompare(b.name)),
       );
     }
+  };
+
+  const handleFileContextMenu = (e: React.MouseEvent, file: { id: string; displayName: string }) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const x = e.clientX + 192 > window.innerWidth ? e.clientX - 192 : e.clientX;
+    const y = e.clientY + 80 > window.innerHeight ? e.clientY - 80 : e.clientY;
+    setFileCtx({ id: file.id, name: file.displayName, x, y });
   };
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -606,6 +630,7 @@ export const StorageDrive = () => {
                     e.dataTransfer.setData('application/streamby-file', file.id);
                     e.dataTransfer.effectAllowed = 'move';
                   }}
+                  onContextMenu={e => handleFileContextMenu(e, { id: file.id, displayName: file.displayName })}
                 >
                   <StorageCard
                     file={file}
@@ -678,6 +703,7 @@ export const StorageDrive = () => {
                     e.dataTransfer.setData('application/streamby-file', file.id);
                     e.dataTransfer.effectAllowed = 'move';
                   }}
+                  onContextMenu={e => handleFileContextMenu(e, { id: file.id, displayName: file.displayName })}
                 >
                   <FontAwesomeIcon
                     icon={categoryIcon[file.category as StorageCategory] ?? faCubes}
@@ -724,6 +750,13 @@ export const StorageDrive = () => {
             <FontAwesomeIcon icon={faPencil} className={s.bgCtxIcon} />
             Rename
           </li>
+          <li className={s.bgCtxItem} onClick={() => {
+            setMoveItem({ type: 'folder', id: folderCtx.id, name: folderCtx.name });
+            setFolderCtx(null);
+          }}>
+            <FontAwesomeIcon icon={faArrowRight} className={s.bgCtxIcon} />
+            Move
+          </li>
           <li className={s.bgCtxDivider} />
           <li
             className={`${s.bgCtxItem} ${folderCtxConfirm ? s.bgCtxItemConfirm : s.bgCtxItemDanger}`}
@@ -733,6 +766,32 @@ export const StorageDrive = () => {
             {folderCtxConfirm ? 'Confirm delete' : 'Delete'}
           </li>
         </ul>
+      )}
+
+      {/* ── File context menu ── */}
+      {fileCtx && (
+        <ul ref={fileCtxRef} className={s.bgCtxMenu} style={{ top: fileCtx.y, left: fileCtx.x }}>
+          <li className={s.bgCtxItem} onClick={() => {
+            setMoveItem({ type: 'file', id: fileCtx.id, name: fileCtx.name });
+            setFileCtx(null);
+          }}>
+            <FontAwesomeIcon icon={faArrowRight} className={s.bgCtxIcon} />
+            Move
+          </li>
+        </ul>
+      )}
+
+      {/* ── Move modal ── */}
+      {moveItem && projectId && connId && (
+        <MoveModal
+          projectId={projectId}
+          activeConnId={connId}
+          itemType={moveItem.type}
+          itemId={moveItem.id}
+          itemName={moveItem.name}
+          onSuccess={() => { setMoveItem(null); fetchFiles(); fetchFolders(); }}
+          onClose={() => setMoveItem(null)}
+        />
       )}
     </div>
   );

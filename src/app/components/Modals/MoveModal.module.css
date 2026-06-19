@@ -1,0 +1,147 @@
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 0.35rem 0;
+  background: var(--color-surface-deep);
+}
+
+/* Connection root row */
+.connRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.connRow:hover:not(.connDisabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.connDisabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.connName {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.connIcon {
+  color: #5c8af5;
+  opacity: 0.9;
+}
+
+/* Folder tree rows */
+.treeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 0.6rem;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.treeRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.treeRowSelected {
+  background: rgba(92, 138, 245, 0.14) !important;
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 16px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chevron {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+.chevronSpacer {
+  display: inline-block;
+  width: 10px;
+}
+
+.folderIcon {
+  font-size: 0.88rem;
+  color: #5c8af5;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.folderName {
+  font-size: 0.82rem;
+  color: var(--color-text-primary);
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.selectedMark {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.comingSoon {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  flex-shrink: 0;
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+}
+
+.spinner {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.destinationLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.destinationLabel strong {
+  color: var(--color-text-bright);
+  font-weight: 500;
+}
