@@ -15,6 +15,7 @@ import { UploadModal } from '../Modals/UploadModal';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import {
   getStorageFiles,
+  getStorageUploadUrl,
   deleteStorageFile,
   renameStorageFile,
   getStorageReplaceUrl,
@@ -24,6 +25,7 @@ import {
   createStorageFolder,
   renameStorageFolder,
   deleteStorageFolder,
+  moveStorageFile,
 } from '../../../services/storage';
 import { setCurrentStorageFolder, clearCurrentStorageFolder } from '../../../store/currentStorageFolderSlice';
 import { AppDispatch } from '../../../store';
@@ -61,6 +63,27 @@ function formatBytes(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+const EXTENSION_MIME: Record<string, string> = {
+  glb: 'model/gltf-binary', gltf: 'model/gltf+json', obj: 'model/obj',
+  fbx: 'application/octet-stream', stl: 'model/stl', ply: 'model/ply',
+};
+
+function resolveContentType(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+  return EXTENSION_MIME[ext] ?? 'application/octet-stream';
+}
+
+function detectCategory(file: File): StorageCategory | null {
+  const t = file.type;
+  if (t.startsWith('image/')) return 'images';
+  if (t.startsWith('audio/')) return 'audios';
+  if (t.startsWith('video/')) return 'videos';
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext && ['glb', 'gltf', 'obj', 'fbx', 'stl', 'ply'].includes(ext)) return '3d-models';
+  return null;
 }
 
 function sortFiles(files: StorageFile[], key: SortKey): StorageFile[] {
@@ -111,6 +134,9 @@ export const StorageDrive = () => {
   const [folderCtxConfirm, setFolderCtxConfirm]   = useState(false);
   const [renamingFolderId, setRenamingFolderId]   = useState<string | null>(null);
   const [renameFolderValue, setRenameFolderValue] = useState('');
+  const [dragOverFolderId, setDragOverFolderId]   = useState<string | null>(null);
+  const [uploadingFolderIds, setUploadingFolderIds] = useState<Set<string>>(new Set());
+  const [bgDragOver, setBgDragOver]               = useState(false);
   const uploadMenuRef        = useRef<HTMLDivElement>(null);
   const bgCtxRef             = useRef<HTMLUListElement>(null);
   const folderCtxRef         = useRef<HTMLUListElement>(null);
@@ -292,6 +318,76 @@ export const StorageDrive = () => {
     setBgCtx({ x, y });
   };
 
+  const uploadFilesToDestination = useCallback(async (osFiles: File[], targetFolderId: string | null) => {
+    if (!projectId || !connId || osFiles.length === 0) return;
+    await Promise.all(osFiles.map(async file => {
+      const category = detectCategory(file);
+      if (!category) return;
+      const contentType = resolveContentType(file);
+      const { url, fileId } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
+      await uploadToPresignedUrl(url, file, contentType);
+      if (targetFolderId) await moveStorageFile(projectId, connId, fileId, targetFolderId);
+    }));
+    await fetchFiles();
+  }, [projectId, connId, fetchFiles]);
+
+  const handleFolderDragOver = (e: React.DragEvent, folderId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFolderId(folderId);
+    setBgDragOver(false);
+  };
+
+  const handleFolderDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setDragOverFolderId(null);
+  };
+
+  const handleFolderDrop = useCallback(async (e: React.DragEvent, folder: StorageFolder) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFolderId(null);
+    if (!projectId || !connId) return;
+
+    // Internal file move
+    const internalId = e.dataTransfer.getData('application/streamby-file');
+    if (internalId) {
+      await moveStorageFile(projectId, connId, internalId, folder.id);
+      setFiles(prev => prev.map(f => f.id === internalId ? { ...f, folderId: folder.id } : f));
+      return;
+    }
+
+    // OS file upload into folder
+    const osFiles = Array.from(e.dataTransfer.files);
+    if (osFiles.length === 0) return;
+    setUploadingFolderIds(prev => new Set(prev).add(folder.id));
+    try {
+      await uploadFilesToDestination(osFiles, folder.id);
+    } finally {
+      setUploadingFolderIds(prev => { const n = new Set(prev); n.delete(folder.id); return n; });
+    }
+  }, [projectId, connId, uploadFilesToDestination]);
+
+  const handleBgDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!(e.target as Element).closest('[data-file]')) setBgDragOver(true);
+  };
+
+  const handleBgDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setBgDragOver(false);
+  };
+
+  const handleBgDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setBgDragOver(false);
+    if ((e.target as Element).closest('[data-file]')) return;
+    const internalId = e.dataTransfer.getData('application/streamby-file');
+    if (internalId) return; // internal drags go to folders only
+    const osFiles = Array.from(e.dataTransfer.files);
+    if (osFiles.length === 0) return;
+    await uploadFilesToDestination(osFiles, currentFolderId);
+  }, [uploadFilesToDestination, currentFolderId]);
+
   const displayFiles = useMemo(() => {
     let source = files;
     if (activeCategory === 'all') source = files.filter(f => (f.folderId ?? null) === currentFolderId);
@@ -417,9 +513,12 @@ export const StorageDrive = () => {
 
         {/* ── Content ── */}
         <div
-          className={s.content}
+          className={`${s.content} ${bgDragOver ? s.contentDragOver : ''}`}
           onClick={handleContentClick}
           onContextMenu={handleContentContextMenu}
+          onDragOver={handleBgDragOver}
+          onDragLeave={handleBgDragLeave}
+          onDrop={handleBgDrop}
         >
           {/* Inline new folder input */}
           {creatingFolder && (
@@ -470,11 +569,14 @@ export const StorageDrive = () => {
               {folders.map(folder => (
                 <div
                   key={folder.id}
-                  className={`${s.folderCard} ${selectedItem === folder.id ? s.folderCardSelected : ''}`}
+                  className={`${s.folderCard} ${selectedItem === folder.id ? s.folderCardSelected : ''} ${dragOverFolderId === folder.id ? s.folderCardDragOver : ''} ${uploadingFolderIds.has(folder.id) ? s.folderCardUploading : ''}`}
                   data-file="true"
                   onClick={() => setSelectedItem(folder.id)}
                   onDoubleClick={() => { if (renamingFolderId !== folder.id) openFolder(folder); }}
                   onContextMenu={e => handleFolderContextMenu(e, folder)}
+                  onDragOver={e => handleFolderDragOver(e, folder.id)}
+                  onDragLeave={handleFolderDragLeave}
+                  onDrop={e => handleFolderDrop(e, folder)}
                 >
                   <FontAwesomeIcon icon={faFolder} className={s.folderCardIcon} />
                   {renamingFolderId === folder.id ? (
@@ -496,7 +598,15 @@ export const StorageDrive = () => {
                 </div>
               ))}
               {displayFiles.map(file => (
-                <div key={file.id} data-file="true">
+                <div
+                  key={file.id}
+                  data-file="true"
+                  draggable
+                  onDragStart={e => {
+                    e.dataTransfer.setData('application/streamby-file', file.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                >
                   <StorageCard
                     file={file}
                     category={file.category as StorageCategory}
@@ -523,11 +633,14 @@ export const StorageDrive = () => {
                   role="button"
                   tabIndex={0}
                   data-file="true"
-                  className={`${s.listRow} ${selectedItem === folder.id ? s.listRowSelected : ''}`}
+                  className={`${s.listRow} ${selectedItem === folder.id ? s.listRowSelected : ''} ${dragOverFolderId === folder.id ? s.folderCardDragOver : ''} ${uploadingFolderIds.has(folder.id) ? s.folderCardUploading : ''}`}
                   onClick={() => setSelectedItem(folder.id)}
                   onDoubleClick={() => { if (renamingFolderId !== folder.id) openFolder(folder); }}
                   onKeyDown={e => { if (e.key === 'Enter' && renamingFolderId !== folder.id) openFolder(folder); }}
                   onContextMenu={e => handleFolderContextMenu(e, folder)}
+                  onDragOver={e => handleFolderDragOver(e, folder.id)}
+                  onDragLeave={handleFolderDragLeave}
+                  onDrop={e => handleFolderDrop(e, folder)}
                 >
                   <FontAwesomeIcon icon={faFolder} className={`${s.listIcon} ${s.folderIcon}`} />
                   {renamingFolderId === folder.id ? (
@@ -557,9 +670,14 @@ export const StorageDrive = () => {
                   data-file="true"
                   role="button"
                   tabIndex={0}
+                  draggable
                   className={`${s.listRow} ${selectedItem === file.id ? s.listRowSelected : ''}`}
                   onClick={() => setSelectedItem(file.id)}
                   onKeyDown={e => { if (e.key === 'Enter') setSelectedItem(file.id); }}
+                  onDragStart={e => {
+                    e.dataTransfer.setData('application/streamby-file', file.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
                 >
                   <FontAwesomeIcon
                     icon={categoryIcon[file.category as StorageCategory] ?? faCubes}
