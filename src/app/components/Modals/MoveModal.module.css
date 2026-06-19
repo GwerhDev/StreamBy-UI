@@ -39,7 +39,7 @@
 }
 
 .connIcon {
-  color: #5c8af5;
+  color: var(--color-accent);
   opacity: 0.9;
 }
 
@@ -76,6 +76,12 @@
   flex-shrink: 0;
 }
 
+.expandBtn:hover,
+.expandBtn:focus {
+  background: none;
+  outline: none;
+}
+
 .chevron {
   font-size: 0.65rem;
   opacity: 0.6;
@@ -88,8 +94,8 @@
 
 .folderIcon {
   font-size: 0.88rem;
-  color: #5c8af5;
-  opacity: 0.75;
+  color: var(--color-accent);
+  opacity: 0.85;
   flex-shrink: 0;
 }
 

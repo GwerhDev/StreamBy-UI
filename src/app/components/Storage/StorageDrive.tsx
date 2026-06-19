@@ -129,8 +129,6 @@ export const StorageDrive = () => {
   const [uploadCat, setUploadCat]                 = useState<StorageCategory | null>(null);
   const [uploadMenuOpen, setUploadMenuOpen]       = useState(false);
   const [bgCtx, setBgCtx]                         = useState<{ x: number; y: number } | null>(null);
-  const [creatingFolder, setCreatingFolder]       = useState(false);
-  const [newFolderName, setNewFolderName]         = useState('');
   const [folderCtx, setFolderCtx]                 = useState<{ id: string; name: string; x: number; y: number } | null>(null);
   const [folderCtxConfirm, setFolderCtxConfirm]   = useState(false);
   const [renamingFolderId, setRenamingFolderId]   = useState<string | null>(null);
@@ -142,7 +140,6 @@ export const StorageDrive = () => {
   const uploadMenuRef        = useRef<HTMLDivElement>(null);
   const bgCtxRef             = useRef<HTMLUListElement>(null);
   const folderCtxRef         = useRef<HTMLUListElement>(null);
-  const newFolderInputRef    = useRef<HTMLInputElement>(null);
   const renameFolderInputRef = useRef<HTMLInputElement>(null);
 
   // Sync category and reset state when segment changes (category switch or folder navigation)
@@ -150,7 +147,6 @@ export const StorageDrive = () => {
     setActiveCategory(segmentCategory ?? 'all');
     setSelectedItem(null);
     setSearch('');
-    setCreatingFolder(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]);
 
@@ -165,9 +161,13 @@ export const StorageDrive = () => {
     });
   }, [currentFolderId, projectId, connId, dispatch]);
 
-  // Auto-focus inputs
-  useEffect(() => { if (creatingFolder) newFolderInputRef.current?.focus(); }, [creatingFolder]);
-  useEffect(() => { if (renamingFolderId) renameFolderInputRef.current?.focus(); }, [renamingFolderId]);
+  // Auto-focus + select-all when entering rename mode
+  useEffect(() => {
+    if (renamingFolderId) {
+      renameFolderInputRef.current?.focus();
+      renameFolderInputRef.current?.select();
+    }
+  }, [renamingFolderId]);
 
   // Close folder context menu on outside click / Escape
   useEffect(() => {
@@ -257,10 +257,14 @@ export const StorageDrive = () => {
     await fetchFiles();
   }, [projectId, connId, fetchFiles]);
 
-  const handleCreateFolder = useCallback(async (name: string) => {
-    if (!projectId || !connId || !name.trim()) return;
-    const folder = await createStorageFolder(projectId, connId, name.trim(), currentFolderId);
-    if (folder) setFolders(prev => [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)));
+  const handleCreateFolder = useCallback(async () => {
+    if (!projectId || !connId) return;
+    const folder = await createStorageFolder(projectId, connId, 'New folder', currentFolderId);
+    if (folder) {
+      setFolders(prev => [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)));
+      setRenamingFolderId(folder.id);
+      setRenameFolderValue(folder.name);
+    }
   }, [projectId, connId, currentFolderId]);
 
   const openFolder = useCallback((folder: StorageFolder) => {
@@ -403,7 +407,7 @@ export const StorageDrive = () => {
     const handle = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (bgCtx || folderCtx || creatingFolder || renamingFolderId) return;
+      if (bgCtx || folderCtx || renamingFolderId) return;
 
       if (e.key === 'Escape') { setSelectedItem(null); return; }
 
@@ -428,7 +432,7 @@ export const StorageDrive = () => {
     };
     document.addEventListener('keydown', handle);
     return () => document.removeEventListener('keydown', handle);
-  }, [folders, displayFiles, selectedItem, bgCtx, folderCtx, creatingFolder, renamingFolderId, openFolder]);
+  }, [folders, displayFiles, selectedItem, bgCtx, folderCtx, renamingFolderId, openFolder]);
 
   const isLoading = loading || foldersLoading;
   const emptyIcon  = activeCategory !== 'all' ? categoryIcon[activeCategory] : faFolder;
@@ -523,29 +527,6 @@ export const StorageDrive = () => {
           onDragLeave={handleBgDragLeave}
           onDrop={handleBgDrop}
         >
-          {/* Inline new folder input */}
-          {creatingFolder && (
-            <div className={s.newFolderRow}>
-              <FontAwesomeIcon icon={faFolder} className={s.newFolderIcon} />
-              <input
-                ref={newFolderInputRef}
-                className={s.newFolderInput}
-                value={newFolderName}
-                placeholder="New folder"
-                onChange={e => setNewFolderName(e.target.value)}
-                onKeyDown={async e => {
-                  if (e.key === 'Enter' && newFolderName.trim()) {
-                    await handleCreateFolder(newFolderName.trim());
-                    setCreatingFolder(false);
-                    setNewFolderName('');
-                  }
-                  if (e.key === 'Escape') { setCreatingFolder(false); setNewFolderName(''); }
-                }}
-                onBlur={() => { setCreatingFolder(false); setNewFolderName(''); }}
-              />
-            </div>
-          )}
-
           {isLoading ? (
             viewMode === 'grid' ? (
               <div className={s.grid}>
@@ -715,7 +696,7 @@ export const StorageDrive = () => {
       {/* ── Background context menu ── */}
       {bgCtx && (
         <ul ref={bgCtxRef} className={s.bgCtxMenu} style={{ top: bgCtx.y, left: bgCtx.x }}>
-          <li className={s.bgCtxItem} onClick={() => { setCreatingFolder(true); setBgCtx(null); }}>
+          <li className={s.bgCtxItem} onClick={() => { setBgCtx(null); handleCreateFolder(); }}>
             <FontAwesomeIcon icon={faFolderPlus} className={s.bgCtxIcon} />
             New folder
           </li>
