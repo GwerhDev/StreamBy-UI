@@ -272,6 +272,17 @@ export interface StorageFile {
   category: StorageCategory;
   uploadedBy: string;
   createdAt: string;
+  folderId?: string | null;
+}
+
+export interface StorageFolder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  projectId: string;
+  storageConnectionId?: string;
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface SwitcherApp {

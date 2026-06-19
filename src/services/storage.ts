@@ -1,7 +1,7 @@
 import { API_BASE } from "../config/api";
 import { store } from '../store';
 import { addApiResponse } from '../store/apiResponsesSlice';
-import { StorageCategory, StorageFile } from '../interfaces';
+import { StorageCategory, StorageFile, StorageFolder } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
   `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
@@ -153,5 +153,106 @@ export async function deleteStorageFile(projectId: string, connId: string, fileI
     console.error('Error deleting file:', error);
     store.dispatch(addApiResponse({ message: error.message || 'Failed to delete file.', type: 'error' }));
     throw error;
+  }
+}
+
+export async function getStorageFolders(
+  projectId: string,
+  connId: string,
+  parentId?: string | null,
+): Promise<StorageFolder[]> {
+  try {
+    const params = new URLSearchParams({ parentId: parentId === null || parentId === undefined ? 'null' : parentId });
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders?${params}`, {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    const { data } = await res.json();
+    return data ?? [];
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch folders.', type: 'error' }));
+    return [];
+  }
+}
+
+export async function createStorageFolder(
+  projectId: string,
+  connId: string,
+  name: string,
+  parentId?: string | null,
+): Promise<StorageFolder | null> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, parentId: parentId ?? null }),
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    const { folder } = await res.json();
+    store.dispatch(addApiResponse({ message: 'Folder created.', type: 'success' }));
+    return folder;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to create folder.', type: 'error' }));
+    return null;
+  }
+}
+
+export async function renameStorageFolder(
+  projectId: string,
+  connId: string,
+  folderId: string,
+  name: string,
+): Promise<StorageFolder | null> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders/${folderId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    const { folder } = await res.json();
+    store.dispatch(addApiResponse({ message: 'Folder renamed.', type: 'success' }));
+    return folder;
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to rename folder.', type: 'error' }));
+    return null;
+  }
+}
+
+export async function deleteStorageFolder(
+  projectId: string,
+  connId: string,
+  folderId: string,
+): Promise<void> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/folders/${folderId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+    store.dispatch(addApiResponse({ message: 'Folder deleted.', type: 'success' }));
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete folder.', type: 'error' }));
+  }
+}
+
+export async function moveStorageFile(
+  projectId: string,
+  connId: string,
+  fileId: string,
+  folderId: string | null,
+): Promise<void> {
+  try {
+    const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}/move`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folderId }),
+    });
+    if (!res.ok) throw new Error((await res.json()).message);
+  } catch (error: any) {
+    store.dispatch(addApiResponse({ message: error.message || 'Failed to move file.', type: 'error' }));
   }
 }
