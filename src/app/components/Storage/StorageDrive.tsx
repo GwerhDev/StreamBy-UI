@@ -138,12 +138,10 @@ export const StorageDrive = () => {
   const [dragOverFolderId, setDragOverFolderId]   = useState<string | null>(null);
   const [uploadingFolderIds, setUploadingFolderIds] = useState<Set<string>>(new Set());
   const [bgDragOver, setBgDragOver]               = useState(false);
-  const [fileCtx, setFileCtx]                     = useState<{ id: string; name: string; x: number; y: number } | null>(null);
   const [moveItem, setMoveItem]                   = useState<{ type: 'file' | 'folder'; id: string; name: string } | null>(null);
   const uploadMenuRef        = useRef<HTMLDivElement>(null);
   const bgCtxRef             = useRef<HTMLUListElement>(null);
   const folderCtxRef         = useRef<HTMLUListElement>(null);
-  const fileCtxRef           = useRef<HTMLUListElement>(null);
   const newFolderInputRef    = useRef<HTMLInputElement>(null);
   const renameFolderInputRef = useRef<HTMLInputElement>(null);
 
@@ -170,18 +168,6 @@ export const StorageDrive = () => {
   // Auto-focus inputs
   useEffect(() => { if (creatingFolder) newFolderInputRef.current?.focus(); }, [creatingFolder]);
   useEffect(() => { if (renamingFolderId) renameFolderInputRef.current?.focus(); }, [renamingFolderId]);
-
-  // Close file context menu on outside click / Escape
-  useEffect(() => {
-    if (!fileCtx) return;
-    const onDown = (e: MouseEvent) => {
-      if (fileCtxRef.current && !fileCtxRef.current.contains(e.target as Node)) setFileCtx(null);
-    };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFileCtx(null); };
-    document.addEventListener('mousedown', onDown);
-    window.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey); };
-  }, [fileCtx]);
 
   // Close folder context menu on outside click / Escape
   useEffect(() => {
@@ -320,14 +306,6 @@ export const StorageDrive = () => {
             .sort((a, b) => a.name.localeCompare(b.name)),
       );
     }
-  };
-
-  const handleFileContextMenu = (e: React.MouseEvent, file: { id: string; displayName: string }) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const x = e.clientX + 192 > window.innerWidth ? e.clientX - 192 : e.clientX;
-    const y = e.clientY + 80 > window.innerHeight ? e.clientY - 80 : e.clientY;
-    setFileCtx({ id: file.id, name: file.displayName, x, y });
   };
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -631,7 +609,6 @@ export const StorageDrive = () => {
                     e.dataTransfer.setData('application/streamby-file', file.id);
                     e.dataTransfer.effectAllowed = 'move';
                   }}
-                  onContextMenu={e => handleFileContextMenu(e, { id: file.id, displayName: file.displayName })}
                 >
                   <StorageCard
                     file={file}
@@ -641,6 +618,7 @@ export const StorageDrive = () => {
                     onDelete={handleDelete}
                     onRename={handleRename}
                     onReplace={handleReplace}
+                    onMove={() => setMoveItem({ type: 'file', id: file.id, name: file.displayName })}
                   />
                 </div>
               ))}
@@ -700,11 +678,11 @@ export const StorageDrive = () => {
                   className={`${s.listRow} ${selectedItem === file.id ? s.listRowSelected : ''}`}
                   onClick={() => setSelectedItem(file.id)}
                   onKeyDown={e => { if (e.key === 'Enter') setSelectedItem(file.id); }}
+                  onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setMoveItem({ type: 'file', id: file.id, name: file.displayName }); }}
                   onDragStart={e => {
                     e.dataTransfer.setData('application/streamby-file', file.id);
                     e.dataTransfer.effectAllowed = 'move';
                   }}
-                  onContextMenu={e => handleFileContextMenu(e, { id: file.id, displayName: file.displayName })}
                 >
                   <FontAwesomeIcon
                     icon={categoryIcon[file.category as StorageCategory] ?? faCubes}
@@ -765,19 +743,6 @@ export const StorageDrive = () => {
           >
             <FontAwesomeIcon icon={faTrash} className={s.bgCtxIcon} />
             {folderCtxConfirm ? 'Confirm delete' : 'Delete'}
-          </li>
-        </ul>
-      )}
-
-      {/* ── File context menu ── */}
-      {fileCtx && (
-        <ul ref={fileCtxRef} className={s.bgCtxMenu} style={{ top: fileCtx.y, left: fileCtx.x }}>
-          <li className={s.bgCtxItem} onClick={() => {
-            setMoveItem({ type: 'file', id: fileCtx.id, name: fileCtx.name });
-            setFileCtx(null);
-          }}>
-            <FontAwesomeIcon icon={faArrowRight} className={s.bgCtxIcon} />
-            Move
           </li>
         </ul>
       )}

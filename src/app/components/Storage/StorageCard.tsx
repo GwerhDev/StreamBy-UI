@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
-  faXmark, faCopy, faCheck, faEye, faPencil, faArrowsRotate,
+  faXmark, faCopy, faCheck, faEye, faPencil, faArrowsRotate, faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { ReplaceModal } from '../Modals/ReplaceModal';
@@ -17,6 +17,7 @@ interface StorageCardProps {
   onDelete: (id: string) => void;
   onRename?: (id: string, displayName: string) => Promise<void>;
   onReplace?: (id: string, file: File) => Promise<void>;
+  onMove?: () => void;
   selected?: boolean;
   onSelect?: (file: StorageFile) => void;
 }
@@ -38,7 +39,7 @@ const categoryIcon = {
 const CTX_W = 188;
 const CTX_H = 200;
 
-export function StorageCard({ file, category, onDelete, onRename, onReplace, selected: controlledSelected, onSelect }: StorageCardProps) {
+export function StorageCard({ file, category, onDelete, onRename, onReplace, onMove, selected: controlledSelected, onSelect }: StorageCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(false);
   const isControlled = onSelect !== undefined;
@@ -243,6 +244,12 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, sel
             >
               <FontAwesomeIcon icon={faArrowsRotate} className={s.ctxIcon} />
               Replace
+            </li>
+          )}
+          {onMove && (
+            <li className={s.ctxItem} onClick={() => { closeCtx(); onMove(); }}>
+              <FontAwesomeIcon icon={faArrowRight} className={s.ctxIcon} />
+              Move
             </li>
           )}
           <li className={s.ctxDivider} />
