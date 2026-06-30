@@ -28,7 +28,7 @@ import { ExploreButton } from '../Buttons/ExploreButton';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
 import { ProjectList, Session } from '../../../interfaces';
 import streambyIcon from '../../../assets/streamby-icon.svg';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { ProjectsState } from '../../../store/projectsSlice';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 
@@ -109,7 +109,7 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
     }
   };
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   const handleOnclick = () => {

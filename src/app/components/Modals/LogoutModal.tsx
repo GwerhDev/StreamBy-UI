@@ -1,6 +1,7 @@
 import s from './LogoutModal.module.css';
 import { fetchLogout } from '../../../services/auth';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
 import { clearSession } from '../../../store/sessionSlice';
 import { LogoutForm } from '../Forms/LogoutForm';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -10,7 +11,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faRightFromBracket, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 export const LogoutModal = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleLogout = async () => {
     try {

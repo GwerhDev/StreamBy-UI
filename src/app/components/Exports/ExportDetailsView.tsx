@@ -17,7 +17,7 @@ import {
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
 import { ResponsePreview } from './ResponsePreview';
@@ -48,7 +48,7 @@ const uid = () => `p${++_c}`;
 
 export const ExportDetailsView: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
 
   const [columns, setColumns] = useState<ColumnState[]>([

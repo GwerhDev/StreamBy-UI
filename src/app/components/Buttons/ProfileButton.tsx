@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArchive, faGear, faHome, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { AppDispatch } from '../../../store';
 import { clearCurrentProject } from "../../../store/currentProjectSlice";
 import { Session } from "../../../interfaces";
 
@@ -19,7 +20,7 @@ export const ProfileButton = (props: ProfileButtonProps) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleProfileButton = () => {
     setShowCanvas((prev) => !prev);

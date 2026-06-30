@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../store';
 import { fetchAuth, fetchSubscription } from '../services/auth';
 import { setLoader, setSession } from '../store/sessionSlice';
 import { useNavigate } from 'react-router-dom';
 import { addApiResponse } from '../store/apiResponsesSlice';
 
 export function useInitSession() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -10,6 +10,7 @@ import { StorageFile, StorageCategory } from '../../../interfaces';
 import { getStorageFiles, deleteStorageFile, renameStorageFile, getStorageReplaceUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
+import { ActionButton } from '../Buttons/ActionButton';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 
@@ -93,10 +94,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
           <h2>{meta.label}</h2>
         </div>
         {!previewLimit && (
-          <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
-            <FontAwesomeIcon icon={faCloudArrowUp} />
-            Upload
-          </button>
+          <ActionButton icon={faCloudArrowUp} text="Upload" onClick={() => setUploadModalOpen(true)} />
         )}
         {previewLimit && connId && (
           <Link to={viewAllPath} className={s.viewAllLink}>
@@ -117,10 +115,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
           <FontAwesomeIcon icon={meta.icon} className={s.emptyIcon} />
           <p>No {meta.label.toLowerCase()} yet</p>
           {!previewLimit && (
-            <button className={s.uploadBtn} onClick={() => setUploadModalOpen(true)}>
-              <FontAwesomeIcon icon={faCloudArrowUp} />
-              Upload your first file
-            </button>
+            <ActionButton icon={faCloudArrowUp} text="Upload your first file" onClick={() => setUploadModalOpen(true)} />
           )}
         </div>
       ) : (

@@ -4,14 +4,14 @@ import { faGlobe, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectOrigins } from '../../../services/projects';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export const AllowedOriginsList = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);

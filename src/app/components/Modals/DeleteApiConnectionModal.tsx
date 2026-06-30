@@ -9,7 +9,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { deleteApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { ModalShell } from './ModalShell';
 
 interface DeleteApiConnectionModalProps {
@@ -23,7 +23,7 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
   const [loader, setLoader] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
   const handleSubmit = async (e: FormEvent) => {

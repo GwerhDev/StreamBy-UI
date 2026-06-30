@@ -1,6 +1,7 @@
 import React from 'react';
 import s from './CopyButton.module.css';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
@@ -12,7 +13,7 @@ interface CopyButtonProps {
 }
 
 const CopyButton: React.FC<CopyButtonProps> = ({ title, textToCopy, children }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(textToCopy)

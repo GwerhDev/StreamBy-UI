@@ -1,7 +1,7 @@
 import s from './ExportEditor.module.css';
 import React, { DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { getExport, updateExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -52,7 +52,7 @@ function schemaKey(nodeSchema: unknown): string {
 
 export const ExportEditor: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
   const { id: projectId, exportId } = useParams<{ id: string; exportId: string }>();

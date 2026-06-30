@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 export const ToastNotification: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { responses } = useSelector((state: RootState) => state.apiResponses);
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import s from './CreateApiConnectionForm.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { updateApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -24,7 +24,7 @@ const HTTP_METHODS = [
 export const UpdateApiConnectionForm = () => {
   const { id: projectId, apiConnectionId } = useParams<{ id: string; apiConnectionId: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
   const connection = currentProject?.apiConnections?.find(c => c.id === apiConnectionId);
 
