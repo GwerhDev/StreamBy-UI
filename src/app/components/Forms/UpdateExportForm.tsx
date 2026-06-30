@@ -1,7 +1,8 @@
 import s from './UpdateExportForm.module.css';
 import React, { DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { getExport, updateExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -35,7 +36,7 @@ const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
 
 export function UpdateExportForm() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { data: exportDetails, loading: sliceLoading } = useSelector((state: RootState) => state.currentExport);
   const { id, exportId } = useParams();
@@ -157,9 +158,10 @@ export function UpdateExportForm() {
       });
       const payload = { name, description, allowedOrigin: selectedAllowedOrigins, private: isPrivate, useConnections, useCredentials, ...(nodeSchema ? { nodeSchema } : {}) };
       await updateExport(id || '', exportId || '', payload);
+      dispatch(addApiResponse({ message: 'Export updated successfully.', type: 'success' }));
       navigate(`/project/${id}/dashboard/exports/${exportId}`);
-    } catch (err: unknown) {
-      console.error(err);
+    } catch (err: any) {
+      dispatch(addApiResponse({ message: err.message || 'Failed to update export.', type: 'error' }));
     } finally {
       setSubmitting(false);
     }

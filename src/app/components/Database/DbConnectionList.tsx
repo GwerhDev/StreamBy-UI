@@ -5,8 +5,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { deleteDbConnection, fetchBuiltinDatabases } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -15,7 +16,7 @@ import { DbConnection } from '../../../interfaces';
 
 export const DbConnectionList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
   const connections: DbConnection[] = project?.dbConnections ?? [];
@@ -23,7 +24,9 @@ export const DbConnectionList = () => {
   const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
 
   useEffect(() => {
-    fetchBuiltinDatabases().then(setBuiltinDbs);
+    fetchBuiltinDatabases()
+      .then(setBuiltinDbs)
+      .catch(() => {});
   }, [projectId]);
 
   const builtinConns: DbConnection[] = builtinDbs.map(db => ({
@@ -45,14 +48,18 @@ export const DbConnectionList = () => {
     e.stopPropagation();
     if (!projectId || !project) return;
     setDeleting(connId);
-    const ok = await deleteDbConnection(projectId, connId);
-    if (ok) {
+    try {
+      await deleteDbConnection(projectId, connId);
+      dispatch(addApiResponse({ message: 'Connection deleted.', type: 'success' }));
       dispatch(setCurrentProject({
         ...project,
         dbConnections: connections.filter(c => c.id !== connId),
       }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
+    } finally {
+      setDeleting(null);
     }
-    setDeleting(null);
   };
 
   return (

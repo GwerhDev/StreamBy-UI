@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { updateApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -67,10 +68,11 @@ export const UpdateApiConnectionForm = () => {
           ...currentProject,
           apiConnections: currentProject.apiConnections.map(c => c.id === apiConnectionId ? updated : c),
         }));
+        dispatch(addApiResponse({ message: 'API connection updated successfully.', type: 'success' }));
       }
       navigate(`/project/${projectId}/connections/api/${apiConnectionId}`);
-    } catch {
-      // error handled in service
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update connection.', type: 'error' }));
     } finally {
       setLoading(false);
     }

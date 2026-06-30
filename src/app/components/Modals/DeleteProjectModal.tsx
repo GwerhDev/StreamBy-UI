@@ -8,6 +8,9 @@ import { ModalShell } from './ModalShell';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 
 interface DeleteProjectModalProps {
   currentProject: CurrentProjectState | null;
@@ -20,15 +23,18 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
   const { currentProject } = props;
   const navigate = useNavigate();
 
+  const dispatch = useDispatch<AppDispatch>();
+
   const handleDeleteProject = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteProject(currentProject?.data?.id);
+      const response = await deleteProject(currentProject?.data?.id);
+      dispatch(addApiResponse({ message: response.message || 'Project deleted.', type: 'success' }));
       handleCancel();
       navigate('/');
-    } catch (error) {
-      console.error('Error deleting project:', error);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete project.', type: 'error' }));
     } finally {
       setLoader(false);
     }

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { createApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -59,10 +60,11 @@ export const CreateApiConnectionForm = () => {
       if (response) {
         const existing = currentProject.apiConnections ?? [];
         dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response] }));
+        dispatch(addApiResponse({ message: 'API connection created successfully.', type: 'success' }));
       }
       navigate(`/project/${projectId}/connections/api`);
-    } catch {
-      // error handled in service
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
     } finally {
       setLoading(false);
     }

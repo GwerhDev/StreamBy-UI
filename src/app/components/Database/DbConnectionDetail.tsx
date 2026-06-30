@@ -2,10 +2,11 @@ import s from './Database.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faPlus, faTableColumns, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchTables, deleteTable } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -17,6 +18,7 @@ export const DbConnectionDetail = () => {
   const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const locationState = (location.state ?? {}) as { dbType?: string; isBuiltin?: boolean; name?: string };
   const project = useSelector((state: RootState) => state.currentProject.data);
   const externalConn = project?.dbConnections?.find(c => c.id === connId);
@@ -36,9 +38,14 @@ export const DbConnectionDetail = () => {
   const load = useCallback(async () => {
     if (!projectId || !connId) return;
     setLoading(true);
-    const data = await fetchTables(projectId, connId);
-    setTables(data);
-    setLoading(false);
+    try {
+      const data = await fetchTables(projectId, connId);
+      setTables(data);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to load tables.', type: 'error' }));
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, connId]);
 
   useEffect(() => { load(); }, [load]);
@@ -61,11 +68,15 @@ export const DbConnectionDetail = () => {
   const handleDelete = async () => {
     if (!projectId || !connId || !pendingDelete) return;
     setDeleteLoading(true);
-    const ok = await deleteTable(projectId, connId, pendingDelete);
-    setDeleteLoading(false);
-    if (ok) {
+    try {
+      await deleteTable(projectId, connId, pendingDelete);
+      dispatch(addApiResponse({ message: 'Deleted successfully.', type: 'success' }));
       setTables(prev => prev.filter(t => t !== pendingDelete));
       closeDeleteModal();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete.', type: 'error' }));
+    } finally {
+      setDeleteLoading(false);
     }
   };
 

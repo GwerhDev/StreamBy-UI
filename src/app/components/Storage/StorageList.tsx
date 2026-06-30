@@ -3,12 +3,15 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { getStorageFiles, deleteStorageFile, renameStorageFile, getStorageReplaceUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 
 interface StorageListProps {
   category: StorageCategory;
@@ -24,6 +27,7 @@ const categoryMeta: Record<StorageCategory, { label: string; icon: typeof faImag
 
 export function StorageList({ category, previewLimit }: StorageListProps) {
   const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
+  const dispatch = useDispatch<AppDispatch>();
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -44,22 +48,33 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
     try {
       await deleteStorageFile(projectId, connId, id);
       setFiles(prev => prev.filter(f => f.id !== id));
-    } catch {
-      // error dispatched by service
+      dispatch(addApiResponse({ message: 'File deleted.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete file.', type: 'error' }));
     }
   };
 
   const handleRename = async (id: string, displayName: string) => {
     if (!projectId || !connId) return;
-    const file = await renameStorageFile(projectId, connId, id, displayName);
-    if (file) setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
+    try {
+      const file = await renameStorageFile(projectId, connId, id, displayName);
+      setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: file.displayName } : f));
+      dispatch(addApiResponse({ message: 'File renamed.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to rename file.', type: 'error' }));
+    }
   };
 
   const handleReplace = async (id: string, file: File) => {
     if (!projectId || !connId) return;
-    const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
-    await uploadToPresignedUrl(url, file, file.type);
-    await fetchFiles();
+    try {
+      const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
+      await uploadToPresignedUrl(url, file, file.type);
+      await fetchFiles();
+      dispatch(addApiResponse({ message: 'File replaced.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to replace file.', type: 'error' }));
+    }
   };
 
   const handleUploadSuccess = () => {

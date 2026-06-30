@@ -2,8 +2,9 @@ import s from './Browser.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { faArrowLeft, faBan, faCheck, faChevronRight, faEnvelope, faFolder, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
@@ -19,6 +20,7 @@ export const Browser = (props: BrowserProps) => {
   const { children, preview, env } = props;
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const { id } = useParams();
   const { projectId } = useParams<{ projectId: string }>();
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
@@ -43,13 +45,23 @@ export const Browser = (props: BrowserProps) => {
 
   const handleAccept = async () => {
     if (!currentProject?.id || !session.userId) return;
-    await acceptInvitation(currentProject.id, session.userId);
+    try {
+      await acceptInvitation(currentProject.id, session.userId);
+      dispatch(addApiResponse({ message: 'Invitation accepted.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to accept invitation.', type: 'error' }));
+    }
   };
 
   const handleReject = async () => {
     if (!currentProject?.id || !session.userId) return;
-    await rejectInvitation(currentProject.id, session.userId);
-    navigate('/');
+    try {
+      await rejectInvitation(currentProject.id, session.userId);
+      dispatch(addApiResponse({ message: 'Invitation rejected.', type: 'success' }));
+      navigate('/');
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to reject invitation.', type: 'error' }));
+    }
   };
 
   const path = decodeURIComponent(location.pathname);

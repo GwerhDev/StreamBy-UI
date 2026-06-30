@@ -1,12 +1,13 @@
 import s from './MoveModal.module.css';
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRight, faChevronDown, faChevronRight, faFolder,
   faXmark, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { StorageFolder } from '../../../interfaces';
 import { getStorageFolders, moveStorageFile, moveStorageFolder } from '../../../services/storage';
 import { ModalShell } from './ModalShell';
@@ -32,6 +33,7 @@ interface Destination {
 export function MoveModal({
   projectId, activeConnId, itemType, itemId, itemName, onSuccess, onClose,
 }: MoveModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((s: RootState) => s.currentProject.data);
   const storages = useSelector((s: RootState) => s.management.storages);
 
@@ -93,7 +95,10 @@ export function MoveModal({
       } else {
         await moveStorageFolder(projectId, selected.connId, itemId, selected.folderId);
       }
+      dispatch(addApiResponse({ message: `${itemType === 'file' ? 'File' : 'Folder'} moved.`, type: 'success' }));
       onSuccess();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to move item.', type: 'error' }));
     } finally {
       setMoving(false);
     }

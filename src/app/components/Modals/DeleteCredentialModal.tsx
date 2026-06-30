@@ -1,5 +1,8 @@
 import { deleteCredential } from '../../../services/projects';
 import { FormEvent, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { DeleteCredentialForm } from '../Forms/DeleteCredentialForm';
 import { ModalShell } from './ModalShell';
 
@@ -21,17 +24,19 @@ export const DeleteCredentialModal = (props: DeleteCredentialModalProps) => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [confirmText, setConfirmText] = useState<string>('');
   const { projectId, credentialId, currentCredential, onClose } = props;
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleDeleteCredential = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteCredential(projectId || '', credentialId || '');
-      setLoader(false);
+      const response = await deleteCredential(projectId || '', credentialId || '');
+      dispatch(addApiResponse({ message: response.message || 'Credential deleted.', type: 'success' }));
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete credential.', type: 'error' }));
+    } finally {
       setLoader(false);
-      console.error('Error deleting credential:', error);
     }
   };
 

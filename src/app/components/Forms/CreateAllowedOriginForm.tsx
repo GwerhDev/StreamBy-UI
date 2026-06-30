@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { updateProjectOrigins } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -30,8 +31,11 @@ export const CreateAllowedOriginForm = () => {
     try {
       const existing = currentProject.allowedOrigin ?? [];
       const updated = await updateProjectOrigins(projectId, [...existing, trimmed]);
+      dispatch(addApiResponse({ message: 'Allowed origin added.', type: 'success' }));
       dispatch(setCurrentProject(updated));
       navigate(`/project/${projectId}/settings/permissions`);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to add allowed origin.', type: 'error' }));
     } finally {
       setLoading(false);
     }

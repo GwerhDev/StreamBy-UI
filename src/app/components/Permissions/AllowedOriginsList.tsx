@@ -6,6 +6,7 @@ import { ResourceList } from '../ResourceList/ResourceList';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectOrigins } from '../../../services/projects';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -23,7 +24,10 @@ export const AllowedOriginsList = () => {
     setSaving(true);
     try {
       const project = await updateProjectOrigins(projectId, allowedOrigins.filter(o => o !== origin));
+      dispatch(addApiResponse({ message: 'Allowed origin removed.', type: 'success' }));
       dispatch(setCurrentProject(project));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to remove allowed origin.', type: 'error' }));
     } finally {
       setSaving(false);
     }

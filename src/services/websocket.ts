@@ -1,8 +1,7 @@
 import { API_BASE } from '../config/api';
 import { store } from '../store';
-import { addNotification } from '../store/notificationsSlice';
+import { addNotification, fetchNotifications } from '../store/notificationsSlice';
 import { addApiResponse } from '../store/apiResponsesSlice';
-import { fetchNotifications } from '../store/notificationsSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 

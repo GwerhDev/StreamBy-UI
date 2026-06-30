@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { fetchCredential, updateCredential } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 
 import s from './UpdateCredentialForm.module.css';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -21,7 +22,7 @@ interface Credential {
 export const UpdateCredentialForm: React.FC = () => {
   const { id: projectId, credentialId } = useParams<{ id: string; credentialId: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
   const [key, setKey] = useState('');
@@ -42,8 +43,8 @@ export const UpdateCredentialForm: React.FC = () => {
           setKey(data.key);
           setValue(data.value);
         }
-      } catch (err) {
-        console.error('Error fetching credential details:', err);
+      } catch (err: any) {
+        dispatch(addApiResponse({ message: err.message || 'Failed to load credential.', type: 'error' }));
       } finally {
         setLoading(false);
       }
@@ -61,15 +62,15 @@ export const UpdateCredentialForm: React.FC = () => {
       const payload = { key, value };
       const response = await updateCredential(projectId, credentialId, payload);
       if (response && currentProject) {
-        // Update the specific credential in the Redux store
+        dispatch(addApiResponse({ message: response.message || 'Credential updated.', type: 'success' }));
         const updatedCredentials = currentProject.credentials?.map(cred =>
           cred.id === credentialId ? { ...cred, key, value } : cred
         );
         dispatch(setCurrentProject({ ...currentProject, credentials: updatedCredentials }));
-        navigate(`/project/${projectId}/settings/credentials/${credentialId}`); // Navigate back to details
+        navigate(`/project/${projectId}/settings/credentials/${credentialId}`);
       }
-    } catch (error) {
-      console.error('Error updating credential:', error);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update credential.', type: 'error' }));
     } finally {
       setLoading(false);
     }

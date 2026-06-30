@@ -30,6 +30,7 @@ import {
 } from '../../../services/storage';
 import { setCurrentStorageFolder, clearCurrentStorageFolder } from '../../../store/currentStorageFolderSlice';
 import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 
 type SortKey = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
 
@@ -156,9 +157,9 @@ export const StorageDrive = () => {
       dispatch(clearCurrentStorageFolder());
       return;
     }
-    getStorageFolderById(projectId, connId, currentFolderId).then(folder => {
-      if (folder) dispatch(setCurrentStorageFolder(folder));
-    });
+    getStorageFolderById(projectId, connId, currentFolderId)
+      .then(folder => { if (folder) dispatch(setCurrentStorageFolder(folder)); })
+      .catch((error: any) => dispatch(addApiResponse({ message: error.message || 'Failed to load folder.', type: 'error' })));
   }, [currentFolderId, projectId, connId, dispatch]);
 
   // Auto-focus + select-all when entering rename mode
@@ -239,33 +240,50 @@ export const StorageDrive = () => {
 
   const handleDelete = useCallback(async (id: string) => {
     if (!projectId || !connId) return;
-    await deleteStorageFile(projectId, connId, id);
-    setFiles(prev => prev.filter(f => f.id !== id));
-    setSelectedItem(prev => (prev === id ? null : prev));
-  }, [projectId, connId]);
+    try {
+      await deleteStorageFile(projectId, connId, id);
+      setFiles(prev => prev.filter(f => f.id !== id));
+      setSelectedItem(prev => (prev === id ? null : prev));
+      dispatch(addApiResponse({ message: 'File deleted.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete file.', type: 'error' }));
+    }
+  }, [projectId, connId, dispatch]);
 
   const handleRename = useCallback(async (id: string, displayName: string) => {
     if (!projectId || !connId) return;
-    const updated = await renameStorageFile(projectId, connId, id, displayName);
-    if (updated) setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: updated.displayName } : f));
-  }, [projectId, connId]);
+    try {
+      const updated = await renameStorageFile(projectId, connId, id, displayName);
+      setFiles(prev => prev.map(f => f.id === id ? { ...f, displayName: updated.displayName } : f));
+      dispatch(addApiResponse({ message: 'File renamed.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to rename file.', type: 'error' }));
+    }
+  }, [projectId, connId, dispatch]);
 
   const handleReplace = useCallback(async (id: string, file: File) => {
     if (!projectId || !connId) return;
-    const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
-    await uploadToPresignedUrl(url, file, file.type);
-    await fetchFiles();
-  }, [projectId, connId, fetchFiles]);
+    try {
+      const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
+      await uploadToPresignedUrl(url, file, file.type);
+      await fetchFiles();
+      dispatch(addApiResponse({ message: 'File replaced.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to replace file.', type: 'error' }));
+    }
+  }, [projectId, connId, fetchFiles, dispatch]);
 
   const handleCreateFolder = useCallback(async () => {
     if (!projectId || !connId) return;
-    const folder = await createStorageFolder(projectId, connId, 'New folder', currentFolderId);
-    if (folder) {
+    try {
+      const folder = await createStorageFolder(projectId, connId, 'New folder', currentFolderId);
       setFolders(prev => [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)));
       setRenamingFolderId(folder.id);
       setRenameFolderValue(folder.name);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create folder.', type: 'error' }));
     }
-  }, [projectId, connId, currentFolderId]);
+  }, [projectId, connId, currentFolderId, dispatch]);
 
   const openFolder = useCallback((folder: StorageFolder) => {
     navigate(`/project/${projectId}/storage/${connId}/${folder.id}`);
@@ -291,10 +309,17 @@ export const StorageDrive = () => {
   const handleFolderCtxDelete = async () => {
     if (!folderCtx || !projectId || !connId) return;
     if (!folderCtxConfirm) { setFolderCtxConfirm(true); return; }
-    await deleteStorageFolder(projectId, connId, folderCtx.id);
-    setFolders(prev => prev.filter(f => f.id !== folderCtx.id));
-    setFolderCtx(null);
-    setFolderCtxConfirm(false);
+    try {
+      await deleteStorageFolder(projectId, connId, folderCtx.id);
+      setFolders(prev => prev.filter(f => f.id !== folderCtx.id));
+      setFolderCtx(null);
+      setFolderCtxConfirm(false);
+      dispatch(addApiResponse({ message: 'Folder deleted.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete folder.', type: 'error' }));
+      setFolderCtx(null);
+      setFolderCtxConfirm(false);
+    }
   };
 
   const commitFolderRename = async () => {
@@ -303,12 +328,15 @@ export const StorageDrive = () => {
     const original = folders.find(f => f.id === renamingFolderId)?.name;
     setRenamingFolderId(null);
     if (!trimmed || trimmed === original) return;
-    const updated = await renameStorageFolder(projectId, connId, renamingFolderId, trimmed);
-    if (updated) {
+    try {
+      const updated = await renameStorageFolder(projectId, connId, renamingFolderId, trimmed);
       setFolders(prev =>
         prev.map(f => f.id === renamingFolderId ? { ...f, name: updated.name } : f)
             .sort((a, b) => a.name.localeCompare(b.name)),
       );
+      dispatch(addApiResponse({ message: 'Folder renamed.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to rename folder.', type: 'error' }));
     }
   };
 
@@ -327,16 +355,21 @@ export const StorageDrive = () => {
 
   const uploadFilesToDestination = useCallback(async (osFiles: File[], targetFolderId: string | null) => {
     if (!projectId || !connId || osFiles.length === 0) return;
-    await Promise.all(osFiles.map(async file => {
-      const category = detectCategory(file);
-      if (!category) return;
-      const contentType = resolveContentType(file);
-      const { url, fileId } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
-      await uploadToPresignedUrl(url, file, contentType);
-      if (targetFolderId) await moveStorageFile(projectId, connId, fileId, targetFolderId);
-    }));
-    await fetchFiles();
-  }, [projectId, connId, fetchFiles]);
+    try {
+      await Promise.all(osFiles.map(async file => {
+        const category = detectCategory(file);
+        if (!category) return;
+        const contentType = resolveContentType(file);
+        const { url, fileId } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
+        await uploadToPresignedUrl(url, file, contentType);
+        if (targetFolderId) await moveStorageFile(projectId, connId, fileId, targetFolderId);
+      }));
+      await fetchFiles();
+      dispatch(addApiResponse({ message: 'Files uploaded.', type: 'success' }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to upload files.', type: 'error' }));
+    }
+  }, [projectId, connId, fetchFiles, dispatch]);
 
   const handleFolderDragOver = (e: React.DragEvent, folderId: string) => {
     e.preventDefault();
@@ -359,8 +392,13 @@ export const StorageDrive = () => {
     // Internal file move
     const internalId = e.dataTransfer.getData('application/streamby-file');
     if (internalId) {
-      await moveStorageFile(projectId, connId, internalId, folder.id);
-      setFiles(prev => prev.map(f => f.id === internalId ? { ...f, folderId: folder.id } : f));
+      try {
+        await moveStorageFile(projectId, connId, internalId, folder.id);
+        setFiles(prev => prev.map(f => f.id === internalId ? { ...f, folderId: folder.id } : f));
+        dispatch(addApiResponse({ message: 'File moved.', type: 'success' }));
+      } catch (error: any) {
+        dispatch(addApiResponse({ message: error.message || 'Failed to move file.', type: 'error' }));
+      }
       return;
     }
 
@@ -373,7 +411,7 @@ export const StorageDrive = () => {
     } finally {
       setUploadingFolderIds(prev => { const n = new Set(prev); n.delete(folder.id); return n; });
     }
-  }, [projectId, connId, uploadFilesToDestination]);
+  }, [projectId, connId, uploadFilesToDestination, dispatch]);
 
   const handleBgDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

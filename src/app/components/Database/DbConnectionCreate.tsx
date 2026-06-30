@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faDatabase, faXmark, faTag, faLayerGroup, faKey, faFileLines } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createDbConnection, DbConnectionPayload } from '../../../services/database';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -20,7 +21,7 @@ const DB_TYPES = [
 export const DbConnectionCreate = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const project = useSelector((state: RootState) => state.currentProject.data);
 
   const [name, setName] = useState('');
@@ -47,13 +48,14 @@ export const DbConnectionCreate = () => {
         ...(description && { description }),
       };
       const result = await createDbConnection(projectId, payload);
-      if (result) {
-        dispatch(setCurrentProject({
-          ...project,
-          dbConnections: [...(project.dbConnections ?? []), result],
-        }));
-        navigate(`/project/${projectId}/database`);
-      }
+      dispatch(addApiResponse({ message: 'Database connection created.', type: 'success' }));
+      dispatch(setCurrentProject({
+        ...project,
+        dbConnections: [...(project.dbConnections ?? []), result],
+      }));
+      navigate(`/project/${projectId}/database`);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
     } finally {
       setLoading(false);
     }

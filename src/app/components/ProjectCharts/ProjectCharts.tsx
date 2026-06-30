@@ -95,8 +95,7 @@ export const ProjectCharts = () => {
         }
       }
       setStorageStats(merged);
-      setFetchingStorage(false);
-    });
+    }).catch(() => {}).finally(() => setFetchingStorage(false));
   }, [id]);
 
   const memberRolesData = Object.entries(

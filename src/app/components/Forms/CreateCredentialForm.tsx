@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { createCredential } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -30,6 +31,7 @@ export const CreateCredentialForm = () => {
     try {
       const response = await createCredential(projectId, key, value);
       if (response && currentProject) {
+        dispatch(addApiResponse({ message: response.message || 'Credential created.', type: 'success' }));
         const newCredential = { id: response.id, key, value };
         const updatedCredentials = currentProject.credentials
           ? [...currentProject.credentials, newCredential]
@@ -37,8 +39,8 @@ export const CreateCredentialForm = () => {
         dispatch(setCurrentProject({ ...currentProject, credentials: updatedCredentials }));
         navigate(`/project/${projectId}/settings/credentials`);
       }
-    } catch (error) {
-      console.error('Error creating credential:', error);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create credential.', type: 'error' }));
     } finally {
       setLoading(false);
     }

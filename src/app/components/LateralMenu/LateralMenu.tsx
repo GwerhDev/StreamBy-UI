@@ -1,15 +1,18 @@
 ﻿import s from './LateralMenu.module.css';
 import React, { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection } from '../../../interfaces';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
+import { setProjects } from '../../../store/projectsSlice';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
 import { CloudStorage } from '../../../interfaces';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
@@ -20,6 +23,7 @@ const MENU_DEFAULT_WIDTH = 250;
 
 export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const storages = useSelector((state: RootState) => state.management.storages);
@@ -124,13 +128,34 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   };
 
   const handleArchive = async () => {
-    await archiveProject(id || '');
+    try {
+      const response = await archiveProject(id || '');
+      dispatch(addApiResponse({ message: response.message || 'Project archived.', type: 'success' }));
+      if (response.projects) dispatch(setProjects(response.projects));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to archive project.', type: 'error' }));
+    }
     navigate("/user/archive");
     setShowCanvas(false);
   };
 
   const handleUnarchive = async () => {
-    await unarchiveProject(id || '');
+    try {
+      const response = await unarchiveProject(id || '');
+      dispatch(addApiResponse({ message: response.message || 'Project unarchived.', type: 'success' }));
+      if (response.projects) dispatch(setProjects(response.projects));
+      const current = currentProject.data;
+      if (current?.id === id) {
+        dispatch(setCurrentProject({
+          ...current,
+          members: current.members?.map(m =>
+            m.userId === session.userId ? { ...m, archived: false } : m
+          ) ?? [],
+        }));
+      }
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to unarchive project.', type: 'error' }));
+    }
     setShowCanvas(false);
   };
 

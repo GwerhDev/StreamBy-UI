@@ -1,7 +1,8 @@
 import s from './CreateExportForm.module.css';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createExport } from '../../../services/exports';
 import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -14,6 +15,7 @@ import { CustomForm } from './CustomForm';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 
 export function CreateExportForm() {
+  const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id: projectId } = useParams<{ id: string }>();
 
@@ -40,9 +42,10 @@ export function CreateExportForm() {
     setLoading(true);
     try {
       const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
+      dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
       navigate(`/project/${projectId}/dashboard/exports/${response.exportId}/editor`);
-    } catch (err) {
-      console.error(err);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
     } finally {
       setLoading(false);
     }

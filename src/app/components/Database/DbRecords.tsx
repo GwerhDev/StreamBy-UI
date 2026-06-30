@@ -2,10 +2,11 @@ import s from './Database.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableColumns, faPlus, faXmark, faFloppyDisk, faChevronLeft, faChevronRight, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchRecords, insertRecord, updateRecord, deleteRecord } from '../../../services/database';
 import { ExternalDbType } from '../../../interfaces';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
@@ -32,6 +33,7 @@ export const DbRecords = () => {
   const { id: projectId, connId, tableName: rawTableName } = useParams<{ id: string; connId: string; tableName: string }>();
   const tableName = rawTableName ? decodeURIComponent(rawTableName) : '';
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const locationState = (location.state ?? {}) as { dbType?: string; isBuiltin?: boolean; name?: string };
   const project = useSelector((state: RootState) => state.currentProject.data);
   const externalConn = project?.dbConnections?.find(c => c.id === connId);
@@ -68,9 +70,14 @@ export const DbRecords = () => {
   const load = useCallback(async () => {
     if (!projectId || !connId || !tableName) return;
     setLoading(true);
-    const data = await fetchRecords(projectId, connId, tableName, PAGE_SIZE, offset);
-    setRecords(data);
-    setLoading(false);
+    try {
+      const data = await fetchRecords(projectId, connId, tableName, PAGE_SIZE, offset);
+      setRecords(data);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to load records.', type: 'error' }));
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, connId, tableName, offset]);
 
   useEffect(() => { load(); }, [load]);
@@ -81,15 +88,14 @@ export const DbRecords = () => {
     try {
       const base = JSON.parse(insertJson);
       const record = insertName ? { _name: insertName, ...base } : base;
-      const result = await insertRecord(projectId, connId, tableName, record);
-      if (result) {
-        setShowInsert(false);
-        setInsertName('');
-        setInsertJson('{\n  \n}');
-        load();
-      }
-    } catch {
-      // json parse error; service already shows toast
+      await insertRecord(projectId, connId, tableName, record);
+      dispatch(addApiResponse({ message: 'Record inserted.', type: 'success' }));
+      setShowInsert(false);
+      setInsertName('');
+      setInsertJson('{\n  \n}');
+      load();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to insert record.', type: 'error' }));
     } finally {
       setInserting(false);
     }
@@ -108,13 +114,12 @@ export const DbRecords = () => {
     try {
       const base = JSON.parse(editJson);
       const updates = editName ? { _name: editName, ...base } : base;
-      const result = await updateRecord(projectId, connId, tableName, getRecordId(editRecord), updates);
-      if (result) {
-        setEditRecord(null);
-        load();
-      }
-    } catch {
-      // json parse error
+      await updateRecord(projectId, connId, tableName, getRecordId(editRecord), updates);
+      dispatch(addApiResponse({ message: 'Record updated.', type: 'success' }));
+      setEditRecord(null);
+      load();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update record.', type: 'error' }));
     } finally {
       setSaving(false);
     }
@@ -123,12 +128,16 @@ export const DbRecords = () => {
   const handleDelete = async () => {
     if (!projectId || !connId || !tableName || !deleteTarget) return;
     setDeleting(true);
-    const ok = await deleteRecord(projectId, connId, tableName, getRecordId(deleteTarget));
-    if (ok) {
+    try {
+      await deleteRecord(projectId, connId, tableName, getRecordId(deleteTarget));
+      dispatch(addApiResponse({ message: 'Record deleted.', type: 'success' }));
       setDeleteTarget(null);
       load();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete record.', type: 'error' }));
+    } finally {
+      setDeleting(false);
     }
-    setDeleting(false);
   };
 
   const columns = records.length > 0 ? Object.keys(records[0]).filter(k => k !== '_id') : [];

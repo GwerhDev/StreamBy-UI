@@ -1,10 +1,11 @@
 import s from './Database.module.css';
 import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableColumns, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTable } from '../../../services/database';
 import { DbColumnDefinition, ExternalDbType } from '../../../interfaces';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -19,6 +20,7 @@ const emptyCol = (): DbColumnDefinition => ({ name: '', type: 'TEXT', nullable: 
 export const DbTableCreate = () => {
   const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const locationState = (location.state ?? {}) as { dbType?: string; isBuiltin?: boolean; name?: string };
   const project = useSelector((state: RootState) => state.currentProject.data);
@@ -47,11 +49,14 @@ export const DbTableCreate = () => {
     if (!projectId || !connId) return;
     setLoading(true);
     try {
-      const ok = await createTable(projectId, connId, {
+      await createTable(projectId, connId, {
         tableName,
         columns: isMongo ? [] : columns,
       });
-      if (ok) navigate(`/project/${projectId}/database/${connId}`);
+      dispatch(addApiResponse({ message: `${entity.charAt(0).toUpperCase() + entity.slice(1)} created.`, type: 'success' }));
+      navigate(`/project/${projectId}/database/${connId}`);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || `Failed to create ${entity}.`, type: 'error' }));
     } finally {
       setLoading(false);
     }

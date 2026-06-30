@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faCloud, faXmark, faTag, faLayerGroup, faKey, faFileLines } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createStorageConnection, StorageConnectionPayload } from '../../../services/storageConnections';
 import { StorageConnectionType } from '../../../interfaces';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -24,7 +25,7 @@ const STORAGE_TYPES = [
 export const StorageConnectionCreate = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const project = useSelector((state: RootState) => state.currentProject.data);
 
   const [name, setName] = useState('');
@@ -51,13 +52,14 @@ export const StorageConnectionCreate = () => {
         ...(description && { description }),
       };
       const result = await createStorageConnection(projectId, payload);
-      if (result) {
-        dispatch(setCurrentProject({
-          ...project,
-          storageConnections: [...(project.storageConnections ?? []), result],
-        }));
-        navigate(`/project/${projectId}/storage`);
-      }
+      dispatch(addApiResponse({ message: 'Storage connection created.', type: 'success' }));
+      dispatch(setCurrentProject({
+        ...project,
+        storageConnections: [...(project.storageConnections ?? []), result],
+      }));
+      navigate(`/project/${projectId}/storage`);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to create storage connection.', type: 'error' }));
     } finally {
       setLoading(false);
     }

@@ -2,8 +2,9 @@ import s from './MemberList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchProjectMembers } from '../../../services/projects';
 import { inviteMember, removeMember, updateMemberRole } from '../../../services/members';
 import { searchUsers, UserSearchResult } from '../../../services/users';
@@ -39,6 +40,7 @@ export function MemberList() {
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const dispatch = useDispatch<AppDispatch>();
   const isAdmin = currentProject?.members?.find(m => m.userId === session.userId)?.role === 'admin';
 
   const loadMembers = useCallback(async () => {
@@ -98,10 +100,11 @@ export function MemberList() {
     setInviting(true);
     try {
       await inviteMember(projectId, selectedUser.id, inviteRole);
+      dispatch(addApiResponse({ message: 'Member invited successfully.', type: 'success' }));
       handleClearSelection();
       await loadMembers();
-    } catch {
-      // error handled in service
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to invite member.', type: 'error' }));
     } finally {
       setInviting(false);
     }
@@ -110,20 +113,22 @@ export function MemberList() {
   const handleRoleChange = async (userId: string, role: MemberRole) => {
     if (!projectId) return;
     try {
-      await updateMemberRole(projectId, userId, role);
+      const data = await updateMemberRole(projectId, userId, role);
+      dispatch(addApiResponse({ message: data?.message || 'Member role updated.', type: 'success' }));
       setMembers(prev => prev.map(m => m.userId === userId ? { ...m, role } : m));
-    } catch {
-      // error handled in service
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update member role.', type: 'error' }));
     }
   };
 
   const handleRemove = async (userId: string) => {
     if (!projectId) return;
     try {
-      await removeMember(projectId, userId);
+      const data = await removeMember(projectId, userId);
+      dispatch(addApiResponse({ message: data?.message || 'Member removed.', type: 'success' }));
       setMembers(prev => prev.filter(m => m.userId !== userId));
-    } catch {
-      // error handled in service
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to remove member.', type: 'error' }));
     }
   };
 

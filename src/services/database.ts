@@ -1,6 +1,4 @@
 import { API_BASE } from '../config/api';
-import { store } from '../store';
-import { addApiResponse } from '../store/apiResponsesSlice';
 import { DbConnection, DbColumnDefinition } from '../interfaces';
 
 export async function fetchBuiltinDatabases(): Promise<{ name: string; value: string }[]> {
@@ -29,74 +27,44 @@ export interface CreateTablePayload {
 }
 
 export async function fetchDbConnections(projectId: string): Promise<DbConnection[]> {
-  try {
-    const res = await fetch(BASE(projectId), { credentials: 'include' });
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch DB connections.', type: 'error' }));
-    return [];
-  }
+  const res = await fetch(BASE(projectId), { credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
-export async function createDbConnection(projectId: string, payload: DbConnectionPayload): Promise<DbConnection | null> {
-  try {
-    const res = await fetch(BASE(projectId), {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    store.dispatch(addApiResponse({ message: 'DB connection created successfully.', type: 'success' }));
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to create DB connection.', type: 'error' }));
-    return null;
-  }
+export async function createDbConnection(projectId: string, payload: DbConnectionPayload): Promise<DbConnection> {
+  const res = await fetch(BASE(projectId), {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
-export async function deleteDbConnection(projectId: string, connId: string): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}`, { method: 'DELETE', credentials: 'include' });
-    if (!res.ok) throw new Error((await res.json()).message);
-    store.dispatch(addApiResponse({ message: 'DB connection deleted.', type: 'success' }));
-    return true;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete DB connection.', type: 'error' }));
-    return false;
-  }
+export async function deleteDbConnection(projectId: string, connId: string): Promise<void> {
+  const res = await fetch(`${BASE(projectId)}/${connId}`, { method: 'DELETE', credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json()).message);
 }
 
 export async function fetchTables(projectId: string, connId: string): Promise<string[]> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables`, { credentials: 'include' });
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch tables.', type: 'error' }));
-    return [];
-  }
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables`, { credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
-export async function createTable(projectId: string, connId: string, schema: CreateTablePayload): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(schema),
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    store.dispatch(addApiResponse({ message: 'Table/collection created successfully.', type: 'success' }));
-    return true;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to create table.', type: 'error' }));
-    return false;
-  }
+export async function createTable(projectId: string, connId: string, schema: CreateTablePayload): Promise<void> {
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(schema),
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
 }
 
 export async function fetchRecords(
@@ -106,18 +74,13 @@ export async function fetchRecords(
   limit = 50,
   offset = 0,
 ): Promise<any[]> {
-  try {
-    const res = await fetch(
-      `${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}?limit=${limit}&offset=${offset}`,
-      { credentials: 'include' },
-    );
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to fetch records.', type: 'error' }));
-    return [];
-  }
+  const res = await fetch(
+    `${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}?limit=${limit}&offset=${offset}`,
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
 export async function insertRecord(
@@ -125,22 +88,16 @@ export async function insertRecord(
   connId: string,
   tableName: string,
   record: Record<string, unknown>,
-): Promise<any | null> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    store.dispatch(addApiResponse({ message: 'Record inserted successfully.', type: 'success' }));
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to insert record.', type: 'error' }));
-    return null;
-  }
+): Promise<any> {
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
 export async function updateRecord(
@@ -149,37 +106,24 @@ export async function updateRecord(
   tableName: string,
   recordId: string,
   updates: Record<string, unknown>,
-): Promise<any | null> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    const { data } = await res.json();
-    store.dispatch(addApiResponse({ message: 'Record updated successfully.', type: 'success' }));
-    return data;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to update record.', type: 'error' }));
-    return null;
-  }
+): Promise<any> {
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
+  const { data } = await res.json();
+  return data;
 }
 
-export async function deleteTable(projectId: string, connId: string, tableName: string): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    store.dispatch(addApiResponse({ message: 'Collection deleted.', type: 'success' }));
-    return true;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete collection.', type: 'error' }));
-    return false;
-  }
+export async function deleteTable(projectId: string, connId: string, tableName: string): Promise<void> {
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
 }
 
 export async function deleteRecord(
@@ -187,17 +131,10 @@ export async function deleteRecord(
   connId: string,
   tableName: string,
   recordId: string,
-): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error((await res.json()).message);
-    store.dispatch(addApiResponse({ message: 'Record deleted.', type: 'success' }));
-    return true;
-  } catch (error: any) {
-    store.dispatch(addApiResponse({ message: error.message || 'Failed to delete record.', type: 'error' }));
-    return false;
-  }
+): Promise<void> {
+  const res = await fetch(`${BASE(projectId)}/${connId}/tables/${encodeURIComponent(tableName)}/${encodeURIComponent(recordId)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error((await res.json()).message);
 }

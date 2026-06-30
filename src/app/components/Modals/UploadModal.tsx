@@ -1,7 +1,10 @@
 import s from './UploadModal.module.css';
 import { useState, useRef, DragEvent } from 'react';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloudArrowUp, faXmark, faFile } from '@fortawesome/free-solid-svg-icons';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { StorageCategory } from '../../../interfaces';
 import { getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { Spinner } from '../Spinner';
@@ -55,6 +58,7 @@ function formatBytes(bytes: number): string {
 }
 
 export function UploadModal({ projectId, connId, category, onSuccess, onClose }: UploadModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -95,7 +99,10 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
         const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
         await uploadToPresignedUrl(url, file, contentType);
       }));
+      dispatch(addApiResponse({ message: `${files.length} file${files.length > 1 ? 's' : ''} uploaded.`, type: 'success' }));
       onSuccess();
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Upload failed.', type: 'error' }));
     } finally {
       setUploading(false);
     }

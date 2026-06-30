@@ -8,6 +8,7 @@ import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { deleteApiConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { RootState } from '../../../store';
 import { ModalShell } from './ModalShell';
 
@@ -30,15 +31,16 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
     if (!currentProject) return;
     try {
       setLoader(true);
-      await deleteApiConnection(projectId, connectionId);
+      const response = await deleteApiConnection(projectId, connectionId);
+      dispatch(addApiResponse({ message: response.message || 'API connection deleted.', type: 'success' }));
       dispatch(setCurrentProject({
         ...currentProject,
         apiConnections: currentProject.apiConnections?.filter(c => c.id !== connectionId) ?? [],
       }));
       onClose();
       navigate(`/project/${projectId}/connections/api`);
-    } catch (error) {
-      console.error('Error deleting api connection:', error);
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
     } finally {
       setLoader(false);
     }

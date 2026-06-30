@@ -5,8 +5,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloud, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchStorageConnections, deleteStorageConnection } from '../../../services/storageConnections';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -28,7 +29,7 @@ const STORAGE_BADGE_CLASS: Record<string, string> = {
 
 export const StorageConnectionList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
 
@@ -39,10 +40,10 @@ export const StorageConnectionList = () => {
   useEffect(() => {
     if (!projectId) return;
     setFetchLoading(true);
-    fetchStorageConnections(projectId).then(data => {
-      setConnections(data);
-      setFetchLoading(false);
-    });
+    fetchStorageConnections(projectId)
+      .then(data => setConnections(data))
+      .catch((error: any) => dispatch(addApiResponse({ message: error.message || 'Failed to load storage connections.', type: 'error' })))
+      .finally(() => setFetchLoading(false));
   }, [projectId]);
 
   const handleCreate = () => navigate(`/project/${projectId}/storage/create`);
@@ -51,15 +52,19 @@ export const StorageConnectionList = () => {
     e.stopPropagation();
     if (!projectId || !project) return;
     setDeleting(connId);
-    const ok = await deleteStorageConnection(projectId, connId);
-    if (ok) {
+    try {
+      await deleteStorageConnection(projectId, connId);
+      dispatch(addApiResponse({ message: 'Storage connection deleted.', type: 'success' }));
       setConnections(prev => prev.filter(c => c.id !== connId));
       dispatch(setCurrentProject({
         ...project,
         storageConnections: (project.storageConnections ?? []).filter(c => c.id !== connId),
       }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete storage connection.', type: 'error' }));
+    } finally {
+      setDeleting(null);
     }
-    setDeleting(null);
   };
 
   const isLoading = loading || fetchLoading;

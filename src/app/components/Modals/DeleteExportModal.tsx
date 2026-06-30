@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { deleteExport } from '../../../services/exports';
 import { FormEvent, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { DeleteExportForm } from '../Forms/DeleteExportForm';
 import { CurrentProjectState, Export } from '../../../interfaces';
 import { ModalShell } from './ModalShell';
@@ -18,18 +21,20 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
   const [confirmText, setConfirmText] = useState<string>('');
   const { exportId, currentExport, currentProject, onClose } = props;
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleDeleteExport = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteExport(currentProject?.data?.id, exportId);
-      setLoader(false);
+      const response = await deleteExport(currentProject?.data?.id, exportId);
+      dispatch(addApiResponse({ message: response.message || 'Export deleted.', type: 'success' }));
       onClose();
       navigate('/project/' + currentProject?.data?.id + '/dashboard/exports');
-    } catch (error) {
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to delete export.', type: 'error' }));
+    } finally {
       setLoader(false);
-      console.error('Error deleting export:', error);
     }
   };
 

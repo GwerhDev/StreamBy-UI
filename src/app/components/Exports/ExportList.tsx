@@ -3,7 +3,7 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { RootState } from "../../../store";
+import { RootState, AppDispatch } from "../../../store";
 import { Export } from "../../../interfaces";
 import { ExportCard } from "../Cards/ExportCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +14,7 @@ import { EmptyBackground } from "../Backgrounds/EmptyBackground";
 import { DevModeModal } from "./DevModeModal";
 import { updateProjectOrigins } from "../../../services/projects";
 import { setCurrentProject } from "../../../store/currentProjectSlice";
+import { addApiResponse } from "../../../store/apiResponsesSlice";
 
 const LOCALHOST_RE = /^https?:\/\/localhost:(\d+)$/;
 
@@ -24,7 +25,7 @@ function extractLocalhostPorts(origins: string[] = []): number[] {
 }
 
 export function ExportList() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
   const { exports, id, allowedOrigin } = currentProjectData || {};
   const navigate = useNavigate();
@@ -47,7 +48,10 @@ export function ExportList() {
       const localhostOrigins = active ? ports.map(p => `http://localhost:${p}`) : [];
       const newOrigins = [...baseOrigins, ...localhostOrigins];
       const updatedProject = await updateProjectOrigins(id, newOrigins);
+      dispatch(addApiResponse({ message: active ? 'Dev Mode activated.' : 'Dev Mode deactivated.', type: 'success' }));
       dispatch(setCurrentProject({ ...currentProjectData!, allowedOrigin: updatedProject?.allowedOrigin ?? newOrigins }));
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update dev mode.', type: 'error' }));
     } finally {
       setShowDevModal(false);
       setDevLoading(false);
