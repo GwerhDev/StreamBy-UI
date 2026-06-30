@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
@@ -11,9 +11,6 @@ import ReactFlow, {
   Controls,
   Edge,
   Node,
-  NodeProps,
-  Handle,
-  Position,
   useNodesState,
   useEdgesState,
   addEdge,
@@ -24,18 +21,14 @@ import s from './NodeViewer.module.css';
 import { Export, ApiConnection, DbConnection } from '../../../interfaces';
 import { fetchRecords, fetchBuiltinDatabases, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-  faUser, faBolt, faDatabase, faGlobe, faXmark, faFloppyDisk,
-  faInfoCircle, faArrowsRotate, faFilter, faKey, faWrench,
-  faPlus, faCode, faArrowRight, faGear,
+  faDatabase, faGlobe, faXmark, faFloppyDisk,
+  faInfoCircle, faArrowsRotate, faFilter,
+  faPlus, faCode, faGear, faUser, faWrench,
 } from '@fortawesome/free-solid-svg-icons';
-
-// ─── Node Data Types ───────────────────────────────────────────────────────
-
-interface BaseNodeData { label: string; subtitle: string; }
-interface ProcessNodeData extends BaseNodeData { icon: IconDefinition; bgColor: string; iconColor: string; }
-interface JsonInputNodeData extends BaseNodeData { jsonString: string; }
+import { nodeTypes, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
+import { NODE_PALETTE, PALETTE_GROUPS, PaletteItem, edgeColorForSource } from './nodePalette';
+export { computeResponseFromSchema } from './nodeSchema';
 
 // ─── Filter Node Config ────────────────────────────────────────────────────
 
@@ -63,230 +56,6 @@ const CONDITION_OPS = [
   { value: 'startsWith', label: '▷ starts with' },
   { value: 'endsWith',   label: '◁ ends with' },
 ];
-
-// ─── Handle color tokens ───────────────────────────────────────────────────
-// Left=input blue, Top=process purple, Bottom=data green, Right=output amber
-
-const H_LEFT   = '#38B6FF';
-const H_TOP    = '#a78bfa';
-const H_BOTTOM = '#34d399';
-const H_RIGHT  = '#fbbf24';
-
-const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-surface-base)', borderColor: color });
-const hOut = (color: string): React.CSSProperties => ({ background: color, borderColor: color });
-
-// ─── Custom Node Components ────────────────────────────────────────────────
-
-const ClientNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_LEFT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#0e2537' }}>
-      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faUser} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-ClientNode.displayName = 'ClientNode';
-
-const StreamByNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
-    {/* Left — input from client */}
-    <Handle type="target" position={Position.Left}   id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
-    {/* Top — process layer */}
-    <Handle type="source" position={Position.Top}    id="out-top"   className={s.handle} style={{ ...hOut(H_TOP),    left: '35%' }} />
-    <Handle type="target" position={Position.Top}    id="in-top"    className={s.handle} style={{ ...hIn(H_TOP),     left: '65%' }} />
-    {/* Bottom — data layer */}
-    <Handle type="source" position={Position.Bottom} id="out-bottom" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '35%' }} />
-    <Handle type="target" position={Position.Bottom} id="in-bottom"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '65%' }} />
-    {/* Right — output layer */}
-    <Handle type="source" position={Position.Right}  id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#14103a' }}>
-      <div className={s.nodeIcon} style={{ color: '#a78bfa' }}><FontAwesomeIcon icon={faBolt} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-StreamByNode.displayName = 'StreamByNode';
-
-// Sits ABOVE StreamBy — connects via StreamBy top handles
-const ProcessNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
-    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: data.bgColor }}>
-      <div className={s.nodeIcon} style={{ color: data.iconColor }}><FontAwesomeIcon icon={data.icon} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-ProcessNode.displayName = 'ProcessNode';
-
-// Sits BELOW StreamBy — connects via StreamBy bottom handles + receives JSON input from left
-const DataSourceNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
-    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
-    <Handle type="target" position={Position.Left} id="in-json"    className={s.handle} style={hIn(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
-      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faDatabase} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-DataSourceNode.displayName = 'DataSourceNode';
-
-// Sits BELOW StreamBy — connects via StreamBy bottom handles
-const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
-    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
-      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faGlobe} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-ApiConnectionNode.displayName = 'ApiConnectionNode';
-
-// Feeds static JSON into the data layer
-const JsonInputNode = memo(({ data, selected }: NodeProps<JsonInputNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1403' }}>
-      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faCode} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-JsonInputNode.displayName = 'JsonInputNode';
-
-// Sits to the RIGHT of StreamBy — output filters before response
-const FilterNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
-    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: data.bgColor }}>
-      <div className={s.nodeIcon} style={{ color: data.iconColor }}><FontAwesomeIcon icon={data.icon} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-FilterNode.displayName = 'FilterNode';
-
-// ─── Schema response computation ──────────────────────────────────────────
-// Walks the saved node graph and computes a client-side preview of the response.
-// Only JSON Data nodes can be evaluated here; API/DB nodes require server execution.
-
-type SchemaNode = { id: string; type?: string; data?: Record<string, unknown> };
-type SchemaEdge = { source?: string; sourceHandle?: string; target?: string; targetHandle?: string };
-
-export function computeResponseFromSchema(
-  schema: { nodes: object[]; edges: object[] } | null | undefined
-): unknown {
-  if (!schema) return null;
-  const nodes = schema.nodes as SchemaNode[];
-  const edges  = schema.edges as SchemaEdge[];
-
-  // Collect all JSON values reachable at StreamBy's in-bottom
-  const collectJsonAt = (nodeId: string, targetHandle: string): unknown[] => {
-    return edges
-      .filter(e => e.target === nodeId && e.targetHandle === targetHandle)
-      .flatMap(edge => {
-        const src = nodes.find(n => n.id === edge.source);
-        if (!src) return [];
-        if (src.type === 'jsonInputNode') {
-          try { return [JSON.parse((src.data?.jsonString as string) || '{}')] ; }
-          catch { return []; }
-        }
-        return []; // API/DataSource: not evaluable client-side
-      });
-  };
-
-  const dataLayer = collectJsonAt('streamby', 'in-bottom');
-  if (dataLayer.length === 0) return null;
-
-  // Multiple sources → wrap in array so each is distinct
-  let result: unknown = dataLayer.length === 1 ? dataLayer[0] : dataLayer;
-
-  // Walk filter nodes chained on StreamBy's out-right (pass-through for now)
-  const walkFilters = (srcId: string, srcHandle: string): void => {
-    const next = edges.find(e => e.source === srcId && e.sourceHandle === srcHandle);
-    if (!next?.target) return;
-    const filterNode = nodes.find(n => n.id === next.target);
-    if (filterNode?.type === 'filterNode') {
-      // Future: apply actual filter logic from filterNode.data
-      walkFilters(next.target, 'out-filter');
-    }
-  };
-  walkFilters('streamby', 'out-right');
-
-  return result;
-}
-
-const nodeTypes = {
-  clientNode: ClientNode,
-  streambyNode: StreamByNode,
-  dataSourceNode: DataSourceNode,
-  jsonInputNode: JsonInputNode,
-  apiConnectionNode: ApiConnectionNode,
-  processNode: ProcessNode,
-  filterNode: FilterNode,
-};
-
-// ─── Node Palette Config ───────────────────────────────────────────────────
-
-type PaletteItem = { type: string; label: string; subtitle: string; icon: IconDefinition; bgColor: string; iconColor: string; group: 'data' | 'process' | 'output' };
-
-const NODE_PALETTE: PaletteItem[] = [
-  // Data layer — connect to StreamBy bottom
-  { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
-  { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
-  { type: 'apiConnectionNode', label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
-  // Process layer — connect to StreamBy top
-  { type: 'processNode',       label: 'Transform',    subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa', group: 'process' },
-  { type: 'processNode',       label: 'Auth',         subtitle: 'Authentication',      icon: faKey,          bgColor: '#1e1030', iconColor: H_TOP,    group: 'process' },
-  { type: 'processNode',       label: 'Custom',       subtitle: 'Custom step',         icon: faWrench,       bgColor: '#251a0a', iconColor: H_RIGHT,  group: 'process' },
-  // Output layer — connect to StreamBy right
-  { type: 'filterNode',        label: 'Filter',       subtitle: 'Output filter',       icon: faFilter,       bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
-  { type: 'filterNode',        label: 'Transform',    subtitle: 'Output transform',    icon: faArrowRight,   bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
-];
-
-const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
-  { key: 'data',    label: 'Data',    color: H_BOTTOM },
-  { key: 'process', label: 'Process', color: H_TOP },
-  { key: 'output',  label: 'Output',  color: H_RIGHT },
-];
-
-// ─── Edge color per connection type ───────────────────────────────────────
-
-const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
-  if (srcType === 'jsonInputNode') return H_RIGHT;
-  if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;
-  if (sourceHandle === 'out-bottom' || sourceHandle === 'out-stream') return H_BOTTOM;
-  if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;
-  return H_LEFT;
-};
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
