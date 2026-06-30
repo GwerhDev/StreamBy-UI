@@ -11,6 +11,7 @@ import { getStorageFiles, deleteStorageFile, renameStorageFile, getStorageReplac
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 
@@ -88,21 +89,20 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
 
   return (
     <div className={s.mainPanel}>
-      <div className={s.header}>
-        <div className={s.titleRow}>
-          <FontAwesomeIcon icon={meta.icon} className={s.categoryIcon} />
-          <h2>{meta.label}</h2>
-        </div>
-        {!previewLimit && (
-          <ActionButton icon={faCloudArrowUp} text="Upload" onClick={() => setUploadModalOpen(true)} />
-        )}
-        {previewLimit && connId && (
-          <Link to={viewAllPath} className={s.viewAllLink}>
-            View all
-            <FontAwesomeIcon icon={faArrowRight} />
-          </Link>
-        )}
-      </div>
+      <SectionHeader
+        icon={meta.icon}
+        title={meta.label}
+        action={
+          !previewLimit ? (
+            <ActionButton icon={faCloudArrowUp} text="Upload" onClick={() => setUploadModalOpen(true)} />
+          ) : connId ? (
+            <Link to={viewAllPath} className={s.viewAllLink}>
+              View all
+              <FontAwesomeIcon icon={faArrowRight} />
+            </Link>
+          ) : undefined
+        }
+      />
 
       {loading ? (
         <ul className={s.grid}>

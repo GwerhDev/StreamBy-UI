@@ -71,9 +71,25 @@ const notificationsSlice = createSlice({
         n.readAt = action.payload;
       });
     },
+    unmarkRead: (state, action: PayloadAction<{ id: string; wasRead: boolean; wasReadAt: string | null }>) => {
+      const item = state.items.find(n => n._id === action.payload.id);
+      if (item) {
+        item.read = action.payload.wasRead;
+        item.readAt = action.payload.wasReadAt;
+      }
+    },
+    unmarkAllRead: (state, action: PayloadAction<{ id: string; wasRead: boolean; wasReadAt: string | null }[]>) => {
+      action.payload.forEach(({ id, wasRead, wasReadAt }) => {
+        const item = state.items.find(n => n._id === id);
+        if (item) {
+          item.read = wasRead;
+          item.readAt = wasReadAt;
+        }
+      });
+    },
   },
 });
 
-export const { setNotifications, addNotification, markRead, markAllRead } = notificationsSlice.actions;
+export const { setNotifications, addNotification, markRead, markAllRead, unmarkRead, unmarkAllRead } = notificationsSlice.actions;
 export default notificationsSlice.reducer;
 

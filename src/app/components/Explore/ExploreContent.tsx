@@ -6,6 +6,8 @@ import { exploreProjects } from '../../../services/projects';
 import { ExploreProject } from '../../../interfaces';
 import { ExploreProjectCard } from '../Cards/ExploreProjectCard';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { faCompass } from '@fortawesome/free-solid-svg-icons';
 
 export const ExploreContent = () => {
   const [projects, setProjects] = useState<ExploreProject[]>([]);
@@ -37,10 +39,11 @@ export const ExploreContent = () => {
         <EmptyBackground />
       ) : (
         <div className={s.createContainer}>
-          <div className={s.title}>
-            <h2>Explore Projects</h2>
-            <p>Discover public projects and request to join them</p>
-          </div>
+          <SectionHeader
+            icon={faCompass}
+            title="Explore Projects"
+            subtitle="Discover public projects and request to join them"
+          />
           <ul>
             {projects.map(project => (
               <li

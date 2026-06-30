@@ -4,6 +4,8 @@ import { RootState } from "../../../store";
 import { useNavigate } from "react-router-dom";
 import { ProjectCard } from "../Cards/ProjectCard";
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { faArchive } from '@fortawesome/free-solid-svg-icons';
 import { ProjectList } from '../../../interfaces';
 
 export const ProjectArchive = () => {
@@ -19,10 +21,7 @@ export const ProjectArchive = () => {
           <EmptyBackground />
           :
           <div className={s.createContainer}>
-            <div className={s.title}>
-              <h2>Archive Enemy</h2>
-              <p>Choose a project</p>
-            </div>
+            <SectionHeader icon={faArchive} title="Archive Enemy" subtitle="Choose a project" />
             <ul>
               {
                 filteredList.map((project: ProjectList) => {
