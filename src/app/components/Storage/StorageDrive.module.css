@@ -135,7 +135,7 @@
   border-radius: 7px;
   border: none;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-text-bright);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
@@ -158,7 +158,7 @@
   position: absolute;
   top: calc(100% + 5px);
   right: 0;
-  background: var(--color-surface-sunken, #1c1f26);
+  background: var(--color-surface-sunken);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 0.3rem 0;
@@ -457,15 +457,15 @@
 }
 
 .folderCardSelected {
-  border-color: var(--color-accent, #5c8af5);
-  box-shadow: 0 0 0 2px var(--color-accent, #5c8af5);
-  background: rgba(92, 138, 245, 0.08);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent);
+  background: var(--color-accent-subtle);
 }
 
 .folderCardDragOver {
-  background: rgba(92, 138, 245, 0.12) !important;
-  border-color: #5c8af5 !important;
-  box-shadow: 0 0 0 2px rgba(92, 138, 245, 0.4);
+  background: var(--color-accent-subtle) !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 2px var(--color-accent-subtle-border);
 }
 
 .folderCardUploading {
@@ -535,7 +535,7 @@
 }
 
 .newFolderIcon {
-  color: #5c8af5;
+  color: var(--color-accent);
   font-size: 0.9rem;
   flex-shrink: 0;
 }
@@ -562,7 +562,7 @@
   z-index: 2000;
   list-style: none;
   width: 192px;
-  background: var(--color-surface-sunken, #1c1f26);
+  background: var(--color-surface-sunken);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
@@ -613,21 +613,21 @@
 }
 
 .bgCtxItemDanger {
-  color: var(--color-danger, #e05c5c);
+  color: var(--color-danger-text);
 }
 
 .bgCtxItemDanger:hover {
-  background: rgba(224, 92, 92, 0.1);
-  color: var(--color-danger, #e05c5c);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-text);
 }
 
 .bgCtxItemConfirm {
-  color: #e0a84a;
+  color: var(--color-warning);
 }
 
 .bgCtxItemConfirm:hover {
-  background: rgba(224, 168, 74, 0.1);
-  color: #e0a84a;
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
 }
 
 /* ─── Detail panel (slide in from right) ────────────────────────────────── */

@@ -493,3 +493,10 @@
 }
 
 .nameInput:focus { border-color: var(--color-accent); }
+
+.thActions { width: 5rem; }
+
+.nullValue {
+  color: var(--color-text-muted);
+  font-style: italic;
+}

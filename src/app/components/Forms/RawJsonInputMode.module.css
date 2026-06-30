@@ -5,5 +5,5 @@
 .warningMessage {
   margin-top: 0.5rem;
   font-size: 0.78rem !important;
-  color: #f39c12 !important;
+  color: var(--color-warning) !important;
 }

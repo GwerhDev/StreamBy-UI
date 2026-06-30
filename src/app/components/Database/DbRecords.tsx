@@ -184,7 +184,7 @@ export const DbRecords = () => {
             <thead>
               <tr>
                 {columns.map(col => <th key={col}>{col}</th>)}
-                <th style={{ width: '5rem' }}></th>
+                <th className={s.thActions}></th>
               </tr>
             </thead>
             <tbody>
@@ -193,7 +193,7 @@ export const DbRecords = () => {
                   {columns.map(col => (
                     <td key={col} title={String(row[col] ?? '')}>
                       {row[col] === null || row[col] === undefined
-                        ? <em style={{ color: 'var(--color-text-muted)' }}>null</em>
+                        ? <em className={s.nullValue}>null</em>
                         : String(row[col])}
                     </td>
                   ))}

@@ -35,7 +35,7 @@
 }
 
 .resizeHandle:hover {
-  background: var(--color-accent, #38B6FF);
+  background: var(--color-accent);
 }
 
 .titleButton {

@@ -8,6 +8,8 @@ import {
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { getStorageFiles, getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
 import s from './AssetPickerModal.module.css';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 
 // ─── Config ───────────────────────────────────────────────────────────────
 
@@ -264,15 +266,12 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
               : 'Click files to select'}
           </span>
           <div className={s.footerActions}>
-            <button type="button" className={s.cancelBtn} onClick={onClose}>Cancel</button>
-            <button
-              type="button"
-              className={s.insertBtn}
+            <SecondaryButton text="Cancel" onClick={onClose} icon={faXmark} />
+            <ActionButton
+              text={`Insert${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
               onClick={handleInsert}
               disabled={selectedCount === 0}
-            >
-              Insert {selectedCount > 0 ? `(${selectedCount})` : ''}
-            </button>
+            />
           </div>
         </div>
 

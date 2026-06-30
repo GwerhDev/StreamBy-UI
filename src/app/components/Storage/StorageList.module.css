@@ -35,24 +35,6 @@
   color: var(--color-accent);
 }
 
-.uploadBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  background-color: var(--color-accent);
-  color: #fff;
-  transition: background-color 0.2s ease;
-}
-
-.uploadBtn:hover {
-  background-color: var(--color-accent-600, #2a9fd6);
-}
 
 .grid {
   display: grid;
