@@ -145,9 +145,10 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
       dispatch(addApiResponse({ message: response.message || 'Project unarchived.', type: 'success' }));
       if (response.projects) dispatch(setProjects(response.projects));
       const current = currentProject.data;
-      if (current?.id === id) {
+      if (current && current.id && current.id === id) {
         dispatch(setCurrentProject({
           ...current,
+          id: current.id,
           members: current.members?.map(m =>
             m.userId === session.userId ? { ...m, archived: false } : m
           ) ?? [],
