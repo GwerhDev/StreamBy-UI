@@ -12,8 +12,9 @@ import {
   uploadProjectImage,
 } from '../../../services/projects';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { Spinner } from '../Spinner';
 import { CustomForm } from './CustomForm';
 
@@ -28,6 +29,7 @@ export const CreateProjectForm = () => {
   const [isPublic, setIsPublic] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   const { loading, error } = useSelector((state: RootState) => state.management);
   const session = useSelector((state: RootState) => state.session);
@@ -49,9 +51,10 @@ export const CreateProjectForm = () => {
       navigate(`/project/${projectId}/dashboard/overview`);
       setLoader(false);
 
-    } catch (err) {
+    } catch (err: any) {
+      dispatch(addApiResponse({ message: err.message || 'Failed to create project.', type: 'error' }));
+    } finally {
       setLoader(false);
-      alert((err as Error).message);
     }
   };
 

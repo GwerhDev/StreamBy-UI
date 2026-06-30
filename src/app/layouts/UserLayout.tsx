@@ -4,7 +4,7 @@ import {
   faUser, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
 } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
-import lm from '../components/LateralMenu/LateralMenu.module.css';
+import s from './UserLayout.module.css';
 
 const SETTINGS_CATEGORIES = [
   { id: 'account',       label: 'Account',       icon: faUser       },
@@ -24,30 +24,30 @@ export default function UserLayout() {
   return (
     <div className="dashboard-sections">
       <LateralMenu>
-        <span className={lm.section}>
+        <span className={s.section}>
           <h4>USER</h4>
         </span>
-        <ul className={lm.menuList}>
+        <ul className={s.menuList}>
           <Link to="/user/profile">
-            <li className={pathname === '/user/profile' ? lm.activeLink : ''}>
+            <li className={pathname === '/user/profile' ? s.activeLink : ''}>
               <FontAwesomeIcon icon={faUser} />
               Profile
             </li>
           </Link>
           <Link to="/user/archive">
-            <li className={pathname === '/user/archive' ? lm.activeLink : ''}>
+            <li className={pathname === '/user/archive' ? s.activeLink : ''}>
               <FontAwesomeIcon icon={faArchive} />
               Archive
             </li>
           </Link>
         </ul>
-        <span className={lm.section}>
+        <span className={s.section}>
           <h4>SETTINGS</h4>
         </span>
-        <ul className={lm.menuList}>
+        <ul className={s.menuList}>
           {SETTINGS_CATEGORIES.map(cat => (
             <Link key={cat.id} to={`/user/settings?tab=${cat.id}`}>
-              <li className={isSettingsRoute && activeTab === cat.id ? lm.activeLink : ''}>
+              <li className={isSettingsRoute && activeTab === cat.id ? s.activeLink : ''}>
                 <FontAwesomeIcon icon={cat.icon} />
                 {cat.label}
               </li>
