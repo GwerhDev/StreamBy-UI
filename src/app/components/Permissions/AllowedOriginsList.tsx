@@ -62,6 +62,7 @@ export const AllowedOriginsList = () => {
       subtitle="Manage your project's allowed origins."
       items={items}
       loading={loading}
+      layout="grid"
       onAdd={() => navigate(`/project/${projectId}/settings/permissions/create`)}
       addLabel="Add a new origin"
     />
