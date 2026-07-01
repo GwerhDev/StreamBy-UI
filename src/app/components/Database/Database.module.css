@@ -48,17 +48,10 @@
   background-color: var(--color-surface-hover);
 }
 
-.createItem {
-  background-color: transparent !important;
-  border: dashed 0.2rem !important;
-  border-radius: 1rem;
-  justify-content: center !important;
-  gap: 0.5rem;
-  color: var(--color-text-muted);
-}
-
-.createItem:hover {
-  color: var(--color-text-primary);
+.container ul .createItem {
+  background-color: transparent;
+  border: dashed 0.2rem;
+  justify-content: center;
 }
 
 /* Card internals */

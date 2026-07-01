@@ -260,3 +260,25 @@ npm run test:ui     # Vitest browser UI
 - New modals must use `<Modal>` base
 - New list pages must follow the `Start.tsx` structure
 - Routes are lazy-loaded in `App.tsx` via `lazy(() => import(...))`
+- **Never use `!important` in CSS Modules.** Fix specificity problems by writing a more specific selector (e.g. `.container ul .createItem` instead of `.createItem`). The only valid exception is overriding third-party library styles (ReactFlow, CodeMirror) that inject their own rules — and only in the files that already do it.
+
+### "Create new" dashed card pattern
+
+Every list page ends with a dashed `<li>` that opens the create flow. Follow `ApiConnectionList` exactly:
+
+```css
+/* CSS — selector must include the parent ul to win over the generic li rule */
+.container ul .createConnection {
+  background-color: transparent;
+  border: dashed .2rem;   /* no color — inherits currentColor */
+  justify-content: center;
+}
+```
+
+```tsx
+{/* JSX — last li inside the ul, after mapping items */}
+<li className={s.createConnection} onClick={handleCreate}>
+  <FontAwesomeIcon icon={faPlus} />
+  <h4>New connection</h4>
+</li>
+```

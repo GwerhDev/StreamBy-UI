@@ -60,6 +60,8 @@ For every `.module.css` file reviewed:
 - **Hardcoded spacing**: `gap`, `padding`, `margin` in raw `px` that maps to a `--size-*` token. Known: `ExportCard.module.css` and `ApiConnectionCard.module.css` use `3px 7px`.
 - **Inline styles in TSX**: Only `flexGrow`, `minHeight`, `overflow` are permitted on layout wrappers. Flag all others — especially `opacity`, `marginTop`, `display:'none'` used as state toggles.
 - **CSS Modules import**: Must be `import s from './ComponentName.module.css'`. Flag any deviation.
+- **`!important` is forbidden in CSS Modules.** Fix specificity by writing a more specific selector instead (e.g. `.container ul .createItem` beats `.container ul li`). The only valid exception is overriding injected third-party styles (ReactFlow, CodeMirror) — and only in files that already do it for that reason. Flag every other `!important` as a P1 violation.
+- **"Create new" dashed card**: The last `<li>` in every grid list must follow the `ApiConnectionList` pattern — selector `.container ul .createXxx { background-color: transparent; border: dashed .2rem; justify-content: center; }`. No hardcoded border color, no `!important`.
 
 ### 3. Modularity and architecture
 
