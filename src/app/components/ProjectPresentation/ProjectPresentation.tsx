@@ -65,7 +65,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
 
       <div className={s.stats}>
         <ProjectStats readonly={preview} />
-        <ProjectCharts />
+        <ProjectCharts readonly={preview} />
         {!preview && currentProject?.id && (
           <ProjectQuickAccess projectId={currentProject.id} readonly={preview} />
         )}

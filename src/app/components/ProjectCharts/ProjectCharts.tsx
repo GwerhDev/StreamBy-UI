@@ -39,7 +39,11 @@ const DB_TYPE_LABEL: Record<string, string> = {
   mongodb: 'MongoDB',
 };
 
-export const ProjectCharts = () => {
+interface ProjectChartsProps {
+  readonly?: boolean;
+}
+
+export const ProjectCharts = ({ readonly = false }: ProjectChartsProps) => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
   const { databases: builtinDatabases } = useSelector((state: RootState) => state.management);
   const navigate = useNavigate();
@@ -165,8 +169,8 @@ export const ProjectCharts = () => {
       <div className={s.resourceCard}>
         {/* Database section */}
         <div
-          className={`${s.resourceSection} ${loadingDb ? s.resourceSectionLoading : s.resourceSectionClickable}`}
-          onClick={() => !loadingDb && id && navigate(`/project/${id}/database`)}
+          className={`${s.resourceSection} ${loadingDb ? s.resourceSectionLoading : !readonly ? s.resourceSectionClickable : ''}`}
+          onClick={() => !loadingDb && !readonly && id && navigate(`/project/${id}/database`)}
         >
           <div className={s.resourceHeader}>
             {!loadingDb && <FontAwesomeIcon icon={faDatabase} className={s.resourceIcon} />}
@@ -193,8 +197,8 @@ export const ProjectCharts = () => {
 
         {/* Storage section */}
         <div
-          className={`${s.resourceSection} ${loadingStorage ? s.resourceSectionLoading : s.resourceSectionClickable}`}
-          onClick={() => !loadingStorage && id && navigate(`/project/${id}/storage`)}
+          className={`${s.resourceSection} ${loadingStorage ? s.resourceSectionLoading : !readonly ? s.resourceSectionClickable : ''}`}
+          onClick={() => !loadingStorage && !readonly && id && navigate(`/project/${id}/storage`)}
         >
           <div className={s.resourceHeader}>
             {!loadingStorage && <FontAwesomeIcon icon={faHardDrive} className={s.resourceIcon} />}

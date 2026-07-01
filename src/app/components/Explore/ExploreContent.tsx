@@ -23,27 +23,21 @@ export const ExploreContent = () => {
 
   return (
     <div className={s.container}>
-      {loading ? (
-        <div className={s.createContainer}>
-          <div className={s.title}>
-            <h2>Searching...</h2>
-            <p>(wait for it...)</p>
-          </div>
+      <div className={s.createContainer}>
+        <SectionHeader
+          icon={faCompass}
+          title="Explore Projects"
+          subtitle="Discover public projects and request to join them"
+        />
+        {loading ? (
           <ul>
             {Array.from({ length: 3 }).map((_, i) => (
               <li key={i} className={`${s.projectCardSkeleton} ${skeleton.skeleton}`} />
             ))}
           </ul>
-        </div>
-      ) : projects.length === 0 ? (
-        <EmptyBackground />
-      ) : (
-        <div className={s.createContainer}>
-          <SectionHeader
-            icon={faCompass}
-            title="Explore Projects"
-            subtitle="Discover public projects and request to join them"
-          />
+        ) : projects.length === 0 ? (
+          <EmptyBackground />
+        ) : (
           <ul>
             {projects.map(project => (
               <li
@@ -55,8 +49,8 @@ export const ExploreContent = () => {
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

@@ -6,7 +6,6 @@
   padding: 1rem;
   display: flex;
   overflow-y: auto;
-  text-align: center;
   align-items: center;
   flex-direction: column;
   background-color: transparent;
@@ -24,7 +23,7 @@
   max-width: 1024px;
   padding-top: 2rem;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex-direction: column;
 }
 
