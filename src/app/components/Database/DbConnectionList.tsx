@@ -68,7 +68,7 @@ export const DbConnectionList = () => {
         icon={faDatabase}
         title="Database Connections"
         subtitle="Manage database connections for this project."
-        action={!loading && connections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
+        action={!loading && allConnections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
       />
 
       {loading ? (
