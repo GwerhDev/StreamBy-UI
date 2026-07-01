@@ -75,7 +75,7 @@ export const StorageConnectionList = () => {
         icon={faCloud}
         title="Storage Connections"
         subtitle="Manage storage connections for this project."
-        action={connections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
+        action={!isLoading && connections.length === 0 ? <ActionButton icon={faPlus} text="Add connection" onClick={handleCreate} /> : undefined}
       />
 
       {isLoading ? (

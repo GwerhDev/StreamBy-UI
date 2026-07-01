@@ -123,11 +123,13 @@
 
 .createItem {
   background-color: transparent !important;
-  border: dashed 0.2rem var(--color-surface-raised) !important;
+  border: dashed 0.2rem !important;
+  border-radius: 1rem;
   justify-content: center !important;
   gap: 0.5rem;
+  color: var(--color-text-muted);
 }
 
 .createItem:hover {
-  border-color: var(--color-text-primary) !important;
+  color: var(--color-text-primary);
 }
