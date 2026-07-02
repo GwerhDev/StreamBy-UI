@@ -35,7 +35,7 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 48px;
+  width: 50px;
   height: 18px;
   border-radius: 16px;
   background-color: var(--color-accent);
@@ -45,15 +45,15 @@
 }
 
 .thumb.right {
-  transform: translateX(52px);
+  transform: translateX(50px);
 }
 
 .track:active .thumb {
-  width: 52px;
+  width: 54px;
 }
 
 .track:active .thumb.right {
-  transform: translateX(48px);
+  transform: translateX(46px);
 }
 
 .labels {
@@ -87,5 +87,5 @@
 
 .label.inactive {
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.8;
 }
