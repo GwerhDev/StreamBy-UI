@@ -7,6 +7,7 @@ import {
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faArrowsRotate, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
+  faBoxArchive, faRocket, faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -278,6 +279,54 @@ export const AssetDependencyNode = memo(({ data, selected }: NodeProps<BaseNodeD
 ));
 AssetDependencyNode.displayName = 'AssetDependencyNode';
 
+// Packages a pipeline output as a versioned deliverable artifact
+export const DeliverableNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1300' }}>
+      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faBoxArchive} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DeliverableNode.displayName = 'DeliverableNode';
+
+// Publishes a deliverable to one or more distribution targets
+export const DistributionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
+      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faRocket} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DistributionNode.displayName = 'DistributionNode';
+
+// Runs quality checks before the deliverable reaches review or distribution
+export const QcCheckNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faShieldHalved} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+QcCheckNode.displayName = 'QcCheckNode';
+
 // Blocks pipeline progression until the required approvals are collected
 export const ReviewGateNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
@@ -332,4 +381,7 @@ export const nodeTypes = {
   assetDependencyNode: AssetDependencyNode,
   reviewGateNode: ReviewGateNode,
   annotationNode: AnnotationNode,
+  deliverableNode: DeliverableNode,
+  distributionNode: DistributionNode,
+  qcCheckNode: QcCheckNode,
 };

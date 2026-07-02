@@ -170,6 +170,13 @@ export interface Export {
   useCredentials?: boolean;
   devMode?: boolean;
   devPorts?: number[];
+  // Phase 4 deliverable fields — legacy exports remain type: 'json'|'externalApi'
+  deliverableType?: 'api' | 'video-stream' | 'game-build' | 'asset-bundle' | 'app-binary';
+  deliverableVersion?: string;
+  deliverableTargets?: DeliveryTarget[];
+  publishedAt?: string;
+  publishedBy?: string;
+  cdnUrl?: string;
 }
 
 export interface ExportPayload {
@@ -402,6 +409,53 @@ export interface ReviewSession {
   deadline?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type DistributionTarget =
+  | 'cdnPush'
+  | 'hlsStream'
+  | 'steam'
+  | 'appStoreConnect'
+  | 'googlePlay'
+  | 'itchIo'
+  | 'customWebhook';
+
+export type DeliveryStatus = 'pending' | 'publishing' | 'published' | 'failed';
+
+export interface DeliveryTarget {
+  connectionId: string;
+  target: DistributionTarget;
+  channel?: string;
+  publishedAt?: string;
+  publishedBy?: string;
+  receipt?: Record<string, string>;
+  status: DeliveryStatus;
+}
+
+export interface DistributionConnection {
+  id: string;
+  name: string;
+  target: DistributionTarget;
+  credentialId?: string;
+  projectId: string;
+  config: Record<string, string>;
+  createdAt?: string;
+  description?: string;
+}
+
+export interface QcCheck {
+  name: string;
+  passed: boolean;
+  value: string | number;
+  threshold: string | number;
+  message?: string;
+}
+
+export interface QcReport {
+  assetId: string;
+  checks: QcCheck[];
+  overallPassed: boolean;
+  generatedAt: string;
 }
 
 export type AnnotationType = 'timecoded' | 'spatial' | 'region';

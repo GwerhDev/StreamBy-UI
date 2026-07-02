@@ -260,10 +260,22 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'reviewGateNode' && tt === 'streambyNode') return th === 'in-top';
     if (st === 'reviewGateNode' && tt === 'annotationNode') return sh === 'out-review' && th === 'in-review';
 
-    // AnnotationNode: output lane (left←right, chained like filterNode)
+    // AnnotationNode: output lane (chained like filterNode)
     if (st === 'filterNode' && tt === 'annotationNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'annotationNode' && tt === 'filterNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'streambyNode' && tt === 'annotationNode') return sh === 'out-right' && th === 'in-filter';
+
+    // QcCheckNode: process lane — same as processNode
+    const deliveryProcessTypes = ['qcCheckNode'];
+    if (st === 'streambyNode' && deliveryProcessTypes.includes(tt)) return sh === 'out-top';
+    if (deliveryProcessTypes.includes(st) && tt === 'streambyNode') return th === 'in-top';
+
+    // DeliverableNode and DistributionNode: output lane (chained left→right)
+    const outputLaneTypes = ['filterNode', 'annotationNode', 'deliverableNode', 'distributionNode'];
+    if (outputLaneTypes.includes(st) && tt === 'deliverableNode') return sh === 'out-filter' && th === 'in-filter';
+    if (st === 'streambyNode' && tt === 'deliverableNode') return sh === 'out-right' && th === 'in-filter';
+    if (outputLaneTypes.includes(st) && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
+    if (st === 'deliverableNode' && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
 
     return false;
   }, [nodes]);
