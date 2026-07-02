@@ -54,6 +54,11 @@ const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnecti
 const DatabaseTableCreate      = lazy(() => import('./app/pages/DatabaseTableCreate').then(module => ({ default: module.DatabaseTableCreate })));
 const DatabaseRecords          = lazy(() => import('./app/pages/DatabaseRecords').then(module => ({ default: module.DatabaseRecords })));
 const Explore                  = lazy(() => import('./app/pages/Explore').then(module => ({ default: module.Explore })));
+const JobMonitorPage           = lazy(() => import('./app/pages/JobMonitorPage').then(module => ({ default: module.JobMonitorPage })));
+const ReviewListPage           = lazy(() => import('./app/pages/ReviewListPage').then(module => ({ default: module.ReviewListPage })));
+const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage').then(module => ({ default: module.ReviewPlayerPage })));
+const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPage').then(module => ({ default: module.RenderFarmListPage })));
+const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -114,6 +119,12 @@ function App() {
                   <Route path="/project/:id/connections/api/create" element={<ApiConnectionsCreate />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
+
+                  <Route path="/project/:id/jobs" element={<JobMonitorPage />} />
+                  <Route path="/project/:id/reviews" element={<ReviewListPage />} />
+                  <Route path="/project/:id/review/:sessionId" element={<ReviewPlayerPage />} />
+                  <Route path="/project/:id/render-farm" element={<RenderFarmListPage />} />
+                  <Route path="/project/:id/deliverables" element={<DeliverableListPage />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />

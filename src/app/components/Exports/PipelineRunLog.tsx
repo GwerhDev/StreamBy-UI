@@ -2,9 +2,10 @@ import s from './PipelineRunLog.module.css';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTerminal, faXmark, faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTerminal, faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { JobRecord } from '../../../interfaces';
+import { ModalShell } from '../Modals/ModalShell';
 
 interface Props {
   onClose: () => void;
@@ -33,17 +34,15 @@ export function PipelineRunLog({ onClose }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [jobList.length]);
 
-  return (
-    <div className={s.drawer}>
-      <div className={s.drawerHeader}>
-        <FontAwesomeIcon icon={faTerminal} className={s.drawerIcon} />
-        <span className={s.drawerTitle}>Pipeline log</span>
-        <span className={s.jobCount}>{jobList.length} job{jobList.length !== 1 ? 's' : ''}</span>
-        <button type="button" className={s.closeBtn} onClick={onClose} title="Close log">
-          <FontAwesomeIcon icon={faXmark} />
-        </button>
-      </div>
+  const title = `Pipeline log · ${jobList.length} job${jobList.length !== 1 ? 's' : ''}`;
 
+  return (
+    <ModalShell
+      title={title}
+      icon={faTerminal}
+      onClose={onClose}
+      overlayClassName={s.drawerOverlay}
+    >
       <div className={s.logBody}>
         {!jobList.length && (
           <div className={s.empty}>No active jobs. Run the pipeline to see output here.</div>
@@ -67,6 +66,6 @@ export function PipelineRunLog({ onClose }: Props) {
         ))}
         <div ref={bottomRef} />
       </div>
-    </div>
+    </ModalShell>
   );
 }

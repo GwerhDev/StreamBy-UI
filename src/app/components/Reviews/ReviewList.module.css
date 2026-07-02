@@ -1,0 +1,122 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  flex-shrink: 0;
+  padding: 1rem 1rem 0;
+}
+
+/* ── List ────────────────────────────────── */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowSkeleton {
+  height: 44px;
+  border-radius: 8px;
+}
+
+.listHeader {
+  display: grid;
+  grid-template-columns: 1fr 90px 100px 100px 100px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.listHeader span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* ── Row ─────────────────────────────────── */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 90px 100px 100px 100px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-bright);
+}
+
+.colAsset {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colApprovals,
+.colDeadline,
+.colDate {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Status badge ────────────────────────── */
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
+  letter-spacing: 0.03em;
+}
+
+.statusOpen     { background: rgba(56, 182, 255, 0.15); color: var(--color-accent); }
+.statusApproved { background: rgba(34, 197, 94, 0.15);  color: var(--color-success-text, #4ade80); }
+.statusRejected { background: rgba(239, 68, 68, 0.15);  color: var(--color-danger-text, #f87171); }
+.statusExpired  { background: rgba(255, 255, 255, 0.08); color: var(--color-text-muted); }
+
+/* ── Empty / error ───────────────────────── */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.errorText {
+  color: var(--color-danger-text, #f87171);
+  font-size: 0.82rem;
+}

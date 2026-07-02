@@ -505,8 +505,9 @@ export const ExportEditor: React.FC = () => {
             </React.Fragment>
           ))}
         </PanelGroup>
-        {showLog && <PipelineRunLog onClose={() => setShowLog(false)} />}
       </form>
+
+      {showLog && <PipelineRunLog onClose={() => setShowLog(false)} />}
 
       {showLeaveModal && (
         <ModalShell
