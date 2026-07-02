@@ -8,19 +8,26 @@ import { setCurrentProject, setProjectLoading } from '../store/currentProjectSli
 export function useProjectInit(projectId: string | undefined) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const projects = useSelector((state: RootState) => state.projects);
   const session = useSelector((state: RootState) => state.session);
 
   useEffect(() => {
-    if (!projectId || projects.loading) return;
+    if (!projectId) {
+      navigate('/project/not-found');
+      return;
+    }
     (async () => {
       try {
         dispatch(setProjectLoading());
-        const data = await fetchProject(projectId, navigate);
+        const data = await fetchProject(projectId);
         dispatch(setCurrentProject(data));
+
+        const selfMember = data?.members?.find((m: { userId: string }) => m.userId === session.userId);
+        if (selfMember?.status === 'pending') {
+          navigate(`/preview/${projectId}`, { replace: true });
+        }
       } catch {
-        // fetchProject already navigates to /project/not-found on failure
+        navigate('/project/not-found');
       }
     })();
-  }, [projectId, projects.loading, session.userId]);
+  }, [projectId, session.userId, dispatch, navigate]);
 }

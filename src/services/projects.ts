@@ -1,4 +1,3 @@
-import { NavigateFunction } from "react-router-dom";
 import { API_BASE } from "../config/api";
 
 export async function exploreProjects() {
@@ -92,18 +91,13 @@ export async function fetchProjects() {
   return projects;
 }
 
-export async function fetchProject(projectId: string | undefined, navigate: NavigateFunction) {
-  if (!projectId) {
-    navigate('/project/not-found');
-    return;
-  }
+export async function fetchProject(projectId: string) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     method: 'GET',
     credentials: 'include',
   });
   if (!res.ok) {
     const errorData = await res.json();
-    navigate('/project/not-found');
     throw new Error(errorData.message || 'Failed to fetch project');
   }
   const { project } = await res.json();
