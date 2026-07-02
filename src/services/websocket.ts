@@ -2,6 +2,7 @@ import { API_BASE } from '../config/api';
 import { store } from '../store';
 import { addNotification, fetchNotifications } from '../store/notificationsSlice';
 import { addApiResponse } from '../store/apiResponsesSlice';
+import { upsertJob } from '../store/currentJobSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 
@@ -34,6 +35,8 @@ function handleMessage(event: MessageEvent) {
     } else if (msg.type === 'notification') {
       store.dispatch(addNotification(msg.data));
       store.dispatch(addApiResponse({ message: msg.data.message, type: 'success' }));
+    } else if (msg.type === 'jobEvent') {
+      store.dispatch(upsertJob(msg.data));
     }
   } catch {
     // Ignore malformed messages

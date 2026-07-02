@@ -233,6 +233,20 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // FilterNode can chain to another FilterNode
     if (st === 'filterNode'   && tt === 'filterNode')  return sh === 'out-filter' && th === 'in-filter';
 
+    // IngestNode: receives file ref from left, outputs to streamby bottom data lane
+    if (st === 'streambyNode' && tt === 'ingestNode') return sh === 'out-bottom';
+    if (st === 'ingestNode' && tt === 'streambyNode') return th === 'in-bottom';
+
+    // Process-lane nodes (transcode, caption, thumbnail): same rules as processNode
+    if (st === 'streambyNode' && (tt === 'transcodeNode' || tt === 'captionNode' || tt === 'thumbnailNode')) return sh === 'out-top';
+    if ((st === 'transcodeNode' || st === 'captionNode' || st === 'thumbnailNode') && tt === 'streambyNode') return th === 'in-top';
+
+    // CaptionNode out-captions → filterNode input lane
+    if (st === 'captionNode' && tt === 'filterNode') return sh === 'out-captions' && th === 'in-filter';
+
+    // ThumbnailNode in-asset: receives asset ref from dataSourceNode or apiConnectionNode
+    if ((st === 'dataSourceNode' || st === 'apiConnectionNode') && tt === 'thumbnailNode') return sh === 'out-stream' && th === 'in-asset';
+
     return false;
   }, [nodes]);
 

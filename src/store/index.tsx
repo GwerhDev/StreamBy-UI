@@ -8,6 +8,7 @@ import apiResponsesReducer from './apiResponsesSlice';
 import notificationsReducer from './notificationsSlice';
 import currentNotificationReducer from './currentNotificationSlice';
 import currentStorageFolderReducer from './currentStorageFolderSlice';
+import currentJobReducer from './currentJobSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     notifications: notificationsReducer,
     currentNotification: currentNotificationReducer,
     currentStorageFolder: currentStorageFolderReducer,
+    currentJob: currentJobReducer,
   },
 });
 

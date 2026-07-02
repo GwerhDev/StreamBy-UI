@@ -1,0 +1,41 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: .5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-size: .75rem;
+  color: var(--color-text-muted);
+}
+
+.stage {
+  text-transform: capitalize;
+}
+
+.percent {
+  font-variant-numeric: tabular-nums;
+}
+
+.track {
+  height: 4px;
+  background: var(--color-surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.error {
+  font-size: .75rem;
+  color: var(--color-danger-400);
+  margin: 0;
+}

@@ -298,3 +298,39 @@ export interface SwitcherCategory {
   name: string;
   apps: SwitcherApp[];
 }
+
+export interface AssetVersion {
+  id: string;
+  assetId: string;
+  version: number;
+  label?: string;
+  storageKey: string;
+  size: number;
+  createdBy: string;
+  createdAt: string;
+  changeNote?: string;
+}
+
+export interface AssetMetadata {
+  assetId: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  frameRate?: number;
+  colorSpace?: string;
+  codec?: string;
+  bitrate?: number;
+  channels?: number;
+  sampleRate?: number;
+  customTags: Record<string, string>;
+}
+
+export interface JobRecord {
+  jobId: string;
+  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail';
+  assetId?: string;
+  stage: string;
+  progress: number;
+  message?: string;
+  error?: string;
+}

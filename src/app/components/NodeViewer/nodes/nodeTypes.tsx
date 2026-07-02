@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { NodeProps, Handle, Position } from 'reactflow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faUser, faBolt, faDatabase, faGlobe, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faBolt, faDatabase, faGlobe, faCode, faCloudArrowDown, faFilm, faClosedCaptioning, faImage } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
 // ─── Node Data Types ──────────────────────────────────────────────────────────
@@ -18,6 +18,8 @@ export const H_LEFT   = '#38B6FF';
 export const H_TOP    = '#a78bfa';
 export const H_BOTTOM = '#34d399';
 export const H_RIGHT  = '#fbbf24';
+export const H_JOB    = '#f97316';
+export const H_REVIEW = '#e879f9';
 
 export const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-surface-base)', borderColor: color });
 export const hOut = (color: string): React.CSSProperties => ({ background: color, borderColor: color });
@@ -137,6 +139,75 @@ export const FilterNode = memo(({ data, selected }: NodeProps<ProcessNodeData>) 
 ));
 FilterNode.displayName = 'FilterNode';
 
+// ─── Media pipeline nodes ─────────────────────────────────────────────────────
+
+// Ingests a file from an external source into StorageDrive — sits below streambyNode
+export const IngestNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left} id="in-left"    className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
+      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faCloudArrowDown} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+IngestNode.displayName = 'IngestNode';
+
+// Transcodes audio/video — sits above streambyNode in the process lane
+export const TranscodeNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#14103a' }}>
+      <div className={s.nodeIcon} style={{ color: H_TOP }}><FontAwesomeIcon icon={faFilm} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+TranscodeNode.displayName = 'TranscodeNode';
+
+// Generates captions (SRT/VTT) — sits above streambyNode; emits caption file to the right output lane
+export const CaptionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"   className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process"  className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <Handle type="source" position={Position.Right}  id="out-captions" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0f2e' }}>
+      <div className={s.nodeIcon} style={{ color: '#c084fc' }}><FontAwesomeIcon icon={faClosedCaptioning} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+CaptionNode.displayName = 'CaptionNode';
+
+// Extracts a thumbnail frame — sits above streambyNode; accepts an asset ref from the data layer
+export const ThumbnailNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <Handle type="target" position={Position.Right}  id="in-asset"   className={s.handle} style={hIn(H_BOTTOM)} />
+    <Handle type="source" position={Position.Left}   id="out-thumb"  className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: '#4ade80' }}><FontAwesomeIcon icon={faImage} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ThumbnailNode.displayName = 'ThumbnailNode';
+
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
 export const nodeTypes = {
@@ -147,4 +218,8 @@ export const nodeTypes = {
   apiConnectionNode: ApiConnectionNode,
   processNode: ProcessNode,
   filterNode: FilterNode,
+  ingestNode: IngestNode,
+  transcodeNode: TranscodeNode,
+  captionNode: CaptionNode,
+  thumbnailNode: ThumbnailNode,
 };
