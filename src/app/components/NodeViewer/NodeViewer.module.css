@@ -22,85 +22,146 @@
 .canvasArea {
   flex-grow: 1;
   display: flex;
-  position: relative;
+  flex-direction: row;
   height: 400px;
+  min-height: 0;
 }
 
 .flowContainer {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 100%;
 }
 
-/* ─── Node Palette ────────────────────────────────────────────────────────── */
+/* ─── Node Palette (vertical sidebar) ────────────────────────────────────── */
 
 .palette {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
+  width: 168px;
+  flex-shrink: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-base);
+  border-left: 1px solid var(--color-surface);
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+.paletteCollapsed {
+  width: 40px;
+}
+
+.paletteList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-raised) transparent;
+  padding-block: 0.5rem;
+}
+
+.paletteList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.paletteList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.paletteList::-webkit-scrollbar-thumb {
+  background: var(--color-surface-raised);
+  border-radius: 2px;
+}
+
+.palette .paletteToggle {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(26, 26, 28, 0.92);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--color-surface);
-  border-radius: 8px;
-  padding: 0.4rem 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid var(--color-surface);
+  border-radius: 0;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  outline: none;
 }
 
-.paletteLabel {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding-right: 0.4rem;
-  border-right: 1px solid var(--color-surface);
-  white-space: nowrap;
+.palette .paletteToggle:hover {
+  background: none;
+  color: var(--color-text-bright);
+}
+
+.paletteCollapsed .paletteToggle {
+  justify-content: center;
+  padding: 0.6rem 0;
+}
+
+.paletteToggleIcon {
+  font-size: 0.65rem;
+  flex-shrink: 0;
 }
 
 .paletteGroupLabel {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 0 0.3rem;
-  border-left: 1px solid var(--color-surface);
-  margin-left: 0.1rem;
+  letter-spacing: 0.09em;
+  padding: 0.8rem 0.75rem 0.3rem;
+  flex-shrink: 0;
   white-space: nowrap;
-  opacity: 0.85;
+  overflow: hidden;
 }
 
-.paletteBtn {
+.palette .paletteBtn {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.28rem 0.55rem;
-  background: var(--color-surface-deep);
-  border: 1px solid var(--color-surface);
-  border-radius: 8px;
+  gap: 0.45rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 0;
   color: var(--color-text-secondary);
   font-size: 0.75rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.12s ease, color 0.12s ease;
+  text-align: left;
+  width: 100%;
   white-space: nowrap;
+  overflow: hidden;
 }
 
-.paletteBtn:hover {
+.paletteCollapsed .paletteBtn {
+  padding: 0.7rem 0;
+  justify-content: center;
+}
+
+.palette .paletteBtn:hover {
   background: var(--color-surface-sunken);
-  border-color: var(--color-accent);
   color: var(--color-text-bright);
 }
 
 .paletteBtnIcon {
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   flex-shrink: 0;
 }
 

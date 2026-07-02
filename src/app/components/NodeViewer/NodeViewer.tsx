@@ -13,6 +13,8 @@ import ReactFlow, {
   Node,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  ReactFlowProvider,
   addEdge,
   Connection,
 } from 'reactflow';
@@ -25,8 +27,9 @@ import {
   faDatabase, faGlobe, faXmark, faFloppyDisk,
   faInfoCircle, faArrowsRotate, faFilter,
   faPlus, faCode, faGear, faUser, faWrench,
+  faAnglesLeft, faAnglesRight,
 } from '@fortawesome/free-solid-svg-icons';
-import { nodeTypes, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
+import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NODE_PALETTE, PALETTE_GROUPS, PaletteItem, edgeColorForSource } from './nodePalette';
 export { computeResponseFromSchema } from './nodeSchema';
 
@@ -85,9 +88,10 @@ export interface NodeViewerHandle {
 const CORE_NODE_IDS = ['client', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
 
-export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
+const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId,
 }, ref) => {
+  const { screenToFlowPosition } = useReactFlow();
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -104,6 +108,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [panelTablesLoading, setPanelTablesLoading] = useState(false);
   const [panelRecords, setPanelRecords] = useState<Array<{ id: string; label: string }>>([]);
   const [panelRecordsLoading, setPanelRecordsLoading] = useState(false);
+  const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -185,13 +190,13 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const noop = useCallback(() => {}, []);
 
-  const CONNECTOR_TYPES = ['apiConnectionNode', 'dataSourceNode'];
   const visibleNodes = useMemo(() => {
+    const connectorTypes = ['apiConnectionNode', 'dataSourceNode'];
     if (editMode) return nodes;
     const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
-    return nodes.filter(n => !CONNECTOR_TYPES.includes(n.type ?? '') || connected.has(n.id));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return nodes.filter(n => !connectorTypes.includes(n.type ?? '') || connected.has(n.id));
   }, [editMode, nodes, edges]);
 
   const onChangeRef = useRef(onChange);
@@ -294,16 +299,31 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setEdges(prev => addEdge({ ...connection, animated: true, style: { stroke: color, strokeWidth: 2 } }, prev));
   }, [nodes, setEdges]);
 
-  const addNode = useCallback((config: PaletteItem) => {
+  const addNode = useCallback((config: PaletteItem, position?: { x: number; y: number }) => {
     const id = `${config.type}-${crypto.randomUUID()}`;
-    const pos = config.group === 'process' ? { x: 240 + Math.random() * 60, y: -80 + Math.random() * 40 }
-              : config.group === 'output'  ? { x: 520 + Math.random() * 60, y: 100 + Math.random() * 40 }
-              : /* data */                   { x: 240 + Math.random() * 60, y: 300 + Math.random() * 40 };
+    const pos = position ?? (
+      config.group === 'process' ? { x: 240 + Math.random() * 60, y: -80  + Math.random() * 40 }
+    : config.group === 'output'  ? { x: 520 + Math.random() * 60, y: 100  + Math.random() * 40 }
+    :                              { x: 240 + Math.random() * 60, y: 300  + Math.random() * 40 }
+    );
     setNodes(prev => [...prev, {
       id, type: config.type, position: pos,
       data: { label: config.label, subtitle: config.subtitle, icon: config.icon, bgColor: config.bgColor, iconColor: config.iconColor, ...(config.type === 'jsonInputNode' ? { jsonString: '{}' } : {}) },
     }]);
   }, [setNodes]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes('application/streamby-node')) e.preventDefault();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const raw = e.dataTransfer.getData('application/streamby-node');
+    if (!raw) return;
+    const config = JSON.parse(raw) as PaletteItem;
+    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    addNode(config, position);
+  }, [addNode, screenToFlowPosition]);
 
   // ─── Detail panel ─────────────────────────────────────────────────────
 
@@ -397,6 +417,200 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         ],
       };
     }
+
+    // ─── Phase 1 — Media Asset Pipeline ───────────────────────────────────────
+
+    if (node.type === 'ingestNode') return {
+      title: 'Ingest',
+      description: 'Imports an uploaded file into the asset pipeline, extracts metadata and creates version 1.',
+      fields: [
+        { key: 'fileId',   label: 'File ID',   value: (node.data.fileId   as string) || '' },
+        { key: 'label',    label: 'Name',       value: (node.data.label    as string) || '' },
+        { key: 'subtitle', label: 'Description', value: (node.data.subtitle as string) || '' },
+      ],
+    };
+
+    if (node.type === 'transcodeNode') return {
+      title: 'Transcode',
+      description: 'Converts a video or audio file. Actual encoding runs in the host worker (FFmpeg).',
+      fields: [
+        { key: 'fileId',       label: 'File ID',        value: (node.data.fileId       as string) || '' },
+        { key: 'codec',        label: 'Output Codec',   value: (node.data.codec        as string) || 'h264' },
+        { key: 'resolution',   label: 'Resolution',     value: (node.data.resolution   as string) || 'original' },
+        { key: 'outputFormat', label: 'Output Format',  value: (node.data.outputFormat as string) || 'mp4' },
+        { key: 'bitrate',      label: 'Bitrate',        value: (node.data.bitrate      as string) || '' },
+        { key: 'audioCodec',   label: 'Audio Codec',    value: (node.data.audioCodec   as string) || 'aac' },
+      ],
+    };
+
+    if (node.type === 'captionNode') return {
+      title: 'Captions',
+      description: 'Generates subtitle files (SRT/VTT) from a video or audio file.',
+      fields: [
+        { key: 'fileId',         label: 'File ID',         value: (node.data.fileId         as string) || '' },
+        { key: 'sourceLanguage', label: 'Source Language', value: (node.data.sourceLanguage as string) || 'auto' },
+        { key: 'outputFormat',   label: 'Output Format',   value: (node.data.outputFormat   as string) || 'srt' },
+        { key: 'provider',       label: 'Provider',        value: (node.data.provider       as string) || 'manual' },
+      ],
+    };
+
+    if (node.type === 'thumbnailNode') return {
+      title: 'Thumbnail',
+      description: 'Extracts a frame or region from a video as a thumbnail image.',
+      fields: [
+        { key: 'fileId',     label: 'File ID',    value: (node.data.fileId     as string) || '' },
+        { key: 'timecode',   label: 'Timecode',   value: (node.data.timecode   as string) || '00:00:01' },
+        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1280x720' },
+        { key: 'strategy',   label: 'Strategy',   value: (node.data.strategy   as string) || 'timecode' },
+      ],
+    };
+
+    // ─── Phase 2 — 3D & VFX Pipeline ──────────────────────────────────────────
+
+    if (node.type === 'renderJobNode') return {
+      title: 'Render Job',
+      description: 'Dispatches a render task to the configured render farm (Flamenco, Deadline, etc.).',
+      fields: [
+        { key: 'fileId',                  label: 'File ID',              value: (node.data.fileId                  as string) || '' },
+        { key: 'renderer',                label: 'Renderer',             value: (node.data.renderer                as string) || 'blender' },
+        { key: 'renderFarmConnectionId',  label: 'Farm Connection',      value: (node.data.renderFarmConnectionId  as string) || '' },
+        { key: 'frameRange',              label: 'Frame Range',          value: (node.data.frameRange              as string) || '1-1' },
+        { key: 'resolution',              label: 'Resolution',           value: (node.data.resolution              as string) || '1920x1080' },
+        { key: 'samples',                 label: 'Samples',              value: String(node.data.samples ?? 128) },
+        { key: 'outputFormat',            label: 'Output Format',        value: (node.data.outputFormat            as string) || 'png' },
+      ],
+    };
+
+    if (node.type === 'formatConvertNode') return {
+      title: 'Format Convert',
+      description: 'Converts a 3D file between formats (FBX, OBJ, GLB, USD, USDZ, STL).',
+      fields: [
+        { key: 'fileId',         label: 'File ID',         value: (node.data.fileId         as string) || '' },
+        { key: 'inputFormat',    label: 'Input Format',    value: (node.data.inputFormat    as string) || 'fbx' },
+        { key: 'outputFormat',   label: 'Output Format',   value: (node.data.outputFormat   as string) || 'glb' },
+        { key: 'applyTransforms', label: 'Apply Transforms', value: String(node.data.applyTransforms ?? true) },
+        { key: 'embedTextures',  label: 'Embed Textures',  value: String(node.data.embedTextures ?? true) },
+      ],
+    };
+
+    if (node.type === 'lodNode') return {
+      title: 'LOD',
+      description: 'Generates multiple LOD levels for a 3D asset to optimize real-time performance.',
+      fields: [
+        { key: 'fileId',          label: 'File ID',           value: (node.data.fileId          as string) || '' },
+        { key: 'levels',          label: 'LOD Levels',        value: String(node.data.levels ?? 3) },
+        { key: 'reductionRatios', label: 'Reduction Ratios',  value: (node.data.reductionRatios as number[] | undefined)?.join(', ') ?? '0.5, 0.25, 0.1' },
+        { key: 'algorithm',       label: 'Algorithm',         value: (node.data.algorithm       as string) || 'quadric' },
+        { key: 'outputFormat',    label: 'Output Format',     value: (node.data.outputFormat    as string) || 'glb' },
+      ],
+    };
+
+    if (node.type === 'assetDependencyNode') return {
+      title: 'Asset Dependencies',
+      description: 'Resolves the full dependency tree of a 3D asset (textures, materials, rigs).',
+      fields: [
+        { key: 'fileId',   label: 'Root Asset ID', value: (node.data.fileId   as string) || '' },
+        { key: 'maxDepth', label: 'Max Depth',     value: String(node.data.maxDepth ?? 5) },
+      ],
+    };
+
+    // ─── Phase 3 — Collaboration & Review ─────────────────────────────────────
+
+    if (node.type === 'reviewGateNode') return {
+      title: 'Review Gate',
+      description: 'Blocks the pipeline until the minimum number of approvals is collected.',
+      fields: [
+        { key: 'requiredApprovers', label: 'Required Approvers', value: String(node.data.requiredApprovers ?? 1) },
+        { key: 'approverRoles',     label: 'Approver Roles',     value: (node.data.approverRoles as string) || '' },
+        { key: 'deadlineHours',     label: 'Deadline (hours)',   value: String(node.data.deadlineHours ?? '') },
+      ],
+    };
+
+    if (node.type === 'annotationNode') return {
+      title: 'Annotations',
+      description: 'Attaches frame-accurate or spatial annotations to the asset in the output lane.',
+      fields: [
+        { key: 'annotationType', label: 'Annotation Type', value: (node.data.annotationType as string) || 'timecoded' },
+        { key: 'displayMode',    label: 'Display Mode',    value: (node.data.displayMode    as string) || 'overlay' },
+      ],
+    };
+
+    // ─── Phase 4 — Distribution & Delivery ────────────────────────────────────
+
+    if (node.type === 'qcCheckNode') return {
+      title: 'QC Check',
+      description: 'Runs quality checks (resolution, bitrate, format, duration) before review or distribution.',
+      fields: [
+        { key: 'checks',        label: 'Checks',         value: (node.data.checks        as string[] | undefined)?.join(', ') || '' },
+        { key: 'failureAction', label: 'On Failure',     value: (node.data.failureAction as string) || 'block' },
+      ],
+    };
+
+    if (node.type === 'deliverableNode') return {
+      title: 'Deliverable',
+      description: 'Packages the pipeline output as a versioned deliverable artifact.',
+      fields: [
+        { key: 'deliverableType',    label: 'Type',    value: (node.data.deliverableType    as string) || 'asset-bundle' },
+        { key: 'deliverableVersion', label: 'Version', value: (node.data.deliverableVersion as string) || '1.0.0' },
+        { key: 'changeNotes',        label: 'Notes',   value: (node.data.changeNotes        as string) || '' },
+      ],
+    };
+
+    if (node.type === 'distributionNode') return {
+      title: 'Distribution',
+      description: 'Publishes the deliverable to a platform (CDN, Steam, App Store, Google Play, itch.io).',
+      fields: [
+        { key: 'distributionConnectionId', label: 'Connection',    value: (node.data.distributionConnectionId as string) || '' },
+        { key: 'distributionTarget',       label: 'Target',        value: (node.data.distributionTarget       as string) || 'cdnPush' },
+        { key: 'channel',                  label: 'Channel',       value: (node.data.channel                  as string) || '' },
+        { key: 'autoPublish',              label: 'Auto-publish',  value: String(node.data.autoPublish ?? false) },
+      ],
+    };
+
+    // ─── Phase 5 — AI-Augmented Production ────────────────────────────────────
+
+    if (node.type === 'transcriptionNode') return {
+      title: 'Transcription',
+      description: 'Converts speech in a video or audio file to text using an AI provider.',
+      fields: [
+        { key: 'fileId',         label: 'File ID',         value: (node.data.fileId         as string) || '' },
+        { key: 'provider',       label: 'Provider',        value: (node.data.provider       as string) || 'openai' },
+        { key: 'model',          label: 'Model',           value: (node.data.model          as string) || 'whisper-1' },
+        { key: 'sourceLanguage', label: 'Source Language', value: (node.data.sourceLanguage as string) || 'auto' },
+        { key: 'outputFormats',  label: 'Output Formats',  value: (node.data.outputFormats  as string) || 'srt,vtt' },
+        { key: 'credentialId',   label: 'Credential',      value: (node.data.credentialId   as string) || '' },
+      ],
+    };
+
+    if (node.type === 'upscaleNode') return {
+      title: 'Upscale',
+      description: 'AI-powered image or video upscaling (Real-ESRGAN, Topaz, custom).',
+      fields: [
+        { key: 'fileId',       label: 'File ID',     value: (node.data.fileId       as string) || '' },
+        { key: 'scale',        label: 'Scale',       value: String(node.data.scale ?? 4) },
+        { key: 'model',        label: 'Model',       value: (node.data.model        as string) || 'real-esrgan' },
+        { key: 'mode',         label: 'Mode',        value: (node.data.mode         as string) || 'images' },
+        { key: 'credentialId', label: 'Credential',  value: (node.data.credentialId as string) || '' },
+      ],
+    };
+
+    if (node.type === 'proceduralAssetNode') return {
+      title: 'Generate Asset',
+      description: 'Generates a 3D model, texture or audio clip from a prompt via an AI provider.',
+      fields: [
+        { key: 'assetType',    label: 'Asset Type',  value: (node.data.assetType    as string) || '3d' },
+        { key: 'provider',     label: 'Provider',    value: (node.data.provider     as string) || 'meshy' },
+        { key: 'prompt',       label: 'Prompt',      value: (node.data.prompt       as string) || '' },
+        { key: 'seed',         label: 'Seed',        value: String(node.data.seed ?? '') },
+        { key: 'credentialId', label: 'Credential',  value: (node.data.credentialId as string) || '' },
+      ],
+    };
+
+    if (node.type === 'pipelineSuggestNode') return {
+      title: 'AI Suggest',
+      description: 'Analyses the current pipeline topology and suggests missing nodes. Remove this node after applying the suggestion.',
+      fields: [],
+    };
 
     return null;
   }, [exportDetails, nodes, edges, apiConnections, allDbConnections, panelRecords, projectId]);
@@ -673,38 +887,19 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
       <div className={s.canvasArea}>
 
-        {editMode && (
-          <div className={s.palette}>
-            <span className={s.paletteLabel}><FontAwesomeIcon icon={faPlus} /> Add</span>
-            {PALETTE_GROUPS.map(group => (
-              <React.Fragment key={group.key}>
-                <span className={s.paletteGroupLabel} style={{ color: group.color }}>{group.label}</span>
-                {NODE_PALETTE.filter(p => p.group === group.key).map(config => (
-                  <button
-                    key={`${config.type}-${config.label}`} type="button"
-                    className={s.paletteBtn} onClick={() => addNode(config)}
-                    title={`Add ${config.label} node`}
-                  >
-                    <span className={s.paletteBtnIcon} style={{ color: config.iconColor, backgroundColor: config.bgColor }}>
-                      <FontAwesomeIcon icon={config.icon} />
-                    </span>
-                    {config.label}
-                  </button>
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
-        )}
-
-        <div className={s.flowContainer}>
+        <div
+          className={s.flowContainer}
+          onDragOver={editMode ? handleDragOver : undefined}
+          onDrop={editMode ? handleDrop : undefined}
+        >
           <ReactFlow
             nodes={visibleNodes} edges={edges}
             onNodeClick={handleNodeClick}
-            onNodesChange={editMode ? onNodesChange : () => {}}
-            onEdgesChange={editMode ? onEdgesChange : () => {}}
+            onNodesChange={editMode ? onNodesChange : noop}
+            onEdgesChange={editMode ? onEdgesChange : noop}
             onConnect={editMode ? onConnect : undefined}
             isValidConnection={editMode ? isValidConnection : undefined}
-            nodeTypes={nodeTypes}
+            nodeTypes={NODE_TYPES}
             nodesDraggable={editMode} nodesConnectable={editMode}
             elementsSelectable deleteKeyCode={editMode ? 'Delete' : null}
             fitView fitViewOptions={{ padding: 0.35 }}
@@ -712,132 +907,176 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             <Background variant={BackgroundVariant.Dots} color="var(--color-surface-sunken)" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
-        </div>
 
-        {selectedDetail && (
-          <div className={s.detailPanel}>
-            <div className={s.detailHeader}>
-              <span className={s.detailTitle}>{selectedDetail.title}</span>
-              <button className={s.panelClose} onClick={handleClosePanel} type="button"><FontAwesomeIcon icon={faXmark} /></button>
-            </div>
-
-            <p className={s.detailDescription}>{selectedDetail.description}</p>
-
-            {selectedNodeId === 'streamby' && onSave && (
-              <div className={s.nodeActions}>
-                <button type="button" className={s.actionButton} onClick={handleOpenConfigModal}>
-                  <FontAwesomeIcon icon={faGear} />
-                  Configure
-                </button>
+          {selectedDetail && (
+            <div className={s.detailPanel}>
+              <div className={s.detailHeader}>
+                <span className={s.detailTitle}>{selectedDetail.title}</span>
+                <button className={s.panelClose} onClick={handleClosePanel} type="button"><FontAwesomeIcon icon={faXmark} /></button>
               </div>
-            )}
 
-            {selectedNodeId === 'client' && onSave && editMode && (
-              <div className={s.nodeActions}>
-                <button type="button" className={s.actionButton} onClick={handleOpenClientModal}>
-                  <FontAwesomeIcon icon={faGear} />
-                  Configure
-                </button>
-              </div>
-            )}
+              <p className={s.detailDescription}>{selectedDetail.description}</p>
 
-            {isJsonNode && (
-              <div className={s.nodeActions}>
-                <button type="button" className={s.actionButton} onClick={handleOpenJsonModal}>
-                  <FontAwesomeIcon icon={faCode} />
-                  {editMode ? 'Edit JSON' : 'View JSON'}
-                </button>
-              </div>
-            )}
-
-            {(isDbSourceNode || isApiNode) && projectId && (() => {
-              const credentialed = edges.some(
-                e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === selectedNodeId,
-              );
-              const hasConnection = !!(selectedNode?.data?.connectionId as string);
-              const hasTable      = !!(selectedNode?.data?.tableName as string);
-              return (
+              {selectedNodeId === 'streamby' && onSave && (
                 <div className={s.nodeActions}>
-                  {editMode && credentialed && (
+                  <button type="button" className={s.actionButton} onClick={handleOpenConfigModal}>
+                    <FontAwesomeIcon icon={faGear} />
+                    Configure
+                  </button>
+                </div>
+              )}
+
+              {selectedNodeId === 'client' && onSave && editMode && (
+                <div className={s.nodeActions}>
+                  <button type="button" className={s.actionButton} onClick={handleOpenClientModal}>
+                    <FontAwesomeIcon icon={faGear} />
+                    Configure
+                  </button>
+                </div>
+              )}
+
+              {isJsonNode && (
+                <div className={s.nodeActions}>
+                  <button type="button" className={s.actionButton} onClick={handleOpenJsonModal}>
+                    <FontAwesomeIcon icon={faCode} />
+                    {editMode ? 'Edit JSON' : 'View JSON'}
+                  </button>
+                </div>
+              )}
+
+              {(isDbSourceNode || isApiNode) && projectId && (() => {
+                const credentialed = edges.some(
+                  e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === selectedNodeId,
+                );
+                const hasConnection = !!(selectedNode?.data?.connectionId as string);
+                const hasTable      = !!(selectedNode?.data?.tableName as string);
+                return (
+                  <div className={s.nodeActions}>
+                    {editMode && credentialed && (
+                      <button
+                        type="button"
+                        className={s.actionButton}
+                        onClick={isApiNode ? handleOpenApiModal : handleOpenDataSourceModal}
+                      >
+                        <FontAwesomeIcon icon={faGear} />
+                        Configure
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={s.actionButton}
-                      onClick={isApiNode ? handleOpenApiModal : handleOpenDataSourceModal}
+                      onClick={isApiNode ? handleOpenApiPreview : handleOpenPreview}
+                      disabled={!credentialed || !hasConnection || (isDbSourceNode && !hasTable)}
                     >
-                      <FontAwesomeIcon icon={faGear} />
-                      Configure
+                      <FontAwesomeIcon icon={faArrowsRotate} />
+                      Preview
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className={s.actionButton}
-                    onClick={isApiNode ? handleOpenApiPreview : handleOpenPreview}
-                    disabled={!credentialed || !hasConnection || (isDbSourceNode && !hasTable)}
-                  >
-                    <FontAwesomeIcon icon={faArrowsRotate} />
-                    Preview
+                  </div>
+                );
+              })()}
+
+              {selectedNode?.type === 'processNode' && editMode && (
+                <div className={s.nodeActions}>
+                  <button type="button" className={s.actionButton} onClick={handleOpenNodeLabelModal}>
+                    <FontAwesomeIcon icon={faGear} />
+                    Configure
                   </button>
                 </div>
-              );
-            })()}
+              )}
 
-            {selectedNode?.type === 'processNode' && editMode && (
-              <div className={s.nodeActions}>
-                <button type="button" className={s.actionButton} onClick={handleOpenNodeLabelModal}>
-                  <FontAwesomeIcon icon={faGear} />
-                  Configure
-                </button>
-              </div>
-            )}
-
-            {selectedNode?.type === 'filterNode' && editMode && (
-              <div className={s.nodeActions}>
-                <button type="button" className={s.actionButton} onClick={handleOpenFilterModal}>
-                  <FontAwesomeIcon icon={faFilter} />
-                  Configure
-                </button>
-              </div>
-            )}
-
-            {selectedDetail.fields.length > 0 && <div className={s.detailFields}>
-              {selectedDetail.fields.map(field => (
-                <div key={field.key} className={s.detailField}>
-                  <span className={s.fieldLabel}>{field.label}</span>
-                  {editMode && field.editable ? (
-                    field.inputType === 'checkbox' ? (
-                      <label className={s.checkboxRow}>
-                        <input type="checkbox" checked={Boolean(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.checked)} className={s.fieldCheckbox} />
-                        <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
-                      </label>
-                    ) : field.inputType === 'select' && field.options?.length ? (
-                      <DropdownInput
-                        value={String(getFieldDisplayValue(field))}
-                        onChange={v => handleFieldChange(field.key, v)}
-                        options={field.options}
-                        disabled={field.disabled}
-                      />
-                    ) : (
-                      <input type="text" defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldInput} placeholder={field.label} />
-                    )
-                  ) : (
-                    <span className={s.fieldValue}>{field.displayValue ?? field.value}</span>
-                  )}
+              {selectedNode?.type === 'filterNode' && editMode && (
+                <div className={s.nodeActions}>
+                  <button type="button" className={s.actionButton} onClick={handleOpenFilterModal}>
+                    <FontAwesomeIcon icon={faFilter} />
+                    Configure
+                  </button>
                 </div>
+              )}
+
+              {selectedDetail.fields.length > 0 && (
+                <div className={s.detailFields}>
+                  {selectedDetail.fields.map(field => (
+                    <div key={field.key} className={s.detailField}>
+                      <span className={s.fieldLabel}>{field.label}</span>
+                      {editMode && field.editable ? (
+                        field.inputType === 'checkbox' ? (
+                          <label className={s.checkboxRow}>
+                            <input type="checkbox" checked={Boolean(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.checked)} className={s.fieldCheckbox} />
+                            <span className={s.checkboxLabel}>{getFieldDisplayValue(field) ? 'Enabled' : 'Disabled'}</span>
+                          </label>
+                        ) : field.inputType === 'select' && field.options?.length ? (
+                          <DropdownInput
+                            value={String(getFieldDisplayValue(field))}
+                            onChange={v => handleFieldChange(field.key, v)}
+                            options={field.options}
+                            disabled={field.disabled}
+                          />
+                        ) : (
+                          <input type="text" defaultValue={String(getFieldDisplayValue(field))} onChange={e => handleFieldChange(field.key, e.target.value)} className={s.fieldInput} placeholder={field.label} />
+                        )
+                      ) : (
+                        <span className={s.fieldValue}>{field.displayValue ?? field.value}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {jsonError && <p className={s.jsonError}>{jsonError}</p>}
+
+              {canSave && (
+                <div className={s.panelActions}>
+                  <button className={s.saveButton} onClick={handleSave} type="button"><FontAwesomeIcon icon={faFloppyDisk} /> Save Changes</button>
+                </div>
+              )}
+              {editMode && isCoreNode && !onSave && (
+                <div className={s.editHint}><FontAwesomeIcon icon={faInfoCircle} /><span>Reposition and connect nodes in edit mode.</span></div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {editMode && (
+          <div className={`${s.palette} ${paletteCollapsed ? s.paletteCollapsed : ''}`}>
+            <span
+              role="button"
+              tabIndex={0}
+              className={s.paletteToggle}
+              onClick={() => setPaletteCollapsed(c => !c)}
+              onKeyDown={e => e.key === 'Enter' && setPaletteCollapsed(c => !c)}
+              title={paletteCollapsed ? 'Expand palette' : 'Collapse palette'}
+            >
+              <FontAwesomeIcon icon={paletteCollapsed ? faAnglesLeft : faAnglesRight} className={s.paletteToggleIcon} />
+              {!paletteCollapsed && <span>Add node</span>}
+            </span>
+            <div className={s.paletteList}>
+              {PALETTE_GROUPS.map(group => (
+                <React.Fragment key={group.key}>
+                  {!paletteCollapsed && (
+                    <span className={s.paletteGroupLabel} style={{ color: group.color }}>{group.label}</span>
+                  )}
+                  {NODE_PALETTE.filter(p => p.group === group.key).map(config => (
+                    <button
+                      key={`${config.type}-${config.label}`} type="button"
+                      className={s.paletteBtn} onClick={() => addNode(config)}
+                      title={paletteCollapsed ? `${config.label} — ${config.subtitle}` : config.subtitle}
+                      draggable
+                      onDragStart={e => {
+                        e.dataTransfer.setData('application/streamby-node', JSON.stringify(config));
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                    >
+                      <span className={s.paletteBtnIcon} style={{ color: config.iconColor, backgroundColor: config.bgColor }}>
+                        <FontAwesomeIcon icon={config.icon} />
+                      </span>
+                      {!paletteCollapsed && config.label}
+                    </button>
+                  ))}
+                </React.Fragment>
               ))}
-            </div>}
-            {jsonError && <p className={s.jsonError}>{jsonError}</p>}
-
-
-            {canSave && (
-              <div className={s.panelActions}>
-                <button className={s.saveButton} onClick={handleSave} type="button"><FontAwesomeIcon icon={faFloppyDisk} /> Save Changes</button>
-              </div>
-            )}
-            {editMode && isCoreNode && !onSave && (
-              <div className={s.editHint}><FontAwesomeIcon icon={faInfoCircle} /><span>Reposition and connect nodes in edit mode.</span></div>
-            )}
+            </div>
           </div>
         )}
+
       </div>
     </div>
 
@@ -1326,5 +1565,13 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     </>
   );
 });
+
+NodeViewerInner.displayName = 'NodeViewerInner';
+
+export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>((props, ref) => (
+  <ReactFlowProvider>
+    <NodeViewerInner {...props} ref={ref} />
+  </ReactFlowProvider>
+));
 
 NodeViewer.displayName = 'NodeViewer';
