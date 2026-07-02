@@ -2,7 +2,10 @@
 .root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* cancel Browser .content padding so the board fills edge-to-edge */
+  margin: -1rem;
+  width: calc(100% + 2rem);
+  min-height: calc(100% + 2rem);
   overflow: hidden;
   position: relative;
 }
