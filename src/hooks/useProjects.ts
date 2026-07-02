@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { setProjects, setProjectsLoading } from '../store/projectsSlice';
+import { setProjects, setProjectsLoading, setProjectsError } from '../store/projectsSlice';
 import { fetchProjects } from '../services/projects';
 
 export function useProjects() {
@@ -15,8 +15,8 @@ export function useProjects() {
     try {
       const newList = await fetchProjects();
       dispatch(setProjects(newList));
-    } catch {
-      dispatch(setProjectsLoading());
+    } catch (err) {
+      dispatch(setProjectsError(err instanceof Error ? err.message : 'Failed to load projects'));
     }
   }, [dispatch]);
 

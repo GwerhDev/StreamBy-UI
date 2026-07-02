@@ -30,9 +30,14 @@ export const projectsSlice = createSlice({
     },
     setProjectsLoading: (state) => {
       state.loading = true;
+      state.error = null;
+    },
+    setProjectsError: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
     },
   },
 });
 
-export const { setProjects, addProject, removeProject, setProjectsLoading } = projectsSlice.actions;
+export const { setProjects, addProject, removeProject, setProjectsLoading, setProjectsError } = projectsSlice.actions;
 export default projectsSlice.reducer;

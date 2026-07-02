@@ -1,7 +1,6 @@
 import { API_BASE } from '../config/api';
 import { store } from '../store';
 import { addNotification, fetchNotifications } from '../store/notificationsSlice';
-import { addApiResponse } from '../store/apiResponsesSlice';
 import { upsertJob } from '../store/currentJobSlice';
 import { handleReviewEvent } from '../store/currentReviewSlice';
 
@@ -35,7 +34,6 @@ function handleMessage(event: MessageEvent) {
       store.dispatch(fetchNotifications());
     } else if (msg.type === 'notification') {
       store.dispatch(addNotification(msg.data));
-      store.dispatch(addApiResponse({ message: msg.data.message, type: 'success' }));
     } else if (msg.type === 'jobEvent') {
       store.dispatch(upsertJob(msg.data));
     } else if (msg.type === 'reviewEvent') {
