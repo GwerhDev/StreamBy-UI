@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  width: 104px;
+  width: 130px;
   height: 24px;
   background-color: var(--color-surface-sunken);
   border: 1px solid var(--color-surface);
@@ -35,7 +35,7 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 50px;
+  width: 63px;
   height: 18px;
   border-radius: 16px;
   background-color: var(--color-accent);
@@ -45,15 +45,15 @@
 }
 
 .thumb.right {
-  transform: translateX(50px);
+  transform: translateX(63px);
 }
 
 .track:active .thumb {
-  width: 54px;
+  width: 67px;
 }
 
 .track:active .thumb.right {
-  transform: translateX(46px);
+  transform: translateX(59px);
 }
 
 .labels {
