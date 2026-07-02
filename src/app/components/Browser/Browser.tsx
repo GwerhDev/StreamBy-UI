@@ -10,6 +10,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
+import { ModeToggle } from '../ModeToggle/ModeToggle';
 
 type BrowserProps = {
   children: React.ReactNode;
@@ -122,6 +123,9 @@ export const Browser = (props: BrowserProps) => {
                     </span>
                   ))
                 }
+                <span className={s.modeToggleSlot}>
+                  <ModeToggle />
+                </span>
               </>
             }
           </section>

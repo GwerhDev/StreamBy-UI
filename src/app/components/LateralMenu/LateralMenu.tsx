@@ -24,6 +24,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
+  const mode = session.mode ?? 'developer';
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const storages = useSelector((state: RootState) => state.management.storages);
   const { name, id, members } = currentProject.data || {};
@@ -320,8 +321,8 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                 )}
               </div>
 
-              {/* DATABASE */}
-              <div className={s.accordionSection}>
+              {/* DATABASE — Developer only */}
+              {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`}>
                   <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/database`)}>
                     <FontAwesomeIcon icon={faDatabase} className={s.sectionIcon} />
@@ -373,10 +374,10 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                     })}
                   </div>
                 )}
-              </div>
+              </div>}
 
-              {/* CONNECTIONS */}
-              <div className={s.accordionSection}>
+              {/* CONNECTIONS — Developer only */}
+              {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`}>
                   <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/connections`)}>
                     <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionIcon} />
@@ -402,10 +403,10 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                     })}
                   </div>
                 )}
-              </div>
+              </div>}
 
-              {/* SETTINGS */}
-              <div className={s.accordionSection}>
+              {/* SETTINGS — Developer only */}
+              {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`}>
                   <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/settings`)}>
                     <FontAwesomeIcon icon={faGear} className={s.sectionIcon} />
@@ -431,7 +432,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                     })}
                   </div>
                 )}
-              </div>
+              </div>}
 
             </>)}
           </div>

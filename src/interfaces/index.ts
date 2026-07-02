@@ -109,6 +109,8 @@ export interface ProjectList {
   archived: boolean;
 }
 
+export type WorkspaceMode = 'developer' | 'designer';
+
 export type Session = {
   logged: boolean;
   loader: boolean;
@@ -117,6 +119,7 @@ export type Session = {
   role?: string;
   profilePic?: string;
   plan?: string;
+  mode?: WorkspaceMode;
 };
 
 export interface ExploreProject {

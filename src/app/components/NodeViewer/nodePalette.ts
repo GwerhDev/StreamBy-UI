@@ -56,6 +56,18 @@ export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: 
   { key: 'ai',       label: 'AI',       color: H_REVIEW },
 ];
 
+const DESIGNER_GROUPS: Set<PaletteItem['group']> = new Set(['output', 'review', 'delivery', 'ai']);
+
+export function getPaletteForMode(mode: 'developer' | 'designer'): PaletteItem[] {
+  if (mode === 'developer') return NODE_PALETTE;
+  return NODE_PALETTE.filter(item => DESIGNER_GROUPS.has(item.group));
+}
+
+export function getGroupsForMode(mode: 'developer' | 'designer') {
+  if (mode === 'developer') return PALETTE_GROUPS;
+  return PALETTE_GROUPS.filter(g => DESIGNER_GROUPS.has(g.key));
+}
+
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
   if (srcType === 'jsonInputNode') return H_RIGHT;
   if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;

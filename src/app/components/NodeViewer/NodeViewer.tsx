@@ -30,7 +30,7 @@ import {
   faAnglesLeft, faAnglesRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
-import { NODE_PALETTE, PALETTE_GROUPS, PaletteItem, edgeColorForSource } from './nodePalette';
+import { PaletteItem, edgeColorForSource, getPaletteForMode, getGroupsForMode } from './nodePalette';
 export { computeResponseFromSchema } from './nodeSchema';
 
 // ─── Filter Node Config ────────────────────────────────────────────────────
@@ -93,6 +93,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
+  const workspaceMode = useSelector((state: RootState) => state.session.mode ?? 'developer');
+
+  const activePalette = getPaletteForMode(workspaceMode);
+  const activeGroups  = getGroupsForMode(workspaceMode);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
@@ -1049,12 +1053,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               {!paletteCollapsed && <span>Add node</span>}
             </span>
             <div className={s.paletteList}>
-              {PALETTE_GROUPS.map(group => (
+              {activeGroups.map(group => (
                 <React.Fragment key={group.key}>
                   {!paletteCollapsed && (
                     <span className={s.paletteGroupLabel} style={{ color: group.color }}>{group.label}</span>
                   )}
-                  {NODE_PALETTE.filter(p => p.group === group.key).map(config => (
+                  {activePalette.filter(p => p.group === group.key).map(config => (
                     <button
                       key={`${config.type}-${config.label}`} type="button"
                       className={s.paletteBtn} onClick={() => addNode(config)}
