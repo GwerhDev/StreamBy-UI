@@ -59,6 +59,7 @@ const ReviewListPage           = lazy(() => import('./app/pages/ReviewListPage')
 const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage').then(module => ({ default: module.ReviewPlayerPage })));
 const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPage').then(module => ({ default: module.RenderFarmListPage })));
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
+const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -120,6 +121,7 @@ function App() {
                   <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
 
+                  <Route path="/project/:id/production" element={<ProductionBoardPage />} />
                   <Route path="/project/:id/jobs" element={<JobMonitorPage />} />
                   <Route path="/project/:id/reviews" element={<ReviewListPage />} />
                   <Route path="/project/:id/review/:sessionId" element={<ReviewPlayerPage />} />

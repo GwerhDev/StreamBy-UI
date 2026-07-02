@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import { StorageCategory, StorageFile, StorageFolder } from '../interfaces';
+import { AssetRights, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
   `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
@@ -207,4 +207,31 @@ export async function moveStorageFile(
     body: JSON.stringify({ folderId }),
   });
   if (!res.ok) throw new Error((await res.json()).message);
+}
+
+// ── Asset Rights ──────────────────────────────────────────────────────────────
+
+export async function getAssetRights(projectId: string, assetId: string): Promise<AssetRights | null> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/assets/${assetId}/rights`, {
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `HTTP ${res.status}`);
+  const { rights } = await res.json();
+  return rights;
+}
+
+export async function putAssetRights(
+  projectId: string,
+  assetId: string,
+  payload: Partial<Omit<AssetRights, 'assetId' | 'projectId' | 'updatedBy' | 'updatedAt'>>,
+): Promise<AssetRights> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/assets/${assetId}/rights`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `HTTP ${res.status}`);
+  const { rights } = await res.json();
+  return rights;
 }

@@ -396,3 +396,134 @@
   font-size: 0.7rem;
   color: var(--color-danger-text, #f87171);
 }
+
+/* ── Rights tab ───────────────────────────── */
+.rightsAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-warning-text, #fbbf24);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  margin: 0.75rem 1.1rem 0;
+}
+
+.rightsEmpty {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  padding: 0.75rem 1.1rem;
+}
+
+.rightsExpired {
+  color: var(--color-danger-text, #f87171);
+}
+
+.rightsField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.45rem 1.1rem 0;
+}
+
+.rightsLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.rightsInput {
+  font-size: 0.8rem;
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.rightsInput:focus {
+  border-color: var(--color-accent);
+}
+
+.rightsSelect {
+  font-size: 0.8rem;
+  color: var(--color-text-bright);
+  background: var(--color-surface-sunken);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.rightsTextarea {
+  font-size: 0.78rem;
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.rightsTextarea:focus {
+  border-color: var(--color-accent);
+}
+
+.rightsEditBtn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: rgba(56, 182, 255, 0.08);
+  border: 1px solid rgba(56, 182, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin: 0.75rem 1.1rem 0.25rem;
+  align-self: flex-start;
+}
+
+.rightsEditBtn:hover {
+  background: rgba(56, 182, 255, 0.15);
+}
+
+.rightsCancelBtn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 0.75rem;
+}
+
+.rightsCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rightsActions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1.1rem 0.75rem;
+  align-items: center;
+}

@@ -486,6 +486,80 @@ export interface PipelineSuggestion {
   edgesToAdd: { source: string; sourceHandle: string; target: string; targetHandle: string }[];
 }
 
+// ── Production Board ──────────────────────────────────────────────────────────
+
+export type ShotStatus = 'todo' | 'in_progress' | 'review' | 'done'
+export type TaskPriority = 'low' | 'medium' | 'high'
+
+export interface ProductionSequence {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  order: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductionShot {
+  id: string;
+  sequenceId: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  order: number;
+  status: ShotStatus;
+  assignedTo: string[];
+  assetId?: string | null;
+  exportId?: string | null;
+  dueDate?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductionTask {
+  id: string;
+  shotId: string;
+  projectId: string;
+  name: string;
+  status: ShotStatus;
+  assignedTo?: string | null;
+  priority: TaskPriority;
+  dueDate?: string | null;
+  notes?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Asset Rights ──────────────────────────────────────────────────────────────
+
+export type LicenseType =
+  | 'all_rights'
+  | 'cc_by'
+  | 'cc_by_sa'
+  | 'cc_by_nc'
+  | 'royalty_free'
+  | 'licensed'
+  | 'public_domain'
+  | 'unknown'
+
+export interface AssetRights {
+  assetId: string;
+  projectId: string;
+  rightsHolder?: string;
+  licenseType: LicenseType;
+  licenseUrl?: string;
+  territory?: string;
+  expiresAt?: string | null;
+  usageRestrictions?: string;
+  notes?: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
 export type AnnotationType = 'timecoded' | 'spatial' | 'region';
 
 export interface Annotation {

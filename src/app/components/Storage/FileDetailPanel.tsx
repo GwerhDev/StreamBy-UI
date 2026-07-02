@@ -1,14 +1,16 @@
 import s from './FileDetailPanel.module.css';
 import { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faXmark, faCopy, faCheck, faDownload, faTrash,
   faHeadphones, faVideo, faCubes, faImage, faArrowsRotate, faPencil,
-  faFileLines, faDatabase, faBolt,
+  faFileLines, faDatabase, faBolt, faShield, faTriangleExclamation, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { StorageFile, StorageCategory } from '../../../interfaces';
+import { StorageFile, StorageCategory, AssetRights, LicenseType } from '../../../interfaces';
 import { RootState } from '../../../store';
+import { getAssetRights, putAssetRights } from '../../../services/storage';
 
 interface FileDetailPanelProps {
   file: StorageFile;
@@ -19,7 +21,7 @@ interface FileDetailPanelProps {
   onRename?: (id: string, displayName: string) => Promise<void>;
 }
 
-type TabId = 'info' | 'metadata' | 'jobs';
+type TabId = 'info' | 'metadata' | 'jobs' | 'rights';
 
 const acceptTypes: Record<StorageCategory, string> = {
   images: 'image/*',
@@ -103,7 +105,143 @@ function JobsTab({ fileId }: { fileId: string }) {
   );
 }
 
+const LICENSE_LABELS: Record<LicenseType, string> = {
+  all_rights: 'All Rights Reserved',
+  cc_by: 'CC BY',
+  cc_by_sa: 'CC BY-SA',
+  cc_by_nc: 'CC BY-NC',
+  royalty_free: 'Royalty Free',
+  licensed: 'Licensed',
+  public_domain: 'Public Domain',
+  unknown: 'Unknown',
+};
+
+function isExpiringSoon(expiresAt?: string | null): boolean {
+  if (!expiresAt) return false;
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  return diff < 30 * 24 * 60 * 60 * 1000;
+}
+
+function RightsTab({ fileId, projectId }: { fileId: string; projectId: string }) {
+  const [rights, setRights]     = useState<AssetRights | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [editing, setEditing]   = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [form, setForm]         = useState<Partial<AssetRights>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getAssetRights(projectId, fileId)
+      .then(r => { if (!cancelled) { setRights(r); setForm(r ?? {}); } })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [fileId, projectId]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const saved = await putAssetRights(projectId, fileId, form);
+      setRights(saved);
+      setForm(saved);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const set = (key: keyof AssetRights, value: string) =>
+    setForm(prev => ({ ...prev, [key]: value }));
+
+  if (loading) {
+    return (
+      <div className={s.tabEmpty}>
+        <FontAwesomeIcon icon={faSpinner} spin className={s.tabEmptyIcon} />
+      </div>
+    );
+  }
+
+  if (!editing) {
+    const expired = isExpiringSoon(rights?.expiresAt);
+    return (
+      <div className={s.tabContent}>
+        {expired && (
+          <div className={s.rightsAlert}>
+            <FontAwesomeIcon icon={faTriangleExclamation} />
+            {new Date(rights!.expiresAt!).getTime() < Date.now()
+              ? 'License expired'
+              : 'Expires in less than 30 days'}
+          </div>
+        )}
+        {rights ? (
+          <>
+            {rights.rightsHolder && <div className={s.field}><p className={s.fieldLabel}>Rights holder</p><p className={s.fieldValue}>{rights.rightsHolder}</p></div>}
+            <div className={s.field}><p className={s.fieldLabel}>License</p><p className={s.fieldValue}>{LICENSE_LABELS[rights.licenseType] ?? rights.licenseType}</p></div>
+            {rights.licenseUrl && <div className={s.field}><p className={s.fieldLabel}>License URL</p><p className={s.fieldValue}>{rights.licenseUrl}</p></div>}
+            {rights.territory && <div className={s.field}><p className={s.fieldLabel}>Territory</p><p className={s.fieldValue}>{rights.territory}</p></div>}
+            {rights.expiresAt && <div className={s.field}><p className={s.fieldLabel}>Expires</p><p className={`${s.fieldValue} ${expired ? s.rightsExpired : ''}`}>{new Date(rights.expiresAt).toLocaleDateString()}</p></div>}
+            {rights.usageRestrictions && <div className={s.field}><p className={s.fieldLabel}>Restrictions</p><p className={s.fieldValue}>{rights.usageRestrictions}</p></div>}
+            {rights.notes && <div className={s.field}><p className={s.fieldLabel}>Notes</p><p className={s.fieldValue}>{rights.notes}</p></div>}
+          </>
+        ) : (
+          <p className={s.rightsEmpty}>No rights info recorded.</p>
+        )}
+        <button className={s.rightsEditBtn} type="button" onClick={() => setEditing(true)}>
+          Edit rights
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={s.tabContent}>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>Rights holder</label>
+        <input className={s.rightsInput} value={form.rightsHolder ?? ''} onChange={e => set('rightsHolder', e.target.value)} placeholder="Owner or licensor name" />
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>License type</label>
+        <select className={s.rightsSelect} value={form.licenseType ?? 'unknown'} onChange={e => set('licenseType', e.target.value as LicenseType)}>
+          {(Object.keys(LICENSE_LABELS) as LicenseType[]).map(k => (
+            <option key={k} value={k}>{LICENSE_LABELS[k]}</option>
+          ))}
+        </select>
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>License URL</label>
+        <input className={s.rightsInput} type="url" value={form.licenseUrl ?? ''} onChange={e => set('licenseUrl', e.target.value)} placeholder="https://…" />
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>Territory</label>
+        <input className={s.rightsInput} value={form.territory ?? ''} onChange={e => set('territory', e.target.value)} placeholder="Worldwide, US, EU…" />
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>Expires</label>
+        <input className={s.rightsInput} type="date" value={form.expiresAt ? form.expiresAt.slice(0, 10) : ''} onChange={e => set('expiresAt', e.target.value)} />
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>Usage restrictions</label>
+        <textarea className={s.rightsTextarea} value={form.usageRestrictions ?? ''} onChange={e => set('usageRestrictions', e.target.value)} placeholder="No commercial use, no derivatives…" rows={2} />
+      </div>
+      <div className={s.rightsField}>
+        <label className={s.rightsLabel}>Notes</label>
+        <textarea className={s.rightsTextarea} value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} placeholder="Additional context…" rows={2} />
+      </div>
+      <div className={s.rightsActions}>
+        <button className={s.rightsEditBtn} type="button" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+        <button className={s.rightsCancelBtn} type="button" onClick={() => { setEditing(false); setForm(rights ?? {}); }}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, onRename }: FileDetailPanelProps) {
+  const { id: projectId = '' } = useParams<{ id: string }>();
   const [activeTab, setActiveTab]     = useState<TabId>('info');
   const [copied, setCopied]           = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -178,10 +316,13 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
     if (e.key === 'Escape') setRenaming(false);
   };
 
-  const TABS: { id: TabId; icon: typeof faFileLines; label: string }[] = [
+  const rightsExpiring = activeTab !== 'rights'; // evaluated lazily — badge shown on tab button
+
+  const TABS: { id: TabId; icon: typeof faFileLines; label: string; badge?: boolean }[] = [
     { id: 'info',     icon: faFileLines, label: 'Info' },
     { id: 'metadata', icon: faDatabase,  label: 'Metadata' },
     { id: 'jobs',     icon: faBolt,      label: 'Jobs' },
+    { id: 'rights',   icon: faShield,    label: 'Rights', badge: rightsExpiring },
   ];
 
   return (
@@ -270,6 +411,7 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
           )}
           {activeTab === 'metadata' && <MetadataTab file={file} />}
           {activeTab === 'jobs' && <JobsTab fileId={file.id} />}
+          {activeTab === 'rights' && <RightsTab fileId={file.id} projectId={projectId} />}
         </div>
       </div>
 

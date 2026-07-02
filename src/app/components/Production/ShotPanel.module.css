@@ -1,0 +1,269 @@
+.panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+
+.closeBtn:hover { color: var(--color-text-bright); }
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Section ──────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sectionLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.sectionValue {
+  font-size: 0.8rem;
+  color: var(--color-text-primary);
+}
+
+/* ── Status select ────────────────────────── */
+.statusSelect {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+/* ── Link button ──────────────────────────── */
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: rgba(56, 182, 255, 0.08);
+  border: 1px solid rgba(56, 182, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.linkBtn:hover { background: rgba(56, 182, 255, 0.15); }
+
+/* ── Task section ─────────────────────────── */
+.taskHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.1rem;
+}
+
+.addTaskBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.2rem;
+  border-radius: 4px;
+  transition: color 0.12s;
+}
+
+.addTaskBtn:hover { color: var(--color-accent); }
+
+.taskSpinner {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0;
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.taskRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.taskCheck {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  color: transparent;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.taskCheck:hover {
+  border-color: var(--color-accent);
+}
+
+.taskCheckDone {
+  border-color: var(--color-success-text, #4ade80);
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success-text, #4ade80);
+}
+
+.taskCircle {
+  font-size: 0.25rem;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.taskName {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskNameDone {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.priorityBadge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 1px 5px;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.priorityLow    { background: rgba(255,255,255,0.06); color: var(--color-text-muted); }
+.priorityMedium { background: rgba(56,182,255,0.12);  color: var(--color-accent); }
+.priorityHigh   { background: rgba(248,113,113,0.15); color: var(--color-danger-text, #f87171); }
+
+.taskDeleteBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.2rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+}
+
+.taskRow:hover .taskDeleteBtn { opacity: 1; }
+.taskDeleteBtn:hover { color: var(--color-danger-text, #f87171); }
+
+/* ── Add task form ────────────────────────── */
+.addTaskForm {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+.addTaskInput {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-accent);
+  border-radius: 5px;
+  padding: 0.25rem 0.45rem;
+  outline: none;
+}
+
+.addTaskSubmit, .addTaskCancel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  border-radius: 4px;
+  padding: 0.2rem 0.3rem;
+  transition: color 0.12s;
+}
+
+.addTaskSubmit { color: var(--color-accent); }
+.addTaskSubmit:hover { color: var(--color-accent-hover); }
+.addTaskSubmit:disabled { opacity: 0.5; cursor: default; }
+.addTaskCancel { color: var(--color-text-muted); }
+.addTaskCancel:hover { color: var(--color-danger-text, #f87171); }
+
+/* ── Empty ────────────────────────────────── */
+.taskEmpty {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0;
+}
+
+.taskEmptyAdd {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+  text-decoration: underline;
+}
