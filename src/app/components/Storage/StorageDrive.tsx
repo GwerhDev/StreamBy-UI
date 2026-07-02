@@ -11,6 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory, StorageFolder } from '../../../interfaces';
 import { StorageCard } from './StorageCard';
+import { FileDetailPanel } from './FileDetailPanel';
 import { UploadModal } from '../Modals/UploadModal';
 import { MoveModal } from '../Modals/MoveModal';
 import { DropdownInput } from '../Inputs/DropdownInput';
@@ -440,6 +441,11 @@ export const StorageDrive = () => {
     return sortFiles(q ? source.filter(f => f.displayName.toLowerCase().includes(q)) : source, sortKey);
   }, [files, search, sortKey, activeCategory, currentFolderId]);
 
+  const selectedFile = useMemo(
+    () => displayFiles.find(f => f.id === selectedItem) ?? null,
+    [displayFiles, selectedItem],
+  );
+
   // Keyboard navigation
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
@@ -778,6 +784,20 @@ export const StorageDrive = () => {
           onClose={() => setMoveItem(null)}
         />
       )}
+
+      {/* ── File detail panel ── */}
+      <div className={`${s.detail} ${selectedFile ? s.detailOpen : ''}`}>
+        {selectedFile && (
+          <FileDetailPanel
+            file={selectedFile}
+            category={selectedFile.category as StorageCategory}
+            onClose={() => setSelectedItem(null)}
+            onDelete={handleDelete}
+            onUpdate={handleReplace}
+            onRename={handleRename}
+          />
+        )}
+      </div>
     </div>
   );
 };

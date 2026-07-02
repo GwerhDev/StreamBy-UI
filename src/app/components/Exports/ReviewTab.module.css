@@ -1,0 +1,108 @@
+.container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+/* ── Review row ──────────────────────────── */
+.reviewRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  background: var(--color-surface-sunken);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reviewInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.reviewId {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.reviewMeta {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Status badge ────────────────────────── */
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  text-transform: capitalize;
+  letter-spacing: 0.03em;
+}
+
+.statusOpen {
+  background: rgba(56, 182, 255, 0.15);
+  color: var(--color-accent);
+}
+
+.statusApproved {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success-text, #4ade80);
+}
+
+.statusRejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-text, #f87171);
+}
+
+.statusExpired {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+}
+
+/* ── States ──────────────────────────────── */
+.center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingIcon {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.errorText {
+  font-size: 0.82rem;
+  color: var(--color-danger-text, #f87171);
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.emptyIcon {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}

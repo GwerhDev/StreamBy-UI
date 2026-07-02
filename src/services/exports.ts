@@ -55,6 +55,19 @@ export async function previewExport(projectId: string, exportName: string) {
   return res.json();
 }
 
+export async function getProjectReviews(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/reviews`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `HTTP ${res.status}`);
+  }
+  const { reviews } = await res.json();
+  return reviews;
+}
+
 export async function deleteExport(projectId: string | undefined, exportId: string | undefined) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/${exportId}`, {
     method: 'DELETE',

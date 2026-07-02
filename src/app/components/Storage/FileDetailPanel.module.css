@@ -260,3 +260,139 @@
   padding: 0.35rem 0.55rem;
   box-sizing: border-box;
 }
+
+/* ── Tabs ──────────────────────────────────── */
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.tabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  letter-spacing: 0.02em;
+  margin-bottom: -1px;
+}
+
+.tabBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.tabBtnActive {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.tabIcon {
+  font-size: 0.65rem;
+}
+
+.tabBody {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Empty tab state ──────────────────────── */
+.tabEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.tabEmptyIcon {
+  font-size: 1.2rem;
+  opacity: 0.4;
+}
+
+/* ── Jobs tab ─────────────────────────────── */
+.jobRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.jobInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jobType {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.jobStage {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.jobProgress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jobProgressTrack {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.jobProgressFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.jobProgressDone {
+  background: var(--color-success-text, #4ade80);
+}
+
+.jobProgressError {
+  background: var(--color-danger-text, #f87171);
+}
+
+.jobPercent {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+.jobError {
+  font-size: 0.7rem;
+  color: var(--color-danger-text, #f87171);
+}

@@ -184,6 +184,9 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
               />
             </div>
           )}
+          {file.contentType && (
+            <span className={s.metaBadge}>{file.contentType.split('/')[1]?.toUpperCase() ?? file.contentType}</span>
+          )}
         </div>
         <div className={s.info}>
           {renaming ? (

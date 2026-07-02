@@ -12,8 +12,7 @@ import { DeleteExportModal } from '../Modals/DeleteExportModal';
 import {
   faCode, faFileLines, faLink, faGlobe, faClock,
   faTrash, faSitemap, faTableColumns, faXmark,
-  faFeather,
-  faFileExport,
+  faFeather, faFileExport, faBoxArchive, faComments,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -26,8 +25,10 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { DeliverableTab } from './DeliverableTab';
+import { ReviewTab } from './ReviewTab';
 
-type TabId = 'details' | 'nodes' | 'response';
+type TabId = 'details' | 'nodes' | 'response' | 'deliverables' | 'reviews';
 
 interface PanelState {
   id: string;
@@ -41,8 +42,10 @@ const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
   details: { label: 'Details', icon: faFileLines },
   nodes: { label: 'Nodes', icon: faSitemap },
   response: { label: 'Response', icon: faCode },
+  deliverables: { label: 'Deliverables', icon: faBoxArchive },
+  reviews: { label: 'Reviews', icon: faComments },
 };
-const ALL_TABS: TabId[] = ['details', 'nodes', 'response'];
+const ALL_TABS: TabId[] = ['details', 'nodes', 'response', 'deliverables', 'reviews'];
 
 let _c = 0;
 const uid = () => `p${++_c}`;
@@ -394,6 +397,12 @@ export const ExportDetailsView: React.FC = () => {
                               schema={exportDetails.nodeSchema}
                               savedApiResponse={exportDetails.apiResponse}
                             />
+                          )}
+                          {panel.activeTab === 'deliverables' && (
+                            <DeliverableTab exportDetails={exportDetails} />
+                          )}
+                          {panel.activeTab === 'reviews' && (
+                            <ReviewTab projectId={id!} assetId={exportDetails.id} />
                           )}
                         </div>
                       </div>

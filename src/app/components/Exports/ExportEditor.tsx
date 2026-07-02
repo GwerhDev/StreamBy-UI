@@ -9,6 +9,7 @@ import {
   faXmark, faCode, faSitemap,
   faTableColumns, faArrowLeft,
   faSave, faTriangleExclamation,
+  faTerminal, faCircleCheck, faCircleXmark, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,6 +22,7 @@ import { Tabs, TabItem } from '../Tabs/Tabs';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
 import { ModalShell } from '../Modals/ModalShell';
+import { PipelineRunLog } from './PipelineRunLog';
 
 type TabId = 'nodes' | 'response';
 interface PanelState { id: string; tabs: TabId[]; activeTab: TabId; isOriginal: boolean; }
@@ -64,6 +66,15 @@ export const ExportEditor: React.FC = () => {
   const [schemaVersion, setSchemaVersion] = useState(0);
   const [isDragging,   setIsDragging]   = useState(false);
   const [dropTarget,   setDropTarget]   = useState<{ panelId: string; zone: 'top' | 'bottom' | 'left' | 'right' } | null>(null);
+  const [showLog,      setShowLog]      = useState(false);
+
+  const jobs = useSelector((state: RootState) => state.currentJob.jobs);
+  const jobList = Object.values(jobs);
+  const pipelineStatus: 'idle' | 'running' | 'error' = jobList.some(j => j.error)
+    ? 'error'
+    : jobList.some(j => j.progress < 100 && !j.error)
+      ? 'running'
+      : 'idle';
   const liveSchemaRef = useRef<{ nodes: object[]; edges: object[] } | null>(null);
   // Initialize from whatever is already in the slice — avoids false dirty when NodeViewer
   // mounts immediately because a previous navigation left data in Redux.
@@ -396,10 +407,26 @@ export const ExportEditor: React.FC = () => {
             onIconClick={handleBack}
           />
 
-          <div className={s.buttonsContainer}>
-            <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={handleSubmit} />
+          <div className={s.headerRight}>
+            <span className={`${s.pipelineStatus} ${s[`pipelineStatus_${pipelineStatus}`]}`}>
+              <FontAwesomeIcon
+                icon={pipelineStatus === 'running' ? faSpinner : pipelineStatus === 'error' ? faCircleXmark : faCircleCheck}
+                spin={pipelineStatus === 'running'}
+              />
+              {pipelineStatus}
+            </span>
+            <button
+              type="button"
+              className={`${s.logToggleBtn} ${showLog ? s.logToggleBtnActive : ''}`}
+              title="Toggle pipeline log"
+              onClick={() => setShowLog(v => !v)}
+            >
+              <FontAwesomeIcon icon={faTerminal} />
+            </button>
+            <div className={s.buttonsContainer}>
+              <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={handleSubmit} />
+            </div>
           </div>
-
         </div>
       </div>
       <form onSubmit={handleSubmit} className={s.form}>
@@ -478,6 +505,7 @@ export const ExportEditor: React.FC = () => {
             </React.Fragment>
           ))}
         </PanelGroup>
+        {showLog && <PipelineRunLog onClose={() => setShowLog(false)} />}
       </form>
 
       {showLeaveModal && (

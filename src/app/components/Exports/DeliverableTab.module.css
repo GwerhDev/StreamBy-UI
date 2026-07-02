@@ -1,0 +1,142 @@
+.container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem;
+}
+
+/* ── Deliverable header ──────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-sunken);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.headerIcon {
+  color: var(--color-accent);
+  font-size: 1rem;
+}
+
+.type {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-text-bright);
+  text-transform: capitalize;
+}
+
+.version {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ── Target list ─────────────────────────── */
+.targetList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.targetRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-surface-sunken);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.targetIcon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  font-size: 0.8rem;
+}
+
+.targetInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.targetName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.targetChannel {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.targetDate {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Status badge ────────────────────────── */
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  text-transform: capitalize;
+  letter-spacing: 0.03em;
+}
+
+.statusPublished {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success-text, #4ade80);
+}
+
+.statusFailed {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-text, #f87171);
+}
+
+.statusPublishing {
+  background: rgba(56, 182, 255, 0.15);
+  color: var(--color-accent);
+}
+
+.statusPending {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+}
+
+/* ── Empty states ────────────────────────── */
+.empty,
+.noTargets {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.emptyIcon,
+.noTargetsIcon {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
