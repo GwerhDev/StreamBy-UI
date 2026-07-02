@@ -42,11 +42,9 @@ export const ModeToggle = () => {
       <div className={s.labels}>
         <span className={`${s.label} ${!isDesigner ? s.active : s.inactive}`}>
           <FontAwesomeIcon icon={faCode} className={s.labelIcon} />
-          Dev
         </span>
         <span className={`${s.label} ${isDesigner ? s.active : s.inactive}`}>
           <FontAwesomeIcon icon={faPenRuler} className={s.labelIcon} />
-          Dsgn
         </span>
       </div>
     </div>
