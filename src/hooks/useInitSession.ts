@@ -23,5 +23,6 @@ export function useInitSession() {
       dispatch(setSession(plan ? { ...session, plan } : session));
       dispatch(setLoader(false));
     })();
-  }, [dispatch, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
