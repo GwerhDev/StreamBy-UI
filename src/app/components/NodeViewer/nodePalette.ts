@@ -3,8 +3,9 @@ import {
   faDatabase, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faLayerGroup, faDiagramProject,
+  faCircleCheck, faCommentDots,
 } from '@fortawesome/free-solid-svg-icons';
-import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB } from './nodes/nodeTypes';
+import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
 export type PaletteItem = {
   type: string;
@@ -13,7 +14,7 @@ export type PaletteItem = {
   icon: IconDefinition;
   bgColor: string;
   iconColor: string;
-  group: 'data' | 'process' | 'output';
+  group: 'data' | 'process' | 'output' | 'review';
 };
 
 export const NODE_PALETTE: PaletteItem[] = [
@@ -32,13 +33,16 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'renderJobNode',      label: 'Render Job',    subtitle: 'Farm render job',     icon: faMicrochip,      bgColor: '#1a0d00', iconColor: H_JOB,    group: 'process' },
   { type: 'formatConvertNode',  label: 'Convert',       subtitle: '3D format convert',   icon: faArrowsRotate,   bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'process' },
   { type: 'lodNode',            label: 'LOD',           subtitle: 'Generate LOD levels', icon: faLayerGroup,     bgColor: '#0d2216', iconColor: '#2dd4bf', group: 'process' },
-  { type: 'assetDependencyNode', label: 'Dependencies', subtitle: 'Resolve asset tree',  icon: faDiagramProject, bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
+  { type: 'assetDependencyNode', label: 'Dependencies',  subtitle: 'Resolve asset tree',  icon: faDiagramProject, bgColor: '#0d2a1e', iconColor: H_BOTTOM,  group: 'data' },
+  { type: 'reviewGateNode',      label: 'Review Gate',   subtitle: 'Require approvals',   icon: faCircleCheck,    bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
+  { type: 'annotationNode',      label: 'Annotations',   subtitle: 'Frame annotations',   icon: faCommentDots,    bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
 ];
 
 export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
   { key: 'data',    label: 'Data',    color: H_BOTTOM },
   { key: 'process', label: 'Process', color: H_TOP },
   { key: 'output',  label: 'Output',  color: H_RIGHT },
+  { key: 'review',  label: 'Review',  color: H_REVIEW },
 ];
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
@@ -49,5 +53,6 @@ export const edgeColorForSource = (sourceHandle: string | null | undefined, srcT
   if (sourceHandle === 'out-captions') return H_RIGHT;
   if (sourceHandle === 'out-thumb') return H_RIGHT;
   if (sourceHandle === 'out-lod') return H_BOTTOM;
+  if (sourceHandle === 'out-review') return H_REVIEW;
   return H_LEFT;
 };

@@ -6,6 +6,7 @@ import {
   faUser, faBolt, faDatabase, faGlobe, faCode,
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faArrowsRotate, faLayerGroup, faDiagramProject,
+  faCircleCheck, faCommentDots,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -277,6 +278,40 @@ export const AssetDependencyNode = memo(({ data, selected }: NodeProps<BaseNodeD
 ));
 AssetDependencyNode.displayName = 'AssetDependencyNode';
 
+// Blocks pipeline progression until the required approvals are collected
+export const ReviewGateNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),    left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP),   left: '65%' }} />
+    <Handle type="source" position={Position.Right}  id="out-review"  className={s.handle} style={hOut(H_REVIEW)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+      <div className={s.nodeIcon} style={{ color: H_REVIEW }}><FontAwesomeIcon icon={faCircleCheck} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ReviewGateNode.displayName = 'ReviewGateNode';
+
+// Attaches frame-accurate or spatial annotations to an asset in the output lane
+export const AnnotationNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"   className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter"  className={s.handle} style={hOut(H_RIGHT)} />
+    <Handle type="target" position={Position.Top}   id="in-review"   className={s.handle} style={hIn(H_REVIEW)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+      <div className={s.nodeIcon} style={{ color: H_REVIEW }}><FontAwesomeIcon icon={faCommentDots} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+AnnotationNode.displayName = 'AnnotationNode';
+
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
 export const nodeTypes = {
@@ -295,4 +330,6 @@ export const nodeTypes = {
   formatConvertNode: FormatConvertNode,
   lodNode: LodNode,
   assetDependencyNode: AssetDependencyNode,
+  reviewGateNode: ReviewGateNode,
+  annotationNode: AnnotationNode,
 };

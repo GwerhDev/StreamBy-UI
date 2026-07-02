@@ -255,6 +255,16 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'streambyNode' && tt === 'assetDependencyNode') return sh === 'out-bottom';
     if (st === 'assetDependencyNode' && tt === 'streambyNode') return th === 'in-bottom';
 
+    // ReviewGateNode: process lane + right output to annotationNode
+    if (st === 'streambyNode' && tt === 'reviewGateNode') return sh === 'out-top';
+    if (st === 'reviewGateNode' && tt === 'streambyNode') return th === 'in-top';
+    if (st === 'reviewGateNode' && tt === 'annotationNode') return sh === 'out-review' && th === 'in-review';
+
+    // AnnotationNode: output lane (left←right, chained like filterNode)
+    if (st === 'filterNode' && tt === 'annotationNode') return sh === 'out-filter' && th === 'in-filter';
+    if (st === 'annotationNode' && tt === 'filterNode') return sh === 'out-filter' && th === 'in-filter';
+    if (st === 'streambyNode' && tt === 'annotationNode') return sh === 'out-right' && th === 'in-filter';
+
     return false;
   }, [nodes]);
 

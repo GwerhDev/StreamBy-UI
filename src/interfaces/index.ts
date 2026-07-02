@@ -379,3 +379,45 @@ export interface AssetDependencyGraph {
   nodes: AssetDependencyNode[];
   edges: AssetDependencyEdge[];
 }
+
+export type ReviewStatus = 'open' | 'approved' | 'rejected' | 'expired';
+export type ReviewDecision = 'approve' | 'reject';
+
+export interface ReviewApproval {
+  userId: string;
+  username: string;
+  decision: ReviewDecision;
+  comment?: string;
+  at: string;
+}
+
+export interface ReviewSession {
+  id: string;
+  projectId: string;
+  assetId: string;
+  assetVersionId: string;
+  status: ReviewStatus;
+  requiredApprovers: number;
+  approvals: ReviewApproval[];
+  deadline?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AnnotationType = 'timecoded' | 'spatial' | 'region';
+
+export interface Annotation {
+  id: string;
+  assetId: string;
+  assetVersionId: string;
+  authorId: string;
+  authorUsername: string;
+  type: AnnotationType;
+  timecode?: string;
+  position3d?: { x: number; y: number; z: number };
+  regionRect?: { x: number; y: number; width: number; height: number };
+  text: string;
+  resolved: boolean;
+  resolvedBy?: string;
+  createdAt: string;
+}

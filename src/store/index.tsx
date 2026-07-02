@@ -10,6 +10,7 @@ import currentNotificationReducer from './currentNotificationSlice';
 import currentStorageFolderReducer from './currentStorageFolderSlice';
 import currentJobReducer from './currentJobSlice';
 import renderFarmReducer from './renderFarmSlice';
+import currentReviewReducer from './currentReviewSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     currentStorageFolder: currentStorageFolderReducer,
     currentJob: currentJobReducer,
     renderFarm: renderFarmReducer,
+    currentReview: currentReviewReducer,
   },
 });
 
