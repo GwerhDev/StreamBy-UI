@@ -89,6 +89,7 @@ export const DbConnectionDetail = () => {
         icon={faDatabase}
         title={conn?.name ?? 'Database'}
         subtitle={`Browse ${typeName.toLowerCase()} in this ${conn?.dbType ?? 'database'} connection.`}
+        action={<ActionButton icon={faPlus} text={`New ${itemLabel}`} onClick={handleCreate} />}
       />
 
       {loading ? (
