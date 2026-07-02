@@ -1,48 +1,15 @@
-.wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  user-select: none;
-}
-
-.label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  transition: color 0.25s ease, opacity 0.25s ease;
-  white-space: nowrap;
-}
-
-.labelDev {
-  color: var(--color-accent);
-  opacity: 1;
-}
-
-.labelDev.dim {
-  color: var(--color-text-muted);
-  opacity: 0.5;
-}
-
-.labelDesign {
-  color: var(--color-text-muted);
-  opacity: 0.5;
-}
-
-.labelDesign.bright {
-  color: var(--color-accent);
-  opacity: 1;
-}
-
 .track {
   position: relative;
-  width: 36px;
-  height: 20px;
+  display: flex;
+  align-items: center;
+  width: 84px;
+  height: 24px;
   background-color: var(--color-surface-sunken);
   border: 1px solid var(--color-surface);
   border-radius: 20px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 
 .track:hover {
@@ -54,43 +21,66 @@
   outline-offset: 2px;
 }
 
-/* Flash de acento en el track al activar */
 .track.flash {
   animation: trackFlash 0.35s ease forwards;
 }
 
 @keyframes trackFlash {
-  0%   { box-shadow: 0 0 0 0 rgba(56, 182, 255, 0); }
+  0%   { box-shadow: 0 0 0 0   rgba(56, 182, 255, 0); }
   40%  { box-shadow: 0 0 0 4px rgba(56, 182, 255, 0.25); }
-  100% { box-shadow: 0 0 0 0 rgba(56, 182, 255, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(56, 182, 255, 0); }
 }
 
 .thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background-color: var(--color-accent);
+  width: 38px;
+  height: 18px;
+  border-radius: 16px;
+  background-color: var(--color-surface);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-  transition:
-    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-    width 0.15s ease;
-  transform-origin: center;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
-/* Al llegar a la derecha */
 .thumb.right {
-  transform: translateX(16px);
+  transform: translateX(42px);
 }
 
-/* Squish mientras se arrastra — aplicado via JS con la clase pressing */
 .track:active .thumb {
-  width: 17px;
+  width: 42px;
 }
 
-/* Cuando se va a la derecha y se presiona, el squish va hacia la derecha */
 .track:active .thumb.right {
-  transform: translateX(13px);
+  transform: translateX(38px);
+}
+
+.labels {
+  position: relative;
+  display: flex;
+  width: 100%;
+  pointer-events: none;
+}
+
+.label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.label.active {
+  color: var(--color-accent);
+}
+
+.label.inactive {
+  color: var(--color-text-muted);
+  opacity: 0.5;
 }

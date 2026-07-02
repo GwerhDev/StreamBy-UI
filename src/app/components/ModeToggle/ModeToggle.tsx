@@ -17,7 +17,6 @@ export const ModeToggle = () => {
     const el = trackRef.current;
     if (!el) return;
     el.classList.remove(s.flash);
-    // force reflow so the animation restarts
     void el.offsetWidth;
     el.classList.add(s.flash);
     const onEnd = () => { el.classList.remove(s.flash); el.removeEventListener('animationend', onEnd); };
@@ -25,21 +24,21 @@ export const ModeToggle = () => {
   }, [isDesigner, dispatch]);
 
   return (
-    <div className={s.wrapper}>
-      <span className={`${s.label} ${s.labelDev} ${isDesigner ? s.dim : ''}`}>Dev</span>
-      <div
-        ref={trackRef}
-        className={s.track}
-        role="switch"
-        aria-checked={isDesigner}
-        tabIndex={0}
-        onClick={toggle}
-        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggle()}
-        title={isDesigner ? 'Switch to Developer mode' : 'Switch to Designer mode'}
-      >
-        <span className={`${s.thumb} ${isDesigner ? s.right : ''}`} />
+    <div
+      ref={trackRef}
+      className={s.track}
+      role="switch"
+      aria-checked={isDesigner}
+      tabIndex={0}
+      onClick={toggle}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggle()}
+      title={isDesigner ? 'Switch to Developer mode' : 'Switch to Designer mode'}
+    >
+      <span className={`${s.thumb} ${isDesigner ? s.right : ''}`} />
+      <div className={s.labels}>
+        <span className={`${s.label} ${!isDesigner ? s.active : s.inactive}`}>Dev</span>
+        <span className={`${s.label} ${isDesigner ? s.active : s.inactive}`}>Dsgn</span>
       </div>
-      <span className={`${s.label} ${s.labelDesign} ${isDesigner ? s.bright : ''}`}>Design</span>
     </div>
   );
 };
