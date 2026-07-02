@@ -1,37 +1,33 @@
 import s from './ModeToggle.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCode, faPenRuler } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setMode } from '../../../store/sessionSlice';
-import { WorkspaceMode } from '../../../interfaces';
 
 export const ModeToggle = () => {
   const dispatch = useDispatch<AppDispatch>();
   const mode = useSelector((state: RootState) => state.session.mode) ?? 'developer';
 
-  const toggle = (next: WorkspaceMode) => {
-    if (next !== mode) dispatch(setMode(next));
+  const isDesigner = mode === 'designer';
+
+  const toggle = () => {
+    dispatch(setMode(isDesigner ? 'developer' : 'designer'));
   };
 
   return (
-    <div className={s.toggle}>
-      <button
-        className={`${s.option} ${mode === 'developer' ? s.active : ''}`}
-        onClick={() => toggle('developer')}
-        title="Developer mode"
+    <div className={s.wrapper}>
+      <span className={`${s.label} ${s.labelDev} ${isDesigner ? s.dim : ''}`}>Dev</span>
+      <div
+        className={s.track}
+        role="switch"
+        aria-checked={isDesigner}
+        tabIndex={0}
+        onClick={toggle}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggle()}
+        title={isDesigner ? 'Switch to Developer mode' : 'Switch to Designer mode'}
       >
-        <FontAwesomeIcon icon={faCode} />
-        <span>Dev</span>
-      </button>
-      <button
-        className={`${s.option} ${mode === 'designer' ? s.active : ''}`}
-        onClick={() => toggle('designer')}
-        title="Designer mode"
-      >
-        <FontAwesomeIcon icon={faPenRuler} />
-        <span>Design</span>
-      </button>
+        <span className={`${s.thumb} ${isDesigner ? s.right : ''}`} />
+      </div>
+      <span className={`${s.label} ${s.labelDesign} ${isDesigner ? s.bright : ''}`}>Design</span>
     </div>
   );
 };
