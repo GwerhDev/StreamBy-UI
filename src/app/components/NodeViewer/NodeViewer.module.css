@@ -339,7 +339,8 @@
   min-width: 0;
 }
 
-.detailHeader .panelClose {
+.detailHeader .panelClose,
+.modalHeader .panelClose {
   background: none;
   border: none;
   color: var(--color-text-muted);
@@ -354,7 +355,8 @@
   flex-shrink: 0;
 }
 
-.detailHeader .panelClose:hover {
+.detailHeader .panelClose:hover,
+.modalHeader .panelClose:hover {
   color: var(--color-text-bright);
   background: var(--color-surface-sunken);
 }
