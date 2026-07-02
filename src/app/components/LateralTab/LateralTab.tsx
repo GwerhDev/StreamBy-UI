@@ -1,10 +1,7 @@
 import s from './LateralTab.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { faBars, faRocket } from '@fortawesome/free-solid-svg-icons';
-import { useEditorMenu } from '../../../context/EditorMenuContext';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useNavigate } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -62,11 +59,6 @@ const SortableProjectItem = ({ project }: { project: ProjectList }) => {
 export const LateralTab = (props: { projectList: ProjectsState, userData: Session }) => {
   const { projectList, userData } = props || {};
   const { loading: projectsLoading } = useSelector((state: RootState) => state.projects);
-  const { toggleMenu, menuOpen } = useEditorMenu();
-  const { pathname } = useLocation();
-  const isProjectRoute = pathname.startsWith('/project/') && pathname !== '/project/create';
-  const isSettingsRoute = pathname.startsWith('/user/');
-  const menuIcon = isProjectRoute || isSettingsRoute ? faBars : faRocket;
 
   const filteredList = projectList.list.filter((project: ProjectList) => !project.archived);
 
@@ -168,14 +160,6 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
       </ul>
 
       <ul className={s.user}>
-        <li
-          className={`${s.archive} ${menuOpen ? s.menuToggleActive : ''}`}
-          onClick={toggleMenu}
-          title="Toggle menu"
-        >
-          <FontAwesomeIcon icon={menuIcon} />
-        </li>
-
         <li>
           <ProfileButton userData={userData} onGoArchive={handleGoArchive} />
         </li>

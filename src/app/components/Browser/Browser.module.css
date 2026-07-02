@@ -87,6 +87,10 @@
   align-items: center;
 }
 
+.breadcrumbActive {
+  color: var(--color-accent);
+}
+
 .separator {
   gap: .5rem;
   display: flex;

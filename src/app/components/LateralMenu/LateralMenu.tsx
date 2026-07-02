@@ -7,14 +7,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
-import { DbConnection } from '../../../interfaces';
+import { DbConnection, CloudStorage } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
 import { setProjects } from '../../../store/projectsSlice';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
-import { CloudStorage } from '../../../interfaces';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
 
 const MENU_MIN_WIDTH = 160;
@@ -38,6 +37,34 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const [dbTablesLoading, setDbTablesLoading] = useState<Set<string>>(new Set());
   const { menuOpen, closeMenu } = useEditorMenu();
   const location = useLocation();
+
+  const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
+  const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
+  const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
+  const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
+  const isSettingsSection = location.pathname.includes(`/project/${id}/settings`);
+
+  const [sectionOpen, setSectionOpen] = useState({
+    dashboard: isDashboardSection,
+    storage: isStorageSection,
+    database: isDatabaseSection,
+    connections: isConnectionsSection,
+    settings: isSettingsSection,
+  });
+
+  useEffect(() => {
+    setSectionOpen(prev => ({
+      dashboard: prev.dashboard || isDashboardSection,
+      storage: prev.storage || isStorageSection,
+      database: prev.database || isDatabaseSection,
+      connections: prev.connections || isConnectionsSection,
+      settings: prev.settings || isSettingsSection,
+    }));
+  }, [isDashboardSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+
+  const toggleSection = (key: keyof typeof sectionOpen) => {
+    setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     const isEditorRoute = location.pathname.endsWith('/editor');
@@ -186,195 +213,237 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
                   Archive this project
                 </li>
               )}
-              <li className={s.listButton}>
+              <li onClick={() => {}} className={s.listButton}>
                 <FontAwesomeIcon icon={faDoorOpen} />
                 Abandon this project
               </li>
-              <li>
-                <button onClick={handleDeleteProjectModal} className={s.deleteButton}>
-                  <FontAwesomeIcon icon={faTrash} />
-                  Delete this project
-                </button>
+              <li onClick={handleDeleteProjectModal} className={`${s.listButton} ${s.deleteButton}`}>
+                <FontAwesomeIcon icon={faTrash} />
+                Delete this project
               </li>
             </ul>
           </CustomCanvas>
         </div>
         <div className={s.outterMenuContainer}>
           <div className={s.menuContainer}>
-            <div className={s.mainMenu}>
-              <h5>MAIN MENU</h5>
-              <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/dashboard`) ? s.activeLink : ''}`}>
-                <Link to={`/project/${id}/dashboard`}>
-                  <h4>DASHBOARD</h4>
-                </Link>
-                <FontAwesomeIcon icon={faTableColumns} />
-              </span>
+
+            {/* DASHBOARD */}
+            <div className={s.accordionSection}>
+              <button
+                className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`}
+                onClick={() => { toggleSection('dashboard'); navigate(`/project/${id}/dashboard`); }}
+              >
+                <span className={s.sectionLabel}>
+                  <FontAwesomeIcon icon={faTableColumns} className={s.sectionIcon} />
+                  Dashboard
+                </span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`${s.sectionChevron} ${sectionOpen.dashboard ? s.sectionChevronOpen : ''}`}
+                />
+              </button>
+              {sectionOpen.dashboard && (
+                <div className={s.sectionBody}>
+                  {isPending ? (
+                    <Link
+                      to={`/preview/${id}`}
+                      className={`${s.navItem} ${location.pathname.startsWith(`/preview/${id}`) ? s.activeLink : ''}`}
+                    >
+                      Preview
+                    </Link>
+                  ) : (
+                    dashboardDirectoryList.map(({ name, icon, path }, index) => {
+                      const linkPath = `/project/${id}/${path}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={index} to={linkPath} className={`${s.navItem} ${isActive ? s.activeLink : ''}`}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
 
-            <ul className={s.menuList}>
-              {isPending ? (
-                <Link to={`/preview/${id}`}>
-                  <li className={location.pathname.startsWith(`/preview/${id}`) ? s.activeLink : ''}>
-                    Preview
-                  </li>
-                </Link>
-              ) : (
-                dashboardDirectoryList.map(({ name, icon, path }, index) => {
-                  const linkPath = `/project/${id}/${path}`;
-                  const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                  return (
-                    <Link key={index} to={linkPath}>
-                      <li className={isActive ? s.activeLink : ''}>
-                        {icon && <FontAwesomeIcon icon={icon} />}
-                        {name}
-                      </li>
-                    </Link>
-                  );
-                })
-              )}
-            </ul>
+            {!isPending && (<>
 
-            {!isPending && (
-              <>
-                <span className={s.section}>
-                  <Link to={`/project/${id}/storage`}>
-                    <h4>STORAGE</h4>
-                  </Link>
-                  <FontAwesomeIcon icon={faBox} />
-                </span>
-                <div className={s.storageList}>
-                  {[
-                    ...storages.map((storage: CloudStorage, i: number) => ({
-                      id: i === 0 ? 'builtin' : `builtin-${i}`,
-                      name: storage.name,
-                    })),
-                    ...(currentProject.data?.storageConnections ?? []),
-                  ].map(conn => {
-                    const isExpanded = expandedStorages.has(conn.id);
-                    const linkPath = `/project/${id}/storage/${conn.id}`;
-                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-
-                    return (
-                      <React.Fragment key={conn.id}>
-                        <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                          <FontAwesomeIcon
-                            icon={faChevronDown}
-                            className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
-                            onClick={() => toggleStorage(conn.id)}
-                          />
-                          <Link to={linkPath} className={s.serviceName}>
+              {/* STORAGE */}
+              <div className={s.accordionSection}>
+                <button
+                  className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`}
+                  onClick={() => { toggleSection('storage'); navigate(`/project/${id}/storage`); }}
+                >
+                  <span className={s.sectionLabel}>
+                    <FontAwesomeIcon icon={faBox} className={s.sectionIcon} />
+                    Storage
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.storage ? s.sectionChevronOpen : ''}`}
+                  />
+                </button>
+                {sectionOpen.storage && (
+                  <div className={s.sectionBody}>
+                    {[
+                      ...storages.map((storage: CloudStorage, i: number) => ({
+                        id: i === 0 ? 'builtin' : `builtin-${i}`,
+                        name: storage.name,
+                      })),
+                      ...(currentProject.data?.storageConnections ?? []),
+                    ].map(conn => {
+                      const isExpanded = expandedStorages.has(conn.id);
+                      const linkPath = `/project/${id}/storage/${conn.id}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <React.Fragment key={conn.id}>
+                          <Link to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                            <FontAwesomeIcon
+                              icon={faChevronDown}
+                              className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); toggleStorage(conn.id); }}
+                            />
                             <FontAwesomeIcon icon={faCloud} className={s.serviceIcon} />
-                            <span>{conn.name}</span>
+                            <span className={s.serviceName}>{conn.name}</span>
                           </Link>
-                        </div>
-                        {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
-                          const catPath = `/project/${id}/storage/${conn.id}/${path}`;
-                          const isCatActive = location.pathname === catPath || location.pathname.startsWith(`${catPath}/`);
-                          return (
-                            <Link key={index} to={catPath}>
-                              <div className={`${s.storageItem} ${isCatActive ? s.activeLink : ''}`}>
+                          {isExpanded && storageDirectoryList.map(({ name, icon, path }, index) => {
+                            const catPath = `/project/${id}/storage/${conn.id}/${path}`;
+                            const isCatActive = location.pathname === catPath || location.pathname.startsWith(`${catPath}/`);
+                            return (
+                              <Link key={index} to={catPath} className={`${s.storageItem} ${isCatActive ? s.activeLink : ''}`}>
                                 {icon && <FontAwesomeIcon icon={icon} />}
                                 {name}
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
-
-                <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/database`) ? s.activeLink : ''}`}>
-                  <Link to={`/project/${id}/database`}>
-                    <h4>DATABASE</h4>
-                  </Link>
-                  <FontAwesomeIcon icon={faDatabase} />
-                </span>
-                <div className={s.storageList}>
-                  {allDbConns.map(conn => {
-                    const isExpanded = expandedDbs.has(conn.id);
-                    const connPath = `/project/${id}/database/${conn.id}`;
-                    const isActive = location.pathname === connPath || location.pathname.startsWith(`${connPath}/`);
-                    const tables = dbTables[conn.id] || [];
-                    const isLoading = dbTablesLoading.has(conn.id);
-                    return (
-                      <React.Fragment key={conn.id}>
-                        <div className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                          <FontAwesomeIcon
-                            icon={faChevronDown}
-                            className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
-                            onClick={() => toggleDb(conn.id)}
-                          />
-                          <Link to={connPath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }} className={s.serviceName}>
-                            <FontAwesomeIcon icon={faDatabase} className={s.serviceIcon} />
-                            <span>{conn.name}</span>
-                          </Link>
-                        </div>
-                        {isExpanded && (
-                          isLoading ? (
-                            <div className={`${s.storageItem} ${s.storageItemLoading}`}>Loading…</div>
-                          ) : tables.length === 0 ? (
-                            <div className={`${s.storageItem} ${s.storageItemMuted}`}>No tables</div>
-                          ) : tables.map(tableName => {
-                            const tablePath = `${connPath}/${encodeURIComponent(tableName)}`;
-                            return (
-                              <Link key={tableName} to={tablePath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }}>
-                                <div className={`${s.storageItem} ${location.pathname === tablePath ? s.activeLink : ''}`}>
-                                  <FontAwesomeIcon icon={faTableColumns} />
-                                  {tableName}
-                                </div>
                               </Link>
                             );
-                          })
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
+                          })}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-                <span className={s.section}>
-                  <Link to={`/project/${id}/connections`}>
-                    <h4>CONNECTIONS</h4>
-                  </Link>
-                  <FontAwesomeIcon icon={faTowerBroadcast} />
-                </span>
-                <ul className={s.menuList}>
-                  {apiDirectoryList.map(({ name, icon, path }, index) => {
-                    const linkPath = `/project/${id}/${path}`;
-                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                    return (
-                      <Link key={index} to={linkPath}>
-                        <li className={isActive ? s.activeLink : ''}>
+              {/* DATABASE */}
+              <div className={s.accordionSection}>
+                <button
+                  className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`}
+                  onClick={() => { toggleSection('database'); navigate(`/project/${id}/database`); }}
+                >
+                  <span className={s.sectionLabel}>
+                    <FontAwesomeIcon icon={faDatabase} className={s.sectionIcon} />
+                    Database
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.database ? s.sectionChevronOpen : ''}`}
+                  />
+                </button>
+                {sectionOpen.database && (
+                  <div className={s.sectionBody}>
+                    {allDbConns.map(conn => {
+                      const isExpanded = expandedDbs.has(conn.id);
+                      const connPath = `/project/${id}/database/${conn.id}`;
+                      const isActive = location.pathname === connPath || location.pathname.startsWith(`${connPath}/`);
+                      const tables = dbTables[conn.id] || [];
+                      const isLoading = dbTablesLoading.has(conn.id);
+                      return (
+                        <React.Fragment key={conn.id}>
+                          <Link to={connPath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                            <FontAwesomeIcon
+                              icon={faChevronDown}
+                              className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); toggleDb(conn.id); }}
+                            />
+                            <FontAwesomeIcon icon={faDatabase} className={s.serviceIcon} />
+                            <span className={s.serviceName}>{conn.name}</span>
+                          </Link>
+                          {isExpanded && (
+                            isLoading ? (
+                              <div className={`${s.storageItem} ${s.storageItemLoading}`}>Loading…</div>
+                            ) : tables.length === 0 ? (
+                              <div className={`${s.storageItem} ${s.storageItemMuted}`}>No tables</div>
+                            ) : tables.map(tableName => {
+                              const tablePath = `${connPath}/${encodeURIComponent(tableName)}`;
+                              return (
+                                <Link key={tableName} to={tablePath} state={{ dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name }}
+                                  className={`${s.storageItem} ${location.pathname === tablePath ? s.activeLink : ''}`}>
+                                  <FontAwesomeIcon icon={faTableColumns} />
+                                  {tableName}
+                                </Link>
+                              );
+                            })
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* CONNECTIONS */}
+              <div className={s.accordionSection}>
+                <button
+                  className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`}
+                  onClick={() => { toggleSection('connections'); navigate(`/project/${id}/connections`); }}
+                >
+                  <span className={s.sectionLabel}>
+                    <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionIcon} />
+                    Connections
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.connections ? s.sectionChevronOpen : ''}`}
+                  />
+                </button>
+                {sectionOpen.connections && (
+                  <div className={s.sectionBody}>
+                    {apiDirectoryList.map(({ name, icon, path }, index) => {
+                      const linkPath = `/project/${id}/${path}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={index} to={linkPath} className={`${s.navItem} ${isActive ? s.activeLink : ''}`}>
                           {icon && <FontAwesomeIcon icon={icon} />}
                           {name}
-                        </li>
-                      </Link>
-                    );
-                  })}
-                </ul>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-                <span className={`${s.section} ${location.pathname.startsWith(`/project/${id}/settings`) ? s.activeLink : ''}`}>
-                  <Link to={`/project/${id}/settings`}>
-                    <h4>SETTINGS</h4>
-                  </Link>
-                  <FontAwesomeIcon icon={faGear} />
-                </span>
-                <ul className={s.menuList}>
-                  {settingsDirectoryList.map(({ name, icon, path }, index) => {
-                    const linkPath = `/project/${id}/${path}`;
-                    const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                    return (
-                      <Link key={index} to={linkPath}>
-                        <li className={isActive ? s.activeLink : ''}>
+              {/* SETTINGS */}
+              <div className={s.accordionSection}>
+                <button
+                  className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`}
+                  onClick={() => { toggleSection('settings'); navigate(`/project/${id}/settings`); }}
+                >
+                  <span className={s.sectionLabel}>
+                    <FontAwesomeIcon icon={faGear} className={s.sectionIcon} />
+                    Settings
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.settings ? s.sectionChevronOpen : ''}`}
+                  />
+                </button>
+                {sectionOpen.settings && (
+                  <div className={s.sectionBody}>
+                    {settingsDirectoryList.map(({ name, icon, path }, index) => {
+                      const linkPath = `/project/${id}/${path}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={index} to={linkPath} className={`${s.navItem} ${isActive ? s.activeLink : ''}`}>
                           {icon && <FontAwesomeIcon icon={icon} />}
                           {name}
-                        </li>
-                      </Link>
-                    );
-                  })}
-                </ul>
-              </>
-            )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+            </>)}
           </div>
         </div>
         </>)}

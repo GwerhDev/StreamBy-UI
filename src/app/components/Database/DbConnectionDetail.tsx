@@ -89,21 +89,20 @@ export const DbConnectionDetail = () => {
         icon={faDatabase}
         title={conn?.name ?? 'Database'}
         subtitle={`Browse ${typeName.toLowerCase()} in this ${conn?.dbType ?? 'database'} connection.`}
-        action={<ActionButton icon={faPlus} text={`New ${itemLabel}`} onClick={handleCreate} />}
       />
 
       {loading ? (
-        <div className={s.tableGrid}>
+        <ul>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`${s.tableCard} ${s.cardSkeletonSm} ${skeleton.skeleton}`} />
+            <li key={i} className={`${s.cardSkeletonSm} ${skeleton.skeleton}`} />
           ))}
-        </div>
+        </ul>
       ) : tables.length === 0 ? (
         <div className={s.emptyState}><EmptyBackground /></div>
       ) : (
-        <div className={s.tableGrid}>
+        <ul>
           {tables.map(t => (
-            <div key={t} className={s.tableCard} onClick={() => handleTable(t)}>
+            <li key={t} onClick={() => handleTable(t)}>
               <FontAwesomeIcon icon={faTableColumns} className={s.tableCardIcon} />
               <span className={s.tableCardName}>{t}</span>
               <button
@@ -114,9 +113,13 @@ export const DbConnectionDetail = () => {
               >
                 <FontAwesomeIcon icon={faTrash} />
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+          <li className={s.createItem} onClick={handleCreate}>
+            <FontAwesomeIcon icon={faPlus} />
+            New {itemLabel}
+          </li>
+        </ul>
       )}
 
       {pendingDelete && (

@@ -123,13 +123,70 @@
   flex-direction: column;
 }
 
-.menuList {
-  gap: .15rem;
+/* Accordion */
+
+.accordionSection {
   display: flex;
   flex-direction: column;
 }
 
-.menuList li,
+.sectionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .3rem .5rem;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.sectionHeader:hover {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-bright);
+}
+
+.sectionHeaderActive {
+  color: var(--color-select-accent);
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.sectionIcon {
+  font-size: .7rem;
+}
+
+.sectionChevron {
+  font-size: .55rem;
+  transition: transform 0.15s ease;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.sectionChevronOpen {
+  transform: rotate(0deg);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding-top: .15rem;
+  padding-left: .5rem;
+}
+
+.navItem,
 .serviceHeader {
   width: 100%;
   gap: .75rem;
@@ -146,33 +203,16 @@
 }
 
 .serviceName {
-  width: 100%;
-  gap: .75rem;
-  font-size: .875rem;
-  font-weight: 400;
-  color: var(--color-text-primary);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  min-width: 0;
-}
-
-.serviceName span {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-transform: capitalize;
+  flex: 1;
+  min-width: 0;
 }
 
-.section {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--color-text-secondary);
-}
 
-.menuList li:hover,
+.navItem:hover,
 .serviceHeader:hover {
   cursor: pointer;
   color: var(--color-select-accent);
@@ -184,14 +224,7 @@
 }
 
 .deleteButton {
-  gap: .75rem;
-  width: 100%;
-  display: flex;
-  font-weight: bold;
-  align-items: center;
-  justify-content: center;
-  transition-duration: .4s;
-  color: var(--color-surface-base);
+  color: var(--color-danger-400);
 }
 
 .deleteButton:hover {
@@ -199,7 +232,7 @@
   background-color: var(--color-danger-100);
 }
 
-.menuList li.activeLink,
+.navItem.activeLink,
 .serviceHeader.activeLink {
   background-color: var(--color-surface-raised);
   color: var(--color-select-accent);
