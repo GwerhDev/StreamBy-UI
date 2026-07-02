@@ -214,8 +214,8 @@
   border-color: var(--color-text-secondary);
 }
 
-.connectionSelected {
-  border-color: var(--color-accent) !important;
+.connectionItem.connectionSelected {
+  border-color: var(--color-accent);
   background-color: var(--color-surface);
 }
 

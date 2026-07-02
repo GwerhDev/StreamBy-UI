@@ -4,7 +4,7 @@
   gap: 2px;
   max-height: 340px;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 8px;
   padding: 0.35rem 0;
   background: var(--color-surface-deep);
@@ -23,7 +23,7 @@
 }
 
 .connRow:hover:not(.connDisabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-surface-raised);
 }
 
 .connDisabled {
@@ -56,11 +56,11 @@
 }
 
 .treeRow:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-hover);
 }
 
-.treeRowSelected {
-  background: rgba(92, 138, 245, 0.14) !important;
+.treeRow.treeRowSelected {
+  background: var(--color-accent-subtle);
 }
 
 .expandBtn {
@@ -117,7 +117,7 @@
 .comingSoon {
   font-size: 0.68rem;
   color: var(--color-text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 4px;
   padding: 0.1rem 0.35rem;
   flex-shrink: 0;
@@ -142,9 +142,9 @@
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-surface-hover);
   border-radius: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-surface-raised);
 }
 
 .destinationLabel strong {

@@ -37,13 +37,13 @@
   gap: 0.75rem;
   padding: 0.8rem 1rem;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-surface-raised);
   background: var(--color-surface-sunken);
   transition: border-color 0.15s;
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-surface-raised);
 }
 
 .cardIcon {
@@ -90,7 +90,7 @@
   text-transform: capitalize;
   padding: 2px 7px;
   border-radius: 20px;
-  background: rgba(56, 182, 255, 0.12);
+  background: var(--color-accent-subtle);
   color: var(--color-accent);
   flex-shrink: 0;
   letter-spacing: 0.03em;
@@ -98,7 +98,7 @@
 
 .deleteBtn {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-surface-raised);
   color: var(--color-text-muted);
   cursor: pointer;
   width: 28px;
@@ -115,13 +115,13 @@
 .deleteBtn:hover {
   color: var(--color-danger-text, #f87171);
   border-color: var(--color-danger-text, #f87171);
-  background: rgba(239, 68, 68, 0.08);
+  background: var(--color-danger-subtle);
 }
 
 .deleteBtnConfirm {
   color: var(--color-danger-text, #f87171);
   border-color: var(--color-danger-text, #f87171);
-  background: rgba(239, 68, 68, 0.12);
+  background: var(--color-danger-subtle);
 }
 
 /* ── Create dashed item ──────────────────── */
@@ -168,8 +168,8 @@
 .input {
   padding: 0.45rem 0.65rem;
   border-radius: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-surface-raised);
+  background: var(--color-surface-hover);
   color: var(--color-text-bright);
   font-size: 0.84rem;
   outline: none;

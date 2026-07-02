@@ -10,7 +10,7 @@
   border: 1px solid var(--color-surface);
   background: var(--color-surface-base);
   transition: border-color 0.2s ease;
-  background: #000;
+  background: var(--color-bg-base);
 }
 
 .wrapperEditMode {
@@ -361,9 +361,9 @@
   background: var(--color-surface-sunken);
 }
 
-.detailDescription {
-  font-size: 0.77rem !important;
-  color: var(--color-text-muted) !important;
+.detailPanel .detailDescription {
+  font-size: 0.77rem;
+  color: var(--color-text-muted);
   padding: 0.7rem 1rem;
   line-height: 1.55;
   border-bottom: 1px solid var(--color-surface);
@@ -399,22 +399,26 @@
 
 /* ─── Edit Mode Inputs ────────────────────────────────────────────────────── */
 
-.fieldInput {
-  font-size: 0.79rem !important;
-  padding: 0.32rem 0.5rem !important;
-  background: var(--color-surface-900) !important;
-  border: none !important;
-  border-bottom: 1px solid var(--color-surface-raised) !important;
-  border-radius: 4px 4px 0 0 !important;
-  color: var(--color-text-primary) !important;
-  width: 100% !important;
-  transition: border-color 0.18s ease !important;
+.detailFields .fieldInput,
+.conditionRow .fieldInput,
+.renameRow .fieldInput {
+  font-size: 0.79rem;
+  padding: 0.32rem 0.5rem;
+  background: var(--color-surface-900);
+  border: none;
+  border-bottom: 1px solid var(--color-surface-raised);
+  border-radius: 4px 4px 0 0;
+  color: var(--color-text-primary);
+  width: 100%;
+  transition: border-color 0.18s ease;
 }
 
-.fieldInput:focus {
-  border-bottom-color: var(--color-accent) !important;
-  outline: none !important;
-  background: var(--color-surface-base) !important;
+.detailFields .fieldInput:focus,
+.conditionRow .fieldInput:focus,
+.renameRow .fieldInput:focus {
+  border-bottom-color: var(--color-accent);
+  outline: none;
+  background: var(--color-surface-base);
 }
 
 .checkboxRow {
@@ -425,9 +429,9 @@
   background: none;
 }
 
-.fieldCheckbox {
-  width: 1rem !important;
-  height: 1rem !important;
+.checkboxRow .fieldCheckbox {
+  width: 1rem;
+  height: 1rem;
   cursor: pointer;
   accent-color: var(--color-accent);
 }
@@ -625,8 +629,8 @@
   border-color: var(--color-text-muted);
 }
 
-.connPickerSelected {
-  border-color: var(--color-accent) !important;
+.connPickerList .connPickerSelected {
+  border-color: var(--color-accent);
   background: var(--color-surface-600);
 }
 
@@ -1025,19 +1029,19 @@ textarea.configInput {
   color: var(--color-accent);
 }
 
-.filterInputSmall {
-  font-size: 0.79rem !important;
-  padding: 0.32rem 0.5rem !important;
-  background: var(--color-surface-900) !important;
-  border: none !important;
-  border-bottom: 1px solid var(--color-surface-raised) !important;
-  border-radius: 4px 4px 0 0 !important;
-  color: var(--color-text-primary) !important;
-  width: 80px !important;
-  transition: border-color 0.18s ease !important;
+.filterSection .filterInputSmall {
+  font-size: 0.79rem;
+  padding: 0.32rem 0.5rem;
+  background: var(--color-surface-900);
+  border: none;
+  border-bottom: 1px solid var(--color-surface-raised);
+  border-radius: 4px 4px 0 0;
+  color: var(--color-text-primary);
+  width: 80px;
+  transition: border-color 0.18s ease;
 }
 
-.filterInputSmall:focus {
-  border-bottom-color: var(--color-accent) !important;
-  outline: none !important;
+.filterSection .filterInputSmall:focus {
+  border-bottom-color: var(--color-accent);
+  outline: none;
 }

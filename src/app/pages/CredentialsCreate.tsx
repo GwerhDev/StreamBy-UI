@@ -6,5 +6,4 @@ export const CredentialsCreate = () => {
   );
 };
 
-export default CredentialsCreate;
 

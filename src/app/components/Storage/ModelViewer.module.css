@@ -6,8 +6,8 @@
   max-height: 580px;
   border-radius: 12px;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 30%, #1a2030 0%, #0b0d11 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: radial-gradient(ellipse at 50% 30%, var(--color-bg-elevated) 0%, var(--color-bg-base) 100%);
+  border: 1px solid var(--color-surface-raised);
 }
 
 .hint {
@@ -35,7 +35,7 @@
 .loaderRing {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(56, 182, 255, 0.2);
+  border: 3px solid var(--color-accent-subtle);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
@@ -64,7 +64,7 @@
   justify-content: center;
   gap: 0.9rem;
   background: var(--color-surface-deep);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 12px;
 }
 

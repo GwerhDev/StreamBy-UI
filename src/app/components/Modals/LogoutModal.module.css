@@ -10,5 +10,5 @@
   justify-content: center;
   padding: var(--space-8);
   backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.55);
+  background-color: rgba(0, 0, 0, 0.5);
 }

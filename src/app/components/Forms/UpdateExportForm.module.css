@@ -12,7 +12,7 @@
 .pageHeader {
   flex-shrink: 0;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--color-surface-raised);
 }
 
 .form {
@@ -77,7 +77,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-surface-raised);
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -85,7 +85,7 @@
 /* ── Resize handles ──────────────────────── */
 .resizeHandle {
   width: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-hover);
   position: relative;
   cursor: col-resize;
   transition: background 0.15s ease;
@@ -106,12 +106,12 @@
   width: 2px;
   height: 32px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--color-surface-raised);
 }
 
 .resizeHandleH {
   height: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-hover);
   position: relative;
   cursor: row-resize;
   transition: background 0.15s ease;
@@ -132,7 +132,7 @@
   height: 2px;
   width: 32px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--color-surface-raised);
 }
 
 /* ── Tab action buttons ──────────────────── */
@@ -153,7 +153,7 @@
 
 .tabActionBtn:hover {
   color: var(--color-text-bright);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--color-surface-hover);
 }
 
 /* ── Form-specific ───────────────────────── */
@@ -187,8 +187,8 @@
   border-color: var(--color-text-secondary);
 }
 
-.connectionSelected {
-  border-color: var(--color-accent) !important;
+.connectionItem.connectionSelected {
+  border-color: var(--color-accent);
   background-color: var(--color-surface);
 }
 

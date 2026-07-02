@@ -2,8 +2,8 @@
   width: 100%;
 }
 
-.warningMessage {
+.fieldsSection .warningMessage {
   margin-top: 0.5rem;
-  font-size: 0.78rem !important;
-  color: var(--color-warning) !important;
+  font-size: 0.78rem;
+  color: var(--color-warning);
 }

@@ -13,7 +13,7 @@
   border-radius: 0.75rem;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-surface-raised);
   overflow: hidden;
 }
 
@@ -23,7 +23,7 @@
   gap: 0.85rem;
   padding: 0.85rem 1.1rem;
   background-color: var(--color-surface);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--color-surface-hover);
 }
 
 .field:last-child {
@@ -88,7 +88,7 @@
   color: var(--color-text-primary);
   background-color: var(--color-surface-deep);
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid var(--color-surface-raised);
   border-radius: 4px 4px 0 0;
   box-sizing: border-box;
   transition: border-color 0.2s ease, background-color 0.2s ease;

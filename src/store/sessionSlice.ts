@@ -24,7 +24,6 @@ export const sessionSlice = createSlice({
     },
     setMode: (state, action: PayloadAction<WorkspaceMode>) => {
       state.mode = action.payload;
-      try { localStorage.setItem(STORAGE_KEY, action.payload); } catch { /* ignore */ }
     },
   },
 });

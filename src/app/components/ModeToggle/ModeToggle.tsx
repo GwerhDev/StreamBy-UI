@@ -14,7 +14,9 @@ export const ModeToggle = () => {
   const isDesigner = mode === 'designer';
 
   const toggle = useCallback(() => {
-    dispatch(setMode(isDesigner ? 'developer' : 'designer'));
+    const nextMode = isDesigner ? 'developer' : 'designer';
+    dispatch(setMode(nextMode));
+    try { localStorage.setItem('streamby-workspace-mode', nextMode); } catch { /* ignore */ }
 
     const el = trackRef.current;
     if (!el) return;

@@ -8,10 +8,11 @@ export async function markNotificationRead(id: string) {
 
   store.dispatch(markRead({ id, readAt: new Date().toISOString() }));
   try {
-    await fetch(`${API_BASE}/streamby/notifications/${id}/read`, {
+    const res = await fetch(`${API_BASE}/streamby/notifications/${id}/read`, {
       method: 'PATCH',
       credentials: 'include',
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
     if (snapshot) store.dispatch(unmarkRead({ id, ...snapshot }));
   }
@@ -26,10 +27,11 @@ export async function markAllNotificationsRead() {
 
   store.dispatch(markAllRead(new Date().toISOString()));
   try {
-    await fetch(`${API_BASE}/streamby/notifications/read-all`, {
+    const res = await fetch(`${API_BASE}/streamby/notifications/read-all`, {
       method: 'PATCH',
       credentials: 'include',
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
     store.dispatch(unmarkAllRead(snapshot));
   }

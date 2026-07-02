@@ -1,4 +1,4 @@
-import { AllowedOriginsList } from '../../app/components/Permissions/AllowedOriginsList';
+import { AllowedOriginsList } from '../components/Permissions/AllowedOriginsList';
 
 export const Permissions = () => {
   return (

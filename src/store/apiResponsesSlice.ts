@@ -8,10 +8,12 @@ interface ApiResponse {
 
 interface ApiResponsesState {
   responses: ApiResponse[];
+  nextId: number;
 }
 
 const initialState: ApiResponsesState = {
   responses: [],
+  nextId: 0,
 };
 
 const apiResponsesSlice = createSlice({
@@ -20,9 +22,10 @@ const apiResponsesSlice = createSlice({
   reducers: {
     addApiResponse: (state, action: PayloadAction<{ message: string; type: 'success' | 'error' }>) => {
       const newResponse: ApiResponse = {
-        id: crypto.randomUUID(),
+        id: String(state.nextId),
         ...action.payload,
       };
+      state.nextId++;
       state.responses.push(newResponse);
     },
     removeApiResponse: (state, action: PayloadAction<string>) => {

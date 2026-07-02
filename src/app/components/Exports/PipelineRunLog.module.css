@@ -110,7 +110,7 @@
   display: inline-block;
   width: 8px;
   height: 8px;
-  border: 1.5px solid rgba(56, 182, 255, 0.3);
+  border: 1.5px solid var(--color-accent-subtle-border);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;

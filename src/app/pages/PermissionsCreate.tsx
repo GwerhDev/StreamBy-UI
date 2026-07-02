@@ -6,4 +6,3 @@ export const PermissionsCreate = () => {
   );
 };
 
-export default PermissionsCreate;

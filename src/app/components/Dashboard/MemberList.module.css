@@ -11,7 +11,7 @@
 /* ── Invite section ──────────────────────── */
 .inviteSection {
   background-color: var(--color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 0.75rem;
   padding: 1rem;
 }
@@ -36,7 +36,7 @@
   border-radius: 8px;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-surface-raised);
   transition: border-color 0.15s ease;
   background-color: var(--color-surface-deep);
 }
@@ -92,7 +92,7 @@
   right: 0;
   z-index: 100;
   background-color: var(--color-surface-sunken);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--color-surface-raised);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -129,7 +129,7 @@
 }
 
 .dropdownItem:hover {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: var(--color-surface-raised);
 }
 
 .avatar {
@@ -164,12 +164,12 @@
   gap: 0;
   border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-surface-raised);
 }
 
 .memberListItem {
   background-color: var(--color-surface);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--color-surface-sunken);
 }
 
 .memberListItem:last-child {

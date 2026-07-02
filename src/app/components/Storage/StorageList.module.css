@@ -125,6 +125,6 @@
 }
 
 .viewAllCard:hover {
-  background-color: rgba(56, 182, 255, 0.06);
+  background-color: var(--color-accent-subtle);
   opacity: 0.9;
 }

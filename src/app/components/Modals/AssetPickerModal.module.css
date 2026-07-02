@@ -265,9 +265,9 @@
   background: var(--color-surface-deep);
 }
 
-.tileSelected {
-  border-color: var(--color-accent) !important;
-  background: rgba(56, 182, 255, 0.08) !important;
+.tile.tileSelected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
   box-shadow: 0 0 0 2px rgba(56, 182, 255, 0.15);
 }
 

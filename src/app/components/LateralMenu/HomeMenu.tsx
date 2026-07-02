@@ -5,7 +5,6 @@ import {
   faBook, faCode, faClockRotateLeft, faUsers, faCompass,
 } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from './LateralMenu';
-import lm from './LateralMenu.module.css';
 import s from './HomeMenu.module.css';
 
 const GETTING_STARTED = [
@@ -28,12 +27,12 @@ export const HomeMenu = () => {
 
   return (
   <LateralMenu>
-    <span className={lm.section}><h4>GETTING STARTED</h4></span>
-    <ul className={lm.menuList}>
+    <span className={s.section}><h4>GETTING STARTED</h4></span>
+    <ul className={s.menuList}>
       {GETTING_STARTED.map(item => (
         item.to ? (
           <Link key={item.label} to={item.to}>
-            <li className={pathname === item.to ? lm.activeLink : ''}>
+            <li className={pathname === item.to ? s.activeLink : ''}>
               <FontAwesomeIcon icon={item.icon} />
               {item.label}
             </li>
@@ -48,8 +47,8 @@ export const HomeMenu = () => {
       ))}
     </ul>
 
-    <span className={`${lm.section} ${s.sectionGap}`}><h4>RESOURCES</h4></span>
-    <ul className={lm.menuList}>
+    <span className={`${s.section} ${s.sectionGap}`}><h4>RESOURCES</h4></span>
+    <ul className={s.menuList}>
       {RESOURCES.map(item => (
         <li key={item.label} className={s.disabled}>
           <FontAwesomeIcon icon={item.icon} />
