@@ -1,227 +1,343 @@
+/* ── Panel shell ──────────────────────────────────────────────────────────── */
 .panel {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  height: 100%;
   overflow: hidden;
 }
 
+/* ── Header ───────────────────────────────────────────────────────────────── */
 .header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .title {
-  font-size: 0.88rem;
+  flex: 1;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-text-bright);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
 }
 
-.closeBtn {
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0.2rem 0.3rem;
-  border-radius: 4px;
-  flex-shrink: 0;
-  transition: color 0.12s;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
 }
 
-.closeBtn:hover { color: var(--color-text-bright); }
+.deleteBtn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
 
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.closeBtn:hover {
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
 .body {
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem 1.25rem;
   display: flex;
   flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ── Fields ───────────────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
 
-/* ── Section ──────────────────────────────── */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.sectionLabel {
-  font-size: 0.65rem;
+.fieldLabel {
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
+  flex-shrink: 0;
+  width: 52px;
 }
 
-.sectionValue {
-  font-size: 0.8rem;
-  color: var(--color-text-primary);
-}
-
-/* ── Status select ────────────────────────── */
-.statusSelect {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  background: var(--color-surface-sunken);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 0.3rem 0.5rem;
-  outline: none;
-  cursor: pointer;
-  align-self: flex-start;
-}
-
-/* ── Link button ──────────────────────────── */
-.linkBtn {
-  display: inline-flex;
+.fieldValue {
+  display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
+}
+
+.fieldText {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Status chip (select) ─────────────────────────────────────────────────── */
+.chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.chipTodo     { background: rgba(255,255,255,0.07); color: var(--color-text-muted); }
+.chipProgress { background: rgba(56,182,255,0.14);  color: var(--color-accent); }
+.chipReview   { background: rgba(251,191,36,0.14);  color: #fbbf24; }
+.chipDone     { background: rgba(34,197,94,0.14);   color: #4ade80; }
+
+/* ── Link button ──────────────────────────────────────────────────────────── */
+.linkBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--color-accent);
-  background: rgba(56, 182, 255, 0.08);
-  border: 1px solid rgba(56, 182, 255, 0.2);
-  border-radius: 6px;
-  padding: 0.25rem 0.6rem;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background 0.15s;
-  align-self: flex-start;
+  padding: 0;
+  transition: opacity 0.15s;
 }
 
-.linkBtn:hover { background: rgba(56, 182, 255, 0.15); }
+.linkBtn:hover { opacity: 0.75; }
 
-/* ── Task section ─────────────────────────── */
+/* ── Divider ──────────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0.3rem 0;
+}
+
+/* ── Task section ─────────────────────────────────────────────────────────── */
+.taskSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
 .taskHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.1rem;
+}
+
+.taskCount {
+  margin-left: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 1px 6px;
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .addTaskBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
   background: none;
   border: none;
-  color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.75rem;
-  padding: 0.1rem 0.2rem;
-  border-radius: 4px;
-  transition: color 0.12s;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
 }
 
-.addTaskBtn:hover { color: var(--color-accent); }
+.addTaskBtn:hover {
+  color: var(--color-accent);
+  background: rgba(56, 182, 255, 0.07);
+}
 
-.taskSpinner {
-  font-size: 0.9rem;
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+.progressBar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ── Task loading ─────────────────────────────────────────────────────────── */
+.taskLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0;
   color: var(--color-text-muted);
-  margin: 0.5rem 0;
+  font-size: 0.9rem;
 }
 
+/* ── Task list ────────────────────────────────────────────────────────────── */
 .taskList {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .taskRow {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 7px;
+  transition: background 0.12s;
 }
 
-.taskCheck {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+.taskRow:hover { background: rgba(255, 255, 255, 0.04); }
+
+.taskRowDone .taskName {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* ── Checkbox ─────────────────────────────────────────────────────────────── */
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
   border: 1.5px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
+  background: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.55rem;
   color: transparent;
-  flex-shrink: 0;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
-.taskCheck:hover {
+.checkboxDone {
+  background: var(--color-accent);
   border-color: var(--color-accent);
-}
-
-.taskCheckDone {
-  border-color: var(--color-success-text, #4ade80);
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--color-success-text, #4ade80);
-}
-
-.taskCircle {
-  font-size: 0.25rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .taskName {
   flex: 1;
   font-size: 0.78rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.taskNameDone {
-  text-decoration: line-through;
-  color: var(--color-text-muted);
-}
-
-.priorityBadge {
-  font-size: 0.62rem;
+/* ── Priority chip ────────────────────────────────────────────────────────── */
+.priorityChip {
+  font-size: 0.6rem;
   font-weight: 700;
-  border-radius: 20px;
-  padding: 1px 5px;
+  border-radius: 5px;
+  padding: 1px 6px;
   border: none;
   cursor: pointer;
+  letter-spacing: 0.03em;
   flex-shrink: 0;
 }
 
 .priorityLow    { background: rgba(255,255,255,0.06); color: var(--color-text-muted); }
-.priorityMedium { background: rgba(56,182,255,0.12);  color: var(--color-accent); }
-.priorityHigh   { background: rgba(248,113,113,0.15); color: var(--color-danger-text, #f87171); }
+.priorityMedium { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+.priorityHigh   { background: rgba(248,113,113,0.12); color: #f87171; }
 
+/* ── Task delete ──────────────────────────────────────────────────────────── */
 .taskDeleteBtn {
+  flex-shrink: 0;
   background: none;
   border: none;
-  color: var(--color-text-muted);
+  color: transparent;
   cursor: pointer;
   font-size: 0.65rem;
-  padding: 0.1rem 0.2rem;
-  border-radius: 3px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.12s, color 0.12s;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
 }
 
-.taskRow:hover .taskDeleteBtn { opacity: 1; }
-.taskDeleteBtn:hover { color: var(--color-danger-text, #f87171); }
+.taskRow:hover .taskDeleteBtn { color: var(--color-text-muted); }
 
-/* ── Add task form ────────────────────────── */
+.taskDeleteBtn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* ── Empty task state ─────────────────────────────────────────────────────── */
+.emptyTaskBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.emptyTaskBtn:hover {
+  color: var(--color-accent);
+  border-color: rgba(56, 182, 255, 0.25);
+}
+
+/* ── Add task form ────────────────────────────────────────────────────────── */
 .addTaskForm {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  margin-top: 0.15rem;
+  padding: 0.3rem 0;
 }
 
 .addTaskInput {
@@ -229,41 +345,36 @@
   font-size: 0.78rem;
   color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--color-accent);
-  border-radius: 5px;
-  padding: 0.25rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  padding: 0.35rem 0.55rem;
   outline: none;
+  transition: border-color 0.15s;
 }
 
-.addTaskSubmit, .addTaskCancel {
+.addTaskInput:focus { border-color: var(--color-accent); }
+
+.addTaskOk,
+.addTaskCancel {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.72rem;
-  border-radius: 4px;
-  padding: 0.2rem 0.3rem;
-  transition: color 0.12s;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
 }
 
-.addTaskSubmit { color: var(--color-accent); }
-.addTaskSubmit:hover { color: var(--color-accent-hover); }
-.addTaskSubmit:disabled { opacity: 0.5; cursor: default; }
+.addTaskOk { color: var(--color-accent); }
+.addTaskOk:hover { background: rgba(56, 182, 255, 0.1); }
+.addTaskOk:disabled { opacity: 0.4; cursor: default; }
+
 .addTaskCancel { color: var(--color-text-muted); }
-.addTaskCancel:hover { color: var(--color-danger-text, #f87171); }
-
-/* ── Empty ────────────────────────────────── */
-.taskEmpty {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin: 0.25rem 0;
-}
-
-.taskEmptyAdd {
-  background: none;
-  border: none;
-  color: var(--color-accent);
-  cursor: pointer;
-  font-size: 0.75rem;
-  padding: 0;
-  text-decoration: underline;
+.addTaskCancel:hover {
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.06);
 }

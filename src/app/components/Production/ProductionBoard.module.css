@@ -1,4 +1,5 @@
-.container {
+/* ── Root ─────────────────────────────────────────────────────────────────── */
+.root {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -6,63 +7,72 @@
   position: relative;
 }
 
-.header {
+.toolbar {
   flex-shrink: 0;
-  padding: 1rem 1rem 0;
+  padding: 1rem 1.25rem 0;
 }
 
-.headerActions {
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar actions ──────────────────────────────────────────────────────── */
+.toolbarActions {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .viewBtn {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.7rem;
   background: transparent;
+  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.viewBtn:hover {
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.05);
-}
+.viewBtn:hover { color: var(--color-text-primary); }
 
 .viewBtnActive {
-  color: var(--color-accent);
-  border-color: rgba(56, 182, 255, 0.3);
-  background: rgba(56, 182, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-bright);
 }
 
-.addSeqBtn {
+.primaryBtn {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
+  gap: 0.35rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid rgba(56, 182, 255, 0.3);
-  background: rgba(56, 182, 255, 0.1);
-  color: var(--color-accent);
+  padding: 0.32rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: opacity 0.15s;
 }
 
-.addSeqBtn:hover {
-  background: rgba(56, 182, 255, 0.18);
-}
+.primaryBtn:hover { opacity: 0.88; }
 
-/* ── Loading / empty ──────────────────────── */
+/* ── Loading / empty ──────────────────────────────────────────────────────── */
 .center {
   flex: 1;
   display: flex;
@@ -70,10 +80,7 @@
   justify-content: center;
 }
 
-.spinner {
-  font-size: 1.5rem;
-  color: var(--color-text-muted);
-}
+.spinner { font-size: 1.5rem; color: var(--color-text-muted); }
 
 .emptyWrap {
   flex: 1;
@@ -82,292 +89,422 @@
   justify-content: center;
 }
 
-/* ── Board view ───────────────────────────── */
+/* ── Status chips ─────────────────────────────────────────────────────────── */
+.chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  align-self: flex-start;
+}
+
+.chipTodo     { background: rgba(255,255,255,0.07); color: var(--color-text-muted); }
+.chipProgress { background: rgba(56,182,255,0.14);  color: var(--color-accent); }
+.chipReview   { background: rgba(251,191,36,0.14);  color: #fbbf24; }
+.chipDone     { background: rgba(34,197,94,0.14);   color: #4ade80; }
+
+/* Status dot (column header) */
+.colDot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dotTodo     { background: var(--color-text-muted); }
+.dotProgress { background: var(--color-accent); }
+.dotReview   { background: #fbbf24; }
+.dotDone     { background: #4ade80; }
+
+/* ── Board ────────────────────────────────────────────────────────────────── */
 .board {
-  flex: 1;
   display: flex;
-  gap: 0;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
   overflow-x: auto;
-  padding: 1rem;
-  min-height: 0;
+  overflow-y: hidden;
+  flex: 1;
+  align-items: flex-start;
 }
 
 .column {
-  flex: 0 0 240px;
+  flex: 0 0 230px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-right: 0.75rem;
+  gap: 0.6rem;
+  min-height: 0;
+  max-height: 100%;
 }
 
-.columnHeader {
+.colHead {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0 0.25rem 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 0.45rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   flex-shrink: 0;
 }
 
-.columnDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.columnLabel {
-  font-size: 0.72rem;
+.colLabel {
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
   flex: 1;
 }
 
-.columnCount {
+.colCount {
   font-size: 0.65rem;
   color: var(--color-text-muted);
   background: rgba(255, 255, 255, 0.06);
   border-radius: 20px;
-  padding: 1px 6px;
+  padding: 1px 7px;
+  font-weight: 600;
 }
 
-.columnBody {
+.colBody {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  padding-right: 2px;
 }
 
-/* ── Sequence group (board) ───────────────── */
-.seqGroup {
+/* ── Sequence block (board) ───────────────────────────────────────────────── */
+.seqBlock {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 
-.seqLabel {
+.seqRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.3rem;
-  font-size: 0.65rem;
+}
+
+.seqName {
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.1rem 0;
-  text-align: left;
-}
-
-.seqLabel:hover {
-  color: var(--color-text-primary);
-}
-
-.seqChevron {
-  font-size: 0.55rem;
-}
-
-/* ── Shot card ────────────────────────────── */
-.shotCard {
-  background: var(--color-surface-sunken);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 0.55rem 0.65rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.shotCard:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: var(--color-surface-hover);
-}
-
-.shotName {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-bright);
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.shotMeta {
-  font-size: 0.68rem;
+.seqDeleteBtn {
+  background: none;
+  border: none;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0.62rem;
+  padding: 0.15rem 0.25rem;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+
+.seqBlock:hover .seqDeleteBtn,
+.listSeqRow:hover .seqDeleteBtn {
   color: var(--color-text-muted);
 }
 
+.seqBlock:hover .seqDeleteBtn:hover,
+.listSeqRow:hover .seqDeleteBtn:hover,
+.seqDeleteBtn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* ── Shot card (board) ────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface-sunken);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: var(--color-surface-hover);
+}
+
+.cardSelected {
+  border-color: rgba(56, 182, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(56, 182, 255, 0.15);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.cardName {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.cardMenuBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.card:hover .cardMenuBtn { opacity: 1; }
+.cardMenuBtn:hover { color: var(--color-text-bright); }
+
+.cardDue {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+/* Card context menu */
+.cardMenu {
+  position: absolute;
+  top: 2rem;
+  right: 0.4rem;
+  background: var(--color-surface-deep);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.3rem;
+  z-index: 20;
+  min-width: 130px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.cardMenuDelete {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: #f87171;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cardMenuDelete:hover { background: rgba(248, 113, 113, 0.1); }
+
+/* Add shot button */
 .addShotBtn {
   display: flex;
   align-items: center;
   gap: 0.3rem;
   font-size: 0.7rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   background: none;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 0.4rem 0.65rem;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
   width: 100%;
+  transition: color 0.15s, border-color 0.15s;
 }
 
 .addShotBtn:hover {
-  color: var(--color-text-primary);
-  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--color-accent);
+  border-color: rgba(56, 182, 255, 0.3);
 }
 
-/* ── Status select / dot ──────────────────── */
-.statusSelect {
-  font-size: 0.68rem;
-  font-weight: 700;
-  border-radius: 20px;
-  padding: 1px 6px;
-  border: none;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text-muted);
-  align-self: flex-start;
-}
-
-.statusTodo      { background: rgba(255, 255, 255, 0.08); color: var(--color-text-muted); }
-.statusInProgress{ background: rgba(56, 182, 255, 0.15);  color: var(--color-accent); }
-.statusReview    { background: rgba(251, 191, 36, 0.15);  color: var(--color-warning-text, #fbbf24); }
-.statusDone      { background: rgba(34, 197, 94, 0.15);   color: var(--color-success-text, #4ade80); }
-
-/* ── List view ────────────────────────────── */
-.listView {
+/* ── List view ────────────────────────────────────────────────────────────── */
+.list {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.75rem 1.25rem 1.25rem;
 }
 
-.listHeader {
+.listHead {
   display: grid;
-  grid-template-columns: 140px 1fr 120px 100px;
+  grid-template-columns: 1fr 130px 90px 36px;
   gap: 0.5rem;
-  padding: 0 0.5rem 0.4rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 0.6rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   margin-bottom: 0.25rem;
 }
 
-.listHeader span {
-  font-size: 0.65rem;
+.listHead span {
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
 }
 
 .listGroup {
   display: flex;
   flex-direction: column;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.listSeqHeader {
-  font-size: 0.72rem;
+.listSeqRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.6rem 0.25rem;
+  gap: 0.5rem;
+}
+
+.listSeqName {
+  font-size: 0.68rem;
   font-weight: 700;
-  color: var(--color-accent);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.5rem 0.5rem 0.25rem;
+  letter-spacing: 0.07em;
+  color: var(--color-accent);
 }
 
 .listRow {
   display: grid;
-  grid-template-columns: 140px 1fr 120px 100px;
+  grid-template-columns: 1fr 130px 90px 36px;
   gap: 0.5rem;
   align-items: center;
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s;
 }
 
-.listRow:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
+.listRow:hover { background: rgba(255, 255, 255, 0.04); }
 
-.listColSeq, .listColShot, .listColStatus, .listColDue {
+.listRowActive { background: rgba(56, 182, 255, 0.06); }
+
+.listShotName {
   font-size: 0.8rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-bright);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.listColDue { color: var(--color-text-muted); font-size: 0.72rem; }
-
-.addShotRow {
-  color: var(--color-text-muted);
+.listDue {
   font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowDeleteBtn {
+  background: none;
+  border: none;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.listRow:hover .rowDeleteBtn { color: var(--color-text-muted); }
+
+.listRow:hover .rowDeleteBtn:hover,
+.rowDeleteBtn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.listAddShot {
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s;
+  margin-left: 0.1rem;
 }
 
-/* ── Shot panel slot ──────────────────────── */
-.shotPanelSlot {
+.listAddShot:hover { color: var(--color-accent); }
+
+/* ── Shot panel slot ──────────────────────────────────────────────────────── */
+.panelSlot {
   position: absolute;
   top: 0;
   right: 0;
   height: 100%;
-  width: 300px;
+  width: 280px;
   transform: translateX(100%);
-  transition: transform 0.2s ease;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
   background: var(--color-surface);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
 }
 
-.shotPanelOpen {
-  transform: translateX(0);
-}
+.panelSlotOpen { transform: translateX(0); }
 
-/* ── Modal form ───────────────────────────── */
-.modalForm {
+/* ── Modal form ───────────────────────────────────────────────────────────── */
+.form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.25rem 0;
+  gap: 0.6rem;
+  padding: 0.25rem 0 0.25rem;
 }
 
-.modalInput {
+.formLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.formInput {
   font-size: 0.85rem;
   color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
   outline: none;
   width: 100%;
   box-sizing: border-box;
   transition: border-color 0.15s;
 }
 
-.modalInput:focus {
-  border-color: var(--color-accent);
-}
+.formInput:focus { border-color: var(--color-accent); }
 
-.modalActions {
+.formActions {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  padding-top: 0.25rem;
 }
 
-.modalSubmit {
+.submitBtn {
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.35rem 0.9rem;
-  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
   border: none;
   background: var(--color-accent);
   color: #fff;
@@ -375,16 +512,13 @@
   transition: opacity 0.15s;
 }
 
-.modalSubmit:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
+.submitBtn:disabled { opacity: 0.45; cursor: default; }
 
-.modalCancel {
+.cancelBtn {
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.35rem 0.9rem;
-  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: var(--color-text-muted);
@@ -392,6 +526,37 @@
   transition: background 0.15s;
 }
 
-.modalCancel:hover {
-  background: rgba(255, 255, 255, 0.05);
+.cancelBtn:hover { background: rgba(255, 255, 255, 0.05); }
+
+.dangerBtn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  cursor: pointer;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  transition: background 0.15s;
+}
+
+.dangerBtn:hover { background: rgba(248, 113, 113, 0.25); }
+
+/* ── Confirm dialog ───────────────────────────────────────────────────────── */
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.confirmText {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.confirmText strong {
+  color: var(--color-text-bright);
 }
