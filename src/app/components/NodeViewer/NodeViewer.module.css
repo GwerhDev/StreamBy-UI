@@ -31,6 +31,7 @@
   flex: 1;
   min-width: 0;
   height: 100%;
+  position: relative;
 }
 
 /* ─── Node Palette (vertical sidebar) ────────────────────────────────────── */
@@ -81,7 +82,8 @@
   align-items: center;
   gap: 0.4rem;
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  height: 37px;
+  padding: 0 0.75rem;
   background: none;
   border-top: none;
   border-left: none;
@@ -107,7 +109,7 @@
 
 .paletteCollapsed .paletteToggle {
   justify-content: center;
-  padding: 0.6rem 0;
+  padding: 0;
 }
 
 .paletteToggleIcon {
@@ -321,18 +323,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.7rem 1rem;
+  padding: 0 1rem;
+  height: 37px;
   border-bottom: 1px solid var(--color-surface);
   flex-shrink: 0;
 }
 
 .detailTitle {
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-text-bright);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
-.panelClose {
+.detailHeader .panelClose {
   background: none;
   border: none;
   color: var(--color-text-muted);
@@ -344,9 +351,10 @@
   align-items: center;
   justify-content: center;
   transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
 }
 
-.panelClose:hover {
+.detailHeader .panelClose:hover {
   color: var(--color-text-bright);
   background: var(--color-surface-sunken);
 }
