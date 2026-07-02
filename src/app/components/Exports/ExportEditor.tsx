@@ -6,7 +6,7 @@ import { getExport, updateExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
-  faFileExport, faXmark, faCode, faSitemap,
+  faXmark, faCode, faSitemap,
   faTableColumns, faArrowLeft,
   faSave, faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
@@ -389,15 +389,12 @@ export const ExportEditor: React.FC = () => {
     <div className={s.container}>
       <div className={s.pageHeader}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            type="button"
-            className={s.backButton}
-            title="Back to details"
-            onClick={handleBack}
-          >
-            <FontAwesomeIcon icon={faArrowLeft} />
-          </button>
-          <SectionHeader icon={faFileExport} title={exportDetails?.name ?? 'Editor'} subtitle={exportDetails?.description} />
+          <SectionHeader
+            icon={faArrowLeft}
+            title={`/${exportDetails?.name}`}
+            subtitle={exportDetails?.description}
+            onIconClick={handleBack}
+          />
 
           <div className={s.buttonsContainer}>
             <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={handleSubmit} />

@@ -35,6 +35,16 @@
   flex-shrink: 0;
 }
 
+.iconWrapClickable {
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.iconWrapClickable:hover {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-bright);
+}
+
 .headerText {
   flex: 1;
   min-width: 0;

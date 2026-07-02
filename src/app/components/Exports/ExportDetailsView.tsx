@@ -13,6 +13,7 @@ import {
   faCode, faFileLines, faLink, faGlobe, faClock,
   faTrash, faSitemap, faTableColumns, faXmark,
   faFeather,
+  faFileExport,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -295,7 +296,7 @@ export const ExportDetailsView: React.FC = () => {
     <div className={s.container}>
       <div className={s.pageHeader}>
         <SectionHeader
-          icon={faCode}
+          icon={faFileExport}
           title={`/${exportDetails.name}`}
           badge={exportDetails.method}
           subtitle={exportDetails.description}

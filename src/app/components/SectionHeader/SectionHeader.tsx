@@ -9,12 +9,13 @@ interface SectionHeaderProps {
   subtitle?: string;
   badge?: string;
   action?: ReactNode;
+  onIconClick?: () => void;
 }
 
-export function SectionHeader({ icon, title, subtitle, badge, action }: SectionHeaderProps) {
+export function SectionHeader({ icon, title, subtitle, badge, action, onIconClick }: SectionHeaderProps) {
   return (
     <div className={s.header}>
-      <span className={s.iconWrap}>
+      <span className={`${s.iconWrap}${onIconClick ? ` ${s.iconWrapClickable}` : ''}`} onClick={onIconClick}>
         <FontAwesomeIcon icon={icon} />
       </span>
       <div className={s.headerText}>
