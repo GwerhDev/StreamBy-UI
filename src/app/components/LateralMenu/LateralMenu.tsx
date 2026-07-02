@@ -230,15 +230,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
             {/* DASHBOARD */}
             <div className={s.accordionSection}>
-              <div className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`}>
-                <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/dashboard`)}>
+              <div className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('dashboard')}>
+                <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/dashboard`); }}>
                   <FontAwesomeIcon icon={faTableColumns} className={s.sectionIcon} />
                   Dashboard
                 </span>
                 <FontAwesomeIcon
                   icon={faChevronDown}
                   className={`${s.sectionChevron} ${sectionOpen.dashboard ? s.sectionChevronOpen : ''}`}
-                  onClick={() => toggleSection('dashboard')}
                 />
               </div>
               {sectionOpen.dashboard && (
@@ -270,15 +269,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* STORAGE */}
               <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`}>
-                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/storage`)}>
+                <div className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('storage')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/storage`); }}>
                     <FontAwesomeIcon icon={faBox} className={s.sectionIcon} />
                     Storage
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.storage ? s.sectionChevronOpen : ''}`}
-                    onClick={() => toggleSection('storage')}
                   />
                 </div>
                 {sectionOpen.storage && (
@@ -323,15 +321,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* DATABASE — Developer only */}
               {mode === 'developer' && <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`}>
-                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/database`)}>
+                <div className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('database')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/database`); }}>
                     <FontAwesomeIcon icon={faDatabase} className={s.sectionIcon} />
                     Database
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.database ? s.sectionChevronOpen : ''}`}
-                    onClick={() => toggleSection('database')}
                   />
                 </div>
                 {sectionOpen.database && (
@@ -378,15 +375,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* CONNECTIONS — Developer only */}
               {mode === 'developer' && <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`}>
-                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/connections`)}>
+                <div className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('connections')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/connections`); }}>
                     <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionIcon} />
                     Connections
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.connections ? s.sectionChevronOpen : ''}`}
-                    onClick={() => toggleSection('connections')}
                   />
                 </div>
                 {sectionOpen.connections && (
@@ -407,15 +403,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* SETTINGS — Developer only */}
               {mode === 'developer' && <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`}>
-                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/settings`)}>
+                <div className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('settings')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/settings`); }}>
                     <FontAwesomeIcon icon={faGear} className={s.sectionIcon} />
                     Settings
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.settings ? s.sectionChevronOpen : ''}`}
-                    onClick={() => toggleSection('settings')}
                   />
                 </div>
                 {sectionOpen.settings && (
