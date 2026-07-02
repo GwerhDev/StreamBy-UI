@@ -334,7 +334,7 @@ export interface AssetMetadata {
 
 export interface JobRecord {
   jobId: string;
-  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail' | 'render' | 'format-convert' | 'lod';
+  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail' | 'render' | 'format-convert' | 'lod' | 'transcription' | 'upscale' | 'generate-asset';
   assetId?: string;
   stage: string;
   progress: number;
@@ -456,6 +456,31 @@ export interface QcReport {
   checks: QcCheck[];
   overallPassed: boolean;
   generatedAt: string;
+}
+
+export type AiProvider =
+  | 'openai'
+  | 'deepgram'
+  | 'assemblyai'
+  | 'stabilityai'
+  | 'meshy'
+  | 'elevenlabs'
+  | 'custom';
+
+export type ProceduralAssetType = '3d' | 'texture' | 'audio';
+
+export interface GenerativeAssetOrigin {
+  provider: AiProvider;
+  prompt: string;
+  seed?: number;
+  model?: string;
+  generatedAt: string;
+}
+
+export interface PipelineSuggestion {
+  rationale: string;
+  nodesToAdd: { type: string; label: string; position: { x: number; y: number } }[];
+  edgesToAdd: { source: string; sourceHandle: string; target: string; targetHandle: string }[];
 }
 
 export type AnnotationType = 'timecoded' | 'spatial' | 'region';

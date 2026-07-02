@@ -5,6 +5,7 @@ import {
   faMicrochip, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
   faBoxArchive, faRocket, faShieldHalved,
+  faMicrophone, faExpand, faWandMagicSparkles, faBrain,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
@@ -15,7 +16,7 @@ export type PaletteItem = {
   icon: IconDefinition;
   bgColor: string;
   iconColor: string;
-  group: 'data' | 'process' | 'output' | 'review' | 'delivery';
+  group: 'data' | 'process' | 'output' | 'review' | 'delivery' | 'ai';
 };
 
 export const NODE_PALETTE: PaletteItem[] = [
@@ -37,9 +38,13 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'assetDependencyNode', label: 'Dependencies',  subtitle: 'Resolve asset tree',  icon: faDiagramProject, bgColor: '#0d2a1e', iconColor: H_BOTTOM,  group: 'data' },
   { type: 'reviewGateNode',    label: 'Review Gate',   subtitle: 'Require approvals',    icon: faCircleCheck,  bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
   { type: 'annotationNode',    label: 'Annotations',   subtitle: 'Frame annotations',    icon: faCommentDots,  bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
-  { type: 'qcCheckNode',       label: 'QC Check',      subtitle: 'Quality checks',       icon: faShieldHalved, bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'delivery' },
-  { type: 'deliverableNode',   label: 'Deliverable',   subtitle: 'Package artifact',     icon: faBoxArchive,   bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'delivery' },
-  { type: 'distributionNode',  label: 'Distribution',  subtitle: 'Publish to platform',  icon: faRocket,       bgColor: '#1a0d00', iconColor: H_JOB,    group: 'delivery' },
+  { type: 'qcCheckNode',          label: 'QC Check',       subtitle: 'Quality checks',       icon: faShieldHalved,     bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'delivery' },
+  { type: 'deliverableNode',      label: 'Deliverable',    subtitle: 'Package artifact',     icon: faBoxArchive,       bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'delivery' },
+  { type: 'distributionNode',     label: 'Distribution',   subtitle: 'Publish to platform',  icon: faRocket,           bgColor: '#1a0d00', iconColor: H_JOB,    group: 'delivery' },
+  { type: 'transcriptionNode',    label: 'Transcription',  subtitle: 'Speech to text',       icon: faMicrophone,       bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
+  { type: 'upscaleNode',          label: 'Upscale',        subtitle: 'AI image upscaling',   icon: faExpand,           bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'ai' },
+  { type: 'proceduralAssetNode',  label: 'Generate Asset', subtitle: 'AI asset generation',  icon: faWandMagicSparkles, bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
+  { type: 'pipelineSuggestNode',  label: 'AI Suggest',     subtitle: 'Pipeline suggestions', icon: faBrain,     bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
 ];
 
 export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
@@ -48,6 +53,7 @@ export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: 
   { key: 'output',  label: 'Output',  color: H_RIGHT },
   { key: 'review',   label: 'Review',   color: H_REVIEW },
   { key: 'delivery', label: 'Delivery', color: H_JOB },
+  { key: 'ai',       label: 'AI',       color: H_REVIEW },
 ];
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
@@ -59,5 +65,6 @@ export const edgeColorForSource = (sourceHandle: string | null | undefined, srcT
   if (sourceHandle === 'out-thumb') return H_RIGHT;
   if (sourceHandle === 'out-lod') return H_BOTTOM;
   if (sourceHandle === 'out-review') return H_REVIEW;
+  if (sourceHandle === 'out-transcript') return H_REVIEW;
   return H_LEFT;
 };

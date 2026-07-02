@@ -8,6 +8,7 @@ import {
   faMicrochip, faArrowsRotate, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
   faBoxArchive, faRocket, faShieldHalved,
+  faMicrophone, faExpand, faWandMagicSparkles, faBrain,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -279,6 +280,71 @@ export const AssetDependencyNode = memo(({ data, selected }: NodeProps<BaseNodeD
 ));
 AssetDependencyNode.displayName = 'AssetDependencyNode';
 
+// Transcribes audio/video using a speech-to-text AI provider
+export const TranscriptionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <Handle type="source" position={Position.Right}  id="out-transcript" className={s.handle} style={hOut(H_REVIEW)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+      <div className={s.nodeIcon} style={{ color: H_REVIEW }}><FontAwesomeIcon icon={faMicrophone} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+TranscriptionNode.displayName = 'TranscriptionNode';
+
+// Upscales images or video frames using an AI model
+export const UpscaleNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faExpand} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+UpscaleNode.displayName = 'UpscaleNode';
+
+// Generates a 3D asset, texture or audio clip from a prompt via AI provider
+export const ProceduralAssetNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={hOut(H_BOTTOM)} />
+    <Handle type="target" position={Position.Left} id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+      <div className={s.nodeIcon} style={{ color: H_REVIEW }}><FontAwesomeIcon icon={faWandMagicSparkles} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ProceduralAssetNode.displayName = 'ProceduralAssetNode';
+
+// Analyses the current pipeline topology and suggests missing nodes (ephemeral)
+export const PipelineSuggestNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+      <div className={s.nodeIcon} style={{ color: H_REVIEW }}><FontAwesomeIcon icon={faBrain} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+PipelineSuggestNode.displayName = 'PipelineSuggestNode';
+
 // Packages a pipeline output as a versioned deliverable artifact
 export const DeliverableNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
@@ -384,4 +450,8 @@ export const nodeTypes = {
   deliverableNode: DeliverableNode,
   distributionNode: DistributionNode,
   qcCheckNode: QcCheckNode,
+  transcriptionNode: TranscriptionNode,
+  upscaleNode: UpscaleNode,
+  proceduralAssetNode: ProceduralAssetNode,
+  pipelineSuggestNode: PipelineSuggestNode,
 };

@@ -265,10 +265,18 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'annotationNode' && tt === 'filterNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'streambyNode' && tt === 'annotationNode') return sh === 'out-right' && th === 'in-filter';
 
-    // QcCheckNode: process lane — same as processNode
-    const deliveryProcessTypes = ['qcCheckNode'];
+    // QcCheckNode + AI process nodes: process lane — same as processNode
+    const deliveryProcessTypes = ['qcCheckNode', 'transcriptionNode', 'upscaleNode', 'pipelineSuggestNode'];
     if (st === 'streambyNode' && deliveryProcessTypes.includes(tt)) return sh === 'out-top';
     if (deliveryProcessTypes.includes(st) && tt === 'streambyNode') return th === 'in-top';
+
+    // TranscriptionNode out-transcript → filterNode / annotationNode (carries transcript file)
+    if (st === 'transcriptionNode' && tt === 'filterNode') return sh === 'out-transcript' && th === 'in-filter';
+    if (st === 'transcriptionNode' && tt === 'annotationNode') return sh === 'out-transcript' && th === 'in-review';
+
+    // ProceduralAssetNode: data lane — same rules as dataSourceNode / ingestNode
+    if (st === 'streambyNode' && tt === 'proceduralAssetNode') return sh === 'out-bottom';
+    if (st === 'proceduralAssetNode' && tt === 'streambyNode') return th === 'in-bottom';
 
     // DeliverableNode and DistributionNode: output lane (chained left→right)
     const outputLaneTypes = ['filterNode', 'annotationNode', 'deliverableNode', 'distributionNode'];
