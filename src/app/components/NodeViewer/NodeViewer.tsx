@@ -113,7 +113,7 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [filterModalLabel, setFilterModalLabel] = useState('');
   const [filterModalSubtitle, setFilterModalSubtitle] = useState('');
   const [showClientModal, setShowClientModal] = useState(false);
-  const [clientModalData, setClientModalData] = useState({ name: '', method: 'GET' });
+  const [clientModalData, setClientModalData] = useState({ name: '', description: '', method: 'GET' });
   const [showDataSourceModal, setShowDataSourceModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
@@ -544,13 +544,13 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   }, [configModalData, onSave]);
 
   const handleOpenClientModal = useCallback(() => {
-    setClientModalData({ name: exportDetails.name || '', method: exportDetails.method || 'GET' });
+    setClientModalData({ name: exportDetails.name || '', description: exportDetails.description || '', method: exportDetails.method || 'GET' });
     setShowClientModal(true);
   }, [exportDetails]);
 
   const handleSaveClientModal = useCallback(() => {
     if (!onSave) return;
-    onSave({ name: clientModalData.name, method: clientModalData.method });
+    onSave({ name: clientModalData.name, description: clientModalData.description, method: clientModalData.method });
     setShowClientModal(false);
   }, [clientModalData, onSave]);
 
@@ -1105,6 +1105,15 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 value={clientModalData.name}
                 onChange={e => setClientModalData(p => ({ ...p, name: e.target.value }))}
                 placeholder="export-name"
+              />
+            </div>
+            <div className={s.configRow}>
+              <label className={s.configLabel}>Description</label>
+              <textarea className={s.configInput}
+                value={clientModalData.description}
+                onChange={e => setClientModalData(p => ({ ...p, description: e.target.value }))}
+                placeholder="Optional description"
+                rows={2}
               />
             </div>
             <div className={s.configRow}>

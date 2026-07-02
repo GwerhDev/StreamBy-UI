@@ -788,6 +788,15 @@
 .configInput:focus { border-color: var(--color-accent); }
 .configInput::placeholder { color: var(--color-text-muted); }
 
+.configInput textarea {
+  resize: vertical;
+}
+
+textarea.configInput {
+  resize: vertical;
+  font-family: inherit;
+}
+
 /* Toggle switch */
 .toggle {
   flex-shrink: 0;
