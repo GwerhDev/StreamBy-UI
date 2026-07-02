@@ -237,15 +237,23 @@ export const NodeViewer = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'streambyNode' && tt === 'ingestNode') return sh === 'out-bottom';
     if (st === 'ingestNode' && tt === 'streambyNode') return th === 'in-bottom';
 
-    // Process-lane nodes (transcode, caption, thumbnail): same rules as processNode
-    if (st === 'streambyNode' && (tt === 'transcodeNode' || tt === 'captionNode' || tt === 'thumbnailNode')) return sh === 'out-top';
-    if ((st === 'transcodeNode' || st === 'captionNode' || st === 'thumbnailNode') && tt === 'streambyNode') return th === 'in-top';
+    // Process-lane nodes (transcode, caption, thumbnail, render, convert, lod): same rules as processNode
+    const processLaneTypes = ['transcodeNode', 'captionNode', 'thumbnailNode', 'renderJobNode', 'formatConvertNode', 'lodNode'];
+    if (st === 'streambyNode' && processLaneTypes.includes(tt)) return sh === 'out-top';
+    if (processLaneTypes.includes(st) && tt === 'streambyNode') return th === 'in-top';
 
     // CaptionNode out-captions → filterNode input lane
     if (st === 'captionNode' && tt === 'filterNode') return sh === 'out-captions' && th === 'in-filter';
 
     // ThumbnailNode in-asset: receives asset ref from dataSourceNode or apiConnectionNode
     if ((st === 'dataSourceNode' || st === 'apiConnectionNode') && tt === 'thumbnailNode') return sh === 'out-stream' && th === 'in-asset';
+
+    // LodNode out-lod → filterNode (LOD manifest as output)
+    if (st === 'lodNode' && tt === 'filterNode') return sh === 'out-lod' && th === 'in-filter';
+
+    // AssetDependencyNode: data lane — same rules as dataSourceNode
+    if (st === 'streambyNode' && tt === 'assetDependencyNode') return sh === 'out-bottom';
+    if (st === 'assetDependencyNode' && tt === 'streambyNode') return th === 'in-bottom';
 
     return false;
   }, [nodes]);

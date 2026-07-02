@@ -327,10 +327,55 @@ export interface AssetMetadata {
 
 export interface JobRecord {
   jobId: string;
-  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail';
+  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail' | 'render' | 'format-convert' | 'lod';
   assetId?: string;
   stage: string;
   progress: number;
   message?: string;
   error?: string;
+}
+
+export type RenderFarmProvider = 'flamenco' | 'deadline' | 'rebusfarm' | 'sheepit' | 'custom';
+
+export interface RenderFarmConnection {
+  id: string;
+  name: string;
+  provider: RenderFarmProvider;
+  apiUrl: string;
+  credentialId?: string;
+  projectId: string;
+  createdAt?: string;
+  description?: string;
+}
+
+export interface LodLevel {
+  level: number;
+  ratio: number;
+  storageFileId: string;
+  polyCount?: number;
+  fileSize?: number;
+}
+
+export interface LodManifest {
+  assetId: string;
+  levels: LodLevel[];
+  generatedAt: string;
+}
+
+export interface AssetDependencyNode {
+  assetId: string;
+  type: string;
+  resolved: boolean;
+}
+
+export interface AssetDependencyEdge {
+  from: string;
+  to: string;
+  relationship: string;
+}
+
+export interface AssetDependencyGraph {
+  rootAssetId: string;
+  nodes: AssetDependencyNode[];
+  edges: AssetDependencyEdge[];
 }

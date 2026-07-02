@@ -9,6 +9,7 @@ import notificationsReducer from './notificationsSlice';
 import currentNotificationReducer from './currentNotificationSlice';
 import currentStorageFolderReducer from './currentStorageFolderSlice';
 import currentJobReducer from './currentJobSlice';
+import renderFarmReducer from './renderFarmSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     currentNotification: currentNotificationReducer,
     currentStorageFolder: currentStorageFolderReducer,
     currentJob: currentJobReducer,
+    renderFarm: renderFarmReducer,
   },
 });
 

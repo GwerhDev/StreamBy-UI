@@ -2,7 +2,11 @@ import React, { memo } from 'react';
 import { NodeProps, Handle, Position } from 'reactflow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faUser, faBolt, faDatabase, faGlobe, faCode, faCloudArrowDown, faFilm, faClosedCaptioning, faImage } from '@fortawesome/free-solid-svg-icons';
+import {
+  faUser, faBolt, faDatabase, faGlobe, faCode,
+  faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
+  faMicrochip, faArrowsRotate, faLayerGroup, faDiagramProject,
+} from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
 // ─── Node Data Types ──────────────────────────────────────────────────────────
@@ -208,6 +212,71 @@ export const ThumbnailNode = memo(({ data, selected }: NodeProps<BaseNodeData>) 
 ));
 ThumbnailNode.displayName = 'ThumbnailNode';
 
+// Dispatches a render job to a connected render farm
+export const RenderJobNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
+      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faMicrochip} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+RenderJobNode.displayName = 'RenderJobNode';
+
+// Converts between 3D / media formats (FBX, OBJ, GLB, USD, etc.)
+export const FormatConvertNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
+      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faArrowsRotate} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+FormatConvertNode.displayName = 'FormatConvertNode';
+
+// Generates LOD levels for a 3D asset
+export const LodNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-process"  className={s.handle} style={{ ...hIn(H_TOP),  left: '35%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-process" className={s.handle} style={{ ...hOut(H_TOP), left: '65%' }} />
+    <Handle type="source" position={Position.Right}  id="out-lod"    className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2216' }}>
+      <div className={s.nodeIcon} style={{ color: '#2dd4bf' }}><FontAwesomeIcon icon={faLayerGroup} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+LodNode.displayName = 'LodNode';
+
+// Resolves the dependency graph of a 3D asset tree — data layer node
+export const AssetDependencyNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Top}    id="out-stream" className={s.handle} style={hOut(H_BOTTOM)} />
+    <Handle type="target" position={Position.Left}   id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faDiagramProject} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+AssetDependencyNode.displayName = 'AssetDependencyNode';
+
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
 export const nodeTypes = {
@@ -222,4 +291,8 @@ export const nodeTypes = {
   transcodeNode: TranscodeNode,
   captionNode: CaptionNode,
   thumbnailNode: ThumbnailNode,
+  renderJobNode: RenderJobNode,
+  formatConvertNode: FormatConvertNode,
+  lodNode: LodNode,
+  assetDependencyNode: AssetDependencyNode,
 };

@@ -2,6 +2,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faDatabase, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
+  faMicrochip, faLayerGroup, faDiagramProject,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB } from './nodes/nodeTypes';
 
@@ -27,7 +28,11 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'ingestNode',        label: 'Ingest',       subtitle: 'Import asset',        icon: faCloudArrowDown,   bgColor: '#1a0d00', iconColor: H_JOB,    group: 'data' },
   { type: 'transcodeNode',     label: 'Transcode',    subtitle: 'Convert media',       icon: faFilm,             bgColor: '#14103a', iconColor: H_TOP,    group: 'process' },
   { type: 'captionNode',       label: 'Captions',     subtitle: 'Generate captions',   icon: faClosedCaptioning, bgColor: '#1a0f2e', iconColor: '#c084fc', group: 'process' },
-  { type: 'thumbnailNode',     label: 'Thumbnail',    subtitle: 'Extract frame',       icon: faImage,            bgColor: '#0d2016', iconColor: '#4ade80', group: 'process' },
+  { type: 'thumbnailNode',      label: 'Thumbnail',     subtitle: 'Extract frame',       icon: faImage,          bgColor: '#0d2016', iconColor: '#4ade80', group: 'process' },
+  { type: 'renderJobNode',      label: 'Render Job',    subtitle: 'Farm render job',     icon: faMicrochip,      bgColor: '#1a0d00', iconColor: H_JOB,    group: 'process' },
+  { type: 'formatConvertNode',  label: 'Convert',       subtitle: '3D format convert',   icon: faArrowsRotate,   bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'process' },
+  { type: 'lodNode',            label: 'LOD',           subtitle: 'Generate LOD levels', icon: faLayerGroup,     bgColor: '#0d2216', iconColor: '#2dd4bf', group: 'process' },
+  { type: 'assetDependencyNode', label: 'Dependencies', subtitle: 'Resolve asset tree',  icon: faDiagramProject, bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
 ];
 
 export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
@@ -43,5 +48,6 @@ export const edgeColorForSource = (sourceHandle: string | null | undefined, srcT
   if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;
   if (sourceHandle === 'out-captions') return H_RIGHT;
   if (sourceHandle === 'out-thumb') return H_RIGHT;
+  if (sourceHandle === 'out-lod') return H_BOTTOM;
   return H_LEFT;
 };
