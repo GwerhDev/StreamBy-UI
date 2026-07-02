@@ -139,7 +139,6 @@
   border-radius: 4px;
   background: transparent;
   border: none;
-  cursor: pointer;
   color: var(--color-text-secondary);
   transition: background-color 0.1s ease, color 0.1s ease;
 }
@@ -157,14 +156,15 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  font-size: .75rem;
+  font-size: .82rem;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
 .sectionIcon {
-  font-size: .7rem;
+  font-size: .8rem;
 }
 
 .sectionChevron {
@@ -172,6 +172,7 @@
   transition: transform 0.15s ease;
   transform: rotate(-90deg);
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .sectionChevronOpen {

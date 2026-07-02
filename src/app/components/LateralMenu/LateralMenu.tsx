@@ -229,19 +229,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
             {/* DASHBOARD */}
             <div className={s.accordionSection}>
-              <button
-                className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`}
-                onClick={() => { toggleSection('dashboard'); navigate(`/project/${id}/dashboard`); }}
-              >
-                <span className={s.sectionLabel}>
+              <div className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`}>
+                <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/dashboard`)}>
                   <FontAwesomeIcon icon={faTableColumns} className={s.sectionIcon} />
                   Dashboard
                 </span>
                 <FontAwesomeIcon
                   icon={faChevronDown}
                   className={`${s.sectionChevron} ${sectionOpen.dashboard ? s.sectionChevronOpen : ''}`}
+                  onClick={() => toggleSection('dashboard')}
                 />
-              </button>
+              </div>
               {sectionOpen.dashboard && (
                 <div className={s.sectionBody}>
                   {isPending ? (
@@ -271,19 +269,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* STORAGE */}
               <div className={s.accordionSection}>
-                <button
-                  className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`}
-                  onClick={() => { toggleSection('storage'); navigate(`/project/${id}/storage`); }}
-                >
-                  <span className={s.sectionLabel}>
+                <div className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`}>
+                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/storage`)}>
                     <FontAwesomeIcon icon={faBox} className={s.sectionIcon} />
                     Storage
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.storage ? s.sectionChevronOpen : ''}`}
+                    onClick={() => toggleSection('storage')}
                   />
-                </button>
+                </div>
                 {sectionOpen.storage && (
                   <div className={s.sectionBody}>
                     {[
@@ -326,19 +322,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* DATABASE */}
               <div className={s.accordionSection}>
-                <button
-                  className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`}
-                  onClick={() => { toggleSection('database'); navigate(`/project/${id}/database`); }}
-                >
-                  <span className={s.sectionLabel}>
+                <div className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`}>
+                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/database`)}>
                     <FontAwesomeIcon icon={faDatabase} className={s.sectionIcon} />
                     Database
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.database ? s.sectionChevronOpen : ''}`}
+                    onClick={() => toggleSection('database')}
                   />
-                </button>
+                </div>
                 {sectionOpen.database && (
                   <div className={s.sectionBody}>
                     {allDbConns.map(conn => {
@@ -383,19 +377,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* CONNECTIONS */}
               <div className={s.accordionSection}>
-                <button
-                  className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`}
-                  onClick={() => { toggleSection('connections'); navigate(`/project/${id}/connections`); }}
-                >
-                  <span className={s.sectionLabel}>
+                <div className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`}>
+                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/connections`)}>
                     <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionIcon} />
                     Connections
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.connections ? s.sectionChevronOpen : ''}`}
+                    onClick={() => toggleSection('connections')}
                   />
-                </button>
+                </div>
                 {sectionOpen.connections && (
                   <div className={s.sectionBody}>
                     {apiDirectoryList.map(({ name, icon, path }, index) => {
@@ -414,19 +406,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
               {/* SETTINGS */}
               <div className={s.accordionSection}>
-                <button
-                  className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`}
-                  onClick={() => { toggleSection('settings'); navigate(`/project/${id}/settings`); }}
-                >
-                  <span className={s.sectionLabel}>
+                <div className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`}>
+                  <span className={s.sectionLabel} onClick={() => navigate(`/project/${id}/settings`)}>
                     <FontAwesomeIcon icon={faGear} className={s.sectionIcon} />
                     Settings
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`${s.sectionChevron} ${sectionOpen.settings ? s.sectionChevronOpen : ''}`}
+                    onClick={() => toggleSection('settings')}
                   />
-                </button>
+                </div>
                 {sectionOpen.settings && (
                   <div className={s.sectionBody}>
                     {settingsDirectoryList.map(({ name, icon, path }, index) => {
