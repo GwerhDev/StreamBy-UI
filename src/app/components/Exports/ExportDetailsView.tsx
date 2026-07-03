@@ -305,7 +305,7 @@ export const ExportDetailsView: React.FC = () => {
           subtitle={exportDetails.description}
         />
         <div className={s.buttonsContainer}>
-          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/project/${id}/dashboard/exports/${exportId}/editor`)} />
+          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/project/${id}/exports/${exportId}/editor`)} />
           <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
         </div>
       </div>
@@ -399,7 +399,7 @@ export const ExportDetailsView: React.FC = () => {
                             />
                           )}
                           {panel.activeTab === 'deliverables' && (
-                            <DeliverableTab exportDetails={exportDetails} />
+                            <DeliverableTab />
                           )}
                           {panel.activeTab === 'reviews' && (
                             <ReviewTab projectId={id!} assetId={exportDetails.id} />

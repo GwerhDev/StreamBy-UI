@@ -1,7 +1,7 @@
 # StreamBy — Product Roadmap
 ## From Data Orchestration to Audiovisual & Game Development Pipeline Platform
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2026-07-02
 
 ---
@@ -12,14 +12,63 @@ StreamBy's existing primitives are the load-bearing layer for every phase below.
 
 | Existing Primitive | Evolved Role |
 |---|---|
-| `Export` + `nodeSchema` | Base of the deliverable system — gains versioning, type, and distribution targets |
-| `NodeViewer` (ReactFlow DAG) | Remains the primary interaction — node palette grows each phase |
+| `Export` | Configures endpoints consumable by external applications (type `json` / `externalApi`). Keeps a simplified `nodeSchema` for data mapping only. Moves to a top-level nav section (alongside Storage and Database). |
+| `Workflow` | **NEW** — Visual internal pipeline (full NodeViewer DAG). Contains all advanced nodes across phases 1–5. Not consumable externally. Supports project-category templates. |
+| `NodeViewer` (ReactFlow DAG) | Powers both Export (simplified palette) and Workflow (full palette). Node palette grows each phase — all new nodes belong to Workflow only. |
 | `StorageDrive` (`images\|audios\|videos\|3d-models`) | Production asset library with versioning and metadata |
 | `ModelViewer` (react-three-fiber) | Already renders GLB/GLTF — extended with LOD switching and annotation markers |
 | WebSocket (notification bus) | Extended to carry job progress events (`jobEvent`, `reviewEvent`) |
 | `Credentials` (project-scoped secrets) | Gains categories: render farm keys, CDN tokens, platform publishing keys, AI provider keys |
 | `Members` + RBAC | Production roles added: Director, Lead Artist, Producer, Reviewer, Publisher |
 | `Plan` (freemium/subscriber/admin) | Gains a `studio` tier gating Phase 3+ features |
+
+---
+
+## Export vs. Workflow
+
+These are two distinct, independent concepts that can optionally connect.
+
+### Export
+- Configures a **publicly consumable API endpoint** (method, allowed origins, auth).
+- Has a `nodeSchema` that computes the response, but only admits a **simplified node subset**: `streambyNode`, `filterNode`, and data-source nodes (database, JSON input, API connection).
+- Managed at `/project/:id/exports` — **top-level nav section**.
+- No job execution, no render pipelines, no distribution logic.
+
+### Workflow
+- Defines the **internal project pipeline** — not directly consumable by external apps.
+- Uses the **full NodeViewer DAG** with all nodes from all phases.
+- Can optionally connect its output to an Export endpoint, but this is not required.
+- Supports **project-category templates** (see below).
+- Managed at `/project/:id/workflows` — **top-level nav section**.
+
+### Lateral menu structure (target)
+
+```
+Overview
+Workflows          ← top-level (NodeViewer with templates)
+Exports            ← top-level (API endpoint configuration)
+Storage
+Database
+Connections
+Settings
+```
+
+Production, Deliverables, Reviews, Jobs, and Render Farm live as sub-sections under Workflows — they are outputs and monitoring views of the pipeline, not standalone dashboard items.
+
+---
+
+## Project Categories & Workflow Templates
+
+The project category is optional — it filters the suggested Workflow templates when creating a new Workflow. It does not restrict available nodes.
+
+The category is set in project settings and can be changed at any time.
+
+| Category | Suggested Workflow Templates |
+|---|---|
+| Game Development | Asset Ingest → LOD Generation → Format Convert → Distribution (Steam / itch.io) |
+| Audiovisual / Film | Ingest → Transcode → Caption → Review Gate → HLS/DASH Distribution |
+| API / Data Service | Data Source → StreamBy Node → Filter → Export endpoint |
+| Creative / Design | Asset Ingest → Metadata Tag → Version → CDN Push |
 
 ---
 
@@ -51,8 +100,17 @@ H_REVIEW = '#e879f9'  // fuchsia — review / approval lane
 | 4 | `distribution` | Steam login, App Store Connect P8 key, Google Play service account JSON, CDN API key |
 | 5 | `aiProvider` | OpenAI, Deepgram, Stability AI, Meshy, ElevenLabs |
 
+### Node palette — two palettes, one viewer
+
+The NodeViewer component is reused for both Export and Workflow, but with different palette configurations:
+
+- **Export palette** (simplified): `streambyNode`, `filterNode`, `dataSourceNode`, `jsonInputNode`, `apiConnectionNode`
+- **Workflow palette** (full): all of the above + all nodes added in Phases 1–5
+
+Palette is passed as a prop to NodeViewer — no structural change to the component itself.
+
 ### Node palette scaling (`nodePalette.ts`)
-Growing from ~8 to ~25 nodes by Phase 5, two enhancements added once:
+Growing from ~5 (Export) / ~8 (Workflow) to ~25 Workflow nodes by Phase 5, two enhancements added once:
 1. **Group collapsibility** — `expanded: boolean` per group entry in `PALETTE_GROUPS`
 2. **Search filter** — text input at palette top, filters by node `label`
 
@@ -69,7 +127,9 @@ Each phase adds new node type names to the existing string comparators:
 
 ## Phase 1 — Media Asset Pipeline (M1–4)
 
-**Goal:** Transform StorageDrive into a production asset library with versioning, metadata, proxy generation, and ingest/transcode nodes.
+**Goal:** Transform StorageDrive into a production asset library with versioning, metadata, proxy generation, and ingest/transcode nodes in Workflows.
+
+> All new nodes in this phase belong to the **Workflow** palette only.
 
 ### New interfaces (`interfaces/index.ts`)
 
@@ -117,7 +177,7 @@ JobsState { jobs: Record<jobId, JobRecord>, loading: boolean }
 Actions: upsertJob, completeJob, failJob
 ```
 
-### New node types
+### New Workflow node types
 
 | Node | Group | Icon | Graph position | Key config |
 |---|---|---|---|---|
@@ -137,14 +197,17 @@ Actions: upsertJob, completeJob, failJob
 - **`AssetDetailPanel`** — three new tabs: `Versions` (history with restore/download), `Metadata` (key-value + editable custom tags), `Jobs` (job history for this asset)
 - **`StorageDrive`** — collapsible filter sidebar: duration range, resolution, color space, custom tags
 
-### New route
-`/project/:id/jobs` — project-wide job monitor
+### New routes
+- `/project/:id/workflows` — Workflow list and editor
+- `/project/:id/jobs` — project-wide job monitor (sub-section of Workflows nav)
 
 ---
 
 ## Phase 2 — 3D & VFX Pipeline (M5–9)
 
-**Goal:** Render job dispatch to DCC tools via render farm APIs, 3D asset dependency tracking, LOD management, and format conversion.
+**Goal:** Render job dispatch to DCC tools via render farm APIs, 3D asset dependency tracking, LOD management, and format conversion — all as Workflow nodes.
+
+> All new nodes in this phase belong to the **Workflow** palette only.
 
 ### New interfaces
 
@@ -177,7 +240,7 @@ interface AssetDependencyGraph {
 { connections: RenderFarmConnection[], loading: boolean, error: string | null }
 ```
 
-### New node types
+### New Workflow node types
 
 | Node | Group | Icon | Graph position | Key config |
 |---|---|---|---|---|
@@ -195,7 +258,7 @@ interface AssetDependencyGraph {
 - **`RenderJobMonitor`** (`src/app/components/Jobs/`) — real-time render job sidebar panel with frame counter (N/M), WebSocket-driven progress, cancel button
 - **`ModelViewer`** — LOD level selector dropdown when asset has a `LodManifest`
 - **`AssetDependencyGraph` visualizer** — read-only ReactFlow canvas in AssetDetailPanel `Dependencies` tab
-- **Routes:** `/project/:id/render-farm` — connection list + create (same pattern as `ApiConnectionsList`)
+- **Routes:** `/project/:id/render-farm` — connection list + create; sub-section of Workflows nav
 
 ### Distribution targets unlocked
 - Render farm dispatch: Blender (Cycles/EEVEE), Unreal (Movie Render Queue), Houdini (Mantra/Karma)
@@ -206,7 +269,9 @@ interface AssetDependencyGraph {
 
 ## Phase 3 — Collaboration & Review (M10–13)
 
-**Goal:** Frame-accurate review, annotations, approval workflows, and version diffing — so production teams can sign off on deliverables directly inside StreamBy.
+**Goal:** Frame-accurate review, annotations, approval workflows, and version diffing — as Workflow nodes that gate pipeline execution.
+
+> All new nodes in this phase belong to the **Workflow** palette only.
 
 ### New interfaces
 
@@ -249,7 +314,7 @@ interface Annotation {
 ### New member roles
 `'director' | 'lead-artist' | 'producer' | 'reviewer' | 'publisher'` — extend the existing `role: string` field in `Project.members`.
 
-### New node types
+### New Workflow node types
 
 | Node | Group | Icon | Graph position | Key config |
 |---|---|---|---|---|
@@ -259,43 +324,41 @@ interface Annotation {
 ### Backend endpoints
 - `/streamby/reviews` — CRUD + `POST /streamby/reviews/:id/approve|reject`
 - `/streamby/assets/:id/annotations` — CRUD
-- Pipeline engine pauses job execution at `reviewGateNode` until minimum approvals are met
+- Workflow engine pauses execution at `reviewGateNode` until minimum approvals are met
 - Requires `plan: 'studio'`
 
 ### New UI
 - **`ReviewPlayer`** (`/project/:id/review/:reviewSessionId`) — video player with timecode annotation pins on scrubber; Three.js canvas for 3D with spatial billboard markers; image viewer with region overlays; annotation sidebar with Resolve/Reply; Approve / Request Changes top bar
-- **`ReviewList`** (`/project/:id/reviews`) — session list with status badges (open / approved / rejected / expired); follows `Start.tsx` pattern
+- **`ReviewList`** (`/project/:id/reviews`) — session list with status badges; sub-section of Workflows nav
 - **`VersionDiffPanel`** — side-by-side comparison in `Versions` tab: pixel diff for images, dual ModelViewer for 3D, sync playback for video
 
 ---
 
 ## Phase 4 — Distribution & Delivery (M14–18)
 
-**Goal:** Package and publish approved deliverables to streaming platforms (HLS/DASH), app stores, game distribution (Steam, itch.io), and CDN.
+**Goal:** Package and publish approved deliverables to streaming platforms (HLS/DASH), app stores, game distribution (Steam, itch.io), and CDN — as Workflow output nodes.
 
-### Export → Deliverable (extension, not replacement)
+> **Deliverables are a Workflow output, not an extension of Export.** The `Export` entity is not modified in this phase. Deliverables have their own entity and routes.
 
-Existing `Export` interface gains optional fields:
-```typescript
-deliverableType?: 'api' | 'video-stream' | 'game-build' | 'asset-bundle' | 'app-binary';
-deliverableVersion?: string;
-deliverableTargets?: DeliveryTarget[];
-publishedAt?: string;
-publishedBy?: string;
-cdnUrl?: string;
-```
-Existing API exports remain as `deliverableType: 'api'` with no changes.
+> All new nodes in this phase belong to the **Workflow** palette only.
 
 ### New interfaces
 
 ```typescript
-interface DistributionConnection {
+interface Deliverable {
   id: string;
-  name: string;
-  target: 'cdnPush' | 'hlsStream' | 'steam' | 'appStoreConnect' | 'googlePlay' | 'itchIo' | 'customWebhook';
-  credentialId: string;
   projectId: string;
-  config: Record<string, string>;
+  workflowId: string;
+  name: string;
+  type: 'video-stream' | 'game-build' | 'asset-bundle' | 'app-binary';
+  version: string;
+  changeNotes?: string;
+  status: 'pending' | 'publishing' | 'published' | 'failed';
+  targets: DeliveryTarget[];
+  createdBy: string;
+  createdAt: string;
+  publishedAt?: string;
+  cdnUrl?: string;
 }
 
 interface DeliveryTarget {
@@ -308,6 +371,15 @@ interface DeliveryTarget {
   status: 'pending' | 'publishing' | 'published' | 'failed';
 }
 
+interface DistributionConnection {
+  id: string;
+  name: string;
+  target: 'cdnPush' | 'hlsStream' | 'steam' | 'appStoreConnect' | 'googlePlay' | 'itchIo' | 'customWebhook';
+  credentialId: string;
+  projectId: string;
+  config: Record<string, string>;
+}
+
 interface QcReport {
   assetId: string;
   checks: Array<{ name: string; passed: boolean; value: string; threshold: string; message?: string }>;
@@ -316,7 +388,7 @@ interface QcReport {
 }
 ```
 
-### New node types
+### New Workflow node types
 
 | Node | Group | Icon | Graph position | Key config |
 |---|---|---|---|---|
@@ -333,8 +405,8 @@ interface QcReport {
 - Build log streaming via WebSocket `{ type: 'jobEvent', stage: 'log', message: string }`
 
 ### New UI
-- **`DeliverableList`** (`/project/:id/deliverables`) — two tabs: `API Exports` (legacy view) and `Deliverables`
-- **`DeliverableDetailView`** — extends ExportDetailsView with tabs: `Pipeline`, `Versions`, `Distribution` (per-platform status cards, live WebSocket), `QC Report`
+- **`DeliverableList`** (`/project/:id/deliverables`) — sub-section of Workflows nav; shows all deliverables with version history
+- **`DeliverableDetailView`** — tabs: `Pipeline`, `Versions`, `Distribution` (per-platform status cards, live WebSocket), `QC Report`
 - **`DistributionConnectionList/Create`** (`/project/:id/distribution`) — same card pattern as `ApiConnectionsList`
 - **`PipelineRunLog`** — drawer with real-time log stream (monospace, auto-scroll, download button)
 
@@ -349,9 +421,11 @@ interface QcReport {
 
 ## Phase 5 — AI-Augmented Production (M19–24)
 
-**Goal:** Automated transcription, AI upscaling, procedural 3D asset generation, and intelligent pipeline suggestions as first-class composable nodes.
+**Goal:** Automated transcription, AI upscaling, procedural 3D asset generation, and intelligent pipeline suggestions as first-class composable Workflow nodes.
 
-### New node types (palette group `ai`, fuchsia label)
+> All new nodes in this phase belong to the **Workflow** palette only.
+
+### New Workflow node types (palette group `ai`, fuchsia label)
 
 | Node | Group | Icon | Graph position | Key config |
 |---|---|---|---|---|
@@ -362,7 +436,7 @@ interface QcReport {
 
 ### `pipelineSuggestNode` behavior
 When dropped into the graph:
-1. Calls `POST /streamby/pipeline-suggest` with `{ nodeSchema, projectId, assetCategories, memberRoles }`
+1. Calls `POST /streamby/pipeline-suggest` with `{ workflowSchema, projectId, assetCategories, memberRoles }`
 2. Backend sends the current graph topology to an LLM with a structured system prompt listing available node types
 3. Response is a validated JSON nodes/edges patch — a `PipelineSuggestion`
 4. UI shows `AISuggestPreviewModal` with a read-only ReactFlow preview (suggested additions highlighted in fuchsia) + LLM rationale text
@@ -394,18 +468,19 @@ interface PipelineSuggestion {
 
 ## Phase Summary
 
-| Phase | Duration | New Nodes | New Redux Slices | New Routes |
+| Phase | Duration | New Workflow Nodes | New Redux Slices | New Routes |
 |---|---|---|---|---|
-| 1 — Media Asset Pipeline | M1–4 | ingest, transcode, caption, thumbnail | `currentJobSlice` | `/jobs` |
+| 1 — Media Asset Pipeline | M1–4 | ingest, transcode, caption, thumbnail | `currentJobSlice` | `/workflows`, `/jobs` |
 | 2 — 3D & VFX Pipeline | M5–9 | renderJob, formatConvert, lod, assetDependency | `renderFarmSlice` | `/render-farm` |
 | 3 — Collaboration & Review | M10–13 | reviewGate, annotation | `currentReviewSlice` | `/reviews`, `/review/:id` |
-| 4 — Distribution & Delivery | M14–18 | deliverable, distribution, qcCheck | (extends currentExportSlice) | `/deliverables`, `/distribution` |
+| 4 — Distribution & Delivery | M14–18 | deliverable, distribution, qcCheck | `currentDeliverableSlice` | `/deliverables`, `/distribution` |
 | 5 — AI-Augmented Production | M19–24 | transcription, upscale, proceduralAsset, pipelineSuggest | (extends currentJobSlice) | — (modal-based) |
 
 ## Key Files for Implementation
 
-- `src/app/components/NodeViewer/nodes/nodeTypes.tsx` — new node type components
-- `src/app/components/NodeViewer/nodePalette.ts` — palette groups and entries
-- `src/interfaces/index.ts` — new interfaces per phase
+- `src/app/components/NodeViewer/nodes/nodeTypes.tsx` — new node type components (Workflow palette)
+- `src/app/components/NodeViewer/nodePalette.ts` — separate palette configs for Export and Workflow
+- `src/interfaces/index.ts` — new interfaces per phase; `Export` interface remains lean (no deliverable fields)
 - `src/store/index.tsx` — new slices
 - `src/services/websocket.ts` — new message type branches
+- `src/app/components/LateralMenu/LateralMenu.tsx` — Exports and Workflows as top-level nav sections

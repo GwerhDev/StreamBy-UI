@@ -3,12 +3,15 @@ import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage,
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
   { name: "Members", icon: faUsers, path: "dashboard/members" },
-  { name: "Exports", icon: faFileExport, path: "dashboard/exports" },
   { name: "Production", icon: faClipboardList, path: "production" },
   { name: "Deliverables", icon: faBoxArchive, path: "deliverables" },
   { name: "Reviews", icon: faComments, path: "reviews" },
   { name: "Jobs", icon: faBriefcase, path: "jobs" },
   { name: "Render Farm", icon: faServer, path: "render-farm" },
+];
+
+export const exportsDirectoryList = [
+  { name: "Exports", icon: faFileExport, path: "exports" },
 ];
 
 export const storageDirectoryList = [

@@ -159,7 +159,7 @@ export function UpdateExportForm() {
       const payload = { name, description, allowedOrigin: selectedAllowedOrigins, private: isPrivate, useConnections, useCredentials, ...(nodeSchema ? { nodeSchema } : {}) };
       await updateExport(id || '', exportId || '', payload);
       dispatch(addApiResponse({ message: 'Export updated successfully.', type: 'success' }));
-      navigate(`/project/${id}/dashboard/exports/${exportId}`);
+      navigate(`/project/${id}/exports/${exportId}`);
     } catch (err: any) {
       dispatch(addApiResponse({ message: err.message || 'Failed to update export.', type: 'error' }));
     } finally {

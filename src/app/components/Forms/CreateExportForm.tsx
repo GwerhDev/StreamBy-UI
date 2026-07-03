@@ -43,7 +43,7 @@ export function CreateExportForm() {
     try {
       const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
       dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
-      navigate(`/project/${projectId}/dashboard/exports/${response.exportId}/editor`);
+      navigate(`/project/${projectId}/exports/${response.exportId}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
     } finally {
@@ -53,7 +53,7 @@ export function CreateExportForm() {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/project/${projectId}/dashboard/exports`);
+    navigate(`/project/${projectId}/exports`);
   };
 
   return (

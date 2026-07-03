@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
@@ -40,6 +40,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const location = useLocation();
 
   const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
+  const isExportsSection = location.pathname.includes(`/project/${id}/exports`);
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
   const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
@@ -47,6 +48,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
   const [sectionOpen, setSectionOpen] = useState({
     dashboard: isDashboardSection,
+    exports: isExportsSection,
     storage: isStorageSection,
     database: isDatabaseSection,
     connections: isConnectionsSection,
@@ -56,12 +58,13 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   useEffect(() => {
     setSectionOpen(prev => ({
       dashboard: prev.dashboard || isDashboardSection,
+      exports: prev.exports || isExportsSection,
       storage: prev.storage || isStorageSection,
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+  }, [isDashboardSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -266,6 +269,39 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             </div>
 
             {!isPending && (<>
+
+              {/* EXPORTS — Developer only */}
+              {mode === 'developer' && (
+              <div className={s.accordionSection}>
+                <div className={`${s.sectionHeader} ${isExportsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('exports')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/exports`); }}>
+                    <FontAwesomeIcon icon={faFileExport} className={s.sectionIcon} />
+                    Exports
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.exports ? s.sectionChevronOpen : ''}`}
+                  />
+                </div>
+                {sectionOpen.exports && (
+                  <div className={s.sectionBody}>
+                    {(currentProject.data?.exports ?? []).map(exp => {
+                      const linkPath = `/project/${id}/exports/${exp.id}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={exp.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                          <FontAwesomeIcon icon={faFileExport} className={s.serviceIcon} />
+                          <span className={s.serviceName}>{exp.name}</span>
+                        </Link>
+                      );
+                    })}
+                    {!(currentProject.data?.exports?.length) && (
+                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No exports yet</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              )}
 
               {/* STORAGE */}
               <div className={s.accordionSection}>

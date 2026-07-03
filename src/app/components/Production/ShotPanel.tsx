@@ -169,7 +169,7 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
             <button
               type="button"
               className={s.linkBtn}
-              onClick={() => navigate(`/project/${projectId}/dashboard/exports/${shot.exportId}`)}
+              onClick={() => navigate(`/project/${projectId}/exports/${shot.exportId}`)}
             >
               <FontAwesomeIcon icon={faLink} /> View Export
             </button>

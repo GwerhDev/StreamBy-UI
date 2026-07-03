@@ -255,17 +255,17 @@ export const ExportEditor: React.FC = () => {
     if (isDirty) {
       setShowLeaveModal(true);
     } else {
-      navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
+      navigate(`/project/${projectId}/exports/${exportId}`, { replace: true });
     }
   };
 
   const handleLeaveConfirm = async () => {
     await handleSubmit();
-    navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
+    navigate(`/project/${projectId}/exports/${exportId}`, { replace: true });
   };
 
   const handleLeaveDiscard = () => {
-    navigate(`/project/${projectId}/dashboard/exports/${exportId}`, { replace: true });
+    navigate(`/project/${projectId}/exports/${exportId}`, { replace: true });
   };
 
   // ── Panel management ──────────────────────────────────────────────────────

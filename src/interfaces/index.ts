@@ -168,18 +168,12 @@ export interface Export {
   json?: JSON | null;
   fields?: JSON | null;
   apiResponse?: JSON | null;
+  // nodeSchema admits only the simplified Export palette: streambyNode, filterNode, dataSourceNodes
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
   useConnections?: boolean;
   useCredentials?: boolean;
   devMode?: boolean;
   devPorts?: number[];
-  // Phase 4 deliverable fields — legacy exports remain type: 'json'|'externalApi'
-  deliverableType?: 'api' | 'video-stream' | 'game-build' | 'asset-bundle' | 'app-binary';
-  deliverableVersion?: string;
-  deliverableTargets?: DeliveryTarget[];
-  publishedAt?: string;
-  publishedBy?: string;
-  cdnUrl?: string;
 }
 
 export interface ExportPayload {

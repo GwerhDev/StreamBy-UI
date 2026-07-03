@@ -30,7 +30,7 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
       const response = await deleteExport(currentProject?.data?.id, exportId);
       dispatch(addApiResponse({ message: response.message || 'Export deleted.', type: 'success' }));
       onClose();
-      navigate('/project/' + currentProject?.data?.id + '/dashboard/exports');
+      navigate('/project/' + currentProject?.data?.id + '/exports');
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to delete export.', type: 'error' }));
     } finally {

@@ -99,10 +99,10 @@ function App() {
                   <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                   <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
                   <Route path="/project/:id/dashboard/members" element={<Members />} />
-                  <Route path="/project/:id/dashboard/exports" element={<Exports />} />
-                  <Route path="/project/:id/dashboard/exports/create" element={<ExportsCreate />} />
-                  <Route path="/project/:id/dashboard/exports/:exportId" element={<ExportsDetails />} />
-                  <Route path="/project/:id/dashboard/exports/:exportId/editor" element={<ExportEditorPage />} />
+                  <Route path="/project/:id/exports" element={<Exports />} />
+                  <Route path="/project/:id/exports/create" element={<ExportsCreate />} />
+                  <Route path="/project/:id/exports/:exportId" element={<ExportsDetails />} />
+                  <Route path="/project/:id/exports/:exportId/editor" element={<ExportEditorPage />} />
 
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
