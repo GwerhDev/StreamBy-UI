@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCompass, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import type { ExploreFilterId } from '../../pages/Explore';
 
-interface Props { filter: ExploreFilterId; }
+interface Props { filter: ExploreFilterId | null; }
 
 export const ExploreContent = ({ filter }: Props) => {
   const [query, setQuery] = useState('');
@@ -39,13 +39,13 @@ export const ExploreContent = ({ filter }: Props) => {
           <FontAwesomeIcon icon={faMagnifyingGlass} className={s.searchIcon} />
           <input
             className={s.searchInput}
-            placeholder={`Search ${filter}...`}
+            placeholder={filter ? `Search ${filter}...` : 'Search...'}
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
         </div>
 
-        {filter === 'projects' ? (
+        {filter === null || filter === 'projects' ? (
           loading ? (
             <ul>
               {Array.from({ length: 3 }).map((_, i) => (

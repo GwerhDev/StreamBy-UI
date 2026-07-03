@@ -21,7 +21,7 @@ const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
-interface RailItem { icon: IconDefinition; path: string; label: string; }
+interface RailItem { icon: IconDefinition; path: string; label: string; isActive?: (pathname: string, search: string) => boolean; }
 
 export const LateralMenu = ({ children, title, railItems }: { children?: React.ReactNode; title?: string; railItems?: RailItem[] } = {}) => {
   const navigate = useNavigate();
@@ -246,25 +246,32 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
             <button className={s.menuToggleFloat} onClick={toggleMenu}>
               <FontAwesomeIcon icon={faChevronRight} />
             </button>
-            {railItems && (() => {
-              const activeRailPath = railItems
-                .filter(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/'))
-                .sort((a, b) => b.path.length - a.path.length)[0]?.path;
-              return (
-                <div className={s.railIcons}>
-                  {railItems.map(item => (
-                    <button
-                      key={item.path}
-                      className={`${s.railIcon} ${item.path === activeRailPath ? s.railIconActive : ''}`}
-                      onClick={() => navigate(item.path)}
-                      title={item.label}
-                    >
-                      <FontAwesomeIcon icon={item.icon} />
-                    </button>
-                  ))}
-                </div>
-              );
-            })()}
+            {railItems && (
+              <div className={s.railIcons}>
+                {(() => {
+                  const activeRailPath = railItems
+                    .filter(item => !item.isActive && (
+                      location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+                    ))
+                    .sort((a, b) => b.path.length - a.path.length)[0]?.path;
+                  return railItems.map(item => {
+                    const isItemActive = item.isActive
+                      ? item.isActive(location.pathname, location.search)
+                      : item.path === activeRailPath;
+                    return (
+                      <button
+                        key={item.path}
+                        className={`${s.railIcon} ${isItemActive ? s.railIconActive : ''}`}
+                        onClick={() => navigate(item.path)}
+                        title={item.label}
+                      >
+                        <FontAwesomeIcon icon={item.icon} />
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
         </div>
       );
