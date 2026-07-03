@@ -16,12 +16,18 @@
 
 .container>div {
   width: 100%;
+  display: flex;
+}
+
+.container>div>div {
+  width: 100%;
+  display: flex;
 }
 
 .container>div button {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top: none;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
 }
 
 .container:focus-within {
