@@ -37,7 +37,11 @@
 }
 
 .details {
+  gap: 0;
   min-width: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .details li {
@@ -92,13 +96,20 @@
 }
 
 .title {
-  gap: 1rem;
+  margin: 0;
+  padding: 0;
   max-width: 100%;
   display: flex;
   overflow: hidden;
   align-items: center;
   text-overflow: ellipsis;
   position: relative;
+}
+
+.subtitle {
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
 }
 
 .dbType {
@@ -159,7 +170,7 @@
     align-items: center;
     text-align: center;
   }
-  
+
   .details li {
     width: 100%;
     text-align: center;

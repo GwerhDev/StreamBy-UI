@@ -45,7 +45,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
           </li>
 
           <li>
-            {!loading && <p>{description}</p>}
+            {!loading && <p className={s.subtitle}>{description}</p>}
           </li>
 
           {!preview && (
