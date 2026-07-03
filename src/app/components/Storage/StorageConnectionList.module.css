@@ -1,9 +1,7 @@
 .container {
   gap: 1rem;
   width: 100%;
-  max-width: 1024px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
   flex-grow: 1;
   min-height: 0;
   display: flex;
@@ -15,7 +13,7 @@
   gap: 1rem;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .container ul li {
@@ -103,10 +101,24 @@
   text-transform: uppercase;
 }
 
-.badgePg { background-color: var(--color-accent-subtle); color: var(--color-info); }
-.badgeMg { background-color: var(--color-badge-mongo-subtle); color: var(--color-badge-mongo); }
-.badgeBuiltin { background-color: var(--color-badge-builtin-subtle); color: var(--color-badge-builtin); }
-.badgeIcon { padding: 0.2rem 0.45rem; }
+.badgePg {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-info);
+}
+
+.badgeMg {
+  background-color: var(--color-badge-mongo-subtle);
+  color: var(--color-badge-mongo);
+}
+
+.badgeBuiltin {
+  background-color: var(--color-badge-builtin-subtle);
+  color: var(--color-badge-builtin);
+}
+
+.badgeIcon {
+  padding: 0.2rem 0.45rem;
+}
 
 .deleteBtn {
   padding: 0.4rem 0.6rem;
@@ -119,7 +131,9 @@
   transition: color 0.15s;
 }
 
-.deleteBtn:hover { color: var(--color-danger-200); }
+.deleteBtn:hover {
+  color: var(--color-danger-200);
+}
 
 .container ul .createItem {
   background-color: transparent;

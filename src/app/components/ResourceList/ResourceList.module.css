@@ -1,9 +1,7 @@
 .container {
   gap: 1rem;
   width: 100%;
-  max-width: 1024px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
   flex-grow: 1;
   min-height: 0;
   display: flex;
@@ -40,7 +38,8 @@
   width: 100%;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
 }
 
 .list li,

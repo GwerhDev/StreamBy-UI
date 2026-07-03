@@ -1,9 +1,7 @@
 .container {
   gap: 1rem;
   width: 100%;
-  max-width: 1024px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
   flex-grow: 1;
   min-height: 0;
   display: flex;
@@ -28,7 +26,7 @@
   gap: 1rem;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .container ul li {
@@ -117,10 +115,24 @@
   text-transform: uppercase;
 }
 
-.badgePg { background-color: var(--color-info-subtle); color: var(--color-info); }
-.badgeMg { background-color: var(--color-badge-mongo-subtle); color: var(--color-badge-mongo); }
-.badgeBuiltin { background-color: var(--color-badge-builtin-subtle); color: var(--color-badge-builtin); }
-.badgeIcon { padding: 0.2rem 0.45rem; }
+.badgePg {
+  background-color: var(--color-info-subtle);
+  color: var(--color-info);
+}
+
+.badgeMg {
+  background-color: var(--color-badge-mongo-subtle);
+  color: var(--color-badge-mongo);
+}
+
+.badgeBuiltin {
+  background-color: var(--color-badge-builtin-subtle);
+  color: var(--color-badge-builtin);
+}
+
+.badgeIcon {
+  padding: 0.2rem 0.45rem;
+}
 
 /* Delete button */
 .deleteBtn {
@@ -134,7 +146,9 @@
   transition: color 0.15s;
 }
 
-.deleteBtn:hover { color: var(--color-danger-200); }
+.deleteBtn:hover {
+  color: var(--color-danger-200);
+}
 
 /* Table grid (for tables list) */
 .tableGrid {
@@ -155,10 +169,24 @@
   overflow: hidden;
 }
 
-.tableCard:hover { background-color: var(--color-surface-hover); }
+.tableCard:hover {
+  background-color: var(--color-surface-hover);
+}
 
-.tableCardIcon { color: var(--color-text-muted); font-size: 0.9rem; flex-shrink: 0; }
-.tableCardName { font-size: 0.9rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; flex: 1; }
+.tableCardIcon {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.tableCardName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+}
 
 .tableCardDelete {
   opacity: 0;
@@ -173,8 +201,14 @@
   transition: opacity 0.15s, color 0.15s;
 }
 
-.tableCard:hover .tableCardDelete { opacity: 1; }
-.tableCardDelete:hover { color: var(--color-danger-text); background: transparent; }
+.tableCard:hover .tableCardDelete {
+  opacity: 1;
+}
+
+.tableCardDelete:hover {
+  color: var(--color-danger-text);
+  background: transparent;
+}
 
 /* Records table */
 .recordsTable {
@@ -201,8 +235,13 @@
   white-space: nowrap;
 }
 
-.recordsTable tr:last-child td { border-bottom: none; }
-.recordsTable tr:hover td { background-color: var(--color-surface); }
+.recordsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.recordsTable tr:hover td {
+  background-color: var(--color-surface);
+}
 
 .tableWrapper {
   width: 100%;
@@ -229,8 +268,14 @@
   font-size: 0.8rem;
 }
 
-.pageBtn:disabled { opacity: 0.4; cursor: default; }
-.pageBtn:not(:disabled):hover { background: var(--color-surface-hover); }
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pageBtn:not(:disabled):hover {
+  background: var(--color-surface-hover);
+}
 
 /* Modal overlay */
 .modalOverlay {
@@ -285,7 +330,9 @@
   transition: color 0.15s;
 }
 
-.modalClose:hover { color: var(--color-text-bright); }
+.modalClose:hover {
+  color: var(--color-text-bright);
+}
 
 .modalBody {
   display: flex;
@@ -318,7 +365,8 @@
   align-items: center;
 }
 
-.columnRow input, .columnRow select {
+.columnRow input,
+.columnRow select {
   padding: 0.45rem 0.75rem;
   border-radius: 0.5rem;
   background: var(--color-surface);
@@ -353,7 +401,9 @@
   border-radius: 0.3rem;
 }
 
-.removeColBtn:hover { color: var(--color-danger-text); }
+.removeColBtn:hover {
+  color: var(--color-danger-text);
+}
 
 .addColBtn {
   align-self: flex-start;
@@ -369,7 +419,9 @@
   gap: 0.4rem;
 }
 
-.addColBtn:hover { border-color: var(--color-text-secondary); }
+.addColBtn:hover {
+  border-color: var(--color-text-secondary);
+}
 
 /* Form wrapper */
 .formWrapper {
@@ -440,7 +492,9 @@
   transition: color 0.15s;
 }
 
-.editBtn:hover { color: var(--color-text-bright); }
+.editBtn:hover {
+  color: var(--color-text-bright);
+}
 
 .cardSkeletonSm {
   height: 3.5rem;
@@ -487,9 +541,13 @@
   outline: none;
 }
 
-.nameInput:focus { border-color: var(--color-accent); }
+.nameInput:focus {
+  border-color: var(--color-accent);
+}
 
-.thActions { width: 5rem; }
+.thActions {
+  width: 5rem;
+}
 
 .nullValue {
   color: var(--color-text-muted);
