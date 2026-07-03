@@ -11,7 +11,6 @@ import { getWorkflow, updateWorkflow } from '../../../services/workflows';
 import { Workflow, Export } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { ActionButton } from '../Buttons/ActionButton';
-import { Spinner } from '../Spinner';
 
 function workflowToExport(workflow: Workflow, projectId: string): Export {
   return {
@@ -123,7 +122,7 @@ export function WorkflowEditor() {
     dispatch(setCurrentWorkflow(updated));
   }, [dispatch]);
 
-  if (loading || !workflow) return <Spinner bg isLoading />;
+  if (loading || !workflow) return;
   if (error) return <div style={{ padding: '2rem', color: 'var(--color-error)' }}>{error}</div>;
 
   return <WorkflowEditorInner workflow={workflow} onSaved={handleSaved} />;

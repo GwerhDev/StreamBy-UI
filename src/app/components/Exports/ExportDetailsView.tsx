@@ -305,7 +305,7 @@ export const ExportDetailsView: React.FC = () => {
           subtitle={exportDetails.description}
         />
         <div className={s.buttonsContainer}>
-          <ActionButton icon={faSitemap} text="Editor" onClick={() => navigate(`/project/${id}/exports/${exportId}/editor`)} />
+          <ActionButton icon={faSitemap} text="Open editor" onClick={() => navigate(`/project/${id}/exports/${exportId}/editor`)} />
           <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
         </div>
       </div>

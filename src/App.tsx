@@ -88,9 +88,9 @@ function App() {
                 <Route path="/project/explore" element={<Explore />} />
                 <Route element={<UserLayout />}>
                   <Route path="/user/profile" element={<UserAccount />} />
-                  <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />
                 </Route>
+                <Route path="/user/archive" element={<UserArchive />} />
                 <Route element={<NotificationLayout />}>
                   <Route path="/user/notification" element={<UserNotification />} />
                   <Route path="/user/notification/:id" element={<UserNotificationDetail />} />
