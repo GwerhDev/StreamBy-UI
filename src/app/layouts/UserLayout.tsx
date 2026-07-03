@@ -1,6 +1,6 @@
 import s from '../components/LateralMenu/LateralMenu.module.css';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
@@ -21,17 +21,18 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const RAIL_ITEMS = [
-  { icon: faIdCard,  path: '/user/profile',  label: 'Profile'  },
-  { icon: faArchive, path: '/user/archive',  label: 'Archive'  },
-  { icon: faGear,    path: '/user/settings', label: 'Settings' },
+  { icon: faIdCard, path: '/user',          label: 'User'     },
+  { icon: faGear,   path: '/user/settings', label: 'Settings' },
 ];
 
 export default function UserLayout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
   const activeTab = searchParams.get('tab') ?? 'account';
+  const isUserRoute = pathname === '/user';
   const isProfileRoute = pathname === '/user/profile';
   const isArchiveRoute = pathname === '/user/archive';
   const isSettingsRoute = pathname === '/user/settings';
@@ -48,10 +49,10 @@ export default function UserLayout() {
 
         <div className={s.accordionSection}>
           <div
-            className={`${s.sectionHeader} ${isProfileRoute || isArchiveRoute ? s.sectionHeaderActive : ''}`}
+            className={`${s.sectionHeader} ${isUserRoute || isProfileRoute || isArchiveRoute ? s.sectionHeaderActive : ''}`}
             onClick={() => setUserOpen(v => !v)}
           >
-            <span className={s.sectionLabel}>User</span>
+            <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate('/user'); }}>User</span>
             <div className={`${s.sectionChevronWrap} ${userOpen ? s.sectionChevronWrapOpen : ''}`}>
               <FontAwesomeIcon icon={faIdCard} className={s.sectionChevronSectionIcon} />
               <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
@@ -82,7 +83,7 @@ export default function UserLayout() {
             className={`${s.sectionHeader} ${isSettingsRoute ? s.sectionHeaderActive : ''}`}
             onClick={() => setSettingsOpen(v => !v)}
           >
-            <span className={s.sectionLabel}>Settings</span>
+            <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate('/user/settings'); }}>Settings</span>
             <div className={`${s.sectionChevronWrap} ${settingsOpen ? s.sectionChevronWrapOpen : ''}`}>
               <FontAwesomeIcon icon={faGear} className={s.sectionChevronSectionIcon} />
               <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />

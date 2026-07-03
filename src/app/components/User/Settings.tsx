@@ -1,5 +1,5 @@
 import s from './Settings.module.css';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import {
@@ -8,6 +8,7 @@ import {
   faGlobe, faCompress, faSlidersH, faIndent, faObjectGroup,
   faMap, faAt, faMobile, faLink, faHashtag, faKey,
   faFingerprint, faTerminal, faBuilding, faChartBar, faUsers, faRocket,
+  faGear,
 } from '@fortawesome/free-solid-svg-icons';
 
 type CategoryId = 'account' | 'appearance' | 'notifications' | 'editor' | 'security' | 'billing';
@@ -87,9 +88,30 @@ const buildCategories = (): Category[] => [
 
 export const Settings = () => {
   const [searchParams] = useSearchParams();
-  const activeTab = (searchParams.get('tab') ?? 'account') as CategoryId;
+  const navigate = useNavigate();
+  const activeTab = searchParams.get('tab') as CategoryId | null;
 
   const categories = buildCategories();
+
+  if (!activeTab) {
+    return (
+      <div className={s.page}>
+        <SectionHeader icon={faGear} title="Settings" />
+        <ul className={s.itemList}>
+          {categories.map(cat => (
+            <li key={cat.id} className={s.item} onClick={() => navigate(`/user/settings?tab=${cat.id}`)}>
+              <span className={s.itemIconWrap}><FontAwesomeIcon icon={cat.icon} /></span>
+              <span className={s.itemText}>
+                <span className={s.itemLabel}>{cat.label}</span>
+              </span>
+              <FontAwesomeIcon icon={faChevronRight} className={s.itemArrow} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   const current = categories.find(c => c.id === activeTab) ?? categories[0];
 
   return (

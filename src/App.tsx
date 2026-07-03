@@ -30,8 +30,9 @@ const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ def
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
-const UserAccount = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
-const UserArchive = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
+const UserHub      = lazy(() => import('./app/pages/UserHub').then(module => ({ default: module.UserHub })));
+const UserAccount  = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
+const UserArchive  = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
 const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module => ({ default: module.UserSettings })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const PermissionsCreate = lazy(() => import('./app/pages/PermissionsCreate').then(module => ({ default: module.PermissionsCreate })));
@@ -87,6 +88,7 @@ function App() {
                 <Route path="/project/create" element={<ProjectCreate />} />
                 <Route path="/project/explore" element={<Explore />} />
                 <Route element={<UserLayout />}>
+                  <Route path="/user" element={<UserHub />} />
                   <Route path="/user/profile" element={<UserAccount />} />
                   <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />

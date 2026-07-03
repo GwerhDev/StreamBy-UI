@@ -246,20 +246,25 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
             <button className={s.menuToggleFloat} onClick={toggleMenu}>
               <FontAwesomeIcon icon={faChevronRight} />
             </button>
-            {railItems && (
-              <div className={s.railIcons}>
-                {railItems.map(item => (
-                  <button
-                    key={item.path}
-                    className={`${s.railIcon} ${location.pathname.startsWith(item.path) ? s.railIconActive : ''}`}
-                    onClick={() => navigate(item.path)}
-                    title={item.label}
-                  >
-                    <FontAwesomeIcon icon={item.icon} />
-                  </button>
-                ))}
-              </div>
-            )}
+            {railItems && (() => {
+              const activeRailPath = railItems
+                .filter(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/'))
+                .sort((a, b) => b.path.length - a.path.length)[0]?.path;
+              return (
+                <div className={s.railIcons}>
+                  {railItems.map(item => (
+                    <button
+                      key={item.path}
+                      className={`${s.railIcon} ${item.path === activeRailPath ? s.railIconActive : ''}`}
+                      onClick={() => navigate(item.path)}
+                      title={item.label}
+                    >
+                      <FontAwesomeIcon icon={item.icon} />
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
       );
