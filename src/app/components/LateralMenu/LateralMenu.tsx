@@ -292,7 +292,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   }
 
   const menuContent = (
-    <div className={s.wrapper} style={{ width: `${menuWidth}px` }}>
+    <div className={s.wrapper} style={{ width: children ? '200px' : `${menuWidth}px` }}>
       <div className={s.container}>
         {children ? (
           <div className={s.outterMenuContainer}>
