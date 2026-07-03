@@ -2,15 +2,15 @@ import s from './WorkflowEditor.module.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
 import { getWorkflow, updateWorkflow } from '../../../services/workflows';
 import { Workflow, Export } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
-import { faArrowLeft, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ActionButton } from '../Buttons/ActionButton';
-import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { Spinner } from '../Spinner';
 
 function workflowToExport(workflow: Workflow, projectId: string): Export {
@@ -39,6 +39,8 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const [saving, setSaving] = useState(false);
+  const [localName, setLocalName] = useState(workflow.name);
+  const [localDescription, setLocalDescription] = useState(workflow.description || '');
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
   const exportAdapter = workflowToExport(workflow, projectId ?? '');
 
@@ -48,7 +50,11 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
     if (!schema) return;
     setSaving(true);
     try {
-      const updated: Workflow = await updateWorkflow(projectId, workflow.id, { nodeSchema: schema });
+      const updated: Workflow = await updateWorkflow(projectId, workflow.id, {
+        name: localName,
+        description: localDescription,
+        nodeSchema: schema,
+      });
       dispatch(addApiResponse({ message: 'Workflow saved.', type: 'success' }));
       onSaved(updated);
     } catch (err: any) {
@@ -62,12 +68,25 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
     <div className={s.container}>
       <div className={s.pageHeader}>
         <div className={s.headerRow}>
-          <SectionHeader
-            icon={faArrowLeft}
-            title={workflow.name}
-            subtitle={workflow.description || undefined}
-            onIconClick={() => navigate(`/project/${projectId}/workflows/${workflow.id}`)}
-          />
+          <button
+            className={s.backBtn}
+            onClick={() => navigate(`/project/${projectId}/workflows/${workflow.id}`)}
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </button>
+          <div className={s.headerTitles}>
+            <input
+              className={s.nameInput}
+              value={localName}
+              onChange={e => setLocalName(e.target.value)}
+            />
+            <input
+              className={s.descInput}
+              value={localDescription}
+              onChange={e => setLocalDescription(e.target.value)}
+              placeholder="No description"
+            />
+          </div>
           <div className={s.headerRight}>
             {saving && <span className={s.savingLabel}>Saving…</span>}
             <ActionButton icon={faFloppyDisk} text="Save" onClick={handleSave} disabled={saving} />

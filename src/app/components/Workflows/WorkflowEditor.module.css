@@ -15,6 +15,77 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding: 0 1rem 0 0;
+}
+
+.backBtn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-surface-deep);
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.1s, color 0.1s;
+}
+
+.backBtn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text-bright);
+}
+
+.headerTitles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.nameInput {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.nameInput:hover,
+.nameInput:focus {
+  background: var(--color-surface-raised);
+}
+
+.descInput {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.descInput:hover,
+.descInput:focus {
+  background: var(--color-surface-raised);
+  color: var(--color-text-secondary);
+}
+
+.descInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
 }
 
 .headerRight {
@@ -22,7 +93,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
-  padding-right: 1rem;
+  flex-shrink: 0;
 }
 
 .savingLabel {
