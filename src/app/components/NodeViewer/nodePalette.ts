@@ -68,6 +68,19 @@ export function getGroupsForMode(mode: 'developer' | 'designer') {
   return PALETTE_GROUPS.filter(g => DESIGNER_GROUPS.has(g.key));
 }
 
+const EXPORT_PALETTE_TYPES = new Set(['dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'filterNode']);
+
+export function getPaletteForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer'): PaletteItem[] {
+  const base = getPaletteForMode(mode);
+  if (ctx === 'export') return base.filter(item => EXPORT_PALETTE_TYPES.has(item.type));
+  return base;
+}
+
+export function getGroupsForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer') {
+  if (ctx === 'export') return PALETTE_GROUPS.filter(g => g.key === 'data' || g.key === 'output');
+  return getGroupsForMode(mode);
+}
+
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
   if (srcType === 'jsonInputNode') return H_RIGHT;
   if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;

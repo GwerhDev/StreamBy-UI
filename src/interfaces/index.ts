@@ -32,6 +32,32 @@ export interface StorageConnection {
   isBuiltin?: boolean;
 }
 
+export type WorkflowStatus = 'draft' | 'active' | 'archived';
+
+export interface Workflow {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  status: WorkflowStatus;
+  nodeSchema?: { nodes: object[]; edges: object[] } | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkflowPayload {
+  name: string;
+  description?: string;
+  nodeSchema?: { nodes: object[]; edges: object[] } | null;
+}
+
+export interface CurrentWorkflowState {
+  data: Workflow | null;
+  loading: boolean;
+  error: string | null;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -42,6 +68,7 @@ export interface Project {
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
+  workflows?: Workflow[];
   apiConnections?: ApiConnection[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];

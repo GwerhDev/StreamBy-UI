@@ -4,8 +4,8 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList } from '../../../config/consts';
+import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
@@ -32,6 +32,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const isPending = selfMember?.status === 'pending';
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
+  const [expandedWorkflows, setExpandedWorkflows] = useState<Set<string>>(new Set());
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
   const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
@@ -40,6 +41,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const location = useLocation();
 
   const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
+  const isWorkflowsSection = location.pathname.includes(`/project/${id}/workflow`);
   const isExportsSection = location.pathname.includes(`/project/${id}/exports`);
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
@@ -48,6 +50,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
   const [sectionOpen, setSectionOpen] = useState({
     dashboard: isDashboardSection,
+    workflows: isWorkflowsSection,
     exports: isExportsSection,
     storage: isStorageSection,
     database: isDatabaseSection,
@@ -58,13 +61,14 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   useEffect(() => {
     setSectionOpen(prev => ({
       dashboard: prev.dashboard || isDashboardSection,
+      workflows: prev.workflows || isWorkflowsSection,
       exports: prev.exports || isExportsSection,
       storage: prev.storage || isStorageSection,
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+  }, [isDashboardSection, isWorkflowsSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -76,6 +80,15 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
       closeMenu();
     }
   }, [location]);
+
+  const toggleWorkflow = (wfId: string) => {
+    setExpandedWorkflows(prev => {
+      const next = new Set(prev);
+      if (next.has(wfId)) next.delete(wfId);
+      else next.add(wfId);
+      return next;
+    });
+  };
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -269,6 +282,55 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             </div>
 
             {!isPending && (<>
+
+              {/* WORKFLOWS */}
+              <div className={s.accordionSection}>
+                <div className={`${s.sectionHeader} ${isWorkflowsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflows`); }}>
+                    <FontAwesomeIcon icon={faSitemap} className={s.sectionIcon} />
+                    Workflows
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`${s.sectionChevron} ${sectionOpen.workflows ? s.sectionChevronOpen : ''}`}
+                  />
+                </div>
+                {sectionOpen.workflows && (
+                  <div className={s.sectionBody}>
+                    {(currentProject.data?.workflows ?? []).map(wf => {
+                      const isExpanded = expandedWorkflows.has(wf.id);
+                      const linkPath = `/project/${id}/workflows/${wf.id}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <React.Fragment key={wf.id}>
+                          <Link to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                            <FontAwesomeIcon
+                              icon={faChevronDown}
+                              className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); toggleWorkflow(wf.id); }}
+                            />
+                            <FontAwesomeIcon icon={faSitemap} className={s.serviceIcon} />
+                            <span className={s.serviceName}>{wf.name}</span>
+                          </Link>
+                          {isExpanded && workflowSubDirectoryList.map(({ name, icon, path }, index) => {
+                            const subPath = `/project/${id}/${path}`;
+                            const isSubActive = location.pathname === subPath || location.pathname.startsWith(`${subPath}/`);
+                            return (
+                              <Link key={index} to={subPath} className={`${s.storageItem} ${isSubActive ? s.activeLink : ''}`}>
+                                {icon && <FontAwesomeIcon icon={icon} />}
+                                {name}
+                              </Link>
+                            );
+                          })}
+                        </React.Fragment>
+                      );
+                    })}
+                    {!(currentProject.data?.workflows?.length) && (
+                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No workflows yet</span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* EXPORTS — Developer only */}
               {mode === 'developer' && (

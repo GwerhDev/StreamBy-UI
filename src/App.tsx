@@ -60,6 +60,9 @@ const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage
 const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPage').then(module => ({ default: module.RenderFarmListPage })));
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
+const WorkflowListPage         = lazy(() => import('./app/pages/WorkflowListPage').then(module => ({ default: module.WorkflowListPage })));
+const WorkflowDetailPage       = lazy(() => import('./app/pages/WorkflowDetailPage').then(module => ({ default: module.WorkflowDetailPage })));
+const WorkflowEditorPage       = lazy(() => import('./app/pages/WorkflowEditorPage').then(module => ({ default: module.WorkflowEditorPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -120,6 +123,10 @@ function App() {
                   <Route path="/project/:id/connections/api/create" element={<ApiConnectionsCreate />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
+
+                  <Route path="/project/:id/workflows" element={<WorkflowListPage />} />
+                  <Route path="/project/:id/workflows/:workflowId" element={<WorkflowDetailPage />} />
+                  <Route path="/project/:id/workflows/:workflowId/editor" element={<WorkflowEditorPage />} />
 
                   <Route path="/project/:id/production" element={<ProductionBoardPage />} />
                   <Route path="/project/:id/jobs" element={<JobMonitorPage />} />

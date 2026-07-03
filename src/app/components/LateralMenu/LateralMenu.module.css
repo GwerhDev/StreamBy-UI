@@ -292,3 +292,9 @@
 .storageItemLoading { opacity: 0.5; }
 .storageItemMuted   { opacity: 0.4; }
 
+.sectionDivider {
+  height: 1px;
+  background: var(--color-surface-raised);
+  margin: 0.3rem 0.5rem;
+}
+

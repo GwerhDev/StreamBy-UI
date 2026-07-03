@@ -1,0 +1,116 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--color-surface-raised);
+  background: var(--color-surface);
+  flex-shrink: 0;
+  gap: 0.75rem;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.workflowName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-bright);
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Palette ─────────────────────────────────────────────────────────── */
+
+.palette {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-surface-raised);
+  background: var(--color-surface);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.paletteCollapsed {
+  width: 36px;
+}
+
+.paletteToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.paletteToggle:hover { color: var(--color-text-bright); }
+
+.paletteGroup {
+  padding: 0.4rem 0.6rem 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.paletteItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: grab;
+  border-radius: 0.4rem;
+  margin: 0 0.3rem 0.15rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  transition: background 0.12s;
+}
+
+.paletteItem:hover { background: var(--color-surface-raised); color: var(--color-text-bright); }
+
+.paletteIcon {
+  width: 14px;
+  text-align: center;
+}
+
+/* ── Canvas ──────────────────────────────────────────────────────────── */
+
+.canvas {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Status indicator ─────────────────────────────────────────────────── */
+
+.savingLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
