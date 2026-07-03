@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
@@ -20,7 +21,9 @@ const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
-export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) => {
+interface RailItem { icon: IconDefinition; path: string; label: string; }
+
+export const LateralMenu = ({ children, railItems }: { children?: React.ReactNode; railItems?: RailItem[] } = {}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
@@ -236,6 +239,20 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             <button className={s.menuToggleFloat} onClick={toggleMenu}>
               <FontAwesomeIcon icon={faChevronRight} />
             </button>
+            {railItems && (
+              <div className={s.railIcons}>
+                {railItems.map(item => (
+                  <button
+                    key={item.path}
+                    className={`${s.railIcon} ${location.pathname.startsWith(item.path) ? s.railIconActive : ''}`}
+                    onClick={() => navigate(item.path)}
+                    title={item.label}
+                  >
+                    <FontAwesomeIcon icon={item.icon} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );

@@ -1,11 +1,14 @@
 import s from '../components/LateralMenu/LateralMenu.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
   faUser, faChevronDown, faGear,
 } from '@fortawesome/free-solid-svg-icons';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store';
+import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 
 const SETTINGS_CATEGORIES = [
@@ -17,16 +20,27 @@ const SETTINGS_CATEGORIES = [
   { id: 'billing',       label: 'Plan & Billing', icon: faCreditCard },
 ];
 
+const RAIL_ITEMS = [
+  { icon: faIdCard,  path: '/user/profile',  label: 'Profile'  },
+  { icon: faArchive, path: '/user/archive',  label: 'Archive'  },
+  { icon: faGear,    path: '/user/settings', label: 'Settings' },
+];
+
 export default function UserLayout() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
+  const dispatch = useDispatch<AppDispatch>();
   const activeTab = searchParams.get('tab') ?? 'account';
   const isSettingsRoute = pathname === '/user/settings';
   const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
 
+  useEffect(() => {
+    dispatch(clearCurrentProject());
+  }, [dispatch]);
+
   return (
     <div className="dashboard-sections">
-      <LateralMenu>
+      <LateralMenu railItems={RAIL_ITEMS}>
         <Link
           to="/user/profile"
           className={`${s.navItem} ${pathname === '/user/profile' ? s.activeLink : ''}`}
