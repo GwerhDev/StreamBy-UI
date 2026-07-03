@@ -23,7 +23,7 @@ const MENU_DEFAULT_WIDTH = 250;
 
 interface RailItem { icon: IconDefinition; path: string; label: string; }
 
-export const LateralMenu = ({ children, railItems }: { children?: React.ReactNode; railItems?: RailItem[] } = {}) => {
+export const LateralMenu = ({ children, title, railItems }: { children?: React.ReactNode; title?: string; railItems?: RailItem[] } = {}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
@@ -236,6 +236,13 @@ export const LateralMenu = ({ children, railItems }: { children?: React.ReactNod
       return (
         <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
           <div className={s.container}>
+            {title && (
+              <div className={s.railTitle}>
+                <button className={s.railProjectBtn}>
+                  <span className={s.railProjectInitial}>{title[0].toUpperCase()}</span>
+                </button>
+              </div>
+            )}
             <button className={s.menuToggleFloat} onClick={toggleMenu}>
               <FontAwesomeIcon icon={faChevronRight} />
             </button>
@@ -311,11 +318,18 @@ export const LateralMenu = ({ children, railItems }: { children?: React.ReactNod
   const menuContent = (
     <div className={s.wrapper} style={{ width: children ? '200px' : `${menuWidth}px` }}>
       <div className={s.container}>
-        {children ? (
+        {children ? (<>
+          {title && (
+            <div className={s.titleButton}>
+              <span className={s.title}>
+                <h4>{title}</h4>
+              </span>
+            </div>
+          )}
           <div className={s.outterMenuContainer}>
             <div className={s.menuContainer}>{children}</div>
           </div>
-        ) : (<>
+        </>) : (<>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
             <h4>{name}</h4>

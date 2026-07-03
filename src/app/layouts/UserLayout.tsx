@@ -6,8 +6,8 @@ import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
   faUser, faChevronDown, faGear,
 } from '@fortawesome/free-solid-svg-icons';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
 import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 
@@ -30,8 +30,12 @@ export default function UserLayout() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
+  const session = useSelector((state: RootState) => state.session);
   const activeTab = searchParams.get('tab') ?? 'account';
+  const isProfileRoute = pathname === '/user/profile';
+  const isArchiveRoute = pathname === '/user/archive';
   const isSettingsRoute = pathname === '/user/settings';
+  const [userOpen, setUserOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
 
   useEffect(() => {
@@ -40,21 +44,38 @@ export default function UserLayout() {
 
   return (
     <div className="dashboard-sections">
-      <LateralMenu railItems={RAIL_ITEMS}>
-        <Link
-          to="/user/profile"
-          className={`${s.navItem} ${pathname === '/user/profile' ? s.activeLink : ''}`}
-        >
-          <FontAwesomeIcon icon={faIdCard} />
-          Profile
-        </Link>
-        <Link
-          to="/user/archive"
-          className={`${s.navItem} ${pathname === '/user/archive' ? s.activeLink : ''}`}
-        >
-          <FontAwesomeIcon icon={faArchive} />
-          Archive
-        </Link>
+      <LateralMenu title={session.username || 'User'} railItems={RAIL_ITEMS}>
+
+        <div className={s.accordionSection}>
+          <div
+            className={`${s.sectionHeader} ${isProfileRoute || isArchiveRoute ? s.sectionHeaderActive : ''}`}
+            onClick={() => setUserOpen(v => !v)}
+          >
+            <span className={s.sectionLabel}>User</span>
+            <div className={`${s.sectionChevronWrap} ${userOpen ? s.sectionChevronWrapOpen : ''}`}>
+              <FontAwesomeIcon icon={faIdCard} className={s.sectionChevronSectionIcon} />
+              <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+            </div>
+          </div>
+          {userOpen && (
+            <div className={s.sectionBody}>
+              <Link
+                to="/user/profile"
+                className={`${s.navItem} ${isProfileRoute ? s.activeLink : ''}`}
+              >
+                <FontAwesomeIcon icon={faIdCard} />
+                Profile
+              </Link>
+              <Link
+                to="/user/archive"
+                className={`${s.navItem} ${isArchiveRoute ? s.activeLink : ''}`}
+              >
+                <FontAwesomeIcon icon={faArchive} />
+                Archive
+              </Link>
+            </div>
+          )}
+        </div>
 
         <div className={s.accordionSection}>
           <div
@@ -82,6 +103,7 @@ export default function UserLayout() {
             </div>
           )}
         </div>
+
       </LateralMenu>
 
       <div style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}>
