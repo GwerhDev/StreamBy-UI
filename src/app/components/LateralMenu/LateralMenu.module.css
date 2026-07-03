@@ -368,6 +368,17 @@
   padding: 0.5rem 0;
 }
 
+.railIcon,
+.railIcon:hover,
+.railIcon:focus,
+.railIcon:active,
+.railIcon:focus-visible {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .railIcon {
   width: 34px;
   height: 34px;
@@ -376,18 +387,21 @@
   justify-content: center;
   border-radius: 6px;
   border: none;
-  background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 0.82rem;
-  transition: background 0.1s, color 0.1s;
+  transition: color 0.1s;
 }
 
 .railIcon:hover {
   color: var(--color-text-bright);
 }
 
-.railIconActive {
+.railIconActive,
+.railIconActive:hover,
+.railIconActive:focus,
+.railIconActive:active,
+.railIconActive:focus-visible {
   color: var(--color-accent);
 }
 
