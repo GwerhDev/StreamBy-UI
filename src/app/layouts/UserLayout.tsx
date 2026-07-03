@@ -6,8 +6,6 @@ import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
   faUser, faChevronDown, faGear,
 } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 
 const SETTINGS_CATEGORIES = [
@@ -24,18 +22,11 @@ export default function UserLayout() {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') ?? 'account';
   const isSettingsRoute = pathname === '/user/settings';
-  const session = useSelector((state: RootState) => state.session);
   const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
 
   return (
     <div className="dashboard-sections">
       <LateralMenu>
-        <div className={s.titleButton}>
-          <span className={s.title}>
-            <h4>{session.username || 'User'}</h4>
-          </span>
-        </div>
-
         <Link
           to="/user/profile"
           className={`${s.navItem} ${pathname === '/user/profile' ? s.activeLink : ''}`}
@@ -51,17 +42,12 @@ export default function UserLayout() {
           Archive
         </Link>
 
-        <div className={s.sectionDivider} />
-
         <div className={s.accordionSection}>
           <div
             className={`${s.sectionHeader} ${isSettingsRoute ? s.sectionHeaderActive : ''}`}
             onClick={() => setSettingsOpen(v => !v)}
           >
-            <span className={s.sectionLabel}>
-              <FontAwesomeIcon icon={faGear} />
-              Settings
-            </span>
+            <span className={s.sectionLabel}>Settings</span>
             <div className={`${s.sectionChevronWrap} ${settingsOpen ? s.sectionChevronWrapOpen : ''}`}>
               <FontAwesomeIcon icon={faGear} className={s.sectionChevronSectionIcon} />
               <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
