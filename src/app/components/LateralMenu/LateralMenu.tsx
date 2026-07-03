@@ -206,7 +206,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
 
   if (!menuOpen) {
     return (
-      <div className={s.wrapper} style={{ width: '44px' }}>
+      <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>
           <div className={s.railTitle}>
             <span>{name?.[0]?.toUpperCase() ?? '·'}</span>
