@@ -316,7 +316,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   }
 
   const menuContent = (
-    <div className={s.wrapper} style={{ width: children ? '200px' : `${menuWidth}px` }}>
+    <div className={s.wrapper} style={{ width: `${menuWidth}px` }}>
       <div className={s.container}>
         {children ? (<>
           {title && (
