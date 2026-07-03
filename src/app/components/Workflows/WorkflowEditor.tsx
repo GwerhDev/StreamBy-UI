@@ -4,14 +4,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { setCurrentWorkflow, clearCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
+import { setCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
 import { getWorkflow, updateWorkflow } from '../../../services/workflows';
 import { Workflow, Export } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFloppyDisk, faSitemap, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faFloppyDisk, faSitemap } from '@fortawesome/free-solid-svg-icons';
 import { ActionButton } from '../Buttons/ActionButton';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { Spinner } from '../Spinner';
 
 function workflowToExport(workflow: Workflow, projectId: string): Export {
@@ -61,15 +60,18 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
 
   return (
     <div className={s.container}>
-      <div className={s.toolbar}>
-        <div className={s.toolbarLeft}>
-          <FontAwesomeIcon icon={faSitemap} />
-          <span className={s.workflowName}>{workflow.name}</span>
-        </div>
-        <div className={s.toolbarRight}>
-          {saving && <span className={s.savingLabel}>Saving…</span>}
-          <ActionButton icon={faFloppyDisk} text="Save" onClick={handleSave} disabled={saving} />
-          <SecondaryButton icon={faXmark} text="Close" onClick={() => navigate(`/project/${projectId}/workflows/${workflow.id}`)} />
+      <div className={s.pageHeader}>
+        <div className={s.headerRow}>
+          <SectionHeader
+            icon={faArrowLeft}
+            title={workflow.name}
+            subtitle={workflow.description || undefined}
+            onIconClick={() => navigate(`/project/${projectId}/workflows/${workflow.id}`)}
+          />
+          <div className={s.headerRight}>
+            {saving && <span className={s.savingLabel}>Saving…</span>}
+            <ActionButton icon={faFloppyDisk} text="Save" onClick={handleSave} disabled={saving} />
+          </div>
         </div>
       </div>
       <div className={s.canvas}>
@@ -91,12 +93,10 @@ export function WorkflowEditor() {
 
   useEffect(() => {
     if (!projectId || !workflowId) return;
-    if (workflow?.id === workflowId) return;
     dispatch(setWorkflowLoading());
     getWorkflow(projectId, workflowId)
       .then(data => dispatch(setCurrentWorkflow(data)))
       .catch(err => dispatch(setWorkflowError(err.message || 'Failed to load workflow.')));
-    return () => { dispatch(clearCurrentWorkflow()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, workflowId]);
 
@@ -104,9 +104,8 @@ export function WorkflowEditor() {
     dispatch(setCurrentWorkflow(updated));
   }, [dispatch]);
 
-  if (loading) return <Spinner bg isLoading />;
+  if (loading || !workflow) return <Spinner bg isLoading />;
   if (error) return <div style={{ padding: '2rem', color: 'var(--color-error)' }}>{error}</div>;
-  if (!workflow) return null;
 
   return <WorkflowEditorInner workflow={workflow} onSaved={handleSaved} />;
 }

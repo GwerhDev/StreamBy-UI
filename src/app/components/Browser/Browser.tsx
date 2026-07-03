@@ -27,6 +27,7 @@ export const Browser = (props: BrowserProps) => {
   const { toggleMenu, menuOpen } = useEditorMenu();
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
   const currentExport = useSelector((state: RootState) => state.currentExport.data);
+  const currentWorkflow = useSelector((state: RootState) => state.currentWorkflow.data);
   const storages = useSelector((state: RootState) => state.management.storages);
   const currentStorageFolder = useSelector((state: RootState) => state.currentStorageFolder.data);
 
@@ -85,6 +86,7 @@ export const Browser = (props: BrowserProps) => {
 
   const formatSegment = (seg: string) => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
+    if (currentWorkflow && seg === currentWorkflow.id) return currentWorkflow.name;
     const storageName = resolveBuiltinStorageName(seg);
     if (storageName) return storageName.toLowerCase();
     const storageConn = currentProject?.storageConnections?.find(c => c.id === seg);
@@ -114,8 +116,8 @@ export const Browser = (props: BrowserProps) => {
                     <span key={i} className={s.separator}>
                       <FontAwesomeIcon icon={faChevronRight} />
                       <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                        {(isMongoId(seg) && seg !== currentExport?.id) ||
-                         (isUUID(seg) && (!currentStorageFolder || currentStorageFolder.id !== seg))
+                        {(isMongoId(seg) && seg !== currentExport?.id && seg !== currentWorkflow?.id) ||
+                         (isUUID(seg) && seg !== currentWorkflow?.id && (!currentStorageFolder || currentStorageFolder.id !== seg))
                           ? <FontAwesomeIcon icon={faSpinner} spin />
                           : formatSegment(seg)}
                       </span>

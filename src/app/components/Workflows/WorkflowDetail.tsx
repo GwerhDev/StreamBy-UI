@@ -2,7 +2,6 @@ import s from './WorkflowDetail.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSitemap, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentWorkflow, clearCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
@@ -57,9 +56,8 @@ export function WorkflowDetail() {
     }
   };
 
-  if (loading) return <Spinner bg isLoading />;
+  if (loading || !workflow) return <Spinner bg isLoading />;
   if (error) return <div className={s.error}>{error}</div>;
-  if (!workflow) return null;
 
   return (
     <div className={s.container}>

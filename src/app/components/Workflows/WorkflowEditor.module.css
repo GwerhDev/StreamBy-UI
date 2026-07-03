@@ -7,33 +7,27 @@
   position: relative;
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--color-surface-raised);
-  background: var(--color-surface);
+.pageHeader {
   flex-shrink: 0;
-  gap: 0.75rem;
 }
 
-.toolbarLeft {
+.headerRow {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.workflowName {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-text-bright);
-}
-
-.toolbarRight {
+.headerRight {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
+  padding-right: 1rem;
+}
+
+.savingLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
 }
 
 .canvas {
@@ -41,9 +35,4 @@
   min-height: 0;
   display: flex;
   overflow: hidden;
-}
-
-.savingLabel {
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
 }
