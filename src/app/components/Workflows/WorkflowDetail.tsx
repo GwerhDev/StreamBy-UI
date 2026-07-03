@@ -10,6 +10,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { getWorkflow, deleteWorkflow } from '../../../services/workflows';
 import { Spinner } from '../Spinner';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ModalShell } from '../Modals/ModalShell';
 
@@ -66,7 +67,7 @@ export function WorkflowDetail() {
         subtitle={workflow.description || 'No description'}
         action={
           <div className={s.actions}>
-            <SecondaryButton
+            <ActionButton
               icon={faSitemap}
               text="Open editor"
               onClick={() => navigate(`/project/${projectId}/workflows/${workflowId}/editor`)}
