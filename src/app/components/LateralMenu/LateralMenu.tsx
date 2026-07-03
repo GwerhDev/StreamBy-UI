@@ -204,8 +204,49 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
     setShowCanvas(false);
   };
 
+  if (!menuOpen) {
+    return (
+      <div className={s.wrapper} style={{ width: '44px' }}>
+        <div className={s.container}>
+          <div className={s.railTitle}>
+            <span>{name?.[0]?.toUpperCase() ?? '·'}</span>
+          </div>
+          <div className={s.railIcons}>
+            <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
+              <FontAwesomeIcon icon={faTableColumns} />
+            </button>
+            {!isPending && (<>
+              <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflows`)} title="Workflows">
+                <FontAwesomeIcon icon={faSitemap} />
+              </button>
+              {mode === 'developer' && (
+                <button className={`${s.railIcon} ${isExportsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/exports`)} title="Exports">
+                  <FontAwesomeIcon icon={faFileExport} />
+                </button>
+              )}
+              <button className={`${s.railIcon} ${isStorageSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/storage`)} title="Storage">
+                <FontAwesomeIcon icon={faBox} />
+              </button>
+              {mode === 'developer' && (<>
+                <button className={`${s.railIcon} ${isDatabaseSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/database`)} title="Database">
+                  <FontAwesomeIcon icon={faDatabase} />
+                </button>
+                <button className={`${s.railIcon} ${isConnectionsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/connections`)} title="Connections">
+                  <FontAwesomeIcon icon={faTowerBroadcast} />
+                </button>
+                <button className={`${s.railIcon} ${isSettingsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/settings`)} title="Settings">
+                  <FontAwesomeIcon icon={faGear} />
+                </button>
+              </>)}
+            </>)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const menuContent = (
-    <div className={s.wrapper} style={!menuOpen ? { display: 'none' } : { width: `${menuWidth}px` }}>
+    <div className={s.wrapper} style={{ width: `${menuWidth}px` }}>
       <div className={s.container}>
         {children ? (
           <div className={s.outterMenuContainer}>
