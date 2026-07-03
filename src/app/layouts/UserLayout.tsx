@@ -37,7 +37,7 @@ export default function UserLayout() {
   const isArchiveRoute = pathname === '/user/archive';
   const isSettingsRoute = pathname === '/user/settings';
   const [userOpen, setUserOpen] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
+  const [settingsOpen, setSettingsOpen] = useState(true);
 
   useEffect(() => {
     dispatch(clearCurrentProject());

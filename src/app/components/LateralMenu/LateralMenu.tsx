@@ -52,13 +52,13 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const isSettingsSection = location.pathname.includes(`/project/${id}/settings`);
 
   const [sectionOpen, setSectionOpen] = useState({
-    dashboard: isDashboardSection,
-    workflows: isWorkflowsSection,
-    exports: isExportsSection,
-    storage: isStorageSection,
-    database: isDatabaseSection,
-    connections: isConnectionsSection,
-    settings: isSettingsSection,
+    dashboard: true,
+    workflows: true,
+    exports: true,
+    storage: true,
+    database: true,
+    connections: true,
+    settings: true,
   });
 
   useEffect(() => {

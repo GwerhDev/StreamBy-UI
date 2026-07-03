@@ -11,6 +11,7 @@ import ProjectLayout from './app/layouts/ProjectLayout';
 import PreviewLayout from './app/layouts/PreviewLayout';
 import NotificationLayout from './app/layouts/NotificationLayout';
 import UserLayout from './app/layouts/UserLayout';
+import { Explore } from './app/pages/Explore';
 
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
@@ -54,7 +55,9 @@ const DatabaseConnectionCreate = lazy(() => import('./app/pages/DatabaseConnecti
 const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnectionDetail').then(module => ({ default: module.DatabaseConnectionDetail })));
 const DatabaseTableCreate      = lazy(() => import('./app/pages/DatabaseTableCreate').then(module => ({ default: module.DatabaseTableCreate })));
 const DatabaseRecords          = lazy(() => import('./app/pages/DatabaseRecords').then(module => ({ default: module.DatabaseRecords })));
-const Explore                  = lazy(() => import('./app/pages/Explore').then(module => ({ default: module.Explore })));
+const ExploreProjects          = lazy(() => import('./app/pages/ExploreProjects').then(module => ({ default: module.ExploreProjects })));
+const ExploreUsers             = lazy(() => import('./app/pages/ExploreUsers').then(module => ({ default: module.ExploreUsers })));
+const ExploreExports           = lazy(() => import('./app/pages/ExploreExports').then(module => ({ default: module.ExploreExports })));
 const JobMonitorPage           = lazy(() => import('./app/pages/JobMonitorPage').then(module => ({ default: module.JobMonitorPage })));
 const ReviewListPage           = lazy(() => import('./app/pages/ReviewListPage').then(module => ({ default: module.ReviewListPage })));
 const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage').then(module => ({ default: module.ReviewPlayerPage })));
@@ -86,7 +89,11 @@ function App() {
               <Route element={<DefaultLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/project/create" element={<ProjectCreate />} />
-                <Route path="/project/explore" element={<Explore />} />
+                <Route element={<Explore />}>
+                  <Route path="/project/explore"         element={<ExploreProjects />} />
+                  <Route path="/project/explore/users"   element={<ExploreUsers />} />
+                  <Route path="/project/explore/exports" element={<ExploreExports />} />
+                </Route>
                 <Route element={<UserLayout />}>
                   <Route path="/user" element={<UserHub />} />
                   <Route path="/user/profile" element={<UserAccount />} />

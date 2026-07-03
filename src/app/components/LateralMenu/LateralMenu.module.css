@@ -186,7 +186,7 @@
 }
 
 .sectionHeaderActive {
-  color: var(--color-select-accent);
+  color: var(--color-accent);
 }
 
 .sectionLabel {
@@ -286,9 +286,11 @@
 }
 
 .navItem.activeLink,
-.serviceHeader.activeLink {
-  background-color: var(--color-surface-raised);
-  color: var(--color-select-accent);
+.serviceHeader.activeLink,
+.navItem.activeLink:hover,
+.serviceHeader.activeLink:hover {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
 }
 
 .storageList {
