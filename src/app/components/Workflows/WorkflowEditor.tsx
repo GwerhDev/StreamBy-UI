@@ -8,7 +8,7 @@ import { setCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../
 import { getWorkflow, updateWorkflow } from '../../../services/workflows';
 import { Workflow, Export } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
-import { faArrowLeft, faFloppyDisk, faSitemap } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { Spinner } from '../Spinner';
