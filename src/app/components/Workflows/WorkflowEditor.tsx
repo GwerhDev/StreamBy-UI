@@ -10,6 +10,7 @@ import { setCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../
 import { getWorkflow, updateWorkflow } from '../../../services/workflows';
 import { Workflow, Export } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { TemplatePicker } from './TemplatePicker';
 import { ActionButton } from '../Buttons/ActionButton';
 
 function workflowToExport(workflow: Workflow, projectId: string): Export {
@@ -41,7 +42,10 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
   const [localName, setLocalName] = useState(workflow.name);
   const [localDescription, setLocalDescription] = useState(workflow.description || '');
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
-  const exportAdapter = workflowToExport(workflow, projectId ?? '');
+  const [initialSchema, setInitialSchema] = useState<{ nodes: object[]; edges: object[] } | null>(
+    workflow.nodeSchema ?? null
+  );
+  const exportAdapter = workflowToExport({ ...workflow, nodeSchema: initialSchema }, projectId ?? '');
 
   const handleSave = async () => {
     if (!projectId) return;
@@ -93,12 +97,17 @@ function WorkflowEditorInner({ workflow, onSaved }: WorkflowEditorInnerProps) {
         </div>
       </div>
       <div className={s.canvas}>
-        <NodeViewer
-          ref={nodeViewerRef}
-          exportDetails={exportAdapter}
-          editMode
-          projectId={projectId}
-        />
+        {initialSchema === null ? (
+          <TemplatePicker onSelect={setInitialSchema} />
+        ) : (
+          <NodeViewer
+            key="workflow-canvas"
+            ref={nodeViewerRef}
+            exportDetails={exportAdapter}
+            editMode
+            projectId={projectId}
+          />
+        )}
       </div>
     </div>
   );
