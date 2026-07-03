@@ -1,11 +1,9 @@
 import s from './ProjectArchive.module.css';
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
-import { useNavigate } from "react-router-dom";
-import { ProjectCard } from "../Cards/ProjectCard";
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { RootState } from '../../../store';
+import { ProjectCard } from '../Cards/ProjectCard';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
-import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { faArchive } from '@fortawesome/free-solid-svg-icons';
 import { ProjectList } from '../../../interfaces';
 
 export const ProjectArchive = () => {
@@ -15,26 +13,27 @@ export const ProjectArchive = () => {
 
   return (
     <div className={s.container}>
-      {
-        filteredList.length === 0
-          ?
-          <EmptyBackground />
-          :
-          <div className={s.createContainer}>
-            <SectionHeader icon={faArchive} title="Archive Enemy" subtitle="Choose a project" />
-            <ul>
-              {
-                filteredList.map((project: ProjectList) => {
-                  return (
-                    <li title={project.name} key={project.id} onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}>
-                      <ProjectCard project={project} />
-                    </li>
-                  )
-                })
-              }
-            </ul>
+      {filteredList.length === 0 ? (
+        <EmptyBackground />
+      ) : (
+        <div className={s.createContainer}>
+          <div className={s.title}>
+            <h2>The Archives</h2>
+            <p>Choose a project</p>
           </div>
-      }
-    </div >
-  )
-}
+          <ul>
+            {filteredList.map((project: ProjectList) => (
+              <li
+                title={project.name}
+                key={project.id}
+                onClick={() => navigate('/project/' + project.id + '/dashboard/overview')}
+              >
+                <ProjectCard project={project} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};

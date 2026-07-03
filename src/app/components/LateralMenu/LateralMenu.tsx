@@ -229,6 +229,17 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   );
 
   if (!menuOpen) {
+    if (children) {
+      return (
+        <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
+          <div className={s.container}>
+            <button className={s.menuToggleFloat} onClick={toggleMenu}>
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>

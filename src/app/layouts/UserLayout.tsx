@@ -1,8 +1,13 @@
+import s from '../components/LateralMenu/LateralMenu.module.css';
+import { useState } from 'react';
 import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUser, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
+  faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
+  faUser, faChevronDown, faGear,
 } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 
 const SETTINGS_CATEGORIES = [
@@ -19,41 +24,66 @@ export default function UserLayout() {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') ?? 'account';
   const isSettingsRoute = pathname === '/user/settings';
+  const session = useSelector((state: RootState) => state.session);
+  const [settingsOpen, setSettingsOpen] = useState(isSettingsRoute);
 
   return (
     <div className="dashboard-sections">
       <LateralMenu>
-        <span className="nav-section">
-          <h4>USER</h4>
-        </span>
-        <ul className="nav-menu-list">
-          <Link to="/user/profile">
-            <li className={pathname === '/user/profile' ? 'nav-active' : ''}>
-              <FontAwesomeIcon icon={faUser} />
-              Profile
-            </li>
-          </Link>
-          <Link to="/user/archive">
-            <li className={pathname === '/user/archive' ? 'nav-active' : ''}>
-              <FontAwesomeIcon icon={faArchive} />
-              Archive
-            </li>
-          </Link>
-        </ul>
-        <span className="nav-section">
-          <h4>SETTINGS</h4>
-        </span>
-        <ul className="nav-menu-list">
-          {SETTINGS_CATEGORIES.map(cat => (
-            <Link key={cat.id} to={`/user/settings?tab=${cat.id}`}>
-              <li className={isSettingsRoute && activeTab === cat.id ? 'nav-active' : ''}>
-                <FontAwesomeIcon icon={cat.icon} />
-                {cat.label}
-              </li>
-            </Link>
-          ))}
-        </ul>
+        <div className={s.titleButton}>
+          <span className={s.title}>
+            <h4>{session.username || 'User'}</h4>
+          </span>
+        </div>
+
+        <Link
+          to="/user/profile"
+          className={`${s.navItem} ${pathname === '/user/profile' ? s.activeLink : ''}`}
+        >
+          <FontAwesomeIcon icon={faIdCard} />
+          Profile
+        </Link>
+        <Link
+          to="/user/archive"
+          className={`${s.navItem} ${pathname === '/user/archive' ? s.activeLink : ''}`}
+        >
+          <FontAwesomeIcon icon={faArchive} />
+          Archive
+        </Link>
+
+        <div className={s.sectionDivider} />
+
+        <div className={s.accordionSection}>
+          <div
+            className={`${s.sectionHeader} ${isSettingsRoute ? s.sectionHeaderActive : ''}`}
+            onClick={() => setSettingsOpen(v => !v)}
+          >
+            <span className={s.sectionLabel}>
+              <FontAwesomeIcon icon={faGear} />
+              Settings
+            </span>
+            <div className={`${s.sectionChevronWrap} ${settingsOpen ? s.sectionChevronWrapOpen : ''}`}>
+              <FontAwesomeIcon icon={faGear} className={s.sectionChevronSectionIcon} />
+              <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+            </div>
+          </div>
+          {settingsOpen && (
+            <div className={s.sectionBody}>
+              {SETTINGS_CATEGORIES.map(cat => (
+                <Link
+                  key={cat.id}
+                  to={`/user/settings?tab=${cat.id}`}
+                  className={`${s.navItem} ${isSettingsRoute && activeTab === cat.id ? s.activeLink : ''}`}
+                >
+                  <FontAwesomeIcon icon={cat.icon} />
+                  {cat.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </LateralMenu>
+
       <div style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}>
         <Outlet />
       </div>
