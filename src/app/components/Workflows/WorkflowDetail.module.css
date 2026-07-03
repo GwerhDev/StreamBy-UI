@@ -1,6 +1,7 @@
 .container {
   width: 100%;
   margin: 0 auto;
+  padding: 1rem;
 }
 
 .error {
@@ -27,7 +28,9 @@
   line-height: 1.5;
 }
 
-.confirmText strong { color: var(--color-text-bright); }
+.confirmText strong {
+  color: var(--color-text-bright);
+}
 
 .confirmActions {
   display: flex;
@@ -47,8 +50,14 @@
   transition: background 0.15s;
 }
 
-.dangerBtn:disabled { opacity: 0.5; cursor: default; }
-.dangerBtn:not(:disabled):hover { background: rgba(248, 113, 113, 0.25); }
+.dangerBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dangerBtn:not(:disabled):hover {
+  background: rgba(248, 113, 113, 0.25);
+}
 
 .cancelBtn {
   font-size: 0.78rem;
@@ -62,4 +71,6 @@
   transition: background 0.15s;
 }
 
-.cancelBtn:hover { background: rgba(255, 255, 255, 0.05); }
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}

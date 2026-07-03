@@ -1,13 +1,13 @@
 .tabs {
   display: flex;
   gap: 0.35rem;
-  margin-top: 1rem;
   border-bottom: 1px solid var(--color-surface-raised);
   flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: var(--color-surface-sunken);
+  padding-inline: 1rem;
 }
 
 .tab {
@@ -28,10 +28,12 @@
 
 .tab:hover {
   color: white;
+  border-bottom-color: var(--color-accent);
+  background: transparent;
 }
 
 .tab.active {
-  color: var(--color-text-bright);
+  color: var(--color-white);
   border-bottom-color: var(--color-accent);
 }
 

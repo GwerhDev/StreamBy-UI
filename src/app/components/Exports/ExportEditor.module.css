@@ -1,15 +1,18 @@
-.iconRotated { transform: rotate(90deg); }
+.iconRotated {
+  transform: rotate(90deg);
+}
 
 /* ── Layout ──────────────────────────────── */
 .container {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
+  flex-direction: column;
 }
 
 .pageHeader {
+  padding: 1rem;
   flex-shrink: 0;
 }
 
@@ -47,7 +50,6 @@
   min-height: 0;
   display: flex;
   overflow: hidden;
-  padding: 1rem;
   position: relative;
 }
 
@@ -65,16 +67,19 @@
   border-color: var(--color-accent);
   border-top-width: 3px;
 }
+
 .splitOverlay_bottom {
   background: linear-gradient(to bottom, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
   border-color: var(--color-accent);
   border-bottom-width: 3px;
 }
+
 .splitOverlay_left {
   background: linear-gradient(to left, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
   border-color: var(--color-accent);
   border-left-width: 3px;
 }
+
 .splitOverlay_right {
   background: linear-gradient(to right, transparent 50%, rgba(56, 182, 255, 0.18) 50%);
   border-color: var(--color-accent);

@@ -5,6 +5,7 @@
   min-height: 0;
   gap: 0.75rem;
   width: 100%;
+  padding: 1rem;
 }
 
 .fetchBar {

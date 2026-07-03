@@ -1,0 +1,156 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Canvas ──────────────────────────────────────────────────────────────── */
+
+.canvas {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ReactFlow overrides — mirrors NodeViewer.module.css .flowContainer rules */
+
+.canvas :global(.react-flow__background) {
+  background: var(--color-surface-base);
+}
+
+.canvas :global(.react-flow__controls) {
+  background: var(--color-surface-600);
+  border: 1px solid var(--color-surface);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: none;
+  bottom: 12px;
+  left: 12px;
+}
+
+.canvas :global(.react-flow__controls-button) {
+  background: var(--color-surface-600);
+  color: var(--color-text-secondary);
+  border: none;
+  border-bottom: 1px solid var(--color-surface);
+  width: 26px;
+  height: 26px;
+}
+
+.canvas :global(.react-flow__controls-button:last-child) {
+  border-bottom: none;
+}
+
+.canvas :global(.react-flow__controls-button:hover) {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-bright);
+}
+
+.canvas :global(.react-flow__controls-button svg) {
+  fill: currentColor;
+}
+
+.canvas :global(.react-flow__attribution) {
+  display: none;
+}
+
+/* ─── Modal shared ────────────────────────────────────────────────────────── */
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-surface-hover);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.fieldInput:focus {
+  border-color: var(--color-accent);
+}
+
+.fieldError {
+  font-size: 0.72rem;
+  color: var(--color-error, #ef4444);
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 0.38rem 0.85rem;
+  background: transparent;
+  border: 1px solid var(--color-surface-hover);
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.cancelBtn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.deleteConfirmBtn {
+  padding: 0.38rem 0.85rem;
+  background: #ef4444;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.deleteConfirmBtn:hover {
+  background: #dc2626;
+}
+
+.deleteConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmText {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirmText strong {
+  color: var(--color-text-primary);
+}

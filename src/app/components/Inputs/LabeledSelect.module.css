@@ -7,6 +7,7 @@
   border: solid 1px var(--color-surface-raised);
   border-radius: 8px;
   background-color: var(--color-surface-sunken);
+  overflow: hidden;
 }
 
 .container label {
