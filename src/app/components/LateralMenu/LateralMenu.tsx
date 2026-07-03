@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBars, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
@@ -209,10 +209,11 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
       <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>
           <div className={s.railTitle}>
-            <button className={s.railIcon} onClick={toggleMenu} title={name ?? ''}>
-              <FontAwesomeIcon icon={faBars} />
-            </button>
+            <span>{name?.[0]?.toUpperCase() ?? '·'}</span>
           </div>
+          <button className={s.menuToggleFloat} onClick={toggleMenu}>
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
           <div className={s.railIcons}>
             <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
               <FontAwesomeIcon icon={faTableColumns} />
@@ -260,9 +261,6 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             <FontAwesomeIcon icon={faChevronDown} />
             <h4>{name}</h4>
           </span>
-          <button className={s.menuToggleBtn} onClick={toggleMenu}>
-            <FontAwesomeIcon icon={faBars} />
-          </button>
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
             <ul className={s.projectActionsContainer}>
               {selfMember?.archived ? (
@@ -572,6 +570,9 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
         </>)}
       </div>
       {!isSmallScreen && <div className={s.resizeHandle} onMouseDown={handleResizeMouseDown} />}
+      <button className={s.menuToggleFloat} onClick={toggleMenu}>
+        <FontAwesomeIcon icon={faChevronLeft} />
+      </button>
     </div>
   );
 
