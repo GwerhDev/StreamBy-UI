@@ -258,8 +258,8 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
         ) : (<>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
-            <FontAwesomeIcon icon={faChevronDown} />
             <h4>{name}</h4>
+            <FontAwesomeIcon icon={faChevronDown} />
           </span>
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
             <ul className={s.projectActionsContainer}>

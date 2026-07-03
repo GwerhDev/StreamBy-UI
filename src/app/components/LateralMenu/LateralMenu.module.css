@@ -59,7 +59,7 @@
   padding-inline: 1rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   background-color: transparent;
   border-bottom: solid .5px var(--color-surface);
   color: var(--color-text-secondary);
@@ -72,8 +72,8 @@
   top: 50%;
   transform: translate(50%, -50%);
   z-index: 20;
-  width: 20px;
-  height: 40px;
+  width: 12px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@
   background: var(--color-surface-900);
   color: var(--color-text-secondary);
   cursor: pointer;
-  font-size: 0.6rem;
+  font-size: 0.5rem;
   transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 
