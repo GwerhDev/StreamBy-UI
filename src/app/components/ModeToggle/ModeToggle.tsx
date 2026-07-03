@@ -2,7 +2,7 @@ import s from './ModeToggle.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCallback, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCode, faPenRuler } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faCompassDrafting } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setMode } from '../../../store/sessionSlice';
 
@@ -44,7 +44,7 @@ export const ModeToggle = () => {
           <FontAwesomeIcon icon={faCode} className={s.labelIcon} />
         </span>
         <span className={`${s.label} ${isDesigner ? s.active : s.inactive}`}>
-          <FontAwesomeIcon icon={faPenRuler} className={s.labelIcon} />
+          <FontAwesomeIcon icon={faCompassDrafting} className={s.labelIcon} />
         </span>
       </div>
     </div>
