@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { setProjects } from '../../../store/projectsSlice';
 import { Spinner } from '../Spinner';
 import { CustomForm } from './CustomForm';
 
@@ -42,7 +43,8 @@ export const CreateProjectForm = () => {
     try {
       setLoader(true);
       const response = await createProject({ name, description, public: isPublic, category: category || null });
-      const { projectId } = response || {};
+      const { projectId, projects } = response || {};
+      if (projects) dispatch(setProjects(projects));
 
       if (imageFile && projectId) {
         const contentType = imageFile.type;

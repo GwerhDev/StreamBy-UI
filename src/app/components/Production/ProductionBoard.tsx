@@ -152,7 +152,7 @@ export function ProductionBoard() {
   const shotToDelete = shots.find(sh => sh.id === deleteShotId);
 
   return (
-    <div className={s.root}>
+    <div className={s.container}>
       {/* Toolbar */}
       <div className={s.toolbar}>
         <SectionHeader

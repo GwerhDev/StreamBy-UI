@@ -8,14 +8,13 @@
 
 .header {
   flex-shrink: 0;
-  padding: 1rem 1rem 0;
 }
 
 /* ── List ────────────────────────────────── */
 .list {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding-block: 1rem;
   display: flex;
   flex-direction: column;
   gap: 2px;

@@ -11,6 +11,7 @@ import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { setProjects } from '../../../store/projectsSlice';
 
 interface DeleteProjectModalProps {
   currentProject: CurrentProjectState | null;
@@ -30,6 +31,7 @@ export const DeleteProjectModal = (props: DeleteProjectModalProps) => {
     try {
       setLoader(true);
       const response = await deleteProject(currentProject?.data?.id);
+      if (response.projects) dispatch(setProjects(response.projects));
       dispatch(addApiResponse({ message: response.message || 'Project deleted.', type: 'success' }));
       handleCancel();
       navigate('/');
