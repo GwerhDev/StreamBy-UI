@@ -58,6 +58,8 @@ export interface CurrentWorkflowState {
   error: string | null;
 }
 
+export type ProjectCategory = 'game' | 'film' | 'api' | 'creative';
+
 export interface Project {
   id: string;
   name: string;
@@ -65,6 +67,7 @@ export interface Project {
   image?: string;
   public: boolean;
   dbType?: string;
+  category?: ProjectCategory | null;
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];

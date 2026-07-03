@@ -2,9 +2,11 @@ import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faGlobe, faLock, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
+import { LabeledSelect } from '../Inputs/LabeledSelect';
+import { ProjectCategory } from '../../../interfaces';
 import {
   updateProject,
   updateProjectImage,
@@ -25,7 +27,7 @@ export const UpdateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
-  const [allowedOrigin, setAllowedOrigin] = useState<string[]>(currentProjectData?.allowedOrigin || [""]);
+  const [category, setCategory] = useState<ProjectCategory | ''>(currentProjectData?.category || '');
   const [isPublic, setIsPublic] = useState<boolean>(currentProjectData?.public ?? true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const session = useSelector((state: RootState) => state.session);
@@ -35,7 +37,7 @@ export const UpdateProjectForm = () => {
     setName(currentProjectData?.name || "");
     setPreview(currentProjectData?.image || null);
     setDescription(currentProjectData?.description || "");
-    setAllowedOrigin(currentProjectData?.allowedOrigin || []);
+    setCategory(currentProjectData?.category || '');
     setIsPublic(currentProjectData?.public ?? true);
   }, [currentProjectData]);
 
@@ -43,7 +45,7 @@ export const UpdateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const payload = { name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== ''), public: isPublic };
+      const payload = { name, description, public: isPublic, category: category || null };
       const { projectId } = await updateProject(currentProjectData?.id || '', payload);
 
       if (imageFile && projectId) {
@@ -73,20 +75,6 @@ export const UpdateProjectForm = () => {
       reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleAllowedOriginChange = (index: number, value: string) => {
-    const updated = [...allowedOrigin];
-    updated[index] = value;
-    setAllowedOrigin(updated);
-  };
-
-  const handleAddAllowedOrigin = () => setAllowedOrigin([...allowedOrigin, ""]);
-
-  const handleRemoveAllowedOrigin = (index: number) => {
-    const updated = [...allowedOrigin];
-    updated.splice(index, 1);
-    setAllowedOrigin(updated);
   };
 
   useEffect(() => {
@@ -176,29 +164,23 @@ export const UpdateProjectForm = () => {
               ),
             },
             {
-              icon: faGlobe,
-              label: 'Allowed Origins',
+              icon: faLayerGroup,
+              label: 'Category',
               value: null,
               editComponent: (
-                <div className={s.allowedOriginsContainer}>
-                  {allowedOrigin.map((origin, index) => (
-                    <div key={index} className={s.allowedOriginInputContainer}>
-                      <LabeledInput
-                        label={`Allowed Origin ${index + 1}`} type="text"
-                        placeholder="http://example.com"
-                        id={`allowed-origin-${index}`} name={`allowed-origin-${index}`}
-                        htmlFor={`allowed-origin-${index}`}
-                        value={origin} onChange={e => handleAllowedOriginChange(index, e.target.value)}
-                      />
-                      <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
-                        <FontAwesomeIcon icon={faXmark} />
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={handleAddAllowedOrigin}>
-                    <FontAwesomeIcon icon={faPlus} /> Add Origin
-                  </button>
-                </div>
+                <LabeledSelect
+                  label="Project category (optional)"
+                  htmlFor="category-input"
+                  value={category}
+                  onChange={e => setCategory(e.target.value as ProjectCategory | '')}
+                  options={[
+                    { value: '', label: '— Select a category —' },
+                    { value: 'game', label: 'Game Development' },
+                    { value: 'film', label: 'Audiovisual / Film' },
+                    { value: 'api', label: 'API / Data Service' },
+                    { value: 'creative', label: 'Creative / Design' },
+                  ]}
+                />
               ),
             },
           ]}

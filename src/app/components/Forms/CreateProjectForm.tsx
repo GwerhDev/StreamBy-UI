@@ -2,9 +2,11 @@ import s from './CreateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faGlobe, faLock, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
+import { LabeledSelect } from '../Inputs/LabeledSelect';
+import { ProjectCategory } from '../../../interfaces';
 import {
   createProject,
   uploadToPresignedUrl,
@@ -25,7 +27,7 @@ export const CreateProjectForm = () => {
   const [disabled, setDisabled] = useState<boolean>(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
-  const [allowedOrigin, setAllowedOrigin] = useState<string[]>([""]);
+  const [category, setCategory] = useState<ProjectCategory | ''>('');
   const [isPublic, setIsPublic] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ export const CreateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, allowedOrigin: allowedOrigin.filter(o => o.trim() !== ''), public: isPublic });
+      const response = await createProject({ name, description, public: isPublic, category: category || null });
       const { projectId } = response || {};
 
       if (imageFile && projectId) {
@@ -70,20 +72,6 @@ export const CreateProjectForm = () => {
       reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleAllowedOriginChange = (index: number, value: string) => {
-    const updated = [...allowedOrigin];
-    updated[index] = value;
-    setAllowedOrigin(updated);
-  };
-
-  const handleAddAllowedOrigin = () => setAllowedOrigin([...allowedOrigin, ""]);
-
-  const handleRemoveAllowedOrigin = (index: number) => {
-    const updated = [...allowedOrigin];
-    updated.splice(index, 1);
-    setAllowedOrigin(updated);
   };
 
   useEffect(() => {
@@ -176,29 +164,23 @@ export const CreateProjectForm = () => {
               ),
             },
             {
-              icon: faGlobe,
-              label: 'Allowed Origins',
+              icon: faLayerGroup,
+              label: 'Category',
               value: null,
               editComponent: (
-                <div className={s.allowedOriginsContainer}>
-                  {allowedOrigin.map((origin, index) => (
-                    <div key={index} className={s.allowedOriginInputContainer}>
-                      <LabeledInput
-                        label={`Allowed Origin ${index + 1}`} type="text"
-                        placeholder="http://example.com"
-                        id={`allowed-origin-${index}`} name={`allowed-origin-${index}`}
-                        htmlFor={`allowed-origin-${index}`}
-                        value={origin} onChange={e => handleAllowedOriginChange(index, e.target.value)}
-                      />
-                      <button type="button" onClick={() => handleRemoveAllowedOrigin(index)}>
-                        <FontAwesomeIcon icon={faXmark} />
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={handleAddAllowedOrigin}>
-                    <FontAwesomeIcon icon={faPlus} /> Add Origin
-                  </button>
-                </div>
+                <LabeledSelect
+                  label="Project category (optional)"
+                  htmlFor="category-input"
+                  value={category}
+                  onChange={e => setCategory(e.target.value as ProjectCategory | '')}
+                  options={[
+                    { value: '', label: '— Select a category —' },
+                    { value: 'game', label: 'Game Development' },
+                    { value: 'film', label: 'Audiovisual / Film' },
+                    { value: 'api', label: 'API / Data Service' },
+                    { value: 'creative', label: 'Creative / Design' },
+                  ]}
+                />
               ),
             },
           ]}

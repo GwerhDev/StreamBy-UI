@@ -10,7 +10,7 @@ export async function exploreProjects() {
   return projects;
 }
 
-export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean }) {
+export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean; category?: string | null }) {
   const res = await fetch(`${API_BASE}/streamby/projects/create`, {
     method: 'POST',
     credentials: 'include',
@@ -50,7 +50,7 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   return true;
 }
 
-export async function updateProject(projectId: string, payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean }) {
+export async function updateProject(projectId: string, payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean; category?: string | null }) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}`, {
     method: 'PATCH',
     credentials: 'include',
