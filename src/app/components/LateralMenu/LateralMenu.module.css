@@ -48,21 +48,45 @@
   width: 100%;
   height: 35px;
   display: flex;
+  align-items: stretch;
   position: relative;
 }
 
 .title {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 100%;
   border-radius: 0;
   padding-inline: 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   background-color: transparent;
   border-bottom: solid .5px var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
+}
+
+.menuToggleBtn {
+  flex-shrink: 0;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-bottom: solid .5px var(--color-surface);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.1s, color 0.1s;
+}
+
+.menuToggleBtn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text-bright);
 }
 
 .projectActionsContainer {

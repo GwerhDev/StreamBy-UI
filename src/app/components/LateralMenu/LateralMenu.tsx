@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBars, faBox, faChevronDown, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
@@ -37,7 +37,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
   const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
   const [dbTablesLoading, setDbTablesLoading] = useState<Set<string>>(new Set());
-  const { menuOpen, closeMenu } = useEditorMenu();
+  const { menuOpen, closeMenu, toggleMenu } = useEditorMenu();
   const location = useLocation();
 
   const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
@@ -209,7 +209,9 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
       <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>
           <div className={s.railTitle}>
-            <span>{name?.[0]?.toUpperCase() ?? '·'}</span>
+            <button className={s.railIcon} onClick={toggleMenu} title={name ?? ''}>
+              <FontAwesomeIcon icon={faBars} />
+            </button>
           </div>
           <div className={s.railIcons}>
             <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
@@ -255,9 +257,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
         ) : (<>
         <div className={s.titleButton}>
           <span className={s.title} onClick={() => setShowCanvas(true)}>
-            <h4>{name}</h4>
             <FontAwesomeIcon icon={faChevronDown} />
+            <h4>{name}</h4>
           </span>
+          <button className={s.menuToggleBtn} onClick={toggleMenu}>
+            <FontAwesomeIcon icon={faBars} />
+          </button>
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
             <ul className={s.projectActionsContainer}>
               {selfMember?.archived ? (

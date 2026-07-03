@@ -1,9 +1,8 @@
 import s from './Browser.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { faArrowLeft, faBan, faBars, faCheck, faChevronRight, faEnvelope, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBan, faCheck, faChevronRight, faEnvelope, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEditorMenu } from '../../../context/EditorMenuContext';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -24,7 +23,6 @@ export const Browser = (props: BrowserProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const { id } = useParams();
   const { projectId } = useParams<{ projectId: string }>();
-  const { toggleMenu, menuOpen } = useEditorMenu();
   const { data: currentProject, membership } = useSelector((state: RootState) => state.currentProject);
   const currentExport = useSelector((state: RootState) => state.currentExport.data);
   const currentWorkflow = useSelector((state: RootState) => state.currentWorkflow.data);
@@ -108,9 +106,6 @@ export const Browser = (props: BrowserProps) => {
             {
               env !== 'notification' &&
               <>
-                <span className={`${s.breadcrumb}${menuOpen ? ` ${s.breadcrumbActive}` : ''}`} onClick={toggleMenu}>
-                  <FontAwesomeIcon icon={faBars} />
-                </span>
                 {
                   segments.map((seg, i) => (
                     <span key={i} className={s.separator}>
