@@ -1,35 +1,41 @@
 import s from '../components/LateralMenu/LateralMenu.module.css';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCompass, faUsers, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faCompass, faUsers, faFileExport, faSitemap } from '@fortawesome/free-solid-svg-icons';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
+import { ExploreContent } from '../components/Explore/ExploreContent';
 
-const RAIL_ITEMS = [
-  { icon: faCompass,    path: '/project/explore',         label: 'Projects' },
-  { icon: faUsers,      path: '/project/explore/users',   label: 'Users'    },
-  { icon: faFileExport, path: '/project/explore/exports', label: 'Exports'  },
-];
+export const EXPLORE_FILTERS = [
+  { id: 'projects',  label: 'Projects',  icon: faCompass    },
+  { id: 'users',     label: 'Users',     icon: faUsers      },
+  { id: 'exports',   label: 'Exports',   icon: faFileExport },
+  { id: 'workflows', label: 'Workflows', icon: faSitemap    },
+] as const;
+
+export type ExploreFilterId = typeof EXPLORE_FILTERS[number]['id'];
 
 export const Explore = () => {
-  const { pathname } = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filter = (searchParams.get('filter') ?? 'projects') as ExploreFilterId;
 
   return (
     <div className="dashboard-sections">
-      <LateralMenu railItems={RAIL_ITEMS}>
+      <LateralMenu>
         <div className={s.accordionSection}>
-          <Link to="/project/explore"         className={`${s.navItem} ${pathname === '/project/explore'         ? s.activeLink : ''}`}>
-            <FontAwesomeIcon icon={faCompass}    /> Projects
-          </Link>
-          <Link to="/project/explore/users"   className={`${s.navItem} ${pathname === '/project/explore/users'   ? s.activeLink : ''}`}>
-            <FontAwesomeIcon icon={faUsers}      /> Users
-          </Link>
-          <Link to="/project/explore/exports" className={`${s.navItem} ${pathname === '/project/explore/exports' ? s.activeLink : ''}`}>
-            <FontAwesomeIcon icon={faFileExport} /> Exports
-          </Link>
+          {EXPLORE_FILTERS.map(f => (
+            <button
+              key={f.id}
+              className={`${s.navItem} ${filter === f.id ? s.activeLink : ''}`}
+              onClick={() => setSearchParams({ filter: f.id })}
+            >
+              <FontAwesomeIcon icon={f.icon} />
+              {f.label}
+            </button>
+          ))}
         </div>
       </LateralMenu>
       <div style={{ flexGrow: 1, minHeight: 0, overflow: 'auto' }}>
-        <Outlet />
+        <ExploreContent filter={filter} />
       </div>
     </div>
   );

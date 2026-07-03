@@ -121,7 +121,7 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
 
   const handleGoExplore = () => {
     dispatch(clearCurrentProject());
-    navigate('/project/explore');
+    navigate('/explore');
   };
 
   return (

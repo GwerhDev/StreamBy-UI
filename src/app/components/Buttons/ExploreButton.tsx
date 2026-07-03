@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 
 export const ExploreButton = (props: { onClick: () => void }) => {
   const { pathname } = useLocation();
-  const isActive = pathname === '/project/explore';
+  const isActive = pathname === '/explore';
 
   return (
     <button

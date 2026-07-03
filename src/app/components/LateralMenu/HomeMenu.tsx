@@ -9,7 +9,7 @@ import s from './HomeMenu.module.css';
 
 const GETTING_STARTED = [
   { icon: faRocket,     label: 'Create a project',         to: '/project/create', soon: false },
-  { icon: faCompass,    label: 'Explore projects',         to: '/project/explore', soon: false },
+  { icon: faCompass,    label: 'Explore projects',         to: '/explore',         soon: false },
   { icon: faBoxOpen,    label: 'Upload your first asset',  to: null,              soon: true  },
   { icon: faFileExport, label: 'Create your first export', to: null,              soon: true  },
   { icon: faPlug,       label: 'Connect an API',           to: null,              soon: true  },

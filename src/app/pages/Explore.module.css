@@ -1,0 +1,51 @@
+.sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0.5rem;
+  border-right: 1px solid var(--color-surface);
+  overflow-y: auto;
+  gap: 0.1rem;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.75rem 0.35rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.navItem:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-primary);
+}
+
+.navItemActive {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.navItemActive:hover {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
