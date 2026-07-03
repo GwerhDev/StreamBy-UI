@@ -237,9 +237,11 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               <span className={s.railProjectInitial}>{name?.[0]?.toUpperCase() ?? '·'}</span>
               <FontAwesomeIcon icon={faChevronDown} className={s.railProjectChevron} />
             </button>
-            <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
-              {projectActionsContent}
-            </CustomCanvas>
+            <div className={s.railCanvasAnchor}>
+              <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
+                {projectActionsContent}
+              </CustomCanvas>
+            </div>
           </div>
           <button className={s.menuToggleFloat} onClick={toggleMenu}>
             <FontAwesomeIcon icon={faChevronRight} />
