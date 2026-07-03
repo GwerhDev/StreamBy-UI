@@ -204,12 +204,42 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
     setShowCanvas(false);
   };
 
+  const projectActionsContent = (
+    <ul className={s.projectActionsContainer}>
+      {selfMember?.archived ? (
+        <li onClick={handleUnarchive} className={s.listButton}>
+          <FontAwesomeIcon icon={faArchive} />
+          Unarchive this project
+        </li>
+      ) : (
+        <li onClick={handleArchive} className={s.listButton}>
+          <FontAwesomeIcon icon={faArchive} />
+          Archive this project
+        </li>
+      )}
+      <li onClick={() => {}} className={s.listButton}>
+        <FontAwesomeIcon icon={faDoorOpen} />
+        Abandon this project
+      </li>
+      <li onClick={handleDeleteProjectModal} className={`${s.listButton} ${s.deleteButton}`}>
+        <FontAwesomeIcon icon={faTrash} />
+        Delete this project
+      </li>
+    </ul>
+  );
+
   if (!menuOpen) {
     return (
       <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>
           <div className={s.railTitle}>
-            <span>{name?.[0]?.toUpperCase() ?? '·'}</span>
+            <button className={s.railProjectBtn} onClick={() => setShowCanvas(true)}>
+              <span className={s.railProjectInitial}>{name?.[0]?.toUpperCase() ?? '·'}</span>
+              <FontAwesomeIcon icon={faChevronDown} className={s.railProjectChevron} />
+            </button>
+            <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
+              {projectActionsContent}
+            </CustomCanvas>
           </div>
           <button className={s.menuToggleFloat} onClick={toggleMenu}>
             <FontAwesomeIcon icon={faChevronRight} />
@@ -262,27 +292,7 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             <FontAwesomeIcon icon={faChevronDown} />
           </span>
           <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
-            <ul className={s.projectActionsContainer}>
-              {selfMember?.archived ? (
-                <li onClick={handleUnarchive} className={s.listButton}>
-                  <FontAwesomeIcon icon={faArchive} />
-                  Unarchive this project
-                </li>
-              ) : (
-                <li onClick={handleArchive} className={s.listButton}>
-                  <FontAwesomeIcon icon={faArchive} />
-                  Archive this project
-                </li>
-              )}
-              <li onClick={() => {}} className={s.listButton}>
-                <FontAwesomeIcon icon={faDoorOpen} />
-                Abandon this project
-              </li>
-              <li onClick={handleDeleteProjectModal} className={`${s.listButton} ${s.deleteButton}`}>
-                <FontAwesomeIcon icon={faTrash} />
-                Delete this project
-              </li>
-            </ul>
+            {projectActionsContent}
           </CustomCanvas>
         </div>
         <div className={s.outterMenuContainer}>
