@@ -153,8 +153,7 @@ export function ProductionBoard() {
 
   return (
     <div className={s.container}>
-      {/* Toolbar */}
-      <div className={s.toolbar}>
+      <div className={s.header}>
         <SectionHeader
           icon={faClipboardList}
           title="Production"

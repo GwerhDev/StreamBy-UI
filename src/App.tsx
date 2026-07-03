@@ -61,7 +61,9 @@ const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPa
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
 const WorkflowListPage         = lazy(() => import('./app/pages/WorkflowListPage').then(module => ({ default: module.WorkflowListPage })));
+const WorkflowCreatePage       = lazy(() => import('./app/pages/WorkflowCreatePage').then(module => ({ default: module.WorkflowCreatePage })));
 const WorkflowDetailPage       = lazy(() => import('./app/pages/WorkflowDetailPage').then(module => ({ default: module.WorkflowDetailPage })));
+const WorkflowEditPage         = lazy(() => import('./app/pages/WorkflowEditPage').then(module => ({ default: module.WorkflowEditPage })));
 const WorkflowEditorPage       = lazy(() => import('./app/pages/WorkflowEditorPage').then(module => ({ default: module.WorkflowEditorPage })));
 
 function App() {
@@ -125,7 +127,9 @@ function App() {
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
 
                   <Route path="/project/:id/workflows" element={<WorkflowListPage />} />
+                  <Route path="/project/:id/workflows/create" element={<WorkflowCreatePage />} />
                   <Route path="/project/:id/workflows/:workflowId" element={<WorkflowDetailPage />} />
+                  <Route path="/project/:id/workflows/:workflowId/edit" element={<WorkflowEditPage />} />
                   <Route path="/project/:id/workflows/:workflowId/editor" element={<WorkflowEditorPage />} />
 
                   <Route path="/project/:id/production" element={<ProductionBoardPage />} />

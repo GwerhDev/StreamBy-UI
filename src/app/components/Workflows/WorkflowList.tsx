@@ -3,16 +3,17 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faSitemap, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { Workflow } from '../../../interfaces';
-import { getWorkflows, createWorkflow } from '../../../services/workflows';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSitemap } from '@fortawesome/free-solid-svg-icons';
+import { getWorkflows, deleteWorkflow } from '../../../services/workflows';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { ModalShell } from '../Modals/ModalShell';
 
 export function WorkflowList() {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,7 +23,8 @@ export function WorkflowList() {
 
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Workflow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -33,22 +35,25 @@ export function WorkflowList() {
       .finally(() => setLoading(false));
   }, [projectId]);
 
-  const handleCreate = async () => {
-    if (!projectId) return;
-    setCreating(true);
+  const handleDeleteConfirm = async () => {
+    if (!projectId || !deleteTarget) return;
+    setDeleting(true);
     try {
-      const workflow: Workflow = await createWorkflow(projectId, { name: 'New Workflow' });
+      await deleteWorkflow(projectId, deleteTarget.id);
+      const updated = workflows.filter(w => w.id !== deleteTarget.id);
+      setWorkflows(updated);
       if (currentProjectData) {
         dispatch(setCurrentProject({
           ...currentProjectData,
-          workflows: [...(currentProjectData.workflows ?? []), workflow],
+          workflows: (currentProjectData.workflows ?? []).filter(w => w.id !== deleteTarget.id),
         }));
       }
-      navigate(`/project/${projectId}/workflows/${workflow.id}/editor`);
+      dispatch(addApiResponse({ message: 'Workflow deleted.', type: 'success' }));
     } catch (err: any) {
-      dispatch(addApiResponse({ message: err.message || 'Failed to create workflow.', type: 'error' }));
+      dispatch(addApiResponse({ message: err.message || 'Failed to delete workflow.', type: 'error' }));
     } finally {
-      setCreating(false);
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -61,7 +66,7 @@ export function WorkflowList() {
         title="Workflows"
         subtitle="Design your internal project pipeline"
         action={isLoading ? undefined : (
-          <ActionButton icon={faPlus} text="New workflow" onClick={handleCreate} />
+          <ActionButton icon={faPlus} text="New workflow" onClick={() => navigate(`/project/${projectId}/workflows/create`)} />
         )}
       />
 
@@ -83,20 +88,44 @@ export function WorkflowList() {
               className={s.card}
               onClick={() => navigate(`/project/${projectId}/workflows/${wf.id}`)}
             >
-              <div>
+              <div className={s.cardInfo}>
                 <div className={s.cardName}>{wf.name}</div>
                 {wf.description && <div className={s.cardMeta}>{wf.description}</div>}
               </div>
-              <span className={`${s.statusBadge} ${wf.status === 'active' ? s.statusActive : s.statusDraft}`}>
-                {wf.status}
-              </span>
+              <div className={s.cardRight}>
+                <span className={`${s.statusBadge} ${wf.status === 'active' ? s.statusActive : s.statusDraft}`}>
+                  {wf.status}
+                </span>
+                <button
+                  type="button"
+                  className={s.deleteBtn}
+                  onClick={e => { e.stopPropagation(); setDeleteTarget(wf); }}
+                  title="Delete workflow"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
             </div>
           ))}
-          <div className={`${s.card} ${s.createCard}`} onClick={handleCreate}>
-            <FontAwesomeIcon icon={faPlus} />
-            <span>{creating ? 'Creating…' : 'New workflow'}</span>
-          </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ModalShell title="Delete workflow" icon={faTrash} onClose={() => setDeleteTarget(null)}>
+          <div className={s.confirmBody}>
+            <p className={s.confirmText}>
+              Delete <strong>{deleteTarget.name}</strong>? This action cannot be undone.
+            </p>
+            <div className={s.confirmActions}>
+              <button type="button" className={s.dangerBtn} disabled={deleting} onClick={handleDeleteConfirm}>
+                {deleting ? 'Deleting…' : 'Delete workflow'}
+              </button>
+              <button type="button" className={s.cancelBtn} onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </ModalShell>
       )}
     </div>
   );

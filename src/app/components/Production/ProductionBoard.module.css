@@ -1,15 +1,17 @@
 /* ── Root ─────────────────────────────────────────────────────────────────── */
 .container {
   width: 100%;
+  flex-grow: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
 }
 
-.toolbar {
+.header {
   flex-shrink: 0;
-  padding: 1rem 1.25rem 0;
+  padding-bottom: 1rem;
 }
 
 .content {
@@ -456,7 +458,6 @@
   z-index: 10;
   background: var(--color-surface);
   border-left: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
 }
 
 .panelSlotOpen { transform: translateX(0); }

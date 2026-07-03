@@ -163,21 +163,36 @@
   cursor: pointer;
 }
 
-.sectionIcon {
-  font-size: .8rem;
-}
-
-.sectionChevron {
-  font-size: .55rem;
-  transition: transform 0.15s ease;
-  transform: rotate(-90deg);
+.sectionChevronWrap {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  cursor: pointer;
 }
 
-.sectionChevronOpen {
-  transform: rotate(0deg);
+.sectionChevronSectionIcon {
+  position: absolute;
+  font-size: 0.72rem;
+  opacity: 1;
+  transition: opacity 0.15s;
 }
+
+.sectionChevronArrow {
+  position: absolute;
+  font-size: 0.5rem;
+  opacity: 0;
+  transform: rotate(-90deg);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.sectionChevronWrapOpen .sectionChevronSectionIcon { opacity: 0; }
+.sectionChevronWrapOpen .sectionChevronArrow { opacity: 1; transform: rotate(0deg); }
+
+.sectionHeader:hover .sectionChevronSectionIcon { opacity: 0; }
+.sectionHeader:hover .sectionChevronArrow { opacity: 1; }
 
 .sectionBody {
   display: flex;

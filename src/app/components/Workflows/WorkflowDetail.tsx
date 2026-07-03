@@ -1,21 +1,21 @@
-import s from './WorkflowDetailPage.module.css';
+import s from './WorkflowDetail.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSitemap, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { RootState, AppDispatch } from '../../store';
-import { setCurrentWorkflow, clearCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../store/currentWorkflowSlice';
-import { setCurrentProject } from '../../store/currentProjectSlice';
-import { addApiResponse } from '../../store/apiResponsesSlice';
-import { getWorkflow, deleteWorkflow } from '../../services/workflows';
-import { Spinner } from '../components/Spinner';
-import { SectionHeader } from '../components/SectionHeader/SectionHeader';
-import { ActionButton } from '../components/Buttons/ActionButton';
-import { SecondaryButton } from '../components/Buttons/SecondaryButton';
-import { ModalShell } from '../components/Modals/ModalShell';
+import { RootState, AppDispatch } from '../../../store';
+import { setCurrentWorkflow, clearCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { getWorkflow, deleteWorkflow } from '../../../services/workflows';
+import { Spinner } from '../Spinner';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { ModalShell } from '../Modals/ModalShell';
 
-export function WorkflowDetailPage() {
+export function WorkflowDetail() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id: projectId, workflowId } = useParams<{ id: string; workflowId: string }>();

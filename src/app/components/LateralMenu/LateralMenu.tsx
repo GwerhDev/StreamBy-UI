@@ -248,13 +248,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
             <div className={s.accordionSection}>
               <div className={`${s.sectionHeader} ${isDashboardSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('dashboard')}>
                 <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/dashboard`); }}>
-                  <FontAwesomeIcon icon={faTableColumns} className={s.sectionIcon} />
                   Dashboard
                 </span>
-                <FontAwesomeIcon
-                  icon={faChevronDown}
-                  className={`${s.sectionChevron} ${sectionOpen.dashboard ? s.sectionChevronOpen : ''}`}
-                />
+                <div className={`${s.sectionChevronWrap} ${sectionOpen.dashboard ? s.sectionChevronWrapOpen : ''}`}>
+                  <FontAwesomeIcon icon={faTableColumns} className={s.sectionChevronSectionIcon} />
+                  <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                </div>
               </div>
               {sectionOpen.dashboard && (
                 <div className={s.sectionBody}>
@@ -287,13 +286,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isWorkflowsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflows`); }}>
-                    <FontAwesomeIcon icon={faSitemap} className={s.sectionIcon} />
                     Workflows
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.workflows ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.workflows ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faSitemap} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.workflows && (
                   <div className={s.sectionBody}>
@@ -337,13 +335,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isExportsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('exports')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/exports`); }}>
-                    <FontAwesomeIcon icon={faFileExport} className={s.sectionIcon} />
                     Exports
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.exports ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.exports ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faFileExport} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.exports && (
                   <div className={s.sectionBody}>
@@ -369,13 +366,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isStorageSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('storage')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/storage`); }}>
-                    <FontAwesomeIcon icon={faBox} className={s.sectionIcon} />
                     Storage
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.storage ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.storage ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faBox} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.storage && (
                   <div className={s.sectionBody}>
@@ -421,13 +417,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isDatabaseSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('database')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/database`); }}>
-                    <FontAwesomeIcon icon={faDatabase} className={s.sectionIcon} />
                     Database
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.database ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.database ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faDatabase} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.database && (
                   <div className={s.sectionBody}>
@@ -475,13 +470,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isConnectionsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('connections')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/connections`); }}>
-                    <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionIcon} />
                     Connections
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.connections ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.connections ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faTowerBroadcast} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.connections && (
                   <div className={s.sectionBody}>
@@ -503,13 +497,12 @@ export const LateralMenu = ({ children }: { children?: React.ReactNode } = {}) =
               {mode === 'developer' && <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isSettingsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('settings')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/settings`); }}>
-                    <FontAwesomeIcon icon={faGear} className={s.sectionIcon} />
                     Settings
                   </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`${s.sectionChevron} ${sectionOpen.settings ? s.sectionChevronOpen : ''}`}
-                  />
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.settings ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faGear} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
                 </div>
                 {sectionOpen.settings && (
                   <div className={s.sectionBody}>
