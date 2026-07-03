@@ -12,7 +12,7 @@ import { DeleteExportModal } from '../Modals/DeleteExportModal';
 import {
   faCode, faFileLines, faLink, faGlobe, faClock,
   faTrash, faSitemap, faTableColumns, faXmark,
-  faFeather, faFileExport, faBoxArchive, faComments,
+  faFileExport, faBoxArchive, faComments,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -305,7 +305,7 @@ export const ExportDetailsView: React.FC = () => {
           subtitle={exportDetails.description}
         />
         <div className={s.buttonsContainer}>
-          <ActionButton icon={faFeather} text="Editor" onClick={() => navigate(`/project/${id}/exports/${exportId}/editor`)} />
+          <ActionButton icon={faSitemap} text="Editor" onClick={() => navigate(`/project/${id}/exports/${exportId}/editor`)} />
           <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
         </div>
       </div>
