@@ -82,7 +82,7 @@
 }
 
 .label.active {
-  color: var(--color-text-bright);
+  color: var(--color-white);
 }
 
 .label.inactive {
