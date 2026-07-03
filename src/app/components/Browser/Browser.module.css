@@ -34,11 +34,6 @@
   color: var(--color-text-secondary);
 }
 
-.modeToggleSlot {
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
 .folder {
   padding: 0 4px;
   color: var(--color-link);
