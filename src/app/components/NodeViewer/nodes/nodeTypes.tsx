@@ -10,6 +10,7 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
+  faFileExport,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -458,6 +459,21 @@ AnnotationNode.displayName = 'AnnotationNode';
 
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
+// Architecture-only export node — icon hardcoded so it survives DB serialization round-trips
+export const ExportNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left} id="in-left" className={s.handle} style={hIn(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1403' }}>
+      <div className={s.nodeIcon} style={{ color: '#fbbf24' }}><FontAwesomeIcon icon={faFileExport} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ExportNode.displayName = 'ExportNode';
+
 export const nodeTypes = {
   clientNode: ClientNode,
   requestNode: RequestNode,
@@ -468,6 +484,7 @@ export const nodeTypes = {
   apiConnectionNode: ApiConnectionNode,
   processNode: ProcessNode,
   filterNode: FilterNode,
+  exportNode: ExportNode,
   ingestNode: IngestNode,
   transcodeNode: TranscodeNode,
   captionNode: CaptionNode,

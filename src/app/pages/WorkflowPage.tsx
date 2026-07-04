@@ -121,8 +121,13 @@ export function WorkflowPage() {
       const builtinDbs: BuiltinDb[] = await fetchBuiltinDatabases().catch(() => []);
 
       const schemaNodes: any[] = (wf.nodeSchema as any)?.nodes ?? [];
+      // Also stale if export nodes are still using the old filterNode type (before exportNode was introduced)
+      const hasLegacyExportNodes = schemaNodes.some(
+        n => n.id?.startsWith('export-') && n.type === 'filterNode',
+      );
       const isStale =
         !wf.nodeSchema ||
+        hasLegacyExportNodes ||
         schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
 
       if (isStale) {

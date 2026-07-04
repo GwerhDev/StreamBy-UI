@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { faFingerprint, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
@@ -152,7 +152,7 @@ export function buildSchemaFromProject(
 
   // --- Exports (right column) ---
   (project.exports ?? []).forEach((exp: Export) => {
-    nodes.push({ id: `export-${exp.id}`, type: 'filterNode', position: { x: X_EXPORTS, y: outputY }, data: { label: exp.name, subtitle: exp.method ?? exp.type ?? 'export', icon: faFileExport, bgColor: '#1e1403', iconColor: '#fbbf24' } });
+    nodes.push({ id: `export-${exp.id}`, type: 'exportNode', position: { x: X_EXPORTS, y: outputY }, data: { label: exp.name, subtitle: exp.method || 'GET' } });
     edges.push({ id: `e-streamby-export-${exp.id}`, source: 'streamby', sourceHandle: 'out-right', target: `export-${exp.id}`, targetHandle: 'in-left', animated: true, style: EDGE_PRIMARY });
     outputY += INPUT_SPACING;
   });
