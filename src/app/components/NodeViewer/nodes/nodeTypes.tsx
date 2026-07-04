@@ -10,7 +10,7 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
-  faFileExport,
+  faFileExport, faFingerprint,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -132,8 +132,9 @@ DataSourceNode.displayName = 'DataSourceNode';
 // Sits BELOW StreamBy — connects via StreamBy bottom handles
 export const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
-    <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
+    <Handle type="target" position={Position.Top}    id="in-stream"      className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
+    <Handle type="source" position={Position.Top}    id="out-stream"     className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
+    <Handle type="target" position={Position.Left}   id="in-credential"  className={s.handle} style={hIn('#818cf8')} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
       <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faGlobe} /></div>
     </div>
@@ -144,6 +145,21 @@ export const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeDat
   </div>
 ));
 ApiConnectionNode.displayName = 'ApiConnectionNode';
+
+// Attaches a project credential to an API connection node
+export const CredentialNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#160e38' }}>
+      <div className={s.nodeIcon} style={{ color: '#818cf8' }}><FontAwesomeIcon icon={faFingerprint} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>Credential</div>
+    </div>
+    <Handle type="source" position={Position.Right} id="out-credential" className={s.handle} style={hOut('#818cf8')} />
+  </div>
+));
+CredentialNode.displayName = 'CredentialNode';
 
 // Feeds static JSON into the data layer
 export const JsonInputNode = memo(({ data, selected }: NodeProps<JsonInputNodeData>) => (
@@ -482,6 +498,7 @@ export const nodeTypes = {
   dataSourceNode: DataSourceNode,
   jsonInputNode: JsonInputNode,
   apiConnectionNode: ApiConnectionNode,
+  credentialNode: CredentialNode,
   processNode: ProcessNode,
   filterNode: FilterNode,
   exportNode: ExportNode,

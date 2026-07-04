@@ -7,6 +7,7 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
+  faFingerprint,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
@@ -22,6 +23,7 @@ export type PaletteItem = {
 
 export const NODE_PALETTE: PaletteItem[] = [
   { type: 'requestNode',       label: 'Request',      subtitle: 'HTTP Request input',  icon: faArrowRightToBracket,  bgColor: '#0e2537', iconColor: H_LEFT,   group: 'input' },
+  { type: 'credentialNode',    label: 'Credential',   subtitle: 'Project credential',  icon: faFingerprint,          bgColor: '#160e38', iconColor: '#818cf8', group: 'input' },
   { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
   { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
   { type: 'apiConnectionNode', label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
@@ -72,7 +74,7 @@ export function getGroupsForMode(mode: 'developer' | 'designer') {
   return PALETTE_GROUPS.filter(g => DESIGNER_GROUPS.has(g.key));
 }
 
-const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'filterNode']);
+const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'credentialNode', 'filterNode']);
 
 export function getPaletteForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer'): PaletteItem[] {
   const base = getPaletteForMode(mode);
@@ -87,6 +89,7 @@ export function getGroupsForContext(ctx: 'export' | 'workflow', mode: 'developer
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
   if (srcType === 'jsonInputNode') return H_RIGHT;
+  if (srcType === 'credentialNode') return '#818cf8';
   if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;
   if (sourceHandle === 'out-bottom' || sourceHandle === 'out-stream') return H_BOTTOM;
   if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;

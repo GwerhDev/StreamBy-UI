@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import { DropdownInput } from '../Inputs/DropdownInput';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
-import { getConnectionResponse } from '../../../services/connections';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { getConnectionResponse, createApiConnection, updateApiConnection } from '../../../services/connections';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import ReactFlow, {
@@ -90,13 +91,16 @@ export interface NodeViewerHandle {
 
 const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
+const CREATE_NEW_SENTINEL = '__create_new__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
+  const dispatch = useDispatch<AppDispatch>();
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
   const workspaceMode = useSelector((state: RootState) => state.session.mode ?? 'developer');
+  const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
   const activePalette = getPaletteForMode(workspaceMode);
   const activeGroups = getGroupsForMode(workspaceMode);
@@ -129,6 +133,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [clientModalData, setClientModalData] = useState({ name: '', description: '', method: 'GET' });
   const [showDataSourceModal, setShowDataSourceModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
+  const [apiCreateName, setApiCreateName] = useState('');
+  const [apiCreateUrl, setApiCreateUrl] = useState('');
+  const [apiCreateMethod, setApiCreateMethod] = useState('GET');
+  const [apiCreating, setApiCreating] = useState(false);
   const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
   const [nodeLabelModalData, setNodeLabelModalData] = useState({ label: '', subtitle: '' });
 
@@ -233,6 +241,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const st = src.type ?? '';
     const tt = tgt.type ?? '';
 
+    // Credential → API connection node
+    if (st === 'credentialNode' && tt === 'apiConnectionNode') return sh === 'out-credential' && th === 'in-credential';
+
     // Client / Request → StreamBy left input
     if ((st === 'clientNode' || st === 'requestNode') && tt === 'streambyNode') return th === 'in-left';
 
@@ -313,11 +324,29 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     return false;
   }, [nodes]);
 
+  const onEdgesDelete = useCallback((deletedEdges: Edge[]) => {
+    if (!projectId) return;
+    for (const edge of deletedEdges) {
+      if (edge.targetHandle !== 'in-credential') continue;
+      const apiNode = nodes.find(n => n.id === edge.target);
+      const connectionId = (apiNode?.data?.connectionId as string) || '';
+      if (connectionId) updateApiConnection(projectId, connectionId, { credentialId: '' }).catch(() => {});
+    }
+  }, [nodes, projectId]);
+
   const onConnect = useCallback((connection: Connection) => {
     const src = nodes.find(n => n.id === connection.source);
+    const tgt = nodes.find(n => n.id === connection.target);
     const color = edgeColorForSource(connection.sourceHandle, src?.type ?? '');
     setEdges(prev => addEdge({ ...connection, animated: true, style: { stroke: color, strokeWidth: 2 } }, prev));
-  }, [nodes, setEdges]);
+    if (src?.type === 'credentialNode' && tgt?.type === 'apiConnectionNode' && projectId) {
+      const credentialId = (src.data.credentialId as string) || '';
+      const connectionId = (tgt.data.connectionId as string) || '';
+      if (credentialId && connectionId) {
+        updateApiConnection(projectId, connectionId, { credentialId }).catch(() => {});
+      }
+    }
+  }, [nodes, setEdges, projectId]);
 
   const addNode = useCallback((config: PaletteItem, position?: { x: number; y: number }) => {
     const id = `${config.type}-${crypto.randomUUID()}`;
@@ -386,10 +415,22 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node.type === 'apiConnectionNode') {
       const conn = apiConnections.find(c => c.id === (node.data.connectionId as string));
       const displayValue = conn ? `${conn.name} — ${conn.apiUrl}` : ((node.data.connectionId as string) ? (node.data.connectionId as string) : 'Not configured');
+      const credEdge = edges.find(e => e.target === node.id && e.targetHandle === 'in-credential');
+      const credNode = credEdge ? nodes.find(n => n.id === credEdge.source) : undefined;
+      const fields = [{ key: 'connectionId', label: 'Connection', value: (node.data.connectionId as string) || '', displayValue }];
+      if (credNode) fields.push({ key: 'credentialId', label: 'Credential', value: (credNode.data.credentialId as string) || '', displayValue: (credNode.data.label as string) || 'Connected' });
       return {
         title: 'API Connection',
         description: 'External API that StreamBy queries via the data layer.',
-        fields: [{ key: 'connectionId', label: 'Connection', value: (node.data.connectionId as string) || '', displayValue }],
+        fields,
+      };
+    }
+
+    if (node.type === 'credentialNode') {
+      return {
+        title: 'Credential',
+        description: 'Project credential attached to an API connection node.',
+        fields: [{ key: 'credentialId', label: 'Key', value: (node.data.credentialId as string) || '', displayValue: (node.data.label as string) || 'Not configured' }],
       };
     }
 
@@ -858,13 +899,36 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const handleOpenApiModal = useCallback(() => {
     setLocalData({});
+    setApiCreateName('');
+    setApiCreateUrl('');
+    setApiCreateMethod('GET');
     setShowApiModal(true);
   }, []);
 
-  const handleSaveApiModal = useCallback(() => {
-    handleSave();
+  const handleSaveApiModal = useCallback(async () => {
+    const connId = (localData.connectionId as string) ?? '';
+    if (connId === CREATE_NEW_SENTINEL) {
+      if (!apiCreateName || !apiCreateUrl || !projectId || !currentProject) return;
+      setApiCreating(true);
+      try {
+        const newConn = await createApiConnection(projectId, { name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' });
+        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...(currentProject.apiConnections ?? []), newConn] }));
+        setNodes(prev => prev.map(n => n.id === selectedNodeId
+          ? { ...n, data: { ...n.data, label: newConn.name, subtitle: newConn.apiUrl, connectionId: newConn.id } }
+          : n
+        ));
+      } catch { /* ignore */ } finally {
+        setApiCreating(false);
+      }
+    } else {
+      handleSave();
+    }
+    setLocalData({});
+    setApiCreateName('');
+    setApiCreateUrl('');
+    setApiCreateMethod('GET');
     setShowApiModal(false);
-  }, [handleSave]);
+  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
 
   const handleOpenNodeLabelModal = useCallback(() => {
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -924,6 +988,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               onNodeClick={handleNodeClick}
               onNodesChange={editMode ? onNodesChange : noop}
               onEdgesChange={editMode ? onEdgesChange : noop}
+              onEdgesDelete={editMode ? onEdgesDelete : undefined}
               onConnect={editMode ? onConnect : undefined}
               isValidConnection={editMode ? isValidConnection : undefined}
               nodeTypes={NODE_TYPES}
@@ -1034,6 +1099,32 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   </div>
                 )}
 
+                {selectedNode?.type === 'credentialNode' && editMode && currentProject?.credentials?.length ? (
+                  <div className={s.nodeActions}>
+                    <DropdownInput
+                      value={(selectedNode.data.credentialId as string) || ''}
+                      onChange={credentialId => {
+                        const cred = currentProject.credentials?.find(c => c.id === credentialId);
+                        if (!cred) return;
+                        setNodes(prev => prev.map(n => n.id === selectedNodeId
+                          ? { ...n, data: { ...n.data, label: cred.key, credentialId: cred.id } }
+                          : n
+                        ));
+                        const credEdge = edges.find(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
+                        const apiNode = credEdge ? nodes.find(n => n.id === credEdge.target) : undefined;
+                        const connectionId = (apiNode?.data?.connectionId as string) || '';
+                        if (connectionId && projectId) {
+                          updateApiConnection(projectId, connectionId, { credentialId: cred.id }).catch(() => {});
+                        }
+                      }}
+                      options={[
+                        { value: '', label: 'Select a credential' },
+                        ...(currentProject.credentials ?? []).map(c => ({ value: c.id, label: c.key })),
+                      ]}
+                    />
+                  </div>
+                ) : null}
+
                 {selectedDetail.fields.length > 0 && (
                   <div className={s.detailFields}>
                     {selectedDetail.fields.map(field => (
@@ -1080,7 +1171,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
           {editMode && (
             <div className={`${s.palette} ${paletteCollapsed ? s.paletteCollapsed : ''}`}>
               <button
-                role="button"
+                type="button"
                 tabIndex={0}
                 className={s.paletteToggle}
                 onClick={() => setPaletteCollapsed(c => !c)}
@@ -1557,9 +1648,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       {showApiModal && selectedNodeId && (() => {
         const node = nodes.find(n => n.id === selectedNodeId);
         const connId = (localData.connectionId as string) ?? (node?.data?.connectionId as string) ?? '';
+        const isCreatingNew = connId === CREATE_NEW_SENTINEL;
+        const canSaveApiModal = isCreatingNew ? !!apiCreateName && !!apiCreateUrl && !apiCreating : true;
         const options = [
           { value: '', label: 'Select a connection' },
           ...apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` })),
+          { value: CREATE_NEW_SENTINEL, label: '+ Create new connection...' },
         ];
         return (
           <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowApiModal(false); }}>
@@ -1578,11 +1672,25 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   <label className={s.configLabel}>Connection</label>
                   <DropdownInput value={connId} onChange={v => handleFieldChange('connectionId', v)} options={options} />
                 </div>
+                {isCreatingNew && (<>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel}>Name</label>
+                    <input className={s.configInput} type="text" value={apiCreateName} onChange={e => setApiCreateName(e.target.value)} placeholder="My API" />
+                  </div>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel}>URL</label>
+                    <input className={s.configInput} type="text" value={apiCreateUrl} onChange={e => setApiCreateUrl(e.target.value)} placeholder="https://api.example.com/endpoint" />
+                  </div>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel}>Method</label>
+                    <DropdownInput value={apiCreateMethod} onChange={setApiCreateMethod} options={HTTP_METHODS} />
+                  </div>
+                </>)}
               </div>
               <div className={s.modalFooter}>
                 <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowApiModal(false); }}>Cancel</button>
-                <button type="button" className={s.saveButton} onClick={handleSaveApiModal}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Save
+                <button type="button" className={s.saveButton} onClick={handleSaveApiModal} disabled={!canSaveApiModal}>
+                  <FontAwesomeIcon icon={faFloppyDisk} /> {apiCreating ? 'Creating…' : 'Save'}
                 </button>
               </div>
             </div>
