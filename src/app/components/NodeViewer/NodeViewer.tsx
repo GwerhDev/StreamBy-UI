@@ -138,6 +138,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [apiCreateName, setApiCreateName] = useState('');
   const [apiCreateUrl, setApiCreateUrl] = useState('');
   const [apiCreateMethod, setApiCreateMethod] = useState('GET');
+  const [apiCreateUsesCredentials, setApiCreateUsesCredentials] = useState(false);
+  const [apiCreatePrefix, setApiCreatePrefix] = useState('');
   const [apiCreating, setApiCreating] = useState(false);
   const [showCredentialModal, setShowCredentialModal] = useState(false);
   const [credPickId, setCredPickId] = useState('');
@@ -1006,6 +1008,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setApiCreateName('');
     setApiCreateUrl('');
     setApiCreateMethod('GET');
+    setApiCreateUsesCredentials(false);
+    setApiCreatePrefix('');
     setShowApiModal(true);
   }, []);
 
@@ -1015,7 +1019,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       if (!apiCreateName || !apiCreateUrl || !projectId || !currentProject) return;
       setApiCreating(true);
       try {
-        const newConn = await createApiConnection(projectId, { name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' });
+        const newConn = await createApiConnection(projectId, {
+          name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
+          ...(apiCreateUsesCredentials && apiCreatePrefix && { prefix: apiCreatePrefix }),
+        });
         dispatch(setCurrentProject({ ...currentProject, apiConnections: [...(currentProject.apiConnections ?? []), newConn] }));
         setNodes(prev => prev.map(n => n.id === selectedNodeId
           ? { ...n, data: { ...n.data, label: newConn.name, subtitle: newConn.apiUrl, connectionId: newConn.id } }
@@ -1031,8 +1038,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setApiCreateName('');
     setApiCreateUrl('');
     setApiCreateMethod('GET');
+    setApiCreateUsesCredentials(false);
+    setApiCreatePrefix('');
     setShowApiModal(false);
-  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
+  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, apiCreateUsesCredentials, apiCreatePrefix, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
 
   const handleOpenNodeLabelModal = useCallback(() => {
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -1777,6 +1786,23 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                     <label className={s.configLabel}>Method</label>
                     <DropdownInput value={apiCreateMethod} onChange={setApiCreateMethod} options={HTTP_METHODS} />
                   </div>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={apiCreateUsesCredentials}
+                        onChange={e => { setApiCreateUsesCredentials(e.target.checked); if (!e.target.checked) setApiCreatePrefix(''); }}
+                        style={{ width: '14px', height: '14px', accentColor: '#818cf8', cursor: 'pointer' }}
+                      />
+                      Uses a credential
+                    </label>
+                  </div>
+                  {apiCreateUsesCredentials && (
+                    <div className={s.configRow}>
+                      <label className={s.configLabel}>Auth Prefix</label>
+                      <input className={s.configInput} type="text" value={apiCreatePrefix} onChange={e => setApiCreatePrefix(e.target.value)} placeholder="Bearer" />
+                    </div>
+                  )}
                 </>)}
               </div>
               <div className={s.modalFooter}>
