@@ -114,7 +114,7 @@ export function WorkflowPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, currentProject?.id]);
 
-  if (loading || !currentProject) return <Spinner bg isLoading />;
+  if (loading || !currentProject) return <Spinner bg={false} isLoading />;
   if (!workflow) return null;
 
   return <ProjectArchitecture workflow={workflow} />;

@@ -56,7 +56,7 @@ export function WorkflowDetail() {
     }
   };
 
-  if (loading || !workflow) return <Spinner bg isLoading />;
+  if (loading || !workflow) return <Spinner bg={false} isLoading />;
   if (error) return <div className={s.error}>{error}</div>;
 
   const isOverview = currentProjectData?.workflows?.[0]?.id === workflowId;
