@@ -89,7 +89,7 @@ export function getGroupsForContext(ctx: 'export' | 'workflow', mode: 'developer
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
   if (srcType === 'jsonInputNode') return H_RIGHT;
-  if (srcType === 'credentialNode') return '#818cf8';
+  if (srcType === 'credentialNode' || sourceHandle === 'out-credentials') return '#818cf8';
   if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;
   if (sourceHandle === 'out-bottom' || sourceHandle === 'out-stream') return H_BOTTOM;
   if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;

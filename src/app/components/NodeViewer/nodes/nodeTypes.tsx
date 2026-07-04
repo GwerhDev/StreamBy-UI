@@ -82,8 +82,9 @@ export const StreamByNode = memo(({ data, selected }: NodeProps<BaseNodeData>) =
     <Handle type="target" position={Position.Left}   id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
     <Handle type="source" position={Position.Top}    id="out-top"   className={s.handle} style={{ ...hOut(H_TOP),    left: '35%' }} />
     <Handle type="target" position={Position.Top}    id="in-top"    className={s.handle} style={{ ...hIn(H_TOP),     left: '65%' }} />
-    <Handle type="source" position={Position.Bottom} id="out-bottom" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '35%' }} />
-    <Handle type="target" position={Position.Bottom} id="in-bottom"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '65%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), left: '15%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-bottom"      className={s.handle} style={{ ...hOut(H_BOTTOM), left: '40%' }} />
+    <Handle type="target" position={Position.Bottom} id="in-bottom"       className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '65%' }} />
     <Handle type="source" position={Position.Right}  id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#14103a' }}>
       <div className={s.nodeIcon} style={{ color: '#a78bfa' }}><FontAwesomeIcon icon={faBolt} /></div>
@@ -146,9 +147,11 @@ export const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeDat
 ));
 ApiConnectionNode.displayName = 'ApiConnectionNode';
 
-// Attaches a project credential to an API connection node
+// Project credential — receives from StreamBy, can feed into an API connection
 export const CredentialNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Top}   id="in-streamby"    className={s.handle} style={hIn('#818cf8')} />
+    <Handle type="source" position={Position.Right} id="out-credential" className={s.handle} style={hOut('#818cf8')} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#160e38' }}>
       <div className={s.nodeIcon} style={{ color: '#818cf8' }}><FontAwesomeIcon icon={faFingerprint} /></div>
     </div>
@@ -156,7 +159,6 @@ export const CredentialNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
       <div className={s.nodeLabel}>{data.label}</div>
       <div className={s.nodeSubtitle}>Credential</div>
     </div>
-    <Handle type="source" position={Position.Right} id="out-credential" className={s.handle} style={hOut('#818cf8')} />
   </div>
 ));
 CredentialNode.displayName = 'CredentialNode';

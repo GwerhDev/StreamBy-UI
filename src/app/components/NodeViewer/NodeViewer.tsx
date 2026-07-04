@@ -205,7 +205,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       extra.push({
         id: `credential-${conn.credentialId}-for-${n.id}`,
         type: 'credentialNode',
-        position: { x: n.position.x - 220, y: n.position.y },
+        position: { x: n.position.x, y: n.position.y - 160 },
         data: { label: cred?.key ?? 'Credential', subtitle: 'Credential', credentialId: conn.credentialId },
       });
     }
@@ -246,12 +246,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       if (!conn?.credentialId) continue;
       if (base.some(e => e.target === n.id && e.targetHandle === 'in-credential')) continue;
       const credNodeId = `credential-${conn.credentialId}-for-${n.id}`;
-      extra.push({
-        id: `e-${credNodeId}`,
-        source: credNodeId, sourceHandle: 'out-credential',
-        target: n.id, targetHandle: 'in-credential',
-        animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
-      });
+      extra.push(
+        {
+          id: `e-sb-${credNodeId}`,
+          source: 'streamby', sourceHandle: 'out-credentials',
+          target: credNodeId, targetHandle: 'in-streamby',
+          animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
+        },
+        {
+          id: `e-${credNodeId}`,
+          source: credNodeId, sourceHandle: 'out-credential',
+          target: n.id, targetHandle: 'in-credential',
+          animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
+        },
+      );
     }
 
     return extra.length ? [...base, ...extra] : base;
@@ -287,7 +295,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const st = src.type ?? '';
     const tt = tgt.type ?? '';
 
-    // Credential → API connection node
+    // StreamBy → Credential node (activates credential management)
+    if (st === 'streambyNode' && tt === 'credentialNode') return sh === 'out-credentials' && th === 'in-streamby';
+
+    // Credential → API connection node (attaches credential to API)
     if (st === 'credentialNode' && tt === 'apiConnectionNode') return sh === 'out-credential' && th === 'in-credential';
 
     // Client / Request → StreamBy left input
@@ -373,10 +384,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const onEdgesDelete = useCallback((deletedEdges: Edge[]) => {
     if (!projectId) return;
     for (const edge of deletedEdges) {
-      if (edge.targetHandle !== 'in-credential') continue;
-      const apiNode = nodes.find(n => n.id === edge.target);
-      const connectionId = (apiNode?.data?.connectionId as string) || '';
-      if (connectionId) updateApiConnection(projectId, connectionId, { credentialId: '' }).catch(() => {});
+      if (edge.targetHandle === 'in-credential') {
+        const apiNode = nodes.find(n => n.id === edge.target);
+        const connectionId = (apiNode?.data?.connectionId as string) || '';
+        if (connectionId) updateApiConnection(projectId, connectionId, { credentialId: '' }).catch(() => {});
+      }
     }
   }, [nodes, projectId]);
 
@@ -475,7 +487,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (node.type === 'credentialNode') {
       return {
         title: 'Credential',
-        description: 'Project credential attached to an API connection node.',
+        description: 'Project credential managed by StreamBy. Connect its output to an API node to authenticate requests.',
         fields: [{ key: 'credentialId', label: 'Key', value: (node.data.credentialId as string) || '', displayValue: (node.data.label as string) || 'Not configured' }],
       };
     }
@@ -737,7 +749,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isCredentialNode = selectedNode?.type === 'credentialNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
   const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isCredentialNode && (isJsonNode || !isCoreNode || !!onSave);
-  const credentialConnected = isCredentialNode && edges.some(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
+  const credentialConnected = isCredentialNode && edges.some(e => e.target === selectedNodeId && e.targetHandle === 'in-streamby');
 
   // Stable primitives from the saved node data — avoids re-running effects on every ReactFlow state update
   const savedNodeConnId = (selectedNode?.data?.connectionId as string) ?? '';
