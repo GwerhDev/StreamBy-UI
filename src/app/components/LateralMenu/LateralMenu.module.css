@@ -2,6 +2,7 @@
   position: relative;
   flex-shrink: 0;
   display: flex;
+  transition: width 0.22s ease;
 }
 
 @media screen and (min-width: 1024px) {
@@ -16,6 +17,21 @@
     max-width: none;
     width: 44px;
   }
+}
+
+.menuInner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  animation: menuFadeIn 0.18s ease both;
+}
+
+@keyframes menuFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .wrapperRail .container {

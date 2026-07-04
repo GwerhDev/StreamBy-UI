@@ -226,42 +226,44 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       return (
         <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
           <div className={s.container}>
-            {title && (
-              <div className={s.railTitle}>
-                <button className={s.railProjectBtn}>
-                  <span className={s.railProjectInitial}>{title[0].toUpperCase()}</span>
-                </button>
-              </div>
-            )}
-            <button className={s.menuToggleFloat} onClick={toggleMenu}>
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
-            {railItems && (
-              <div className={s.railIcons}>
-                {(() => {
-                  const activeRailPath = railItems
-                    .filter(item => !item.isActive && (
-                      location.pathname === item.path || location.pathname.startsWith(item.path + '/')
-                    ))
-                    .sort((a, b) => b.path.length - a.path.length)[0]?.path;
-                  return railItems.map(item => {
-                    const isItemActive = item.isActive
-                      ? item.isActive(location.pathname, location.search)
-                      : item.path === activeRailPath;
-                    return (
-                      <button
-                        key={item.path}
-                        className={`${s.railIcon} ${isItemActive ? s.railIconActive : ''}`}
-                        onClick={() => navigate(item.path)}
-                        title={item.label}
-                      >
-                        <FontAwesomeIcon icon={item.icon} />
-                      </button>
-                    );
-                  });
-                })()}
-              </div>
-            )}
+            <div key="rail" className={s.menuInner}>
+              {title && (
+                <div className={s.railTitle}>
+                  <button className={s.railProjectBtn}>
+                    <span className={s.railProjectInitial}>{title[0].toUpperCase()}</span>
+                  </button>
+                </div>
+              )}
+              <button className={s.menuToggleFloat} onClick={toggleMenu}>
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
+              {railItems && (
+                <div className={s.railIcons}>
+                  {(() => {
+                    const activeRailPath = railItems
+                      .filter(item => !item.isActive && (
+                        location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+                      ))
+                      .sort((a, b) => b.path.length - a.path.length)[0]?.path;
+                    return railItems.map(item => {
+                      const isItemActive = item.isActive
+                        ? item.isActive(location.pathname, location.search)
+                        : item.path === activeRailPath;
+                      return (
+                        <button
+                          key={item.path}
+                          className={`${s.railIcon} ${isItemActive ? s.railIconActive : ''}`}
+                          onClick={() => navigate(item.path)}
+                          title={item.label}
+                        >
+                          <FontAwesomeIcon icon={item.icon} />
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -269,48 +271,50 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     return (
       <div className={`${s.wrapper} ${s.wrapperRail}`} style={{ width: '44px' }}>
         <div className={s.container}>
-          <div className={s.railTitle}>
-            <button className={s.railProjectBtn} onClick={() => setShowCanvas(true)}>
-              <span className={s.railProjectInitial}>{name?.[0]?.toUpperCase() ?? '·'}</span>
-              <FontAwesomeIcon icon={faChevronDown} className={s.railProjectChevron} />
-            </button>
-            <div className={s.railCanvasAnchor}>
-              <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
-                {projectActionsContent}
-              </CustomCanvas>
+          <div key="rail" className={s.menuInner}>
+            <div className={s.railTitle}>
+              <button className={s.railProjectBtn} onClick={() => setShowCanvas(true)}>
+                <span className={s.railProjectInitial}>{name?.[0]?.toUpperCase() ?? '·'}</span>
+                <FontAwesomeIcon icon={faChevronDown} className={s.railProjectChevron} />
+              </button>
+              <div className={s.railCanvasAnchor}>
+                <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
+                  {projectActionsContent}
+                </CustomCanvas>
+              </div>
             </div>
-          </div>
-          <button className={s.menuToggleFloat} onClick={toggleMenu}>
-            <FontAwesomeIcon icon={faChevronRight} />
-          </button>
-          <div className={s.railIcons}>
-            <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
-              <FontAwesomeIcon icon={faTableColumns} />
+            <button className={s.menuToggleFloat} onClick={toggleMenu}>
+              <FontAwesomeIcon icon={faChevronRight} />
             </button>
-            {!isPending && (<>
-              <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
-                <FontAwesomeIcon icon={faSitemap} />
+            <div className={s.railIcons}>
+              <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
+                <FontAwesomeIcon icon={faTableColumns} />
               </button>
-              {mode === 'developer' && (
-                <button className={`${s.railIcon} ${isExportsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/exports`)} title="Exports">
-                  <FontAwesomeIcon icon={faFileExport} />
+              {!isPending && (<>
+                <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
+                  <FontAwesomeIcon icon={faSitemap} />
                 </button>
-              )}
-              <button className={`${s.railIcon} ${isStorageSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/storage`)} title="Storage">
-                <FontAwesomeIcon icon={faBox} />
-              </button>
-              {mode === 'developer' && (<>
-                <button className={`${s.railIcon} ${isDatabaseSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/database`)} title="Database">
-                  <FontAwesomeIcon icon={faDatabase} />
+                {mode === 'developer' && (
+                  <button className={`${s.railIcon} ${isExportsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/exports`)} title="Exports">
+                    <FontAwesomeIcon icon={faFileExport} />
+                  </button>
+                )}
+                <button className={`${s.railIcon} ${isStorageSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/storage`)} title="Storage">
+                  <FontAwesomeIcon icon={faBox} />
                 </button>
-                <button className={`${s.railIcon} ${isConnectionsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/connections`)} title="Connections">
-                  <FontAwesomeIcon icon={faTowerBroadcast} />
-                </button>
-                <button className={`${s.railIcon} ${isSettingsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/settings`)} title="Settings">
-                  <FontAwesomeIcon icon={faGear} />
-                </button>
+                {mode === 'developer' && (<>
+                  <button className={`${s.railIcon} ${isDatabaseSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/database`)} title="Database">
+                    <FontAwesomeIcon icon={faDatabase} />
+                  </button>
+                  <button className={`${s.railIcon} ${isConnectionsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/connections`)} title="Connections">
+                    <FontAwesomeIcon icon={faTowerBroadcast} />
+                  </button>
+                  <button className={`${s.railIcon} ${isSettingsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/settings`)} title="Settings">
+                    <FontAwesomeIcon icon={faGear} />
+                  </button>
+                </>)}
               </>)}
-            </>)}
+            </div>
           </div>
         </div>
       </div>
@@ -320,6 +324,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const menuContent = (
     <div className={s.wrapper} style={{ width: `${menuWidth}px` }}>
       <div className={s.container}>
+        <div key="open" className={s.menuInner}>
         {children ? (<>
           {title && (
             <div className={s.titleButton}>
@@ -603,6 +608,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
           </div>
         </div>
         </>)}
+        </div>
       </div>
       {!isSmallScreen && <div className={s.resizeHandle} onMouseDown={handleResizeMouseDown} />}
       <button className={s.menuToggleFloat} onClick={toggleMenu}>
