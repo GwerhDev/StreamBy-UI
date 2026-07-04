@@ -32,7 +32,7 @@ export const UpdateApiConnectionForm = () => {
   const [apiUrl, setApiUrl] = useState('');
   const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const [description, setDescription] = useState('');
-  const [credentialId, setCredentialId] = useState('');
+  const [usesCredentials, setUsesCredentials] = useState(false);
   const [prefix, setPrefix] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,14 +42,9 @@ export const UpdateApiConnectionForm = () => {
     setApiUrl(connection.apiUrl);
     setMethod(connection.method);
     setDescription(connection.description ?? '');
-    setCredentialId(connection.credentialId ?? '');
+    setUsesCredentials(!!(connection.prefix));
     setPrefix(connection.prefix ?? '');
   }, [connection]);
-
-  const availableCredentials = [
-    { value: '', label: 'None' },
-    ...(currentProject?.credentials?.map(c => ({ value: c.id, label: c.key })) ?? []),
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,8 +54,7 @@ export const UpdateApiConnectionForm = () => {
       const payload = {
         name, apiUrl, method,
         ...(description && { description }),
-        ...(credentialId && { credentialId }),
-        ...(credentialId && prefix && { prefix }),
+        ...(usesCredentials && prefix && { prefix }),
       };
       const updated = await updateApiConnection(projectId, apiConnectionId, payload);
       if (updated && currentProject.apiConnections) {
@@ -139,22 +133,26 @@ export const UpdateApiConnectionForm = () => {
               },
               {
                 icon: faFingerprint,
-                label: 'Credential',
-                value: credentialId || 'None',
+                label: 'Uses credentials',
+                value: usesCredentials ? 'Yes' : 'No',
                 editComponent: (
-                  <LabeledSelect
-                    label="Credential (optional)" id="conn-credential" name="conn-credential" htmlFor="conn-credential"
-                    value={credentialId}
-                    onChange={e => { setCredentialId(e.target.value); if (!e.target.value) setPrefix(''); }}
-                    options={availableCredentials}
-                  />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+                    <input
+                      type="checkbox"
+                      checked={usesCredentials}
+                      onChange={e => { setUsesCredentials(e.target.checked); if (!e.target.checked) setPrefix(''); }}
+                      disabled={loading}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#818cf8' }}
+                    />
+                    This connection uses a credential
+                  </label>
                 ),
               },
               {
                 icon: faLock,
                 label: 'Auth Prefix',
                 value: prefix || '—',
-                hidden: !credentialId,
+                hidden: !usesCredentials,
                 editComponent: (
                   <LabeledInput
                     label="Auth Prefix (optional)" name="prefix" value={prefix} type="text"
