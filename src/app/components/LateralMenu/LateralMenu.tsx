@@ -234,9 +234,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                   </button>
                 </div>
               )}
-              <button className={s.menuToggleFloat} onClick={toggleMenu}>
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
               {railItems && (
                 <div className={s.railIcons}>
                   {(() => {
@@ -265,6 +262,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
               )}
             </div>
           </div>
+          <button className={s.menuToggleFloat} onClick={toggleMenu}>
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
         </div>
       );
     }
@@ -283,9 +283,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </CustomCanvas>
               </div>
             </div>
-            <button className={s.menuToggleFloat} onClick={toggleMenu}>
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
             <div className={s.railIcons}>
               <button className={`${s.railIcon} ${isDashboardSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/dashboard`)} title="Dashboard">
                 <FontAwesomeIcon icon={faTableColumns} />
@@ -317,6 +314,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
             </div>
           </div>
         </div>
+        <button className={s.menuToggleFloat} onClick={toggleMenu}>
+          <FontAwesomeIcon icon={faChevronRight} />
+        </button>
       </div>
     );
   }
