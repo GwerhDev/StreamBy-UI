@@ -45,7 +45,7 @@ const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
   deliverables: { label: 'Deliverables', icon: faBoxArchive },
   reviews: { label: 'Reviews', icon: faComments },
 };
-const ALL_TABS: TabId[] = ['details', 'nodes', 'response', 'deliverables', 'reviews'];
+const ALL_TABS: TabId[] = ['nodes', 'details', 'response', 'deliverables', 'reviews'];
 
 let _c = 0;
 const uid = () => `p${++_c}`;
@@ -56,7 +56,7 @@ export const ExportDetailsView: React.FC = () => {
   const { id, exportId } = useParams<{ id: string; exportId: string }>();
 
   const [columns, setColumns] = useState<ColumnState[]>([
-    { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'details', isOriginal: true }] },
+    { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'nodes', isOriginal: true }] },
   ]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);

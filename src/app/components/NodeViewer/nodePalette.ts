@@ -6,6 +6,7 @@ import {
   faCircleCheck, faCommentDots,
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
+  faArrowRightToBracket, faArrowRightFromBracket,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
@@ -16,16 +17,18 @@ export type PaletteItem = {
   icon: IconDefinition;
   bgColor: string;
   iconColor: string;
-  group: 'data' | 'process' | 'output' | 'review' | 'delivery' | 'ai';
+  group: 'input' | 'data' | 'process' | 'output' | 'review' | 'delivery' | 'ai';
 };
 
 export const NODE_PALETTE: PaletteItem[] = [
+  { type: 'requestNode',       label: 'Request',      subtitle: 'HTTP Request input',  icon: faArrowRightToBracket,  bgColor: '#0e2537', iconColor: H_LEFT,   group: 'input' },
   { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
   { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
   { type: 'apiConnectionNode', label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
   { type: 'processNode',       label: 'Transform',    subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa', group: 'process' },
   { type: 'processNode',       label: 'Auth',         subtitle: 'Authentication',      icon: faKey,          bgColor: '#1e1030', iconColor: H_TOP,    group: 'process' },
   { type: 'processNode',       label: 'Custom',       subtitle: 'Custom step',         icon: faWrench,       bgColor: '#251a0a', iconColor: H_RIGHT,  group: 'process' },
+  { type: 'responseNode',      label: 'Response',     subtitle: 'HTTP Response output', icon: faArrowRightFromBracket, bgColor: '#1e1403', iconColor: H_RIGHT, group: 'output' },
   { type: 'filterNode',        label: 'Filter',       subtitle: 'Output filter',       icon: faFilter,           bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
   { type: 'filterNode',        label: 'Transform',    subtitle: 'Output transform',    icon: faArrowRight,       bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
   { type: 'ingestNode',        label: 'Ingest',       subtitle: 'Import asset',        icon: faCloudArrowDown,   bgColor: '#1a0d00', iconColor: H_JOB,    group: 'data' },
@@ -48,6 +51,7 @@ export const NODE_PALETTE: PaletteItem[] = [
 ];
 
 export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
+  { key: 'input',   label: 'Input',   color: H_LEFT },
   { key: 'data',    label: 'Data',    color: H_BOTTOM },
   { key: 'process', label: 'Process', color: H_TOP },
   { key: 'output',  label: 'Output',  color: H_RIGHT },
@@ -56,7 +60,7 @@ export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: 
   { key: 'ai',       label: 'AI',       color: H_REVIEW },
 ];
 
-const DESIGNER_GROUPS: Set<PaletteItem['group']> = new Set(['output', 'review', 'delivery', 'ai']);
+const DESIGNER_GROUPS: Set<PaletteItem['group']> = new Set(['input', 'output', 'review', 'delivery', 'ai']);
 
 export function getPaletteForMode(mode: 'developer' | 'designer'): PaletteItem[] {
   if (mode === 'developer') return NODE_PALETTE;
@@ -68,7 +72,7 @@ export function getGroupsForMode(mode: 'developer' | 'designer') {
   return PALETTE_GROUPS.filter(g => DESIGNER_GROUPS.has(g.key));
 }
 
-const EXPORT_PALETTE_TYPES = new Set(['dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'filterNode']);
+const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'filterNode']);
 
 export function getPaletteForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer'): PaletteItem[] {
   const base = getPaletteForMode(mode);
@@ -77,7 +81,7 @@ export function getPaletteForContext(ctx: 'export' | 'workflow', mode: 'develope
 }
 
 export function getGroupsForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer') {
-  if (ctx === 'export') return PALETTE_GROUPS.filter(g => g.key === 'data' || g.key === 'output');
+  if (ctx === 'export') return PALETTE_GROUPS.filter(g => g.key === 'input' || g.key === 'data' || g.key === 'output');
   return getGroupsForMode(mode);
 }
 

@@ -32,6 +32,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { PaletteItem, edgeColorForSource, getPaletteForMode, getGroupsForMode } from './nodePalette';
+import { ResponsePreview } from '../Exports/ResponsePreview';
 export { computeResponseFromSchema } from './nodeSchema';
 
 // ─── Filter Node Config ────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ export interface NodeViewerHandle {
   getSchema: () => { nodes: Node[]; edges: Edge[] };
 }
 
-const CORE_NODE_IDS = ['client', 'streamby'];
+const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
@@ -123,6 +124,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [includeFieldsText, setIncludeFieldsText] = useState('');
   const [filterModalLabel, setFilterModalLabel] = useState('');
   const [filterModalSubtitle, setFilterModalSubtitle] = useState('');
+  const [showResponsePreviewModal, setShowResponsePreviewModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [clientModalData, setClientModalData] = useState({ name: '', description: '', method: 'GET' });
   const [showDataSourceModal, setShowDataSourceModal] = useState(false);
@@ -157,8 +159,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (initialSchemaRef.current?.nodes) return initialSchemaRef.current.nodes as Node[];
 
     const nodes: Node[] = [
-      { id: 'client', type: 'clientNode', position: { x: 0, y: 100 }, data: { label: 'Client', subtitle: exportDetails.method || 'GET' } },
-      { id: 'streamby', type: 'streambyNode', position: { x: 240, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
+      { id: 'request',  type: 'requestNode',  position: { x: 0,   y: 100 }, data: { label: 'Request',  subtitle: exportDetails.method || 'GET' } },
+      { id: 'streamby', type: 'streambyNode', position: { x: 280, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
+      { id: 'response', type: 'responseNode', position: { x: 560, y: 100 }, data: { label: 'Response', subtitle: 'HTTP Response' } },
     ];
 
     if (initialJsonRef.current) {
@@ -175,11 +178,18 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const initialEdges = useMemo((): Edge[] => {
     if (initialSchemaRef.current?.edges) return initialSchemaRef.current.edges as Edge[];
 
-    const edges: Edge[] = [{
-      id: 'e-client-streamby', source: 'client', sourceHandle: 'out-right',
-      target: 'streamby', targetHandle: 'in-left',
-      animated: true, style: { stroke: H_LEFT, strokeWidth: 2 },
-    }];
+    const edges: Edge[] = [
+      {
+        id: 'e-request-streamby', source: 'request', sourceHandle: 'out-right',
+        target: 'streamby', targetHandle: 'in-left',
+        animated: true, style: { stroke: H_LEFT, strokeWidth: 2 },
+      },
+      {
+        id: 'e-streamby-response', source: 'streamby', sourceHandle: 'out-right',
+        target: 'response', targetHandle: 'in-left',
+        animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 },
+      },
+    ];
 
     if (initialJsonRef.current) {
       edges.push({ id: 'e-json-streamby', source: 'json-input', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } });
@@ -223,8 +233,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const st = src.type ?? '';
     const tt = tgt.type ?? '';
 
-    // Client → StreamBy left input
-    if (st === 'clientNode' && tt === 'streambyNode') return th === 'in-left';
+    // Client / Request → StreamBy left input
+    if ((st === 'clientNode' || st === 'requestNode') && tt === 'streambyNode') return th === 'in-left';
+
+    // StreamBy → Response
+    if (st === 'streambyNode' && tt === 'responseNode') return sh === 'out-right' && th === 'in-left';
 
     // StreamBy top ↔ ProcessNode bottom
     if (st === 'streambyNode' && tt === 'processNode') return sh === 'out-top';
@@ -241,8 +254,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // StreamBy right → FilterNode left
     if (st === 'streambyNode' && tt === 'filterNode') return sh === 'out-right';
 
-    // FilterNode can chain to another FilterNode
+    // FilterNode can chain to another FilterNode or terminate at Response
     if (st === 'filterNode' && tt === 'filterNode') return sh === 'out-filter' && th === 'in-filter';
+    if (st === 'filterNode' && tt === 'responseNode') return sh === 'out-filter' && th === 'in-left';
 
     // IngestNode: receives file ref from left, outputs to streamby bottom data lane
     if (st === 'streambyNode' && tt === 'ingestNode') return sh === 'out-bottom';
@@ -338,14 +352,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return null;
 
-    if (nodeId === 'client') return {
-      title: 'Client',
+    if (nodeId === 'client' || nodeId === 'request' || node.type === 'clientNode' || node.type === 'requestNode') return {
+      title: node.type === 'requestNode' || nodeId === 'request' ? 'Request' : 'Client',
       description: 'Consumer making requests to this StreamBy endpoint.',
       fields: [
         { key: 'name', label: 'Export Name', value: exportDetails.name || '' },
         { key: 'method', label: 'HTTP Method', value: exportDetails.method || 'GET' },
         { key: 'endpoint', label: 'Endpoint', value: `/streamby/${projectId}/export/${exportDetails.name}` },
       ],
+    };
+
+    if (node.type === 'responseNode') return {
+      title: 'Response',
+      description: 'HTTP response sent back to the requester.',
+      fields: [],
     };
 
     if (nodeId === 'streamby') return {
@@ -933,11 +953,25 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   </div>
                 )}
 
-                {selectedNodeId === 'client' && onSave && editMode && (
+                {(selectedNodeId === 'client' || selectedNodeId === 'request' || selectedNode?.type === 'clientNode' || selectedNode?.type === 'requestNode') && onSave && editMode && (
                   <div className={s.nodeActions}>
                     <button type="button" className={s.actionButton} onClick={handleOpenClientModal}>
                       <FontAwesomeIcon icon={faGear} />
                       Configure
+                    </button>
+                  </div>
+                )}
+
+                {(selectedNodeId === 'response' || selectedNode?.type === 'responseNode') && projectId && (
+                  <div className={s.nodeActions}>
+                    <button
+                      type="button"
+                      className={s.actionButton}
+                      onClick={() => setShowResponsePreviewModal(true)}
+                      disabled={!edges.some(e => e.target === selectedNodeId)}
+                    >
+                      <FontAwesomeIcon icon={faArrowsRotate} />
+                      Preview
                     </button>
                   </div>
                 )}
@@ -1128,6 +1162,33 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   <FontAwesomeIcon icon={faFloppyDisk} /> Save Changes
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResponsePreviewModal && projectId && (
+        <div className={s.modalOverlay} onClick={() => setShowResponsePreviewModal(false)}>
+          <div className={s.modalContainer} onClick={e => e.stopPropagation()} style={{ maxWidth: 720, width: '90vw' }}>
+            <div className={s.modalHeader}>
+              <span className={s.modalTitle}>
+                <FontAwesomeIcon icon={faArrowsRotate} style={{ color: H_RIGHT }} />
+                Response Preview
+              </span>
+              <button className={s.panelClose} type="button" onClick={() => setShowResponsePreviewModal(false)}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+            <div className={s.modalBody}>
+              <ResponsePreview
+                projectId={projectId}
+                schema={{ nodes: nodes as object[], edges: edges as object[] }}
+              />
+            </div>
+            <div className={s.modalFooter}>
+              <button type="button" className={s.cancelButton} onClick={() => setShowResponsePreviewModal(false)}>
+                Close
+              </button>
             </div>
           </div>
         </div>

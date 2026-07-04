@@ -90,6 +90,15 @@ type SchemaEdge = { source?: string; sourceHandle?: string; target?: string; tar
 
 const LIVE_TYPES = ['apiConnectionNode', 'dataSourceNode'];
 
+function isResponseConnected(schema: ResponsePreviewProps['schema']): boolean {
+  if (!schema) return true; // legacy export without schema — allow preview
+  const nodes = schema.nodes as SchemaNode[];
+  const edges = schema.edges as SchemaEdge[];
+  const responseNode = nodes.find(n => n.type === 'responseNode' || n.id === 'response');
+  if (!responseNode) return true; // no response node = legacy export, allow preview
+  return edges.some(e => e.target === responseNode.id);
+}
+
 function getIncomingNodes(schema: ResponsePreviewProps['schema']) {
   if (!schema) return [];
   const nodes = schema.nodes as SchemaNode[];
@@ -218,6 +227,14 @@ export function ResponsePreview({ projectId, schema, savedApiResponse, schemaVer
     : hasSchema
       ? 'No data source connected to StreamBy.'
       : 'No response available.';
+
+  if (!isResponseConnected(schema)) {
+    return (
+      <div className={s.root}>
+        <p className={s.hint}>Response node is not connected.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={s.root}>

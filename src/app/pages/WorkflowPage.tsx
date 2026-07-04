@@ -10,9 +10,35 @@ import { Project, Workflow, DbConnection } from '../../interfaces';
 import { buildSchemaFromProject, BuiltinDb, MgmtStorage, ProjectArchitecture } from '../components/Workflows/ProjectArchitecture';
 import { Spinner } from '../components/Spinner';
 
-async function buildInitialSchema(projectId: string, project: Project, mgmtStorages: MgmtStorage[]) {
-  const builtinDbs: BuiltinDb[] = await fetchBuiltinDatabases().catch(() => []);
+// Derive a sorted fingerprint of all resource node IDs from the current project state.
+function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], builtinDbs: BuiltinDb[]): string {
+  const ids = [
+    ...builtinDbs.map(db => `builtin-db-${db.name}`),
+    ...(project.dbConnections ?? []).map((db: DbConnection) => `db-${db.id}`),
+    ...(project.apiConnections ?? []).map((api: any) => `api-${api.id}`),
+    ...mgmtStorages.map((_, i) => `mgmt-storage-${i}`),
+    ...(project.storageConnections ?? []).map((s: any) => `storage-${s.id}`),
+    ...(project.exports ?? []).map((exp: any) => `export-${exp.id}`),
+  ];
+  return ids.sort().join(',');
+}
 
+// Derive the same fingerprint from node IDs already saved in the schema.
+function schemaFingerprint(schemaNodes: any[]): string {
+  const prefixes = ['builtin-db-', 'db-', 'api-', 'mgmt-storage-', 'storage-', 'export-'];
+  return schemaNodes
+    .map((n: any) => n.id as string)
+    .filter(id => prefixes.some(p => id?.startsWith(p)))
+    .sort()
+    .join(',');
+}
+
+async function buildInitialSchema(
+  projectId: string,
+  project: Project,
+  mgmtStorages: MgmtStorage[],
+  builtinDbs: BuiltinDb[],
+) {
   const allDbs = [
     ...builtinDbs.map(db => ({ key: `builtin-db-${db.name}`, connId: db.name })),
     ...(project.dbConnections ?? []).map((db: DbConnection) => ({ key: `db-${db.id}`, connId: db.id })),
@@ -58,6 +84,16 @@ export function WorkflowPage() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Stable key that changes whenever the project's resources change (no builtinDbs here — those
+  // are system-level and fetched async; changes to project-owned resources are enough to trigger).
+  const resourceKey = [
+    ...(currentProject?.dbConnections ?? []).map((db: DbConnection) => db.id),
+    ...(currentProject?.apiConnections ?? []).map((api: any) => api.id),
+    ...(currentProject?.storageConnections ?? []).map((s: any) => s.id),
+    ...(currentProject?.exports ?? []).map((exp: any) => exp.id),
+    ...mgmtStorages.map((_, i) => i),
+  ].join(',');
+
   useEffect(() => {
     if (!projectId || !currentProject) return;
 
@@ -70,7 +106,6 @@ export function WorkflowPage() {
       try {
         wf = await getProjectWorkflow(projectId);
       } catch {
-        // No workflow yet — create one
         try {
           wf = await createWorkflow(projectId, {
             name: 'Architecture',
@@ -82,16 +117,17 @@ export function WorkflowPage() {
         }
       }
 
-      // Generate schema if missing or stale (saved before databases/records were included)
+      // Fetch builtinDbs once — needed for both staleness check and regeneration.
+      const builtinDbs: BuiltinDb[] = await fetchBuiltinDatabases().catch(() => []);
+
       const schemaNodes: any[] = (wf.nodeSchema as any)?.nodes ?? [];
-      const hasCollectionNodes = schemaNodes.some(n => n.data?.subtitle === 'collection');
-      const hasRecordNodes = schemaNodes.some(n => n.id?.startsWith('rec-'));
       const isStale =
-        wf.nodeSchema &&
-        (!schemaNodes.some(n => n.type === 'dataSourceNode') || (hasCollectionNodes && !hasRecordNodes));
-      if (!wf.nodeSchema || isStale) {
+        !wf.nodeSchema ||
+        schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
+
+      if (isStale) {
         try {
-          const schema = await buildInitialSchema(projectId, currentProject, mgmtStorages);
+          const schema = await buildInitialSchema(projectId, currentProject, mgmtStorages, builtinDbs);
           wf = await updateProjectWorkflow(projectId, { nodeSchema: schema });
         } catch {
           // Best-effort — proceed without schema; ProjectArchitecture will show TemplatePicker
@@ -112,7 +148,7 @@ export function WorkflowPage() {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, currentProject?.id]);
+  }, [projectId, currentProject?.id, resourceKey]);
 
   if (loading || !currentProject) return <Spinner bg={false} isLoading />;
   if (!workflow) return null;
