@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { NodeProps, Handle, Position } from 'reactflow';
+import React, { memo, useContext } from 'react';
+import { NodeProps, Handle as RFHandle, Position, useNodeId } from 'reactflow';
+import { NodeEditContext } from '../NodeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -32,6 +33,24 @@ export const H_REVIEW = '#e879f9';
 
 export const hIn  = (color: string): React.CSSProperties => ({ background: 'var(--color-surface-base)', borderColor: color });
 export const hOut = (color: string): React.CSSProperties => ({ background: color, borderColor: color });
+
+// Visibility-aware handle: hidden when not in edit mode AND not connected.
+// In view mode, connected handles appear as solid filled dots via --h-bg CSS custom property.
+const Handle = (props: React.ComponentProps<typeof RFHandle>) => {
+  const { editMode, connectedHandles } = useContext(NodeEditContext);
+  const nodeId = useNodeId() ?? '';
+  const connected = connectedHandles.get(nodeId)?.has(props.id ?? '') ?? false;
+  const visible = editMode || connected;
+  const extraStyle = (!editMode && connected)
+    ? { '--h-bg': (props.style as any)?.borderColor ?? 'var(--color-accent)' }
+    : {};
+  return (
+    <RFHandle
+      {...props}
+      style={{ ...props.style, ...extraStyle, opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none' } as React.CSSProperties}
+    />
+  );
+};
 
 // ─── Custom Node Components ───────────────────────────────────────────────────
 

@@ -269,7 +269,7 @@
 /* ─── Handles ─────────────────────────────────────────────────────────────── */
 
 .handle {
-  background: var(--color-surface-base) !important;
+  background: var(--h-bg, var(--color-surface-base)) !important;
   border: 2px solid var(--color-accent) !important;
   width: 8px !important;
   height: 8px !important;

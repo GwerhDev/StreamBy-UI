@@ -33,6 +33,7 @@ import {
   faChevronLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
+import { NodeEditContext } from './NodeContext';
 import { PaletteItem, edgeColorForSource, getPaletteForMode, getGroupsForMode } from './nodePalette';
 import { ResponsePreview } from '../Exports/ResponsePreview';
 export { computeResponseFromSchema } from './nodeSchema';
@@ -278,6 +279,21 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
     return nodes.filter(n => !connectorTypes.includes(n.type ?? '') || connected.has(n.id));
   }, [editMode, nodes, edges]);
+
+  const connectedHandles = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const edge of edges) {
+      if (edge.source && edge.sourceHandle) {
+        if (!map.has(edge.source)) map.set(edge.source, new Set());
+        map.get(edge.source)!.add(edge.sourceHandle);
+      }
+      if (edge.target && edge.targetHandle) {
+        if (!map.has(edge.target)) map.set(edge.target, new Set());
+        map.get(edge.target)!.add(edge.targetHandle);
+      }
+    }
+    return map;
+  }, [edges]);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -1086,7 +1102,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   };
 
   return (
-    <>
+    <NodeEditContext.Provider value={{ editMode, connectedHandles }}>
       <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
         <div className={s.canvasArea}>
 
@@ -1903,7 +1919,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         </div>
       )}
 
-    </>
+    </NodeEditContext.Provider>
   );
 });
 

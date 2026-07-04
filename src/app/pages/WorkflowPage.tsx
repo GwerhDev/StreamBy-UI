@@ -103,11 +103,16 @@ export function WorkflowPage() {
       const hasLegacyOrchestratorType = schemaNodes.some(
         n => n.id === 'streamby' && n.type === 'streambyNode',
       );
+      // Stale if edges still use out-right sourceHandle (changed to out-stream)
+      const hasLegacyOutRightEdges = ((wf.nodeSchema as any)?.edges ?? []).some(
+        (e: any) => e.sourceHandle === 'out-right' && e.target === 'streamby',
+      );
       const isStale =
         !wf.nodeSchema ||
         hasLegacyExportNodes ||
         hasLegacyCollectionNodes ||
         hasLegacyOrchestratorType ||
+        hasLegacyOutRightEdges ||
         schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
 
       if (isStale) {

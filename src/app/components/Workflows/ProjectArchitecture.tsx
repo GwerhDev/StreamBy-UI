@@ -54,7 +54,7 @@ export function buildSchemaFromProject(
   const addSimpleInputNode = (id: string, type: string, label: string, subtitle: string, data?: Record<string, unknown>) => {
     registerInput(globalY);
     nodes.push({ id, type, position: { x: X_INPUTS, y: globalY }, data: { label, subtitle, ...data } });
-    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
+    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
     globalY += INPUT_SPACING;
   };
 
