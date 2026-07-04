@@ -4,13 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faSitemap, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
+import { ProjectArchitecture } from './ProjectArchitecture';
 import { setCurrentWorkflow, clearCurrentWorkflow, setWorkflowLoading, setWorkflowError } from '../../../store/currentWorkflowSlice';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { getWorkflow, deleteWorkflow } from '../../../services/workflows';
 import { Spinner } from '../Spinner';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ModalShell } from '../Modals/ModalShell';
 
@@ -59,6 +59,9 @@ export function WorkflowDetail() {
   if (loading || !workflow) return <Spinner bg isLoading />;
   if (error) return <div className={s.error}>{error}</div>;
 
+  const isOverview = currentProjectData?.workflows?.[0]?.id === workflowId;
+  if (isOverview) return <ProjectArchitecture workflow={workflow} />;
+
   return (
     <div className={s.container}>
       <SectionHeader
@@ -67,11 +70,6 @@ export function WorkflowDetail() {
         subtitle={workflow.description || 'No description'}
         action={
           <div className={s.actions}>
-            <ActionButton
-              icon={faSitemap}
-              text="Open editor"
-              onClick={() => navigate(`/project/${projectId}/workflows/${workflowId}/editor`)}
-            />
             <SecondaryButton
               icon={faTrash}
               text="Delete"

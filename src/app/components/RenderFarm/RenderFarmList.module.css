@@ -1,21 +1,22 @@
 .container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
   gap: 1.5rem;
-  overflow-y: auto;
+  width: 100%;
   height: 100%;
+  padding: 1rem;
+  display: flex;
+  overflow-y: auto;
   box-sizing: border-box;
+  flex-direction: column;
 }
 
 /* ── Card list ───────────────────────────── */
 .container ul {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
   gap: 0.5rem;
   margin: 0;
   padding: 0;
+  display: flex;
+  list-style: none;
+  flex-direction: column;
 }
 
 .cardSkeleton {

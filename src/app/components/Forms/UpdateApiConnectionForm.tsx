@@ -10,7 +10,7 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faPenToSquare, faXmark, faLink, faLayerGroup, faFileLines, faKey, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faXmark, faLink, faLayerGroup, faFileLines, faFingerprint, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
 const HTTP_METHODS = [
@@ -138,7 +138,7 @@ export const UpdateApiConnectionForm = () => {
                 ),
               },
               {
-                icon: faKey,
+                icon: faFingerprint,
                 label: 'Credential',
                 value: credentialId || 'None',
                 editComponent: (

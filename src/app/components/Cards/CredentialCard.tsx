@@ -1,6 +1,6 @@
 import React from 'react';
 import s from './CredentialCard.module.css';
-import { faKey } from '@fortawesome/free-solid-svg-icons';
+import { faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface Credential {
@@ -18,7 +18,7 @@ export const CredentialCard: React.FC<CredentialCardProps> = ({ credential }) =>
     <>
       <span className={s.box}>
         <span className={s.credentialKeyContainer}>
-          <FontAwesomeIcon icon={faKey} />
+          <FontAwesomeIcon icon={faFingerprint} />
         </span>
         <h4 className={s.title}>
           {credential.key}

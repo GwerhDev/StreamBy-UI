@@ -65,7 +65,6 @@ const WorkflowListPage         = lazy(() => import('./app/pages/WorkflowListPage
 const WorkflowCreatePage       = lazy(() => import('./app/pages/WorkflowCreatePage').then(module => ({ default: module.WorkflowCreatePage })));
 const WorkflowDetailPage       = lazy(() => import('./app/pages/WorkflowDetailPage').then(module => ({ default: module.WorkflowDetailPage })));
 const WorkflowEditPage         = lazy(() => import('./app/pages/WorkflowEditPage').then(module => ({ default: module.WorkflowEditPage })));
-const WorkflowEditorPage       = lazy(() => import('./app/pages/WorkflowEditorPage').then(module => ({ default: module.WorkflowEditorPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -132,7 +131,6 @@ function App() {
                   <Route path="/project/:id/workflows/create" element={<WorkflowCreatePage />} />
                   <Route path="/project/:id/workflows/:workflowId" element={<WorkflowDetailPage />} />
                   <Route path="/project/:id/workflows/:workflowId/edit" element={<WorkflowEditPage />} />
-                  <Route path="/project/:id/workflows/:workflowId/editor" element={<WorkflowEditorPage />} />
 
                   <Route path="/project/:id/production" element={<ProductionBoardPage />} />
                   <Route path="/project/:id/jobs" element={<JobMonitorPage />} />

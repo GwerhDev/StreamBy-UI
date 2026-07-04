@@ -4,7 +4,7 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ActionButton } from '../Buttons/ActionButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTrash, faKey } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { CredentialCard } from '../Cards/CredentialCard';
@@ -44,7 +44,7 @@ export const CredentialList: React.FC = () => {
   return (
     <div className={s.container}>
       <SectionHeader
-        icon={faKey}
+        icon={faFingerprint}
         title="Credentials"
         subtitle="Add, view, or remove credentials for your project."
         action={!currentProjectLoading && !credentials?.length

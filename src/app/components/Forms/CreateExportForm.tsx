@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { createExport } from '../../../services/exports';
+import { updateWorkflow } from '../../../services/workflows';
 import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -43,6 +45,36 @@ export function CreateExportForm() {
     try {
       const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
       dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
+
+      const project = currentProject.data;
+      if (project) {
+        const architecture = project.workflows?.[0];
+        let updatedWorkflows = project.workflows;
+
+        if (architecture?.nodeSchema) {
+          const existingNodes = (architecture.nodeSchema.nodes ?? []) as object[];
+          const exportNodes = existingNodes.filter((n: any) => String(n.id).startsWith('export-'));
+          const newNode = {
+            id: `export-${response.exportId}`,
+            type: 'filterNode',
+            position: { x: 500, y: exportNodes.length * 140 + 20 },
+            data: { label: name, subtitle: 'export' },
+          };
+          const updatedSchema = {
+            nodes: [...existingNodes, newNode],
+            edges: architecture.nodeSchema.edges ?? [],
+          };
+          try {
+            const updatedArch = await updateWorkflow(projectId!, architecture.id, { nodeSchema: updatedSchema });
+            updatedWorkflows = project.workflows!.map(w => w.id === architecture.id ? updatedArch : w);
+          } catch {
+            // Architecture update is best-effort — don't block navigation
+          }
+        }
+
+        dispatch(setCurrentProject({ ...project, workflows: updatedWorkflows }));
+      }
+
       navigate(`/project/${projectId}/exports/${response.exportId}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));

@@ -10,7 +10,7 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faKey, faXmark, faFingerprint, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faXmark, faFingerprint, faLock } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
 export const CreateCredentialForm = () => {
@@ -55,7 +55,7 @@ export const CreateCredentialForm = () => {
         <CustomForm
           readOnly={false}
           isLoading={loading}
-          header={{ icon: faKey, title: 'New Credential', subtitle: `Add a credential for ${currentProject?.name}` }}
+          header={{ icon: faFingerprint, title: 'New Credential', subtitle: `Add a credential for ${currentProject?.name}` }}
           fields={[
             {
               icon: faFingerprint,
@@ -86,7 +86,7 @@ export const CreateCredentialForm = () => {
           ]}
           actions={
             <>
-              <ActionButton disabled={loading || !key || !value} icon={faKey} text="Create" type="submit" />
+              <ActionButton disabled={loading || !key || !value} icon={faFingerprint} text="Create" type="submit" />
               <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
             </>
           }

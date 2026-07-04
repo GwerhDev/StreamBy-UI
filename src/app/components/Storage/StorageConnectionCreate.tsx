@@ -2,7 +2,7 @@ import s from './StorageConnectionCreate.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { faCloud, faXmark, faTag, faLayerGroup, faKey, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { faCloud, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -98,7 +98,7 @@ export const StorageConnectionCreate = () => {
               ),
             },
             {
-              icon: faKey,
+              icon: faFingerprint,
               label: 'Credential (JSON config)',
               value: credentialId || '—',
               editComponent: (

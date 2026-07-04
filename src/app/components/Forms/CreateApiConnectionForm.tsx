@@ -4,13 +4,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { createApiConnection } from '../../../services/connections';
+import { updateWorkflow } from '../../../services/workflows';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faTowerBroadcast, faXmark, faLink, faLayerGroup, faFileLines, faKey, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faTowerBroadcast, faXmark, faLink, faLayerGroup, faFileLines, faFingerprint, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
 const HTTP_METHODS = [
@@ -59,7 +60,31 @@ export const CreateApiConnectionForm = () => {
       const response = await createApiConnection(projectId, payload);
       if (response) {
         const existing = currentProject.apiConnections ?? [];
-        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response] }));
+        const architecture = currentProject.workflows?.[0];
+        let updatedWorkflows = currentProject.workflows;
+
+        if (architecture?.nodeSchema) {
+          const existingNodes = (architecture.nodeSchema.nodes ?? []) as object[];
+          const inputNodes = existingNodes.filter((n: any) => String(n.id).startsWith('api-') || String(n.id).startsWith('db-') || String(n.id).startsWith('storage-'));
+          const newNode = {
+            id: `api-${response.id}`,
+            type: 'apiConnectionNode',
+            position: { x: 80, y: inputNodes.length * 140 + 20 },
+            data: { label: response.name, subtitle: response.method ?? 'GET' },
+          };
+          const updatedSchema = {
+            nodes: [...existingNodes, newNode],
+            edges: architecture.nodeSchema.edges ?? [],
+          };
+          try {
+            const updatedArch = await updateWorkflow(projectId, architecture.id, { nodeSchema: updatedSchema });
+            updatedWorkflows = currentProject.workflows!.map(w => w.id === architecture.id ? updatedArch : w);
+          } catch {
+            // best-effort
+          }
+        }
+
+        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response], workflows: updatedWorkflows }));
         dispatch(addApiResponse({ message: 'API connection created successfully.', type: 'success' }));
       }
       navigate(`/project/${projectId}/connections/api`);
@@ -128,7 +153,7 @@ export const CreateApiConnectionForm = () => {
                 ),
               },
               {
-                icon: faKey,
+                icon: faFingerprint,
                 label: 'Credential',
                 value: credentialId || 'None',
                 editComponent: (

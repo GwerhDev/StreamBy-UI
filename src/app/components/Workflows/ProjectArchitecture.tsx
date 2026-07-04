@@ -1,426 +1,317 @@
 import s from './ProjectArchitecture.module.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import ReactFlow, {
-  Background,
-  BackgroundVariant,
-  Controls,
-  Edge,
-  Node,
-  useNodesState,
-  useEdgesState,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-import { faFileExport, faSitemap, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faFingerprint, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { updateWorkflow, createWorkflow, deleteWorkflow } from '../../../services/workflows';
-import { createExport, deleteExport } from '../../../services/exports';
-import { Export, Workflow } from '../../../interfaces';
-import { StreamByNode } from '../NodeViewer/nodes/nodeTypes';
-import { ExportRefNode, PipelineRefNode, ArchNodeData } from '../NodeViewer/nodes/ArchitectureNodes';
-import { ModalShell } from '../Modals/ModalShell';
-import { ActionButton } from '../Buttons/ActionButton';
-
-const ARCH_NODE_TYPES = {
-  streambyNode: StreamByNode,
-  exportRef: ExportRefNode,
-  pipelineRef: PipelineRefNode,
-};
-
-interface PendingDelete {
-  entityType: 'export' | 'pipeline';
-  entityId: string;
-  nodeId: string;
-  label: string;
-}
-
-function syncNodes(
-  exports: Export[],
-  subWorkflows: Workflow[],
-  savedSchema: { nodes: object[]; edges: object[] } | null,
-  currentNodes: Node[],
-  onDelete: ArchNodeData['onDelete'],
-): { nodes: Node[]; edges: Edge[] } {
-  const saved = (savedSchema?.nodes ?? []) as Node[];
-
-  const findPos = (nodeId: string) =>
-    currentNodes.find(n => n.id === nodeId)?.position ??
-    saved.find(n => n.id === nodeId)?.position ??
-    null;
-
-  const sbPos = findPos('streamby') ?? { x: 400, y: 200 };
-  const sbNode: Node = {
-    id: 'streamby',
-    type: 'streambyNode',
-    position: sbPos,
-    data: { label: 'StreamBy', subtitle: 'Orchestrator' },
-    deletable: false,
-    selectable: false,
-  };
-
-  const allEntities = [
-    ...exports.map(e => ({
-      nodeId: `export-${e.id}`,
-      type: 'exportRef',
-      entityId: e.id,
-      label: e.name,
-      subtitle: e.method ?? 'GET',
-    })),
-    ...subWorkflows.map(w => ({
-      nodeId: `pipeline-${w.id}`,
-      type: 'pipelineRef',
-      entityId: w.id,
-      label: w.name,
-      subtitle: w.description || 'Pipeline',
-    })),
-  ];
-
-  const total = allEntities.length;
-  const entityNodes: Node[] = allEntities.map((e, i) => {
-    const savedPos = findPos(e.nodeId);
-    const position = savedPos ?? (() => {
-      const totalSpread = Math.min((Math.PI / 3) * (total - 1), Math.PI);
-      const startAngle = total > 1 ? -totalSpread / 2 : 0;
-      const angle = total > 1 ? startAngle + (i / (total - 1)) * totalSpread : 0;
-      return { x: sbPos.x + Math.cos(angle) * 320, y: sbPos.y + Math.sin(angle) * 220 };
-    })();
-    return {
-      id: e.nodeId,
-      type: e.type,
-      position,
-      data: { entityId: e.entityId, label: e.label, subtitle: e.subtitle, onDelete },
-      deletable: false,
-    };
-  });
-
-  const edges: Edge[] = allEntities.map(e => ({
-    id: `e-sb-${e.nodeId}`,
-    source: 'streamby',
-    sourceHandle: 'out-right',
-    target: e.nodeId,
-    targetHandle: 'in-left',
-    animated: true,
-    style: { stroke: '#38B6FF', strokeWidth: 2 },
-  }));
-
-  return { nodes: [sbNode, ...entityNodes], edges };
-}
-
-// ─── Add Export Modal ─────────────────────────────────────────────────────────
-
-interface AddExportModalProps {
-  projectId: string;
-  onClose: () => void;
-  onCreated: (exp: Export) => void;
-}
-
-function AddExportModal({ projectId, onClose, onCreated }: AddExportModalProps) {
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const created = await createExport(projectId, {
-        name: name.trim(),
-        collectionName: name.trim().toLowerCase().replace(/\s+/g, '-'),
-      });
-      onCreated(created);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create export');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <ModalShell
-      title="Add Export"
-      icon={faFileExport}
-      onClose={onClose}
-      footer={
-        <div className={s.modalFooter}>
-          <button type="button" className={s.cancelBtn} onClick={onClose}>Cancel</button>
-          <ActionButton
-            text={loading ? 'Creating…' : 'Create Export'}
-            type="submit"
-            form="add-export-form"
-            disabled={loading || !name.trim()}
-          />
-        </div>
-      }
-    >
-      <form id="add-export-form" onSubmit={handleSubmit} className={s.modalForm}>
-        <label className={s.fieldLabel}>Export name</label>
-        <input
-          className={s.fieldInput}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="e.g. github-latest"
-          autoFocus
-        />
-        {error && <span className={s.fieldError}>{error}</span>}
-      </form>
-    </ModalShell>
-  );
-}
-
-// ─── Add Pipeline Modal ───────────────────────────────────────────────────────
-
-interface AddPipelineModalProps {
-  projectId: string;
-  onClose: () => void;
-  onCreated: (wf: Workflow) => void;
-}
-
-function AddPipelineModal({ projectId, onClose, onCreated }: AddPipelineModalProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const created = await createWorkflow(projectId, {
-        name: name.trim(),
-        description: description.trim() || undefined,
-      });
-      onCreated(created);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create pipeline');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <ModalShell
-      title="Add Pipeline"
-      icon={faSitemap}
-      onClose={onClose}
-      footer={
-        <div className={s.modalFooter}>
-          <button type="button" className={s.cancelBtn} onClick={onClose}>Cancel</button>
-          <ActionButton
-            text={loading ? 'Creating…' : 'Create Pipeline'}
-            type="submit"
-            form="add-pipeline-form"
-            disabled={loading || !name.trim()}
-          />
-        </div>
-      }
-    >
-      <form id="add-pipeline-form" onSubmit={handleSubmit} className={s.modalForm}>
-        <label className={s.fieldLabel}>Pipeline name</label>
-        <input
-          className={s.fieldInput}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="e.g. Guion, Animación 3D"
-          autoFocus
-        />
-        <label className={s.fieldLabel}>Description</label>
-        <input
-          className={s.fieldInput}
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          placeholder="Optional"
-        />
-        {error && <span className={s.fieldError}>{error}</span>}
-      </form>
-    </ModalShell>
-  );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+import { updateWorkflow } from '../../../services/workflows';
+import { fetchBuiltinDatabases, fetchTables } from '../../../services/database';
+import { ApiConnection, DbConnection, Export, Project, StorageConnection, Workflow } from '../../../interfaces';
+import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { TemplatePicker } from './TemplatePicker';
 
 interface Props {
   workflow: Workflow;
+}
+
+interface BuiltinDb { name: string; value: string; }
+interface MgmtStorage { name: string; type?: string; }
+
+// Canvas column x-positions
+const X_COLLECTIONS = -280;
+const X_CREDENTIALS = -200;
+const X_INPUTS = 80;
+const X_STREAMBY = 350;
+const X_EXPORTS = 620;
+
+const EDGE_PRIMARY = { stroke: '#38b6ff', strokeWidth: 1.5 };
+const EDGE_CREDENTIAL = { stroke: '#6366f1', strokeWidth: 1.5 };
+const EDGE_COLLECTION = { stroke: '#38b6ff', strokeWidth: 1.2 };
+
+function buildSchemaFromProject(
+  project: Project,
+  builtinDbs: BuiltinDb[],
+  mgmtStorages: MgmtStorage[],
+  dbTablesMap: Record<string, string[]>,
+): { nodes: Node[]; edges: Edge[] } {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  const COL_SPACING = 100;
+  const INPUT_SPACING = 140;
+
+  let globalY = 20;
+  let outputY = 20;
+  let inputCount = 0;
+  let firstInputY = 20;
+  let lastInputY = 20;
+
+  const registerInput = (nodeY: number) => {
+    if (inputCount === 0) firstInputY = nodeY;
+    lastInputY = nodeY;
+    inputCount++;
+  };
+
+  const addSimpleInputNode = (id: string, type: string, label: string, subtitle: string, data?: Record<string, unknown>) => {
+    registerInput(globalY);
+    nodes.push({ id, type, position: { x: X_INPUTS, y: globalY }, data: { label, subtitle, ...data } });
+    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
+    globalY += INPUT_SPACING;
+  };
+
+  // --- Builtin DBs + external DB connections, with collection/table names ---
+  const allDbs = [
+    ...builtinDbs.map(db => ({
+      id: `builtin-db-${db.name}`,
+      label: db.name,
+      subtitle: db.value === 'sql' ? 'postgresql' : 'mongodb',
+    })),
+    ...(project.dbConnections ?? []).map((db: DbConnection) => ({
+      id: `db-${db.id}`,
+      label: db.name,
+      subtitle: db.dbType,
+    })),
+  ];
+
+  for (const db of allDbs) {
+    const collections = dbTablesMap[db.id] ?? [];
+
+    if (collections.length === 0) {
+      addSimpleInputNode(db.id, 'dataSourceNode', db.label, db.subtitle);
+      continue;
+    }
+
+    const dbBlockStartY = globalY;
+
+    collections.forEach(collection => {
+      const collNodeId = `coll-${db.id}-${collection}`;
+      nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: globalY }, data: { label: collection, subtitle: 'collection' } });
+      edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
+      globalY += COL_SPACING;
+    });
+
+    const dbCenterY = (dbBlockStartY + globalY - COL_SPACING) / 2;
+    registerInput(dbCenterY);
+    nodes.push({ id: db.id, type: 'dataSourceNode', position: { x: X_INPUTS, y: dbCenterY }, data: { label: db.label, subtitle: db.subtitle } });
+    edges.push({ id: `e-${db.id}`, source: db.id, sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
+    globalY += COL_SPACING;
+  }
+
+  // --- API connections (with optional credential node) ---
+  (project.apiConnections ?? []).forEach((api: ApiConnection) => {
+    if (api.credentialId) {
+      const cred = (project.credentials ?? []).find(c => c.id === api.credentialId);
+      if (cred) {
+        const credId = `credential-${cred.id}`;
+        nodes.push({ id: credId, type: 'processNode', position: { x: X_CREDENTIALS, y: globalY }, data: { label: cred.key, subtitle: 'Credential', icon: faFingerprint, bgColor: '#160e38', iconColor: '#818cf8' } });
+        edges.push({ id: `e-${credId}-api`, source: credId, target: `api-${api.id}`, animated: false, style: EDGE_CREDENTIAL });
+      }
+    }
+    addSimpleInputNode(`api-${api.id}`, 'apiConnectionNode', api.name, api.method);
+  });
+
+  // --- Management-level storages (AWS S3 etc.) ---
+  mgmtStorages.forEach((storage: MgmtStorage, i: number) => {
+    addSimpleInputNode(`mgmt-storage-${i}`, 'ingestNode', storage.name, storage.type ?? 'storage');
+  });
+
+  // --- External storage connections ---
+  (project.storageConnections ?? []).forEach((storage: StorageConnection) => {
+    addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type);
+  });
+
+  // --- StreamBy orchestrator (center, vertically aligned to all inputs) ---
+  const streambyY = inputCount > 0 ? (firstInputY + lastInputY) / 2 : 20;
+  nodes.push({ id: 'streamby', type: 'streambyNode', position: { x: X_STREAMBY, y: streambyY }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
+
+  // --- Exports (right column) ---
+  (project.exports ?? []).forEach((exp: Export) => {
+    nodes.push({ id: `export-${exp.id}`, type: 'filterNode', position: { x: X_EXPORTS, y: outputY }, data: { label: exp.name, subtitle: exp.method ?? exp.type ?? 'export', icon: faFileExport, bgColor: '#1e1403', iconColor: '#fbbf24' } });
+    edges.push({ id: `e-streamby-export-${exp.id}`, source: 'streamby', sourceHandle: 'out-right', target: `export-${exp.id}`, targetHandle: 'in-left', animated: true, style: EDGE_PRIMARY });
+    outputY += INPUT_SPACING;
+  });
+
+  return { nodes, edges };
+}
+
+function hasAnyResource(project: Project, builtinDbs: BuiltinDb[], mgmtStorages: MgmtStorage[]): boolean {
+  return (
+    builtinDbs.length > 0 ||
+    mgmtStorages.length > 0 ||
+    (project.exports?.length ?? 0) > 0 ||
+    (project.dbConnections?.length ?? 0) > 0 ||
+    (project.apiConnections?.length ?? 0) > 0 ||
+    (project.storageConnections?.length ?? 0) > 0
+  );
 }
 
 export function ProjectArchitecture({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
+  const mgmtStorages: MgmtStorage[] = useSelector((state: RootState) => {
+    const extended = state as RootState & { management?: { storages?: MgmtStorage[] } };
+    return extended.management?.storages ?? [];
+  });
+  const allWorkflows = useMemo(() => currentProject?.workflows ?? [], [currentProject?.workflows]);
 
-  const exports = currentProject?.exports ?? [];
-  const allWorkflows = currentProject?.workflows ?? [];
-  const subWorkflows = allWorkflows.filter(w => w.id !== workflow.id);
-
-  const [nodes, setNodes, onNodesChange] = useNodesState<ArchNodeData>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
-  const [showAddExport, setShowAddExport] = useState(false);
-  const [showAddPipeline, setShowAddPipeline] = useState(false);
+  const [builtinDbs, setBuiltinDbs] = useState<BuiltinDb[]>([]);
+  const [builtinsLoaded, setBuiltinsLoaded] = useState(false);
+  const [dbTablesMap, setDbTablesMap] = useState<Record<string, string[]>>({});
+  const [tablesLoaded, setTablesLoaded] = useState(false);
+  const [localSchema, setLocalSchema] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
+  const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const nodeViewerRef = useRef<NodeViewerHandle>(null);
+  const autoSavedRef = useRef(false);
 
-  const nodesRef = useRef<Node[]>([]);
-  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
-
-  const handleDelete = useCallback((entityType: 'export' | 'pipeline', entityId: string, nodeId: string) => {
-    const label = entityType === 'export'
-      ? (exports.find(e => e.id === entityId)?.name ?? entityId)
-      : (subWorkflows.find(w => w.id === entityId)?.name ?? entityId);
-    setPendingDelete({ entityType, entityId, nodeId, label });
-  }, [exports, subWorkflows]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load builtin databases
   useEffect(() => {
-    const synced = syncNodes(exports, subWorkflows, workflow.nodeSchema ?? null, nodesRef.current, handleDelete);
-    setNodes(synced.nodes);
-    setEdges(synced.edges);
-  }, [exports.length, subWorkflows.length, workflow.id]);
+    if (!projectId) return;
+    fetchBuiltinDatabases()
+      .then(dbs => { setBuiltinDbs(dbs); setBuiltinsLoaded(true); })
+      .catch(() => { setBuiltinsLoaded(true); });
+  }, [projectId]);
+
+  // Fetch collection/table names for each DB (configuration skeleton only — no records)
+  useEffect(() => {
+    if (!projectId || !builtinsLoaded) return;
+    const allDbs = [
+      ...builtinDbs.map(db => ({ key: `builtin-db-${db.name}`, connId: db.name })),
+      ...(currentProject?.dbConnections ?? []).map((db: DbConnection) => ({ key: `db-${db.id}`, connId: db.id })),
+    ];
+    if (allDbs.length === 0) { setTablesLoaded(true); return; }
+
+    Promise.all(
+      allDbs.map(async ({ key, connId }) => {
+        try {
+          const tables = await fetchTables(projectId, connId);
+          return { key, tables };
+        } catch {
+          return { key, tables: [] as string[] };
+        }
+      }),
+    ).then(results => {
+      setDbTablesMap(Object.fromEntries(results.map(r => [r.key, r.tables])));
+      setTablesLoaded(true);
+    });
+  }, [projectId, builtinsLoaded, builtinDbs, currentProject?.dbConnections]);
+
+  const displaySchema = useMemo<{ nodes: Node[]; edges: Edge[] } | null>(() => {
+    if (localSchema !== null) return localSchema;
+    if (workflow.nodeSchema) return workflow.nodeSchema as { nodes: Node[]; edges: Edge[] };
+    if (currentProject && hasAnyResource(currentProject, builtinDbs, mgmtStorages)) {
+      return buildSchemaFromProject(currentProject, builtinDbs, mgmtStorages, dbTablesMap);
+    }
+    return null;
+  }, [localSchema, workflow.nodeSchema, currentProject, builtinDbs, mgmtStorages, dbTablesMap]);
+
+  // Auto-save the generated schema once all fetches are complete (best-effort, first time only)
+  useEffect(() => {
+    if (!tablesLoaded || !projectId || !currentProject) return;
+    if (workflow.nodeSchema !== null || localSchema !== null) return;
+    if (displaySchema === null || autoSavedRef.current) return;
+    autoSavedRef.current = true;
+    updateWorkflow(projectId, workflow.id, { nodeSchema: displaySchema })
+      .then(updated => {
+        dispatch(setCurrentProject({
+          ...currentProject,
+          workflows: allWorkflows.map(w => w.id === workflow.id ? updated : w),
+        }));
+      })
+      .catch(() => {});
+  }, [tablesLoaded, projectId, currentProject, workflow.nodeSchema, workflow.id, localSchema, displaySchema, allWorkflows, dispatch]);
+
+  const nodeViewerKey = useMemo(() => {
+    if (workflow.nodeSchema) return `saved-${workflow.id}`;
+    if (localSchema) return 'template';
+    return `auto-${displaySchema?.nodes.length ?? 0}`;
+  }, [workflow.nodeSchema, workflow.id, localSchema, displaySchema?.nodes.length]);
+
+  const exportAdapter = useMemo<Export>(() => ({
+    id: workflow.id,
+    name: workflow.name,
+    description: workflow.description ?? '',
+    status: 'completed',
+    createdAt: '',
+    updatedAt: '',
+    projectId: projectId ?? '',
+    exportedBy: '',
+    nodeSchema: displaySchema,
+  }), [workflow, projectId, displaySchema]);
+
+  const handleTemplateSelect = (schema: { nodes: Node[]; edges: Edge[] }) => {
+    setLocalSchema(schema);
+    setEditMode(true);
+  };
 
   const handleSave = async () => {
     if (!projectId || !currentProject) return;
     setSaving(true);
-    const cleanSchema = {
-      nodes: nodes.map(n =>
-        n.type === 'streambyNode'
-          ? { id: n.id, type: n.type, position: n.position, data: { label: n.data.label, subtitle: n.data.subtitle } }
-          : { id: n.id, type: n.type, position: n.position, data: { entityId: n.data.entityId, label: n.data.label, subtitle: n.data.subtitle } }
-      ),
-      edges,
-    };
+    const nodeSchema = nodeViewerRef.current?.getSchema() ?? null;
     try {
-      const updated: Workflow = await updateWorkflow(projectId, workflow.id, { nodeSchema: cleanSchema });
+      const updated: Workflow = await updateWorkflow(projectId, workflow.id, { nodeSchema });
       dispatch(setCurrentProject({
         ...currentProject,
         workflows: allWorkflows.map(w => w.id === workflow.id ? updated : w),
       }));
-      dispatch(addApiResponse({ message: 'Architecture saved.', type: 'success' }));
-    } catch (err: any) {
-      dispatch(addApiResponse({ message: err.message || 'Failed to save.', type: 'error' }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save.';
+      dispatch(addApiResponse({ message, type: 'error' }));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleExportCreated = (exp: Export) => {
-    setShowAddExport(false);
-    if (!currentProject) return;
-    dispatch(setCurrentProject({
-      ...currentProject,
-      exports: [...(currentProject.exports ?? []), exp],
-    }));
-  };
-
-  const handlePipelineCreated = (wf: Workflow) => {
-    setShowAddPipeline(false);
-    if (!currentProject) return;
-    dispatch(setCurrentProject({
-      ...currentProject,
-      workflows: [...allWorkflows, wf],
-    }));
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!pendingDelete || !projectId || !currentProject) return;
-    setDeleting(true);
-    const { entityType, entityId, nodeId } = pendingDelete;
-    try {
-      if (entityType === 'export') {
-        await deleteExport(projectId, entityId);
-        dispatch(setCurrentProject({
-          ...currentProject,
-          exports: (currentProject.exports ?? []).filter(e => e.id !== entityId),
-        }));
-      } else {
-        await deleteWorkflow(projectId, entityId);
-        dispatch(setCurrentProject({
-          ...currentProject,
-          workflows: allWorkflows.filter(w => w.id !== entityId),
-        }));
-      }
-      setNodes(prev => prev.filter(n => n.id !== nodeId));
-      setEdges(prev => prev.filter(e => e.source !== nodeId && e.target !== nodeId));
-    } catch (err: any) {
-      dispatch(addApiResponse({ message: err.message || 'Failed to delete.', type: 'error' }));
-    } finally {
-      setDeleting(false);
-      setPendingDelete(null);
-    }
-  };
+  if (displaySchema === null) {
+    return (
+      <div className={s.container}>
+        <TemplatePicker onSelect={handleTemplateSelect} />
+      </div>
+    );
+  }
 
   return (
     <div className={s.container}>
-      <div className={s.canvas}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={ARCH_NODE_TYPES}
-          fitView
-          fitViewOptions={{ padding: 0.35 }}
-          deleteKeyCode={null}
-          minZoom={0.3}
-          maxZoom={1.5}
+      <NodeViewer
+        key={nodeViewerKey}
+        ref={nodeViewerRef}
+        exportDetails={exportAdapter}
+        editMode={editMode}
+        projectId={projectId}
+      />
+      <div className={s.toggleOverlay}>
+        {editMode && (
+          <button className={s.saveBtn} onClick={handleSave} disabled={saving}>
+            <FontAwesomeIcon icon={faFloppyDisk} />
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        )}
+        <div
+          className={s.track}
+          role="switch"
+          aria-checked={editMode}
+          tabIndex={0}
+          onClick={() => setEditMode(e => !e)}
+          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setEditMode(e => !e)}
+          title={editMode ? 'Exit edit mode' : 'Edit mode'}
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--color-surface)" />
-          <Controls showInteractive={false} />
-        </ReactFlow>
+          <span className={`${s.thumb} ${editMode ? s.thumbRight : ''}`} />
+          <div className={s.trackLabels}>
+            <span className={`${s.trackLabel} ${!editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
+              <FontAwesomeIcon icon={faEye} />
+            </span>
+            <span className={`${s.trackLabel} ${editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
+              <FontAwesomeIcon icon={faPencil} />
+            </span>
+          </div>
+        </div>
       </div>
-
-      {showAddExport && (
-        <AddExportModal
-          projectId={projectId!}
-          onClose={() => setShowAddExport(false)}
-          onCreated={handleExportCreated}
-        />
-      )}
-
-      {showAddPipeline && (
-        <AddPipelineModal
-          projectId={projectId!}
-          onClose={() => setShowAddPipeline(false)}
-          onCreated={handlePipelineCreated}
-        />
-      )}
-
-      {pendingDelete && (
-        <ModalShell
-          title={`Delete ${pendingDelete.entityType}`}
-          icon={faTriangleExclamation}
-          onClose={() => !deleting && setPendingDelete(null)}
-          footer={
-            <div className={s.modalFooter}>
-              <button
-                type="button"
-                className={s.cancelBtn}
-                onClick={() => setPendingDelete(null)}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={s.deleteConfirmBtn}
-                onClick={handleDeleteConfirm}
-                disabled={deleting}
-              >
-                {deleting ? 'Deleting…' : `Delete ${pendingDelete.entityType}`}
-              </button>
-            </div>
-          }
-        >
-          <p className={s.confirmText}>
-            This will permanently delete <strong>{pendingDelete.label}</strong>. This action cannot be undone.
-          </p>
-        </ModalShell>
-      )}
     </div>
   );
 }

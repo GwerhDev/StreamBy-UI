@@ -11,7 +11,7 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faKey, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faFingerprint, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 interface Credential {
   id: string;
@@ -115,7 +115,7 @@ export const UpdateCredentialForm: React.FC = () => {
           />
         </div>
         <span className={s.buttonContainer}>
-          <ActionButton disabled={isDisabled} icon={faKey} text="Update" type="submit" />
+          <ActionButton disabled={isDisabled} icon={faFingerprint} text="Update" type="submit" />
           <SecondaryButton disabled={loading} icon={faXmark} onClick={handleCancel} text="Cancel" />
         </span>
       </form>

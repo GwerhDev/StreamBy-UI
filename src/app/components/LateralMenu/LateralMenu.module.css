@@ -225,11 +225,22 @@
   transition: opacity 0.15s, transform 0.15s;
 }
 
-.sectionChevronWrapOpen .sectionChevronSectionIcon { opacity: 0; }
-.sectionChevronWrapOpen .sectionChevronArrow { opacity: 1; transform: rotate(0deg); }
+.sectionChevronWrapOpen .sectionChevronSectionIcon {
+  opacity: 0;
+}
 
-.sectionHeader:hover .sectionChevronSectionIcon { opacity: 0; }
-.sectionHeader:hover .sectionChevronArrow { opacity: 1; }
+.sectionChevronWrapOpen .sectionChevronArrow {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.sectionHeader:hover .sectionChevronSectionIcon {
+  opacity: 0;
+}
+
+.sectionHeader:hover .sectionChevronArrow {
+  opacity: 1;
+}
 
 .sectionBody {
   display: flex;
@@ -343,8 +354,13 @@
   color: var(--color-select-accent);
 }
 
-.storageItemLoading { opacity: 0.5; }
-.storageItemMuted   { opacity: 0.4; }
+.storageItemLoading {
+  opacity: 0.5;
+}
+
+.storageItemMuted {
+  opacity: 0.4;
+}
 
 .sectionDivider {
   height: 1px;
@@ -403,8 +419,14 @@
   transition: opacity 0.15s;
 }
 
-.railProjectBtn:hover .railProjectInitial { opacity: 0; }
-.railProjectBtn:hover .railProjectChevron { opacity: 1; color: var(--color-text-bright); }
+.railProjectBtn:hover .railProjectInitial {
+  opacity: 0;
+}
+
+.railProjectBtn:hover .railProjectChevron {
+  opacity: 1;
+  color: var(--color-text-bright);
+}
 
 .railCanvasAnchor {
   position: absolute;
@@ -457,4 +479,3 @@
 .railIconActive:focus-visible {
   color: var(--color-accent);
 }
-
