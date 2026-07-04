@@ -5,7 +5,7 @@ import { RootState, AppDispatch } from '../../store';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 import { addApiResponse } from '../../store/apiResponsesSlice';
 import { getProjectWorkflow, createWorkflow, updateProjectWorkflow } from '../../services/workflows';
-import { fetchBuiltinDatabases, fetchTables, fetchRecords } from '../../services/database';
+import { fetchBuiltinDatabases } from '../../services/database';
 import { Project, Workflow, DbConnection } from '../../interfaces';
 import { buildSchemaFromProject, BuiltinDb, MgmtStorage, ProjectArchitecture } from '../components/Workflows/ProjectArchitecture';
 import { Spinner } from '../components/Spinner';
@@ -33,43 +33,13 @@ function schemaFingerprint(schemaNodes: any[]): string {
     .join(',');
 }
 
-async function buildInitialSchema(
-  projectId: string,
+function buildInitialSchema(
+  _projectId: string,
   project: Project,
   mgmtStorages: MgmtStorage[],
   builtinDbs: BuiltinDb[],
 ) {
-  const allDbs = [
-    ...builtinDbs.map(db => ({ key: `builtin-db-${db.name}`, connId: db.name })),
-    ...(project.dbConnections ?? []).map((db: DbConnection) => ({ key: `db-${db.id}`, connId: db.id })),
-  ];
-
-  const tableEntries = await Promise.all(
-    allDbs.map(async ({ key, connId }) => {
-      try { return { key, connId, tables: await fetchTables(projectId, connId) }; }
-      catch { return { key, connId, tables: [] as string[] }; }
-    }),
-  );
-
-  const dbTablesMap = Object.fromEntries(tableEntries.map(e => [e.key, e.tables]));
-
-  const recordEntries = await Promise.all(
-    tableEntries.flatMap(({ key, connId, tables }) =>
-      tables.map(async table => {
-        try {
-          const records = await fetchRecords(projectId, connId, table, 5);
-          const ids = records.map((r: any, i: number) => String(r._id ?? r.id ?? i));
-          return { mapKey: `${key}:${table}`, ids };
-        } catch {
-          return { mapKey: `${key}:${table}`, ids: [] as string[] };
-        }
-      }),
-    ),
-  );
-
-  const tableRecordsMap = Object.fromEntries(recordEntries.map(e => [e.mapKey, e.ids]));
-
-  return buildSchemaFromProject(project, mgmtStorages, builtinDbs, dbTablesMap, tableRecordsMap);
+  return buildSchemaFromProject(project, mgmtStorages, builtinDbs);
 }
 
 export function WorkflowPage() {
@@ -121,13 +91,23 @@ export function WorkflowPage() {
       const builtinDbs: BuiltinDb[] = await fetchBuiltinDatabases().catch(() => []);
 
       const schemaNodes: any[] = (wf.nodeSchema as any)?.nodes ?? [];
-      // Also stale if export nodes are still using the old filterNode type (before exportNode was introduced)
+      // Stale if export nodes still use old filterNode type (before exportNode was introduced)
       const hasLegacyExportNodes = schemaNodes.some(
         n => n.id?.startsWith('export-') && n.type === 'filterNode',
+      );
+      // Stale if DB nodes were expanded into collection/record sub-nodes (old workflow schema)
+      const hasLegacyCollectionNodes = schemaNodes.some(
+        n => n.id?.startsWith('coll-') || n.id?.startsWith('rec-'),
+      );
+      // Stale if the central orchestrator node still uses the old streambyNode type
+      const hasLegacyOrchestratorType = schemaNodes.some(
+        n => n.id === 'streamby' && n.type === 'streambyNode',
       );
       const isStale =
         !wf.nodeSchema ||
         hasLegacyExportNodes ||
+        hasLegacyCollectionNodes ||
+        hasLegacyOrchestratorType ||
         schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
 
       if (isStale) {

@@ -10,7 +10,7 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
-  faFileExport, faFingerprint,
+  faFileExport, faFingerprint, faSitemap,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -492,6 +492,23 @@ export const ExportNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => 
 ));
 ExportNode.displayName = 'ExportNode';
 
+// Workflow-only orchestrator node — visually distinct from StreamByNode (middleware)
+export const OrchestratorNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"         className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Left}  id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), top: '75%' }} />
+    <Handle type="source" position={Position.Right} id="out-right"       className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
+      <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+OrchestratorNode.displayName = 'OrchestratorNode';
+
 export const nodeTypes = {
   clientNode: ClientNode,
   requestNode: RequestNode,
@@ -504,6 +521,7 @@ export const nodeTypes = {
   processNode: ProcessNode,
   filterNode: FilterNode,
   exportNode: ExportNode,
+  orchestratorNode: OrchestratorNode,
   ingestNode: IngestNode,
   transcodeNode: TranscodeNode,
   captionNode: CaptionNode,

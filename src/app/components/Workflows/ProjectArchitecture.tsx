@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
@@ -22,8 +21,6 @@ export interface MgmtStorage { name: string; type?: string; }
 export interface BuiltinDb { name: string; value: string; }
 
 // Canvas column x-positions
-const X_RECORDS     = -560;
-const X_COLLECTIONS = -280;
 const X_CREDENTIALS = -200;
 const X_INPUTS      = 80;
 const X_STREAMBY    = 350;
@@ -31,21 +28,15 @@ const X_EXPORTS     = 620;
 
 const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
 const EDGE_CREDENTIAL = { stroke: '#6366f1', strokeWidth: 1.5 };
-const EDGE_COLLECTION = { stroke: '#38b6ff', strokeWidth: 1.2 };
-const EDGE_RECORD     = { stroke: '#22d3ee', strokeWidth: 1, strokeDasharray: '4 3' };
 
 export function buildSchemaFromProject(
   project: Project,
   mgmtStorages: MgmtStorage[],
   builtinDbs: BuiltinDb[],
-  dbTablesMap: Record<string, string[]>,
-  tableRecordsMap: Record<string, string[]> = {},
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  const REC_SPACING   = 120;
-  const COL_SPACING   = 100;
   const INPUT_SPACING = 140;
 
   let globalY     = 20;
@@ -82,45 +73,7 @@ export function buildSchemaFromProject(
   ];
 
   for (const db of allDbs) {
-    const collections = dbTablesMap[db.id] ?? [];
-
-    if (collections.length === 0) {
-      addSimpleInputNode(db.id, 'dataSourceNode', db.label, db.subtitle);
-      continue;
-    }
-
-    const dbBlockStartY = globalY;
-
-    collections.forEach(collection => {
-      const collNodeId = `coll-${db.id}-${collection}`;
-      const recordIds = tableRecordsMap[`${db.id}:${collection}`] ?? [];
-
-      if (recordIds.length === 0) {
-        nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: globalY }, data: { label: collection, subtitle: 'collection' } });
-        edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
-        globalY += COL_SPACING;
-      } else {
-        const collBlockStartY = globalY;
-
-        recordIds.forEach((recordId) => {
-          const recNodeId = `rec-${db.id}-${collection}-${recordId}`;
-          nodes.push({ id: recNodeId, type: 'dataSourceNode', position: { x: X_RECORDS, y: globalY }, data: { label: recordId.slice(0, 12), subtitle: 'record' } });
-          edges.push({ id: `e-${recNodeId}`, source: recNodeId, sourceHandle: 'out-right', target: collNodeId, animated: false, style: EDGE_RECORD });
-          globalY += REC_SPACING;
-        });
-
-        const collCenterY = (collBlockStartY + globalY - REC_SPACING) / 2;
-        nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: collCenterY }, data: { label: collection, subtitle: 'collection' } });
-        edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
-        globalY += COL_SPACING;
-      }
-    });
-
-    const dbCenterY = (dbBlockStartY + globalY - COL_SPACING) / 2;
-    registerInput(dbCenterY);
-    nodes.push({ id: db.id, type: 'dataSourceNode', position: { x: X_INPUTS, y: dbCenterY }, data: { label: db.label, subtitle: db.subtitle } });
-    edges.push({ id: `e-${db.id}`, source: db.id, sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
-    globalY += COL_SPACING;
+    addSimpleInputNode(db.id, 'dataSourceNode', db.label, db.subtitle);
   }
 
   // --- API connections (with optional credential node) ---
@@ -129,8 +82,9 @@ export function buildSchemaFromProject(
       const cred = (project.credentials ?? []).find(c => c.id === api.credentialId);
       if (cred) {
         const credId = `credential-${cred.id}`;
-        nodes.push({ id: credId, type: 'processNode', position: { x: X_CREDENTIALS, y: globalY }, data: { label: cred.key, subtitle: 'Credential', icon: faFingerprint, bgColor: '#160e38', iconColor: '#818cf8' } });
-        edges.push({ id: `e-${credId}-api`, source: credId, target: `api-${api.id}`, animated: false, style: EDGE_CREDENTIAL });
+        nodes.push({ id: credId, type: 'credentialNode', position: { x: X_CREDENTIALS, y: globalY }, data: { label: cred.key, subtitle: 'Credential', credentialId: cred.id } });
+        edges.push({ id: `e-orchestrator-${credId}`, source: 'streamby', sourceHandle: 'out-credentials', target: credId, targetHandle: 'in-streamby', animated: false, style: EDGE_CREDENTIAL });
+        edges.push({ id: `e-${credId}-api`, source: credId, sourceHandle: 'out-credential', target: `api-${api.id}`, targetHandle: 'in-credential', animated: false, style: EDGE_CREDENTIAL });
       }
     }
     addSimpleInputNode(`api-${api.id}`, 'apiConnectionNode', api.name, api.method);
@@ -148,7 +102,7 @@ export function buildSchemaFromProject(
 
   // --- StreamBy orchestrator (center, vertically aligned to all inputs) ---
   const streambyY = inputCount > 0 ? (firstInputY + lastInputY) / 2 : 20;
-  nodes.push({ id: 'streamby', type: 'streambyNode', position: { x: X_STREAMBY, y: streambyY }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
+  nodes.push({ id: 'streamby', type: 'orchestratorNode', position: { x: X_STREAMBY, y: streambyY }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
 
   // --- Exports (right column) ---
   (project.exports ?? []).forEach((exp: Export) => {
