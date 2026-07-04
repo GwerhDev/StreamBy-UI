@@ -161,54 +161,93 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const initialJsonRef = useRef(exportDetails.json);
   const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
   const apiConnectionsRef = useRef(apiConnections);
+  const credentialsRef = useRef(currentProject?.credentials ?? []);
   const initialSchemaRef = useRef(exportDetails.nodeSchema);
 
   const initialNodes = useMemo((): Node[] => {
-    if (initialSchemaRef.current?.nodes) return initialSchemaRef.current.nodes as Node[];
+    const schemaEdges = (initialSchemaRef.current?.edges ?? []) as Edge[];
 
-    const nodes: Node[] = [
-      { id: 'request',  type: 'requestNode',  position: { x: 0,   y: 100 }, data: { label: 'Request',  subtitle: exportDetails.method || 'GET' } },
-      { id: 'streamby', type: 'streambyNode', position: { x: 280, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
-      { id: 'response', type: 'responseNode', position: { x: 560, y: 100 }, data: { label: 'Response', subtitle: 'HTTP Response' } },
-    ];
+    const base: Node[] = initialSchemaRef.current?.nodes
+      ? [...(initialSchemaRef.current.nodes as Node[])]
+      : (() => {
+          const nodes: Node[] = [
+            { id: 'request',  type: 'requestNode',  position: { x: 0,   y: 100 }, data: { label: 'Request',  subtitle: exportDetails.method || 'GET' } },
+            { id: 'streamby', type: 'streambyNode', position: { x: 280, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
+            { id: 'response', type: 'responseNode', position: { x: 560, y: 100 }, data: { label: 'Response', subtitle: 'HTTP Response' } },
+          ];
+          if (initialJsonRef.current) {
+            nodes.push({ id: 'json-input', type: 'jsonInputNode', position: { x: 240, y: 320 }, data: { label: 'JSON Data', subtitle: 'Static data source', jsonString: JSON.stringify(initialJsonRef.current, null, 2) } });
+          }
+          if (initialApiRef.current.apiUrl) {
+            const conn = apiConnectionsRef.current.find(c => c.apiUrl === initialApiRef.current.apiUrl);
+            nodes.push({ id: 'api-conn', type: 'apiConnectionNode', position: { x: 240, y: 320 }, data: { label: conn?.name || 'API Connection', subtitle: initialApiRef.current.apiUrl || '', connectionId: conn?.id || '' } });
+          }
+          return nodes;
+        })();
 
-    if (initialJsonRef.current) {
-      nodes.push({ id: 'json-input', type: 'jsonInputNode', position: { x: 240, y: 320 }, data: { label: 'JSON Data', subtitle: 'Static data source', jsonString: JSON.stringify(initialJsonRef.current, null, 2) } });
+    // Auto-inject credentialNode for any apiConnectionNode whose ApiConnection already has a credentialId
+    const extra: Node[] = [];
+    for (const n of base) {
+      if (n.type !== 'apiConnectionNode') continue;
+      const connectionId = n.data.connectionId as string;
+      if (!connectionId) continue;
+      const conn = apiConnectionsRef.current.find(c => c.id === connectionId);
+      if (!conn?.credentialId) continue;
+      if (schemaEdges.some(e => e.target === n.id && e.targetHandle === 'in-credential')) continue;
+      const cred = credentialsRef.current.find(c => c.id === conn.credentialId);
+      extra.push({
+        id: `credential-${conn.credentialId}-for-${n.id}`,
+        type: 'credentialNode',
+        position: { x: n.position.x - 220, y: n.position.y },
+        data: { label: cred?.key ?? 'Credential', subtitle: 'Credential', credentialId: conn.credentialId },
+      });
     }
-    if (initialApiRef.current.apiUrl) {
-      const conn = apiConnectionsRef.current.find(c => c.apiUrl === initialApiRef.current.apiUrl);
-      nodes.push({ id: 'api-conn', type: 'apiConnectionNode', position: { x: 240, y: 320 }, data: { label: conn?.name || 'API Connection', subtitle: initialApiRef.current.apiUrl || '', connectionId: conn?.id || '' } });
-    }
-    return nodes;
+
+    return extra.length ? [...base, ...extra] : base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initialEdges = useMemo((): Edge[] => {
-    if (initialSchemaRef.current?.edges) return initialSchemaRef.current.edges as Edge[];
+    const schemaNodes = (initialSchemaRef.current?.nodes ?? []) as Node[];
 
-    const edges: Edge[] = [
-      {
-        id: 'e-request-streamby', source: 'request', sourceHandle: 'out-right',
-        target: 'streamby', targetHandle: 'in-left',
-        animated: true, style: { stroke: H_LEFT, strokeWidth: 2 },
-      },
-      {
-        id: 'e-streamby-response', source: 'streamby', sourceHandle: 'out-right',
-        target: 'response', targetHandle: 'in-left',
-        animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 },
-      },
-    ];
+    const base: Edge[] = initialSchemaRef.current?.edges
+      ? [...(initialSchemaRef.current.edges as Edge[])]
+      : (() => {
+          const edges: Edge[] = [
+            { id: 'e-request-streamby', source: 'request', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: true, style: { stroke: H_LEFT, strokeWidth: 2 } },
+            { id: 'e-streamby-response', source: 'streamby', sourceHandle: 'out-right', target: 'response', targetHandle: 'in-left', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } },
+          ];
+          if (initialJsonRef.current) {
+            edges.push({ id: 'e-json-streamby', source: 'json-input', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } });
+          }
+          if (initialApiRef.current.apiUrl) {
+            edges.push(
+              { id: 'e-streamby-api', source: 'streamby', sourceHandle: 'out-bottom', target: 'api-conn', targetHandle: 'in-stream', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
+              { id: 'e-api-streamby', source: 'api-conn', sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
+            );
+          }
+          return edges;
+        })();
 
-    if (initialJsonRef.current) {
-      edges.push({ id: 'e-json-streamby', source: 'json-input', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } });
+    // Auto-inject edges for the credential nodes injected in initialNodes
+    const extra: Edge[] = [];
+    for (const n of schemaNodes) {
+      if (n.type !== 'apiConnectionNode') continue;
+      const connectionId = n.data.connectionId as string;
+      if (!connectionId) continue;
+      const conn = apiConnectionsRef.current.find(c => c.id === connectionId);
+      if (!conn?.credentialId) continue;
+      if (base.some(e => e.target === n.id && e.targetHandle === 'in-credential')) continue;
+      const credNodeId = `credential-${conn.credentialId}-for-${n.id}`;
+      extra.push({
+        id: `e-${credNodeId}`,
+        source: credNodeId, sourceHandle: 'out-credential',
+        target: n.id, targetHandle: 'in-credential',
+        animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
+      });
     }
-    if (initialApiRef.current.apiUrl) {
-      edges.push(
-        { id: 'e-streamby-api', source: 'streamby', sourceHandle: 'out-bottom', target: 'api-conn', targetHandle: 'in-stream', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
-        { id: 'e-api-streamby', source: 'api-conn', sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
-      );
-    }
-    return edges;
+
+    return extra.length ? [...base, ...extra] : base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
