@@ -35,7 +35,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const isPending = selfMember?.status === 'pending';
   const [showCanvas, setShowCanvas] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
-  const [expandedWorkflows, setExpandedWorkflows] = useState<Set<string>>(new Set());
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
   const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
@@ -83,15 +82,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       closeMenu();
     }
   }, [location]);
-
-  const toggleWorkflow = (wfId: string) => {
-    setExpandedWorkflows(prev => {
-      const next = new Set(prev);
-      if (next.has(wfId)) next.delete(wfId);
-      else next.add(wfId);
-      return next;
-    });
-  };
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -298,7 +288,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
               <FontAwesomeIcon icon={faTableColumns} />
             </button>
             {!isPending && (<>
-              <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflows`)} title="Workflows">
+              <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
                 <FontAwesomeIcon icon={faSitemap} />
               </button>
               {mode === 'developer' && (
@@ -392,11 +382,11 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
             {!isPending && (<>
 
-              {/* WORKFLOWS */}
+              {/* WORKFLOW */}
               <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isWorkflowsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
-                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflows`); }}>
-                    Workflows
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflow`); }}>
+                    Workflow
                   </span>
                   <div className={`${s.sectionChevronWrap} ${sectionOpen.workflows ? s.sectionChevronWrapOpen : ''}`}>
                     <FontAwesomeIcon icon={faSitemap} className={s.sectionChevronSectionIcon} />
@@ -405,37 +395,16 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.workflows && (
                   <div className={s.sectionBody}>
-                    {(currentProject.data?.workflows ?? []).map(wf => {
-                      const isExpanded = expandedWorkflows.has(wf.id);
-                      const linkPath = `/project/${id}/workflows/${wf.id}`;
-                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                    {workflowSubDirectoryList.map(({ name, icon, path }, index) => {
+                      const subPath = `/project/${id}/workflow/${path}`;
+                      const isSubActive = location.pathname === subPath || location.pathname.startsWith(`${subPath}/`);
                       return (
-                        <React.Fragment key={wf.id}>
-                          <Link to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                            <FontAwesomeIcon
-                              icon={faChevronDown}
-                              className={`${s.serviceChevron} ${isExpanded ? s.serviceChevronOpen : ''}`}
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); toggleWorkflow(wf.id); }}
-                            />
-                            <FontAwesomeIcon icon={faSitemap} className={s.serviceIcon} />
-                            <span className={s.serviceName}>{wf.name}</span>
-                          </Link>
-                          {isExpanded && workflowSubDirectoryList.map(({ name, icon, path }, index) => {
-                            const subPath = `/project/${id}/${path}`;
-                            const isSubActive = location.pathname === subPath || location.pathname.startsWith(`${subPath}/`);
-                            return (
-                              <Link key={index} to={subPath} className={`${s.storageItem} ${isSubActive ? s.activeLink : ''}`}>
-                                {icon && <FontAwesomeIcon icon={icon} />}
-                                {name}
-                              </Link>
-                            );
-                          })}
-                        </React.Fragment>
+                        <Link key={index} to={subPath} className={`${s.navItem} ${isSubActive ? s.activeLink : ''}`}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </Link>
                       );
                     })}
-                    {!(currentProject.data?.workflows?.length) && (
-                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No workflows yet</span>
-                    )}
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 import s from './ProjectArchitecture.module.css';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,8 +9,7 @@ import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { updateWorkflow } from '../../../services/workflows';
-import { fetchBuiltinDatabases, fetchTables } from '../../../services/database';
+import { updateProjectWorkflow } from '../../../services/workflows';
 import { ApiConnection, DbConnection, Export, Project, StorageConnection, Workflow } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { TemplatePicker } from './TemplatePicker';
@@ -19,37 +18,41 @@ interface Props {
   workflow: Workflow;
 }
 
-interface BuiltinDb { name: string; value: string; }
-interface MgmtStorage { name: string; type?: string; }
+export interface MgmtStorage { name: string; type?: string; }
+export interface BuiltinDb { name: string; value: string; }
 
 // Canvas column x-positions
+const X_RECORDS     = -560;
 const X_COLLECTIONS = -280;
 const X_CREDENTIALS = -200;
-const X_INPUTS = 80;
-const X_STREAMBY = 350;
-const X_EXPORTS = 620;
+const X_INPUTS      = 80;
+const X_STREAMBY    = 350;
+const X_EXPORTS     = 620;
 
-const EDGE_PRIMARY = { stroke: '#38b6ff', strokeWidth: 1.5 };
+const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
 const EDGE_CREDENTIAL = { stroke: '#6366f1', strokeWidth: 1.5 };
 const EDGE_COLLECTION = { stroke: '#38b6ff', strokeWidth: 1.2 };
+const EDGE_RECORD     = { stroke: '#22d3ee', strokeWidth: 1, strokeDasharray: '4 3' };
 
-function buildSchemaFromProject(
+export function buildSchemaFromProject(
   project: Project,
-  builtinDbs: BuiltinDb[],
   mgmtStorages: MgmtStorage[],
+  builtinDbs: BuiltinDb[],
   dbTablesMap: Record<string, string[]>,
+  tableRecordsMap: Record<string, string[]> = {},
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  const COL_SPACING = 100;
+  const REC_SPACING   = 120;
+  const COL_SPACING   = 100;
   const INPUT_SPACING = 140;
 
-  let globalY = 20;
-  let outputY = 20;
-  let inputCount = 0;
+  let globalY     = 20;
+  let outputY     = 20;
+  let inputCount  = 0;
   let firstInputY = 20;
-  let lastInputY = 20;
+  let lastInputY  = 20;
 
   const registerInput = (nodeY: number) => {
     if (inputCount === 0) firstInputY = nodeY;
@@ -64,7 +67,7 @@ function buildSchemaFromProject(
     globalY += INPUT_SPACING;
   };
 
-  // --- Builtin DBs + external DB connections, with collection/table names ---
+  // --- All DB connections (builtin + external), with collection + record sub-nodes ---
   const allDbs = [
     ...builtinDbs.map(db => ({
       id: `builtin-db-${db.name}`,
@@ -90,9 +93,27 @@ function buildSchemaFromProject(
 
     collections.forEach(collection => {
       const collNodeId = `coll-${db.id}-${collection}`;
-      nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: globalY }, data: { label: collection, subtitle: 'collection' } });
-      edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
-      globalY += COL_SPACING;
+      const recordIds = tableRecordsMap[`${db.id}:${collection}`] ?? [];
+
+      if (recordIds.length === 0) {
+        nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: globalY }, data: { label: collection, subtitle: 'collection' } });
+        edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
+        globalY += COL_SPACING;
+      } else {
+        const collBlockStartY = globalY;
+
+        recordIds.forEach((recordId) => {
+          const recNodeId = `rec-${db.id}-${collection}-${recordId}`;
+          nodes.push({ id: recNodeId, type: 'dataSourceNode', position: { x: X_RECORDS, y: globalY }, data: { label: recordId.slice(0, 12), subtitle: 'record' } });
+          edges.push({ id: `e-${recNodeId}`, source: recNodeId, sourceHandle: 'out-right', target: collNodeId, animated: false, style: EDGE_RECORD });
+          globalY += REC_SPACING;
+        });
+
+        const collCenterY = (collBlockStartY + globalY - REC_SPACING) / 2;
+        nodes.push({ id: collNodeId, type: 'dataSourceNode', position: { x: X_COLLECTIONS, y: collCenterY }, data: { label: collection, subtitle: 'collection' } });
+        edges.push({ id: `e-${collNodeId}`, source: collNodeId, sourceHandle: 'out-right', target: db.id, animated: false, style: EDGE_COLLECTION });
+        globalY += COL_SPACING;
+      }
     });
 
     const dbCenterY = (dbBlockStartY + globalY - COL_SPACING) / 2;
@@ -115,7 +136,7 @@ function buildSchemaFromProject(
     addSimpleInputNode(`api-${api.id}`, 'apiConnectionNode', api.name, api.method);
   });
 
-  // --- Management-level storages (AWS S3 etc.) ---
+  // --- Management-level storages ---
   mgmtStorages.forEach((storage: MgmtStorage, i: number) => {
     addSimpleInputNode(`mgmt-storage-${i}`, 'ingestNode', storage.name, storage.type ?? 'storage');
   });
@@ -139,99 +160,28 @@ function buildSchemaFromProject(
   return { nodes, edges };
 }
 
-function hasAnyResource(project: Project, builtinDbs: BuiltinDb[], mgmtStorages: MgmtStorage[]): boolean {
-  return (
-    builtinDbs.length > 0 ||
-    mgmtStorages.length > 0 ||
-    (project.exports?.length ?? 0) > 0 ||
-    (project.dbConnections?.length ?? 0) > 0 ||
-    (project.apiConnections?.length ?? 0) > 0 ||
-    (project.storageConnections?.length ?? 0) > 0
-  );
-}
-
 export function ProjectArchitecture({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
-  const mgmtStorages: MgmtStorage[] = useSelector((state: RootState) => {
-    const extended = state as RootState & { management?: { storages?: MgmtStorage[] } };
-    return extended.management?.storages ?? [];
-  });
   const allWorkflows = useMemo(() => currentProject?.workflows ?? [], [currentProject?.workflows]);
 
-  const [builtinDbs, setBuiltinDbs] = useState<BuiltinDb[]>([]);
-  const [builtinsLoaded, setBuiltinsLoaded] = useState(false);
-  const [dbTablesMap, setDbTablesMap] = useState<Record<string, string[]>>({});
-  const [tablesLoaded, setTablesLoaded] = useState(false);
   const [localSchema, setLocalSchema] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
-  const autoSavedRef = useRef(false);
-
-  // Load builtin databases
-  useEffect(() => {
-    if (!projectId) return;
-    fetchBuiltinDatabases()
-      .then(dbs => { setBuiltinDbs(dbs); setBuiltinsLoaded(true); })
-      .catch(() => { setBuiltinsLoaded(true); });
-  }, [projectId]);
-
-  // Fetch collection/table names for each DB (configuration skeleton only — no records)
-  useEffect(() => {
-    if (!projectId || !builtinsLoaded) return;
-    const allDbs = [
-      ...builtinDbs.map(db => ({ key: `builtin-db-${db.name}`, connId: db.name })),
-      ...(currentProject?.dbConnections ?? []).map((db: DbConnection) => ({ key: `db-${db.id}`, connId: db.id })),
-    ];
-    if (allDbs.length === 0) { setTablesLoaded(true); return; }
-
-    Promise.all(
-      allDbs.map(async ({ key, connId }) => {
-        try {
-          const tables = await fetchTables(projectId, connId);
-          return { key, tables };
-        } catch {
-          return { key, tables: [] as string[] };
-        }
-      }),
-    ).then(results => {
-      setDbTablesMap(Object.fromEntries(results.map(r => [r.key, r.tables])));
-      setTablesLoaded(true);
-    });
-  }, [projectId, builtinsLoaded, builtinDbs, currentProject?.dbConnections]);
 
   const displaySchema = useMemo<{ nodes: Node[]; edges: Edge[] } | null>(() => {
     if (localSchema !== null) return localSchema;
     if (workflow.nodeSchema) return workflow.nodeSchema as { nodes: Node[]; edges: Edge[] };
-    if (currentProject && hasAnyResource(currentProject, builtinDbs, mgmtStorages)) {
-      return buildSchemaFromProject(currentProject, builtinDbs, mgmtStorages, dbTablesMap);
-    }
     return null;
-  }, [localSchema, workflow.nodeSchema, currentProject, builtinDbs, mgmtStorages, dbTablesMap]);
-
-  // Auto-save the generated schema once all fetches are complete (best-effort, first time only)
-  useEffect(() => {
-    if (!tablesLoaded || !projectId || !currentProject) return;
-    if (workflow.nodeSchema !== null || localSchema !== null) return;
-    if (displaySchema === null || autoSavedRef.current) return;
-    autoSavedRef.current = true;
-    updateWorkflow(projectId, workflow.id, { nodeSchema: displaySchema })
-      .then(updated => {
-        dispatch(setCurrentProject({
-          ...currentProject,
-          workflows: allWorkflows.map(w => w.id === workflow.id ? updated : w),
-        }));
-      })
-      .catch(() => {});
-  }, [tablesLoaded, projectId, currentProject, workflow.nodeSchema, workflow.id, localSchema, displaySchema, allWorkflows, dispatch]);
+  }, [localSchema, workflow.nodeSchema]);
 
   const nodeViewerKey = useMemo(() => {
     if (workflow.nodeSchema) return `saved-${workflow.id}`;
     if (localSchema) return 'template';
-    return `auto-${displaySchema?.nodes.length ?? 0}`;
-  }, [workflow.nodeSchema, workflow.id, localSchema, displaySchema?.nodes.length]);
+    return 'empty';
+  }, [workflow.nodeSchema, workflow.id, localSchema]);
 
   const exportAdapter = useMemo<Export>(() => ({
     id: workflow.id,
@@ -255,7 +205,7 @@ export function ProjectArchitecture({ workflow }: Props) {
     setSaving(true);
     const nodeSchema = nodeViewerRef.current?.getSchema() ?? null;
     try {
-      const updated: Workflow = await updateWorkflow(projectId, workflow.id, { nodeSchema });
+      const updated: Workflow = await updateProjectWorkflow(projectId, { nodeSchema });
       dispatch(setCurrentProject({
         ...currentProject,
         workflows: allWorkflows.map(w => w.id === workflow.id ? updated : w),
@@ -276,6 +226,17 @@ export function ProjectArchitecture({ workflow }: Props) {
     );
   }
 
+  const saveButton = editMode ? (
+    <button
+      className={s.saveBtn}
+      onClick={handleSave}
+      disabled={saving}
+      title={saving ? 'Saving…' : 'Save'}
+    >
+      <FontAwesomeIcon icon={faFloppyDisk} />
+    </button>
+  ) : null;
+
   return (
     <div className={s.container}>
       <NodeViewer
@@ -284,14 +245,11 @@ export function ProjectArchitecture({ workflow }: Props) {
         exportDetails={exportAdapter}
         editMode={editMode}
         projectId={projectId}
+        canvasOverlay={saveButton}
       />
+
+      {/* Mode toggle — top center */}
       <div className={s.toggleOverlay}>
-        {editMode && (
-          <button className={s.saveBtn} onClick={handleSave} disabled={saving}>
-            <FontAwesomeIcon icon={faFloppyDisk} />
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-        )}
         <div
           className={s.track}
           role="switch"
@@ -299,15 +257,17 @@ export function ProjectArchitecture({ workflow }: Props) {
           tabIndex={0}
           onClick={() => setEditMode(e => !e)}
           onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setEditMode(e => !e)}
-          title={editMode ? 'Exit edit mode' : 'Edit mode'}
+          title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
         >
           <span className={`${s.thumb} ${editMode ? s.thumbRight : ''}`} />
           <div className={s.trackLabels}>
             <span className={`${s.trackLabel} ${!editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
               <FontAwesomeIcon icon={faEye} />
+              View
             </span>
             <span className={`${s.trackLabel} ${editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
               <FontAwesomeIcon icon={faPencil} />
+              Edit
             </span>
           </div>
         </div>

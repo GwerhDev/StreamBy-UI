@@ -60,7 +60,7 @@ export const PipelineRefNode = memo(({ id, data, selected }: NodeProps<ArchNodeD
   return (
     <div
       className={`${ns.customNode} ${selected ? ns.nodeSelected : ''}`}
-      onClick={() => navigate(`/project/${projectId}/workflows/${data.entityId}`)}
+      onClick={() => navigate(`/project/${projectId}/workflow`)}
     >
       <Handle type="target" position={Position.Left} id="in-left" className={ns.handle} />
       <div className={ns.nodeIconBar} style={{ backgroundColor: '#16103a' }}>

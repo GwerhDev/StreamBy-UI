@@ -80,6 +80,7 @@ export interface NodeViewerProps {
   apiConnections?: ApiConnection[];
   dbConnections?: DbConnection[];
   projectId?: string;
+  canvasOverlay?: React.ReactNode;
 }
 
 export interface NodeViewerHandle {
@@ -90,7 +91,7 @@ const CORE_NODE_IDS = ['client', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId,
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
@@ -894,6 +895,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
           <div
             className={s.flowContainer}
+            style={{ '--rp-offset': selectedDetail ? '256px' : '0px' } as React.CSSProperties}
             onDragOver={editMode ? handleDragOver : undefined}
             onDrop={editMode ? handleDrop : undefined}
           >
@@ -1038,6 +1040,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 )}
               </div>
             )}
+            {canvasOverlay}
           </div>
 
           {editMode && (

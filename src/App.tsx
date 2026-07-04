@@ -61,10 +61,7 @@ const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage
 const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPage').then(module => ({ default: module.RenderFarmListPage })));
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
-const WorkflowListPage         = lazy(() => import('./app/pages/WorkflowListPage').then(module => ({ default: module.WorkflowListPage })));
-const WorkflowCreatePage       = lazy(() => import('./app/pages/WorkflowCreatePage').then(module => ({ default: module.WorkflowCreatePage })));
-const WorkflowDetailPage       = lazy(() => import('./app/pages/WorkflowDetailPage').then(module => ({ default: module.WorkflowDetailPage })));
-const WorkflowEditPage         = lazy(() => import('./app/pages/WorkflowEditPage').then(module => ({ default: module.WorkflowEditPage })));
+const WorkflowPage             = lazy(() => import('./app/pages/WorkflowPage').then(module => ({ default: module.WorkflowPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -127,17 +124,13 @@ function App() {
                   <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
 
-                  <Route path="/project/:id/workflows" element={<WorkflowListPage />} />
-                  <Route path="/project/:id/workflows/create" element={<WorkflowCreatePage />} />
-                  <Route path="/project/:id/workflows/:workflowId" element={<WorkflowDetailPage />} />
-                  <Route path="/project/:id/workflows/:workflowId/edit" element={<WorkflowEditPage />} />
-
-                  <Route path="/project/:id/production" element={<ProductionBoardPage />} />
-                  <Route path="/project/:id/jobs" element={<JobMonitorPage />} />
-                  <Route path="/project/:id/reviews" element={<ReviewListPage />} />
-                  <Route path="/project/:id/review/:sessionId" element={<ReviewPlayerPage />} />
-                  <Route path="/project/:id/render-farm" element={<RenderFarmListPage />} />
-                  <Route path="/project/:id/deliverables" element={<DeliverableListPage />} />
+                  <Route path="/project/:id/workflow" element={<WorkflowPage />} />
+                  <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
+                  <Route path="/project/:id/workflow/jobs" element={<JobMonitorPage />} />
+                  <Route path="/project/:id/workflow/reviews" element={<ReviewListPage />} />
+                  <Route path="/project/:id/workflow/review/:sessionId" element={<ReviewPlayerPage />} />
+                  <Route path="/project/:id/workflow/render-farm" element={<RenderFarmListPage />} />
+                  <Route path="/project/:id/workflow/deliverables" element={<DeliverableListPage />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
