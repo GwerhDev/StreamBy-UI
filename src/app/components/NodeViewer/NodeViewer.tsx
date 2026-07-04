@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { getConnectionResponse, createApiConnection, updateApiConnection } from '../../../services/connections';
+import { createCredential } from '../../../services/projects';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import ReactFlow, {
@@ -92,6 +93,7 @@ export interface NodeViewerHandle {
 const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
 const CREATE_NEW_SENTINEL = '__create_new__';
+const CREATE_CRED_SENTINEL = '__create_cred__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay,
@@ -137,6 +139,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [apiCreateUrl, setApiCreateUrl] = useState('');
   const [apiCreateMethod, setApiCreateMethod] = useState('GET');
   const [apiCreating, setApiCreating] = useState(false);
+  const [showCredentialModal, setShowCredentialModal] = useState(false);
+  const [credPickId, setCredPickId] = useState('');
+  const [credCreateKey, setCredCreateKey] = useState('');
+  const [credCreateValue, setCredCreateValue] = useState('');
+  const [credCreating, setCredCreating] = useState(false);
   const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
   const [nodeLabelModalData, setNodeLabelModalData] = useState({ label: '', subtitle: '' });
 
@@ -727,8 +734,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isJsonNode = selectedNode?.type === 'jsonInputNode';
   const isApiNode = selectedNode?.type === 'apiConnectionNode';
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
+  const isCredentialNode = selectedNode?.type === 'credentialNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
-  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && (isJsonNode || !isCoreNode || !!onSave);
+  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isCredentialNode && (isJsonNode || !isCoreNode || !!onSave);
+  const credentialConnected = isCredentialNode && edges.some(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
 
   // Stable primitives from the saved node data — avoids re-running effects on every ReactFlow state update
   const savedNodeConnId = (selectedNode?.data?.connectionId as string) ?? '';
@@ -936,6 +945,50 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setShowDataSourceModal(false);
   }, [handleSave]);
 
+  const handleOpenCredentialModal = useCallback(() => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    setCredPickId((node?.data?.credentialId as string) || '');
+    setCredCreateKey('');
+    setCredCreateValue('');
+    setShowCredentialModal(true);
+  }, [nodes, selectedNodeId]);
+
+  const handleSaveCredentialModal = useCallback(async () => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    if (!node || !projectId || !currentProject) return;
+    let credentialId = credPickId;
+    let credKey = '';
+    if (credPickId === CREATE_CRED_SENTINEL) {
+      if (!credCreateKey || !credCreateValue) return;
+      setCredCreating(true);
+      try {
+        const newCred = await createCredential(projectId, credCreateKey, credCreateValue);
+        const updatedCreds = [...(currentProject.credentials ?? []), newCred];
+        dispatch(setCurrentProject({ ...currentProject, credentials: updatedCreds }));
+        credentialsRef.current = updatedCreds;
+        credentialId = newCred.id;
+        credKey = newCred.key;
+      } catch { setCredCreating(false); return; }
+      setCredCreating(false);
+    } else {
+      credKey = currentProject.credentials?.find(c => c.id === credPickId)?.key ?? '';
+    }
+    setNodes(prev => prev.map(n => n.id === selectedNodeId
+      ? { ...n, data: { ...n.data, label: credKey, credentialId } }
+      : n
+    ));
+    const credEdge = edges.find(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
+    const apiNode = credEdge ? nodes.find(n => n.id === credEdge.target) : undefined;
+    const connectionId = (apiNode?.data?.connectionId as string) || '';
+    if (connectionId) {
+      updateApiConnection(projectId, connectionId, { credentialId }).catch(() => {});
+    }
+    setCredPickId('');
+    setCredCreateKey('');
+    setCredCreateValue('');
+    setShowCredentialModal(false);
+  }, [nodes, selectedNodeId, projectId, currentProject, credPickId, credCreateKey, credCreateValue, edges, dispatch, setNodes]);
+
   const handleOpenApiModal = useCallback(() => {
     setLocalData({});
     setApiCreateName('');
@@ -1138,31 +1191,19 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   </div>
                 )}
 
-                {selectedNode?.type === 'credentialNode' && editMode && currentProject?.credentials?.length ? (
+                {isCredentialNode && projectId && (
                   <div className={s.nodeActions}>
-                    <DropdownInput
-                      value={(selectedNode.data.credentialId as string) || ''}
-                      onChange={credentialId => {
-                        const cred = currentProject.credentials?.find(c => c.id === credentialId);
-                        if (!cred) return;
-                        setNodes(prev => prev.map(n => n.id === selectedNodeId
-                          ? { ...n, data: { ...n.data, label: cred.key, credentialId: cred.id } }
-                          : n
-                        ));
-                        const credEdge = edges.find(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
-                        const apiNode = credEdge ? nodes.find(n => n.id === credEdge.target) : undefined;
-                        const connectionId = (apiNode?.data?.connectionId as string) || '';
-                        if (connectionId && projectId) {
-                          updateApiConnection(projectId, connectionId, { credentialId: cred.id }).catch(() => {});
-                        }
-                      }}
-                      options={[
-                        { value: '', label: 'Select a credential' },
-                        ...(currentProject.credentials ?? []).map(c => ({ value: c.id, label: c.key })),
-                      ]}
-                    />
+                    <button
+                      type="button"
+                      className={s.actionButton}
+                      onClick={handleOpenCredentialModal}
+                      disabled={!editMode || !credentialConnected}
+                    >
+                      <FontAwesomeIcon icon={faGear} />
+                      Configure
+                    </button>
                   </div>
-                ) : null}
+                )}
 
                 {selectedDetail.fields.length > 0 && (
                   <div className={s.detailFields}>
@@ -1730,6 +1771,53 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowApiModal(false); }}>Cancel</button>
                 <button type="button" className={s.saveButton} onClick={handleSaveApiModal} disabled={!canSaveApiModal}>
                   <FontAwesomeIcon icon={faFloppyDisk} /> {apiCreating ? 'Creating…' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {showCredentialModal && selectedNodeId && (() => {
+        const isCreatingNew = credPickId === CREATE_CRED_SENTINEL;
+        const canSaveCredModal = isCreatingNew ? !!credCreateKey && !!credCreateValue && !credCreating : !!credPickId && credPickId !== CREATE_CRED_SENTINEL;
+        const options = [
+          { value: '', label: 'Select a credential' },
+          ...(currentProject?.credentials ?? []).map(c => ({ value: c.id, label: c.key })),
+          { value: CREATE_CRED_SENTINEL, label: '+ Create new credential...' },
+        ];
+        return (
+          <div className={s.modalOverlay} onClick={() => setShowCredentialModal(false)}>
+            <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+              <div className={s.modalHeader}>
+                <span className={s.modalTitle}>
+                  <FontAwesomeIcon icon={faGear} style={{ color: '#818cf8' }} />
+                  Credential Configuration
+                </span>
+                <button className={s.panelClose} type="button" onClick={() => setShowCredentialModal(false)}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+              <div className={s.configModalBody}>
+                <div className={s.configRow}>
+                  <label className={s.configLabel}>Credential</label>
+                  <DropdownInput value={credPickId} onChange={setCredPickId} options={options} />
+                </div>
+                {isCreatingNew && (<>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel}>Key</label>
+                    <input className={s.configInput} type="text" value={credCreateKey} onChange={e => setCredCreateKey(e.target.value)} placeholder="MY_API_KEY" />
+                  </div>
+                  <div className={s.configRow}>
+                    <label className={s.configLabel}>Value</label>
+                    <input className={s.configInput} type="password" value={credCreateValue} onChange={e => setCredCreateValue(e.target.value)} placeholder="••••••••" />
+                  </div>
+                </>)}
+              </div>
+              <div className={s.modalFooter}>
+                <button type="button" className={s.cancelButton} onClick={() => setShowCredentialModal(false)}>Cancel</button>
+                <button type="button" className={s.saveButton} onClick={handleSaveCredentialModal} disabled={!canSaveCredModal}>
+                  <FontAwesomeIcon icon={faFloppyDisk} /> {credCreating ? 'Creating…' : 'Save'}
                 </button>
               </div>
             </div>
