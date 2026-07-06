@@ -1,5 +1,5 @@
 ﻿import s from './LateralMenu.module.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -34,6 +34,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const selfMember = members?.find(m => m.userId === session.userId);
   const isPending = selfMember?.status === 'pending';
   const [showCanvas, setShowCanvas] = useState(false);
+  const railAnchorRef = useRef<HTMLButtonElement>(null);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
@@ -273,12 +274,12 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
         <div className={s.container}>
           <div key="rail" className={s.menuInner}>
             <div className={s.railTitle}>
-              <button className={s.railProjectBtn} onClick={() => setShowCanvas(true)}>
+              <button ref={railAnchorRef} className={s.railProjectBtn} onClick={() => setShowCanvas(true)}>
                 <span className={s.railProjectInitial}>{name?.[0]?.toUpperCase() ?? '·'}</span>
                 <FontAwesomeIcon icon={faChevronDown} className={s.railProjectChevron} />
               </button>
               <div className={s.railCanvasAnchor}>
-                <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas}>
+                <CustomCanvas showCanvas={showCanvas} setShowCanvas={setShowCanvas} anchorRef={railAnchorRef}>
                   {projectActionsContent}
                 </CustomCanvas>
               </div>
