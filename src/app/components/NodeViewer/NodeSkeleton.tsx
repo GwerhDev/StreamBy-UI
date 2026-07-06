@@ -1,4 +1,4 @@
-import s from './WorkflowSkeleton.module.css';
+import s from './NodeSkeleton.module.css';
 
 interface SkeletonNode {
   id: string;
@@ -46,7 +46,7 @@ const EDGES: SkeletonEdge[] = [
   { from: 'core',     to: 'export2', delay: 800 },
 ];
 
-export function WorkflowSkeleton() {
+export function NodeSkeleton() {
   const SVG_W = 800;
   const SVG_H = 640;
 
