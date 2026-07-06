@@ -93,6 +93,7 @@ export interface NodeViewerHandle {
 
 const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
+const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'apiConnectionNode', 'credentialNode', 'exportNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
 
@@ -275,10 +276,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const visibleNodes = useMemo(() => {
     const connectorTypes = ['apiConnectionNode', 'dataSourceNode'];
-    if (editMode) return nodes;
     const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
-    return nodes.filter(n => !connectorTypes.includes(n.type ?? '') || connected.has(n.id));
-  }, [editMode, nodes, edges]);
+    let result = editMode
+      ? nodes
+      : nodes.filter(n => !connectorTypes.includes(n.type ?? '') || connected.has(n.id));
+    if (workspaceMode === 'designer') {
+      result = result.filter(n => !DESIGNER_HIDDEN_TYPES.has(n.type ?? ''));
+    }
+    return result;
+  }, [editMode, nodes, edges, workspaceMode]);
+
+  const visibleEdges = useMemo(() => {
+    const visibleIds = new Set(visibleNodes.map(n => n.id));
+    return edges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
+  }, [visibleNodes, edges]);
 
   const connectedHandles = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -1113,7 +1124,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             onDrop={editMode ? handleDrop : undefined}
           >
             <ReactFlow
-              nodes={visibleNodes} edges={edges}
+              nodes={visibleNodes} edges={visibleEdges}
               onNodeClick={handleNodeClick}
               onNodesChange={editMode ? onNodesChange : noop}
               onEdgesChange={editMode ? onEdgesChange : noop}
