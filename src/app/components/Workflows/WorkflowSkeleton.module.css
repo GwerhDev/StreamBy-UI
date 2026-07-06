@@ -1,0 +1,101 @@
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-bg-base);
+}
+
+/* ── SVG edges ─────────────────────────────────────────────────────────────── */
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.edge {
+  stroke: var(--color-surface-hover);
+  stroke-width: 1.5;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  opacity: 0;
+  animation: drawEdge 0.5s ease forwards;
+}
+
+@keyframes drawEdge {
+  0%   { stroke-dashoffset: 600; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 1; }
+}
+
+/* ── Skeleton nodes ────────────────────────────────────────────────────────── */
+
+.node {
+  position: absolute;
+  width: 148px;
+  background: var(--color-surface-600);
+  border: 1px solid var(--color-surface-hover);
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: nodeIn 0.3s ease forwards;
+}
+
+.nodeWide {
+  width: 158px;
+}
+
+@keyframes nodeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nodeIconBar {
+  padding: 10px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconSquare {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+  background: var(--color-surface-hover);
+}
+
+.titleBar {
+  height: 10px;
+  border-radius: 4px;
+  flex: 1;
+  animation: pulse 1.4s ease-in-out infinite;
+  animation-delay: 0.1s;
+  background: var(--color-surface-hover);
+}
+
+.nodeBody {
+  padding: 7px 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.subtitleBar {
+  height: 8px;
+  width: 60%;
+  border-radius: 4px;
+  animation: pulse 1.4s ease-in-out infinite;
+  animation-delay: 0.2s;
+  background: var(--color-surface-hover);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}

@@ -7,7 +7,7 @@ import { addApiResponse } from '../../store/apiResponsesSlice';
 import { getProjectWorkflow, createWorkflow, updateProjectWorkflow } from '../../services/workflows';
 import { Project, Workflow, DbConnection } from '../../interfaces';
 import { buildSchemaFromProject, BuiltinDb, MgmtStorage, ProjectArchitecture } from '../components/Workflows/ProjectArchitecture';
-import { Spinner } from '../components/Spinner';
+import { WorkflowSkeleton } from '../components/Workflows/WorkflowSkeleton';
 
 // Derive a sorted fingerprint of all resource node IDs from the current project state.
 function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], builtinDbs: BuiltinDb[]): string {
@@ -139,7 +139,7 @@ export function WorkflowPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, currentProject?.id, resourceKey]);
 
-  if (loading || !currentProject) return <Spinner bg={false} isLoading />;
+  if (loading || !currentProject) return <WorkflowSkeleton />;
   if (!workflow) return null;
 
   return <ProjectArchitecture workflow={workflow} />;
