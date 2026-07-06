@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { RootState, AppDispatch } from '../../store';
-import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
 import { useProjects } from '../../hooks/useProjects';
-import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
@@ -22,12 +20,6 @@ function DefaultLayoutInner() {
   const { minimized, setMinimized } = useDesktop();
   const { name, image } = currentProject.data || {};
   const { projectList } = useProjects();
-  const dispatch = useDispatch<AppDispatch>();
-
-  useEffect(() => {
-    dispatch(fetchDatabases());
-    dispatch(fetchStorages());
-  }, [dispatch]);
 
   return (
     <main>

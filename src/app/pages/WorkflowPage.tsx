@@ -5,7 +5,6 @@ import { RootState, AppDispatch } from '../../store';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 import { addApiResponse } from '../../store/apiResponsesSlice';
 import { getProjectWorkflow, createWorkflow, updateProjectWorkflow } from '../../services/workflows';
-import { fetchBuiltinDatabases } from '../../services/database';
 import { Project, Workflow, DbConnection } from '../../interfaces';
 import { buildSchemaFromProject, BuiltinDb, MgmtStorage, ProjectArchitecture } from '../components/Workflows/ProjectArchitecture';
 import { Spinner } from '../components/Spinner';
@@ -50,18 +49,21 @@ export function WorkflowPage() {
     const extended = state as RootState & { management?: { storages?: MgmtStorage[] } };
     return extended.management?.storages ?? [];
   });
+  const builtinDbs: BuiltinDb[] = useSelector((state: RootState) => {
+    const extended = state as RootState & { management?: { databases?: BuiltinDb[] } };
+    return extended.management?.databases ?? [];
+  });
 
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Stable key that changes whenever the project's resources change (no builtinDbs here — those
-  // are system-level and fetched async; changes to project-owned resources are enough to trigger).
   const resourceKey = [
     ...(currentProject?.dbConnections ?? []).map((db: DbConnection) => db.id),
     ...(currentProject?.apiConnections ?? []).map((api: any) => api.id),
     ...(currentProject?.storageConnections ?? []).map((s: any) => s.id),
     ...(currentProject?.exports ?? []).map((exp: any) => exp.id),
     ...mgmtStorages.map((_, i) => i),
+    ...builtinDbs.map(db => db.name),
   ].join(',');
 
   useEffect(() => {
@@ -86,9 +88,6 @@ export function WorkflowPage() {
           return;
         }
       }
-
-      // Fetch builtinDbs once — needed for both staleness check and regeneration.
-      const builtinDbs: BuiltinDb[] = await fetchBuiltinDatabases().catch(() => []);
 
       const schemaNodes: any[] = (wf.nodeSchema as any)?.nodes ?? [];
       // Stale if export nodes still use old filterNode type (before exportNode was introduced)
