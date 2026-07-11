@@ -37,7 +37,7 @@ export const CreateCredentialForm = () => {
           ? [...currentProject.credentials, newCredential]
           : [newCredential];
         dispatch(setCurrentProject({ ...currentProject, credentials: updatedCredentials }));
-        navigate(`/project/${projectId}/settings/credentials`);
+        navigate(`/project/${projectId}/authentication/credentials`);
       }
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create credential.', type: 'error' }));

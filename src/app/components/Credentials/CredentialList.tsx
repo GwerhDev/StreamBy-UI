@@ -28,7 +28,7 @@ export const CredentialList: React.FC = () => {
   const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null); // State for selected credential to delete
 
   const handleCreateCredential = () => {
-    navigate(`/project/${projectId}/settings/credentials/create`);
+    navigate(`/project/${projectId}/authentication/credentials/create`);
   };
 
   const handleDeleteClick = (credential: Credential) => {

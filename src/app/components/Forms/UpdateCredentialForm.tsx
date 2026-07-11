@@ -67,7 +67,7 @@ export const UpdateCredentialForm: React.FC = () => {
           cred.id === credentialId ? { ...cred, key, value } : cred
         );
         dispatch(setCurrentProject({ ...currentProject, credentials: updatedCredentials }));
-        navigate(`/project/${projectId}/settings/credentials/${credentialId}`);
+        navigate(`/project/${projectId}/authentication/credentials/${credentialId}`);
       }
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to update credential.', type: 'error' }));

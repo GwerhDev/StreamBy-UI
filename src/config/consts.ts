@@ -1,4 +1,4 @@
-import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faServer, faClipboardList, faSitemap } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faServer, faClipboardList, faSitemap, faKey } from "@fortawesome/free-solid-svg-icons";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
@@ -35,6 +35,10 @@ export const apiDirectoryList = [
 ];
 
 export const settingsDirectoryList = [
-  { name: "Credentials", icon: faFingerprint, path: "settings/credentials" },
+  { name: "API Tokens", icon: faKey, path: "settings/api-tokens" },
   { name: "Permissions", icon: faShield, path: "settings/permissions" },
+];
+
+export const authenticationDirectoryList = [
+  { name: "Credentials", icon: faFingerprint, path: "authentication/credentials" },
 ];

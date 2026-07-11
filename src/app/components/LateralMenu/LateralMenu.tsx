@@ -4,9 +4,9 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDoorOpen, faFileExport, faFingerprint, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { apiDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
+import { apiDirectoryList, authenticationDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
@@ -49,6 +49,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
   const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
+  const isAuthenticationSection = location.pathname.includes(`/project/${id}/authentication`);
   const isSettingsSection = location.pathname.includes(`/project/${id}/settings`);
 
   const [sectionOpen, setSectionOpen] = useState({
@@ -58,6 +59,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     storage: true,
     database: true,
     connections: true,
+    authentication: true,
     settings: true,
   });
 
@@ -69,9 +71,10 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       storage: prev.storage || isStorageSection,
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
+      authentication: prev.authentication || isAuthenticationSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isWorkflowsSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+  }, [isDashboardSection, isWorkflowsSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isAuthenticationSection, isSettingsSection]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -306,6 +309,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                   </button>
                   <button className={`${s.railIcon} ${isConnectionsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/connections`)} title="Connections">
                     <FontAwesomeIcon icon={faTowerBroadcast} />
+                  </button>
+                  <button className={`${s.railIcon} ${isAuthenticationSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/authentication`)} title="Authentication">
+                    <FontAwesomeIcon icon={faFingerprint} />
                   </button>
                   <button className={`${s.railIcon} ${isSettingsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/settings`)} title="Settings">
                     <FontAwesomeIcon icon={faGear} />
@@ -565,6 +571,33 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 {sectionOpen.connections && (
                   <div className={s.sectionBody}>
                     {apiDirectoryList.map(({ name, icon, path }, index) => {
+                      const linkPath = `/project/${id}/${path}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={index} to={linkPath} className={`${s.navItem} ${isActive ? s.activeLink : ''}`}>
+                          {icon && <FontAwesomeIcon icon={icon} />}
+                          {name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>}
+
+              {/* AUTHENTICATION — Developer only */}
+              {mode === 'developer' && <div className={s.accordionSection}>
+                <div className={`${s.sectionHeader} ${isAuthenticationSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('authentication')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/authentication`); }}>
+                    Authentication
+                  </span>
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.authentication ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faFingerprint} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
+                </div>
+                {sectionOpen.authentication && (
+                  <div className={s.sectionBody}>
+                    {authenticationDirectoryList.map(({ name, icon, path }, index) => {
                       const linkPath = `/project/${id}/${path}`;
                       const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                       return (
