@@ -1,4 +1,4 @@
-import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faServer, faClipboardList, faSitemap, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faServer, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
@@ -11,10 +11,6 @@ export const workflowSubDirectoryList = [
   { name: "Reviews", icon: faComments, path: "reviews" },
   { name: "Render Farm", icon: faServer, path: "render-farm" },
   { name: "Deliverables", icon: faBoxArchive, path: "deliverables" },
-];
-
-export const workflowsDirectoryList = [
-  { name: "Workflows", icon: faSitemap, path: "workflows" },
 ];
 
 export const exportsDirectoryList = [

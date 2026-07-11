@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { createApiConnection } from '../../../services/connections';
-import { updateWorkflow } from '../../../services/workflows';
+import { updateProjectWorkflow } from '../../../services/workflow';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -54,11 +54,11 @@ export const CreateApiConnectionForm = () => {
       const response = await createApiConnection(projectId, payload);
       if (response) {
         const existing = currentProject.apiConnections ?? [];
-        const architecture = currentProject.workflows?.[0];
-        let updatedWorkflows = currentProject.workflows;
+        const workflow = currentProject.workflow;
+        let updatedWorkflow = workflow;
 
-        if (architecture?.nodeSchema) {
-          const existingNodes = (architecture.nodeSchema.nodes ?? []) as object[];
+        if (workflow?.nodeSchema) {
+          const existingNodes = (workflow.nodeSchema.nodes ?? []) as object[];
           const inputNodes = existingNodes.filter((n: any) => String(n.id).startsWith('api-') || String(n.id).startsWith('db-') || String(n.id).startsWith('storage-'));
           const newNode = {
             id: `api-${response.id}`,
@@ -68,17 +68,16 @@ export const CreateApiConnectionForm = () => {
           };
           const updatedSchema = {
             nodes: [...existingNodes, newNode],
-            edges: architecture.nodeSchema.edges ?? [],
+            edges: workflow.nodeSchema.edges ?? [],
           };
           try {
-            const updatedArch = await updateWorkflow(projectId, architecture.id, { nodeSchema: updatedSchema });
-            updatedWorkflows = currentProject.workflows!.map(w => w.id === architecture.id ? updatedArch : w);
+            updatedWorkflow = await updateProjectWorkflow(projectId, { nodeSchema: updatedSchema });
           } catch {
             // best-effort
           }
         }
 
-        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response], workflows: updatedWorkflows }));
+        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response], workflow: updatedWorkflow }));
         dispatch(addApiResponse({ message: 'API connection created successfully.', type: 'success' }));
       }
       navigate(`/project/${projectId}/connections/api`);

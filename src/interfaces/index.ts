@@ -71,7 +71,8 @@ export interface Project {
   allowedOrigin?: string[];
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
-  workflows?: Workflow[];
+  workflow?: Workflow;              // single canvas per project
+  // pipelines?: Pipeline[];        // reserved for the future sub-workflow concept
   apiConnections?: ApiConnection[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];

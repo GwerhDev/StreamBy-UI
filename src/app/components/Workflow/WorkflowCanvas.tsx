@@ -1,4 +1,4 @@
-import s from './ProjectArchitecture.module.css';
+import s from './WorkflowCanvas.module.css';
 import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -8,7 +8,7 @@ import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { updateProjectWorkflow } from '../../../services/workflows';
+import { updateProjectWorkflow } from '../../../services/workflow';
 import { ApiConnection, DbConnection, Export, Project, StorageConnection, Workflow } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { TemplatePicker } from './TemplatePicker';
@@ -114,11 +114,10 @@ export function buildSchemaFromProject(
   return { nodes, edges };
 }
 
-export function ProjectArchitecture({ workflow }: Props) {
+export function WorkflowCanvas({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
-  const allWorkflows = useMemo(() => currentProject?.workflows ?? [], [currentProject?.workflows]);
 
   const [localSchema, setLocalSchema] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -162,7 +161,7 @@ export function ProjectArchitecture({ workflow }: Props) {
       const updated: Workflow = await updateProjectWorkflow(projectId, { nodeSchema });
       dispatch(setCurrentProject({
         ...currentProject,
-        workflows: allWorkflows.map(w => w.id === workflow.id ? updated : w),
+        workflow: updated,
       }));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to save.';

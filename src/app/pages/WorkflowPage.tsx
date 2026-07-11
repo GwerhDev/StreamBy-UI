@@ -4,9 +4,9 @@ import { useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../store';
 import { setCurrentProject } from '../../store/currentProjectSlice';
 import { addApiResponse } from '../../store/apiResponsesSlice';
-import { getProjectWorkflow, createWorkflow, updateProjectWorkflow } from '../../services/workflows';
+import { getProjectWorkflow, updateProjectWorkflow } from '../../services/workflow';
 import { Project, Workflow, DbConnection } from '../../interfaces';
-import { buildSchemaFromProject, BuiltinDb, MgmtStorage, ProjectArchitecture } from '../components/Workflows/ProjectArchitecture';
+import { buildSchemaFromProject, BuiltinDb, MgmtStorage, WorkflowCanvas } from '../components/Workflow/WorkflowCanvas';
 import { NodeSkeleton } from '../components/NodeViewer/NodeSkeleton';
 
 // Derive a sorted fingerprint of all resource node IDs from the current project state.
@@ -78,10 +78,11 @@ export function WorkflowPage() {
       try {
         wf = await getProjectWorkflow(projectId);
       } catch {
+        // No workflow yet — PATCH upserts the single project workflow.
         try {
-          wf = await createWorkflow(projectId, {
-            name: 'Architecture',
-            description: 'Project architecture overview',
+          wf = await updateProjectWorkflow(projectId, {
+            name: 'Workflow',
+            description: 'Project workflow',
           });
         } catch (createErr: any) {
           if (!cancelled) dispatch(addApiResponse({ message: createErr?.message || 'Failed to create workflow', type: 'error' }));
@@ -119,17 +120,13 @@ export function WorkflowPage() {
           const schema = await buildInitialSchema(projectId, currentProject, mgmtStorages, builtinDbs);
           wf = await updateProjectWorkflow(projectId, { nodeSchema: schema });
         } catch {
-          // Best-effort — proceed without schema; ProjectArchitecture will show TemplatePicker
+          // Best-effort — proceed without schema; WorkflowCanvas will show TemplatePicker
         }
       }
 
       if (!cancelled) {
         setWorkflow(wf);
-        const existingWorkflows = currentProject.workflows ?? [];
-        const synced = existingWorkflows.some(w => w.id === wf.id)
-          ? existingWorkflows.map(w => w.id === wf.id ? wf : w)
-          : [wf, ...existingWorkflows];
-        dispatch(setCurrentProject({ ...currentProject, workflows: synced }));
+        dispatch(setCurrentProject({ ...currentProject, workflow: wf }));
       }
     };
 
@@ -142,5 +139,5 @@ export function WorkflowPage() {
   if (loading || !currentProject) return <NodeSkeleton />;
   if (!workflow) return null;
 
-  return <ProjectArchitecture workflow={workflow} />;
+  return <WorkflowCanvas workflow={workflow} />;
 }

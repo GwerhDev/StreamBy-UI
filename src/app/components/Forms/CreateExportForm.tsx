@@ -5,7 +5,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { createExport } from '../../../services/exports';
-import { updateWorkflow } from '../../../services/workflows';
+import { updateProjectWorkflow } from '../../../services/workflow';
 import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -48,11 +48,11 @@ export function CreateExportForm() {
 
       const project = currentProject.data;
       if (project) {
-        const architecture = project.workflows?.[0];
-        let updatedWorkflows = project.workflows;
+        const workflow = project.workflow;
+        let updatedWorkflow = workflow;
 
-        if (architecture?.nodeSchema) {
-          const existingNodes = (architecture.nodeSchema.nodes ?? []) as object[];
+        if (workflow?.nodeSchema) {
+          const existingNodes = (workflow.nodeSchema.nodes ?? []) as object[];
           const exportNodes = existingNodes.filter((n: any) => String(n.id).startsWith('export-'));
           const newNode = {
             id: `export-${response.exportId}`,
@@ -62,17 +62,16 @@ export function CreateExportForm() {
           };
           const updatedSchema = {
             nodes: [...existingNodes, newNode],
-            edges: architecture.nodeSchema.edges ?? [],
+            edges: workflow.nodeSchema.edges ?? [],
           };
           try {
-            const updatedArch = await updateWorkflow(projectId!, architecture.id, { nodeSchema: updatedSchema });
-            updatedWorkflows = project.workflows!.map(w => w.id === architecture.id ? updatedArch : w);
+            updatedWorkflow = await updateProjectWorkflow(projectId!, { nodeSchema: updatedSchema });
           } catch {
-            // Architecture update is best-effort — don't block navigation
+            // Workflow update is best-effort — don't block navigation
           }
         }
 
-        dispatch(setCurrentProject({ ...project, workflows: updatedWorkflows }));
+        dispatch(setCurrentProject({ ...project, workflow: updatedWorkflow }));
       }
 
       navigate(`/project/${projectId}/exports/${response.exportId}/editor`);
