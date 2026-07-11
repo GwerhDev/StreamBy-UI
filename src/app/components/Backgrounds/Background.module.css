@@ -9,3 +9,15 @@
   flex-direction: column;
   justify-content: center;
 }
+
+.subtitle {
+  max-width: 34rem;
+  margin: 0;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  background: var(--color-surface-raised);
+  border: solid 1px var(--color-accent-subtle-border);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

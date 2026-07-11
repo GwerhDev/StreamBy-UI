@@ -26,15 +26,12 @@ export const storageDirectoryList = [
 
 // databaseDirectoryList removed — Database section now uses dynamic DB connections routing.
 
-export const apiDirectoryList = [
+export const connectionsDirectoryList = [
   { name: "API", icon: faCode, path: "connections/api" },
+  { name: "Credentials", icon: faFingerprint, path: "connections/credentials" },
 ];
 
 export const settingsDirectoryList = [
   { name: "API Tokens", icon: faKey, path: "settings/api-tokens" },
   { name: "Permissions", icon: faShield, path: "settings/permissions" },
-];
-
-export const authenticationDirectoryList = [
-  { name: "Credentials", icon: faFingerprint, path: "authentication/credentials" },
 ];

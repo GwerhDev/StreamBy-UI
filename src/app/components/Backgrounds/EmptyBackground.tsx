@@ -20,7 +20,7 @@ export const EmptyBackground = ({
         <FontAwesomeIcon icon={icon} size="10x" />
       </span>
       <h4>{title}</h4>
-      {subtitle && <p>{subtitle}</p>}
+      {subtitle && <p className={s.subtitle}>{subtitle}</p>}
     </div>
   );
 };

@@ -20,7 +20,7 @@ import { UserNotification } from './app/pages/UserNotification';
 import { UserNotificationDetail } from './app/pages/UserNotificationDetail';
 import { ProjectPreview } from './app/pages/ProjectPreview';
 
-const Api = lazy(() => import('./app/pages/Api').then(module => ({ default: module.Api })));
+const Connections = lazy(() => import('./app/pages/Connections').then(module => ({ default: module.Connections })));
 const Home = lazy(() => import('./app/pages/Home').then(module => ({ default: module.Home })));
 const StorageConnectionList = lazy(() => import('./app/components/Storage/StorageConnectionList').then(module => ({ default: module.StorageConnectionList })));
 const StorageConnectionCreate = lazy(() => import('./app/components/Storage/StorageConnectionCreate').then(module => ({ default: module.StorageConnectionCreate })));
@@ -29,7 +29,6 @@ const Members = lazy(() => import('./app/pages/Members').then(module => ({ defau
 const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ default: module.Overview })));
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
-const Authentication = lazy(() => import('./app/pages/Authentication').then(module => ({ default: module.Authentication })));
 const ApiTokens = lazy(() => import('./app/pages/ApiTokens').then(module => ({ default: module.ApiTokens })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserHub      = lazy(() => import('./app/pages/UserHub').then(module => ({ default: module.UserHub })));
@@ -120,11 +119,13 @@ function App() {
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
                   <Route path="/project/:id/database/:connId" element={<DatabaseConnectionDetail />} />
 
-                  <Route path="/project/:id/connections" element={<Api />} />
+                  <Route path="/project/:id/connections" element={<Connections />} />
                   <Route path="/project/:id/connections/api" element={<ApiConnectionsList />} />
                   <Route path="/project/:id/connections/api/create" element={<ApiConnectionsCreate />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
                   <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
+                  <Route path="/project/:id/connections/credentials" element={<CredentialsList />} />
+                  <Route path="/project/:id/connections/credentials/create" element={<CredentialsCreate />} />
 
                   <Route path="/project/:id/workflow" element={<WorkflowPage />} />
                   <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
@@ -139,9 +140,6 @@ function App() {
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
                   <Route path="/project/:id/settings/permissions/create" element={<PermissionsCreate />} />
 
-                  <Route path="/project/:id/authentication" element={<Authentication />} />
-                  <Route path="/project/:id/authentication/credentials" element={<CredentialsList />} />
-                  <Route path="/project/:id/authentication/credentials/create" element={<CredentialsCreate />} />
                   <Route path="/project/:id/not-found" element={<NotFound />} />
                   <Route path="/project/:id/*" element={<NotFound />} />
 

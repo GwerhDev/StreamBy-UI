@@ -25,7 +25,7 @@ export const ProjectStats = ({ readonly }: ProjectStatsProps) => {
     { icon: faUsers,      label: 'Members',          value: currentProject?.members?.length ?? 0,       path: `/project/${id}/dashboard/members` },
     { icon: faFileExport, label: 'Exports',           value: currentProject?.exports?.length ?? 0,       path: `/project/${id}/exports` },
     { icon: faPlug,       label: 'API Connections',   value: currentProject?.apiConnections?.length ?? 0, path: `/project/${id}/connections/api` },
-    { icon: faFingerprint,        label: 'Credentials',       value: currentProject?.credentials?.length ?? 0,    path: `/project/${id}/authentication/credentials` },
+    { icon: faFingerprint,        label: 'Credentials',       value: currentProject?.credentials?.length ?? 0,    path: `/project/${id}/connections/credentials` },
   ];
 
   return (

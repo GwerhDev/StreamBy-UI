@@ -5,8 +5,8 @@ export const ApiTokens = () => {
   return (
     <EmptyBackground
       icon={faScrewdriverWrench}
-      title="Under construction"
-      subtitle="API Tokens allow third-party services to connect to this project's StreamBy API. Coming soon."
+      title="The day that never comes"
+      subtitle="API Tokens will let third-party services connect to this project's StreamBy API. Under construction — coming soon."
     />
   );
 };
