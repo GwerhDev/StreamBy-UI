@@ -15,9 +15,9 @@ describe('getPaletteForContext', () => {
       expect(des).toEqual(EXPORT_PALETTE_TYPES);
     });
 
-    it('never exposes media pipeline nodes', () => {
+    it('never exposes audiovisual production nodes', () => {
       const types = typesOf('export', 'developer');
-      for (const t of ['transcodeNode', 'captionNode', 'renderJobNode', 'lodNode', 'thumbnailNode']) {
+      for (const t of ['shotNode', 'assemblyNode', 'masterNode', 'colorGradeNode', 'distributeNode']) {
         expect(types.has(t)).toBe(false);
       }
     });
@@ -32,14 +32,20 @@ describe('getPaletteForContext', () => {
       }
     });
 
-    it('includes the media pipeline nodes', () => {
-      for (const t of ['transcodeNode', 'captionNode', 'thumbnailNode', 'renderJobNode', 'formatConvertNode', 'lodNode', 'upscaleNode', 'transcriptionNode', 'qcCheckNode']) {
+    it('includes the audiovisual production nodes', () => {
+      for (const t of ['shotNode', 'assemblyNode', 'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'exportFormatNode', 'masterNode', 'distributeNode']) {
         expect(types.has(t)).toBe(true);
       }
     });
 
-    it('includes the shared and AI nodes', () => {
-      for (const t of ['ingestNode', 'credentialNode', 'apiConnectionNode', 'dataSourceNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
+    it('no longer surfaces the generic StreamBy media nodes superseded by the AV nodes', () => {
+      for (const t of ['transcodeNode', 'captionNode', 'thumbnailNode', 'renderJobNode', 'formatConvertNode', 'lodNode', 'qcCheckNode']) {
+        expect(types.has(t)).toBe(false);
+      }
+    });
+
+    it('keeps the shared ingest, AI and auth nodes', () => {
+      for (const t of ['ingestNode', 'credentialNode', 'apiConnectionNode', 'dataSourceNode', 'proceduralAssetNode', 'pipelineSuggestNode', 'reviewGateNode', 'deliverableNode']) {
         expect(types.has(t)).toBe(true);
       }
     });
@@ -53,17 +59,16 @@ describe('getPaletteForContext', () => {
   describe('workflow context — designer mode', () => {
     const types = typesOf('workflow', 'designer');
 
-    it('exposes only the non-technical groups (ingest, review, delivery, AI generation)', () => {
+    it('exposes only the production essentials (shot, assembly, review, master, deliverable)', () => {
       expect(types).toEqual(new Set([
-        'ingestNode',
-        'reviewGateNode', 'annotationNode',
-        'deliverableNode', 'distributionNode',
-        'proceduralAssetNode',
+        'shotNode', 'assemblyNode', 'masterNode',
+        'reviewGateNode',
+        'deliverableNode',
       ]));
     });
 
-    it('hides technical process/render/auth nodes', () => {
-      for (const t of ['transcodeNode', 'renderJobNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode']) {
+    it('hides technical process/AI/auth nodes', () => {
+      for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode', 'distributeNode']) {
         expect(types.has(t)).toBe(false);
       }
     });
@@ -75,12 +80,12 @@ describe('getGroupsForContext', () => {
     expect(groupKeysOf('export', 'developer')).toEqual(['input', 'data', 'output']);
   });
 
-  it('workflow developer context surfaces the reorganized production groups', () => {
-    expect(groupKeysOf('workflow', 'developer')).toEqual(['ingest', 'process', 'render', 'review', 'delivery', 'ai', 'auth']);
+  it('workflow developer context leads with the production group', () => {
+    expect(groupKeysOf('workflow', 'developer')).toEqual(['production', 'ingest', 'process', 'review', 'delivery', 'ai', 'auth']);
   });
 
-  it('workflow designer context surfaces only ingest, review, delivery, ai', () => {
-    expect(groupKeysOf('workflow', 'designer')).toEqual(['ingest', 'review', 'delivery', 'ai']);
+  it('workflow designer context surfaces only production, review, delivery', () => {
+    expect(groupKeysOf('workflow', 'designer')).toEqual(['production', 'review', 'delivery']);
   });
 
   it('every palette item maps to an active group in its context', () => {

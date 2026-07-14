@@ -12,6 +12,7 @@ import {
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faFingerprint, faSitemap,
+  faPalette, faVolumeHigh, faFileVideo, faShare, faStar,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -494,6 +495,151 @@ export const AnnotationNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
 ));
 AnnotationNode.displayName = 'AnnotationNode';
 
+// ─── Audiovisual production nodes ─────────────────────────────────────────────
+
+// Production unit — a video clip with metadata. Entry point of raw material into the pipeline.
+export const ShotNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_LEFT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0e2537' }}>
+      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faFilm} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ShotNode.displayName = 'ShotNode';
+
+// Assembles shots into a sequence — the editing timeline. Process lane.
+export const AssemblyNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"    className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Right} id="out-right"  className={s.handle} style={hOut(H_TOP)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#160e38' }}>
+      <div className={s.nodeIcon} style={{ color: H_TOP }}><FontAwesomeIcon icon={faLayerGroup} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+AssemblyNode.displayName = 'AssemblyNode';
+
+// Applies a LUT or colour adjustments. Process lane (data green).
+export const ColorGradeNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faPalette} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ColorGradeNode.displayName = 'ColorGradeNode';
+
+// Mixes audio tracks (dialogue, music, effects). Process lane (data green).
+export const AudioMixNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faVolumeHigh} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+AudioMixNode.displayName = 'AudioMixNode';
+
+// Generates or imports SRT/VTT subtitles. Process lane (data green); can branch off assembly.
+export const SubtitleNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2016' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faClosedCaptioning} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+SubtitleNode.displayName = 'SubtitleNode';
+
+// Marks segments requiring visual effects. Job lane (orange).
+export const VfxNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(H_JOB)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
+      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faWandMagicSparkles} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+VfxNode.displayName = 'VfxNode';
+
+// Final output of the work — the versioned master. Output lane (amber).
+export const MasterNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1300' }}>
+      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faStar} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+MasterNode.displayName = 'MasterNode';
+
+// Configures the output format (codec, bitrate, container). Output lane (amber).
+export const ExportFormatNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1300' }}>
+      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faFileVideo} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+ExportFormatNode.displayName = 'ExportFormatNode';
+
+// Publishes the master to an audiovisual platform (YouTube, Vimeo, festival, broadcaster). Output lane.
+export const DistributeNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
+      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faShare} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DistributeNode.displayName = 'DistributeNode';
+
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
 // Architecture-only export node — icon hardcoded so it survives DB serialization round-trips
@@ -558,4 +704,13 @@ export const nodeTypes = {
   upscaleNode: UpscaleNode,
   proceduralAssetNode: ProceduralAssetNode,
   pipelineSuggestNode: PipelineSuggestNode,
+  shotNode: ShotNode,
+  assemblyNode: AssemblyNode,
+  colorGradeNode: ColorGradeNode,
+  audioMixNode: AudioMixNode,
+  subtitleNode: SubtitleNode,
+  vfxNode: VfxNode,
+  masterNode: MasterNode,
+  exportFormatNode: ExportFormatNode,
+  distributeNode: DistributeNode,
 };

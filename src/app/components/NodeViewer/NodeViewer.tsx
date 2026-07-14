@@ -94,6 +94,18 @@ export interface NodeViewerHandle {
 
 const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
 const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value: m, label: m }));
+
+// Audiovisual production node option sets (TCORE-56)
+const RESOLUTION_OPTIONS = ['3840x2160', '1920x1080', '1280x720', '720x480'].map(r => ({ value: r, label: r }));
+const CODEC_OPTIONS = ['h264', 'h265', 'prores', 'vp9', 'av1'].map(c => ({ value: c, label: c }));
+const CONTAINER_OPTIONS = ['mp4', 'mkv', 'mov', 'webm'].map(c => ({ value: c, label: c }));
+const SUBTITLE_SOURCE_OPTIONS = [{ value: 'transcription', label: 'Transcription node' }, { value: 'upload', label: 'External upload' }];
+const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f }));
+const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
+const AV_PLATFORM_OPTIONS = [
+  { value: 'youtube', label: 'YouTube' }, { value: 'vimeo', label: 'Vimeo' },
+  { value: 'festival', label: 'Festival' }, { value: 'broadcaster', label: 'Broadcaster' },
+];
 const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'apiConnectionNode', 'credentialNode', 'exportNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
@@ -411,6 +423,24 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'streambyNode' && tt === 'deliverableNode') return sh === 'out-right' && th === 'in-filter';
     if (outputLaneTypes.includes(st) && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'deliverableNode' && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
+
+    // ─── Audiovisual production pipeline (TCORE-56) ─────────────────────────
+    // Linear stage chain: shot → assembly → colorGrade → audioMix → reviewGate → master → exportFormat → deliverable
+    // Left→right nodes emit out-right; assembly/master-lane nodes consume in-left or in-filter.
+    const avStageTypes = ['shotNode', 'assemblyNode', 'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode'];
+    // shot/assembly/colorGrade/audioMix/subtitle/vfx chain into the next processing stage via in-left
+    if (avStageTypes.includes(st) && ['assemblyNode', 'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode'].includes(tt)) {
+      return sh === 'out-right' && th === 'in-left';
+    }
+    // Process chain reaches the review gate
+    if (avStageTypes.includes(st) && tt === 'reviewGateNode') return sh === 'out-right' && th === 'in-process';
+    // Approved review gate feeds the master
+    if (st === 'reviewGateNode' && tt === 'masterNode') return sh === 'out-review' && th === 'in-filter';
+    // Master → export format → deliverable / distribute (output lane, chained left→right)
+    const avOutputTypes = ['masterNode', 'exportFormatNode', 'deliverableNode', 'distributeNode'];
+    if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode', 'distributeNode'].includes(tt)) {
+      return sh === 'out-filter' && th === 'in-filter';
+    }
 
     return false;
   }, [nodes]);
@@ -769,6 +799,96 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       title: 'AI Suggest',
       description: 'Analyses the current pipeline topology and suggests missing nodes. Remove this node after applying the suggestion.',
       fields: [],
+    };
+
+    // ─── Audiovisual production pipeline (TCORE-56) ───────────────────────────
+
+    if (node.type === 'shotNode') return {
+      title: 'Shot',
+      description: 'Production unit — a video clip with metadata. Entry point of raw material into the pipeline.',
+      fields: [
+        { key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true },
+        { key: 'duration', label: 'Duration (mm:ss)', value: (node.data.duration as string) || '', editable: true },
+        { key: 'fps', label: 'FPS', value: (node.data.fps as string) || '24', editable: true },
+        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1920x1080', editable: true, inputType: 'select', options: RESOLUTION_OPTIONS },
+      ],
+    };
+
+    if (node.type === 'assemblyNode') return {
+      title: 'Assembly',
+      description: 'Assembles shots into a sequence in the defined order — the editing timeline.',
+      fields: [
+        { key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true },
+        { key: 'shotOrder', label: 'Shot Order', value: (node.data.shotOrder as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'colorGradeNode') return {
+      title: 'Color Grade',
+      description: 'Applies a LUT or colour adjustments (exposure, contrast, saturation, temperature).',
+      fields: [
+        { key: 'preset', label: 'Preset Name', value: (node.data.preset as string) || '', editable: true },
+        { key: 'lutRef', label: 'LUT Reference (.cube path / URL)', value: (node.data.lutRef as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'audioMixNode') return {
+      title: 'Audio Mix',
+      description: 'Mixes audio tracks — dialogue, music, effects — with individual levels.',
+      fields: [
+        { key: 'trackCount', label: 'Track Count', value: String(node.data.trackCount ?? 1), editable: true },
+        { key: 'levels', label: 'Levels (0-100, comma-separated)', value: (node.data.levels as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'subtitleNode') return {
+      title: 'Subtitles',
+      description: 'Generates or imports SRT/VTT. Can link to a Transcription node or an external file.',
+      fields: [
+        { key: 'language', label: 'Language', value: (node.data.language as string) || 'es', editable: true },
+        { key: 'source', label: 'Source', value: (node.data.source as string) || 'transcription', editable: true, inputType: 'select', options: SUBTITLE_SOURCE_OPTIONS },
+        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'srt', editable: true, inputType: 'select', options: SUBTITLE_FORMAT_OPTIONS },
+      ],
+    };
+
+    if (node.type === 'vfxNode') return {
+      title: 'VFX',
+      description: 'Marks segments requiring visual effects. Holds the compositing file reference and status.',
+      fields: [
+        { key: 'description', label: 'Description', value: (node.data.description as string) || '', editable: true },
+        { key: 'status', label: 'Status', value: (node.data.status as string) || 'pending', editable: true, inputType: 'select', options: VFX_STATUS_OPTIONS },
+        { key: 'fileRef', label: 'File Reference', value: (node.data.fileRef as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'masterNode') return {
+      title: 'Master',
+      description: 'Final output of the work — the approved assembly marked as a versioned master.',
+      fields: [
+        { key: 'version', label: 'Version', value: (node.data.version as string) || '1.0.0', editable: true },
+        { key: 'notes', label: 'Notes', value: (node.data.notes as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'exportFormatNode') return {
+      title: 'Export Format',
+      description: 'Configures the output format: codec, container, resolution and bitrate.',
+      fields: [
+        { key: 'codec', label: 'Codec', value: (node.data.codec as string) || 'h264', editable: true, inputType: 'select', options: CODEC_OPTIONS },
+        { key: 'container', label: 'Container', value: (node.data.container as string) || 'mp4', editable: true, inputType: 'select', options: CONTAINER_OPTIONS },
+        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1920x1080', editable: true, inputType: 'select', options: RESOLUTION_OPTIONS },
+        { key: 'bitrate', label: 'Bitrate', value: (node.data.bitrate as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'distributeNode') return {
+      title: 'Distribute',
+      description: 'Publishes the master to an audiovisual platform (YouTube, Vimeo, festival, broadcaster).',
+      fields: [
+        { key: 'platform', label: 'Platform', value: (node.data.platform as string) || 'youtube', editable: true, inputType: 'select', options: AV_PLATFORM_OPTIONS },
+        { key: 'region', label: 'Region', value: (node.data.region as string) || '', editable: true },
+        { key: 'releaseDate', label: 'Release Date', value: (node.data.releaseDate as string) || '', editable: true },
+      ],
     };
 
     return null;

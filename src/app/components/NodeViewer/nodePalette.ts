@@ -9,13 +9,14 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFingerprint,
   faFileImport, faGears, faClapperboard, faCheckDouble,
+  faPalette, faVolumeHigh, faFileVideo, faShare, faStar,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
 // Export-context groups (request → process → response model)
 export type ExportGroup = 'input' | 'data' | 'process' | 'output';
 // Workflow-context groups (production pipeline model)
-export type WorkflowGroup = 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai' | 'auth';
+export type WorkflowGroup = 'production' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai' | 'auth';
 
 export type PaletteItem = {
   type: string;
@@ -58,6 +59,15 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'upscaleNode',          label: 'Upscale',        subtitle: 'AI image upscaling',   icon: faExpand,           bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'ai' },
   { type: 'proceduralAssetNode',  label: 'Generate Asset', subtitle: 'AI asset generation',  icon: faWandMagicSparkles, bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
   { type: 'pipelineSuggestNode',  label: 'AI Suggest',     subtitle: 'Pipeline suggestions', icon: faBrain,     bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
+  { type: 'shotNode',          label: 'Shot',          subtitle: 'Raw video clip',        icon: faFilm,             bgColor: '#0e2537', iconColor: H_LEFT,   group: 'input' },
+  { type: 'assemblyNode',      label: 'Assembly',      subtitle: 'Edit timeline',         icon: faLayerGroup,       bgColor: '#160e38', iconColor: H_TOP,    group: 'process' },
+  { type: 'colorGradeNode',    label: 'Color Grade',   subtitle: 'LUT / colour adjust',   icon: faPalette,          bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'process' },
+  { type: 'audioMixNode',      label: 'Audio Mix',     subtitle: 'Mix audio tracks',      icon: faVolumeHigh,       bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'process' },
+  { type: 'subtitleNode',      label: 'Subtitles',     subtitle: 'SRT / VTT captions',    icon: faClosedCaptioning, bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'process' },
+  { type: 'vfxNode',           label: 'VFX',           subtitle: 'Visual effects segment', icon: faWandMagicSparkles, bgColor: '#1a0d00', iconColor: H_JOB,   group: 'process' },
+  { type: 'masterNode',        label: 'Master',        subtitle: 'Versioned master',      icon: faStar,             bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
+  { type: 'exportFormatNode',  label: 'Export Format', subtitle: 'Codec / container',     icon: faFileVideo,        bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
+  { type: 'distributeNode',    label: 'Distribute',    subtitle: 'Publish to platform',   icon: faShare,            bgColor: '#1a0d00', iconColor: H_JOB,    group: 'output' },
 ];
 
 // ─── Export context ──────────────────────────────────────────────────────────
@@ -77,36 +87,39 @@ export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: st
 export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode']);
 
 // Full workflow palette (developer mode). Order defines display order within groups.
+// The audiovisual production nodes (TCORE-56) supersede the generic StreamBy media nodes
+// (transcode, caption, thumbnail, renderJob, formatConvert, lod, qcCheck), which are no longer
+// offered here — their components remain registered so saved schemas keep rendering.
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
+  'shotNode', 'assemblyNode', 'masterNode',
   'ingestNode', 'dataSourceNode', 'apiConnectionNode',
-  'transcodeNode', 'captionNode', 'thumbnailNode', 'formatConvertNode', 'lodNode', 'upscaleNode', 'transcriptionNode',
-  'renderJobNode', 'qcCheckNode',
+  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode',
-  'deliverableNode', 'distributionNode',
+  'exportFormatNode', 'deliverableNode', 'distributeNode', 'distributionNode',
   'proceduralAssetNode', 'pipelineSuggestNode',
   'credentialNode',
 ]);
 
-// Designer mode — non-technical groups only (ingest, review, delivery, AI generation).
+// Designer mode — production essentials only (shot, assembly, review, master, deliverable).
 export const WORKFLOW_DESIGNER_TYPES = new Set([
-  'ingestNode',
-  'reviewGateNode', 'annotationNode',
-  'deliverableNode', 'distributionNode',
-  'proceduralAssetNode',
+  'shotNode', 'assemblyNode', 'masterNode',
+  'reviewGateNode',
+  'deliverableNode',
 ]);
 
 // Workflow group assignment per node type — independent of the export-oriented `group` field.
 const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
+  shotNode: 'production', assemblyNode: 'production', masterNode: 'production',
   ingestNode: 'ingest', dataSourceNode: 'ingest', apiConnectionNode: 'ingest',
-  transcodeNode: 'process', captionNode: 'process', thumbnailNode: 'process', formatConvertNode: 'process', lodNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
-  renderJobNode: 'render', qcCheckNode: 'render',
+  colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review',
-  deliverableNode: 'delivery', distributionNode: 'delivery',
+  exportFormatNode: 'delivery', deliverableNode: 'delivery', distributeNode: 'delivery', distributionNode: 'delivery',
   proceduralAssetNode: 'ai', pipelineSuggestNode: 'ai',
   credentialNode: 'auth',
 };
 
 export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon: IconDefinition; color: string }[] = [
+  { key: 'production', label: 'Production', icon: faClapperboard,        color: H_LEFT },
   { key: 'ingest',   label: 'Ingest',   icon: faFileImport,          color: H_JOB },
   { key: 'process',  label: 'Process',  icon: faGears,               color: H_TOP },
   { key: 'render',   label: 'Render',   icon: faClapperboard,        color: H_JOB },
