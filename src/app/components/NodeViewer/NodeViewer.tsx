@@ -34,7 +34,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NodeEditContext } from './NodeContext';
-import { PaletteItem, edgeColorForSource, getPaletteForMode, getGroupsForMode } from './nodePalette';
+import { PaletteItem, edgeColorForSource, getPaletteForContext, getGroupsForContext, EXPORT_ONLY_TYPES, NodeContext } from './nodePalette';
 import { ResponsePreview } from '../Exports/ResponsePreview';
 export { computeResponseFromSchema } from './nodeSchema';
 
@@ -85,6 +85,7 @@ export interface NodeViewerProps {
   dbConnections?: DbConnection[];
   projectId?: string;
   canvasOverlay?: React.ReactNode;
+  context?: NodeContext;
 }
 
 export interface NodeViewerHandle {
@@ -98,7 +99,7 @@ const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay,
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export',
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -106,8 +107,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const workspaceMode = useSelector((state: RootState) => state.session.mode ?? 'developer');
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
-  const activePalette = getPaletteForMode(workspaceMode);
-  const activeGroups = getGroupsForMode(workspaceMode);
+  const activePalette = getPaletteForContext(context, workspaceMode);
+  const activeGroups = getGroupsForContext(context, workspaceMode);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [localData, setLocalData] = useState<Record<string, string | boolean>>({});
@@ -283,8 +284,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (workspaceMode === 'designer') {
       result = result.filter(n => !DESIGNER_HIDDEN_TYPES.has(n.type ?? ''));
     }
+    // Defensive cleanup: legacy schemas may carry export-only nodes into the workflow canvas.
+    if (context === 'workflow') {
+      result = result.filter(n => !EXPORT_ONLY_TYPES.has(n.type ?? ''));
+    }
     return result;
-  }, [editMode, nodes, edges, workspaceMode]);
+  }, [editMode, nodes, edges, workspaceMode, context]);
 
   const visibleEdges = useMemo(() => {
     const visibleIds = new Set(visibleNodes.map(n => n.id));
@@ -1314,7 +1319,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                     {!paletteCollapsed && (
                       <span className={s.paletteGroupLabel} style={{ color: group.color }}>{group.label}</span>
                     )}
-                    {activePalette.filter(p => p.group === group.key).map(config => (
+                    {activePalette.filter(p => p.contextGroup === group.key).map(config => (
                       <button
                         key={`${config.type}-${config.label}`} type="button"
                         className={s.paletteBtn} onClick={() => addNode(config)}

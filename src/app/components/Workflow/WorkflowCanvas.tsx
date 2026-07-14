@@ -195,6 +195,7 @@ export function WorkflowCanvas({ workflow }: Props) {
       <NodeViewer
         key={nodeViewerKey}
         ref={nodeViewerRef}
+        context="workflow"
         exportDetails={exportAdapter}
         editMode={editMode}
         projectId={projectId}

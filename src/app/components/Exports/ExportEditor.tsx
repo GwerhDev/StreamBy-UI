@@ -478,6 +478,7 @@ export const ExportEditor: React.FC = () => {
                             {panel.activeTab === 'nodes' && exportForViewer && (
                               <NodeViewer
                                 ref={nodeViewerRef}
+                                context="export"
                                 exportDetails={exportForViewer}
                                 editMode
                                 onSave={handleNodeSave}

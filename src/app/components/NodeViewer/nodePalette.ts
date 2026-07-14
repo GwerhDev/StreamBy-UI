@@ -8,8 +8,14 @@ import {
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
   faFingerprint,
+  faFileImport, faGears, faClapperboard, faCheckDouble,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
+
+// Export-context groups (request → process → response model)
+export type ExportGroup = 'input' | 'data' | 'process' | 'output';
+// Workflow-context groups (production pipeline model)
+export type WorkflowGroup = 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai' | 'auth';
 
 export type PaletteItem = {
   type: string;
@@ -18,7 +24,9 @@ export type PaletteItem = {
   icon: IconDefinition;
   bgColor: string;
   iconColor: string;
-  group: 'input' | 'data' | 'process' | 'output' | 'review' | 'delivery' | 'ai';
+  // Group in the export palette. Items exclusive to the workflow palette use 'review' | 'delivery' | 'ai'
+  // (which overlap conceptually) and are re-grouped for workflow via WORKFLOW_GROUP_BY_TYPE.
+  group: ExportGroup | 'review' | 'delivery' | 'ai';
 };
 
 export const NODE_PALETTE: PaletteItem[] = [
@@ -52,39 +60,94 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'pipelineSuggestNode',  label: 'AI Suggest',     subtitle: 'Pipeline suggestions', icon: faBrain,     bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'ai' },
 ];
 
-export const PALETTE_GROUPS: { key: PaletteItem['group']; label: string; color: string }[] = [
+// ─── Export context ──────────────────────────────────────────────────────────
+
+export const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'credentialNode', 'filterNode']);
+
+export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: string }[] = [
   { key: 'input',   label: 'Input',   color: H_LEFT },
   { key: 'data',    label: 'Data',    color: H_BOTTOM },
   { key: 'process', label: 'Process', color: H_TOP },
   { key: 'output',  label: 'Output',  color: H_RIGHT },
-  { key: 'review',   label: 'Review',   color: H_REVIEW },
-  { key: 'delivery', label: 'Delivery', color: H_JOB },
-  { key: 'ai',       label: 'AI',       color: H_REVIEW },
 ];
 
-const DESIGNER_GROUPS: Set<PaletteItem['group']> = new Set(['input', 'output', 'review', 'delivery', 'ai']);
+// ─── Workflow context ──────────────────────────────────────────────────────────
 
-export function getPaletteForMode(mode: 'developer' | 'designer'): PaletteItem[] {
-  if (mode === 'developer') return NODE_PALETTE;
-  return NODE_PALETTE.filter(item => DESIGNER_GROUPS.has(item.group));
+// Types exclusive to the export editor — never shown or kept in the workflow canvas.
+export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode']);
+
+// Full workflow palette (developer mode). Order defines display order within groups.
+export const WORKFLOW_DEVELOPER_TYPES = new Set([
+  'ingestNode', 'dataSourceNode', 'apiConnectionNode',
+  'transcodeNode', 'captionNode', 'thumbnailNode', 'formatConvertNode', 'lodNode', 'upscaleNode', 'transcriptionNode',
+  'renderJobNode', 'qcCheckNode',
+  'reviewGateNode', 'annotationNode',
+  'deliverableNode', 'distributionNode',
+  'proceduralAssetNode', 'pipelineSuggestNode',
+  'credentialNode',
+]);
+
+// Designer mode — non-technical groups only (ingest, review, delivery, AI generation).
+export const WORKFLOW_DESIGNER_TYPES = new Set([
+  'ingestNode',
+  'reviewGateNode', 'annotationNode',
+  'deliverableNode', 'distributionNode',
+  'proceduralAssetNode',
+]);
+
+// Workflow group assignment per node type — independent of the export-oriented `group` field.
+const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
+  ingestNode: 'ingest', dataSourceNode: 'ingest', apiConnectionNode: 'ingest',
+  transcodeNode: 'process', captionNode: 'process', thumbnailNode: 'process', formatConvertNode: 'process', lodNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
+  renderJobNode: 'render', qcCheckNode: 'render',
+  reviewGateNode: 'review', annotationNode: 'review',
+  deliverableNode: 'delivery', distributionNode: 'delivery',
+  proceduralAssetNode: 'ai', pipelineSuggestNode: 'ai',
+  credentialNode: 'auth',
+};
+
+export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon: IconDefinition; color: string }[] = [
+  { key: 'ingest',   label: 'Ingest',   icon: faFileImport,          color: H_JOB },
+  { key: 'process',  label: 'Process',  icon: faGears,               color: H_TOP },
+  { key: 'render',   label: 'Render',   icon: faClapperboard,        color: H_JOB },
+  { key: 'review',   label: 'Review',   icon: faCheckDouble,         color: H_REVIEW },
+  { key: 'delivery', label: 'Delivery', icon: faRocket,              color: H_JOB },
+  { key: 'ai',       label: 'AI',       icon: faWandMagicSparkles,   color: H_REVIEW },
+  { key: 'auth',     label: 'Auth',     icon: faKey,                 color: '#818cf8' },
+];
+
+// ─── Palette resolution ────────────────────────────────────────────────────────
+
+export type NodeContext = 'export' | 'workflow';
+
+// A palette item tagged with the group it belongs to in the active context.
+export type ContextPaletteItem = PaletteItem & { contextGroup: string };
+
+export function getPaletteForContext(ctx: NodeContext, mode: 'developer' | 'designer'): ContextPaletteItem[] {
+  if (ctx === 'export') {
+    return NODE_PALETTE
+      .filter(item => EXPORT_PALETTE_TYPES.has(item.type))
+      .map(item => ({ ...item, contextGroup: item.group }));
+  }
+  const allowed = mode === 'designer' ? WORKFLOW_DESIGNER_TYPES : WORKFLOW_DEVELOPER_TYPES;
+  return NODE_PALETTE
+    .filter(item => allowed.has(item.type) && WORKFLOW_GROUP_BY_TYPE[item.type] !== undefined)
+    .map(item => ({ ...item, contextGroup: WORKFLOW_GROUP_BY_TYPE[item.type] }));
 }
 
-export function getGroupsForMode(mode: 'developer' | 'designer') {
-  if (mode === 'developer') return PALETTE_GROUPS;
-  return PALETTE_GROUPS.filter(g => DESIGNER_GROUPS.has(g.key));
-}
-
-const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'credentialNode', 'filterNode']);
-
-export function getPaletteForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer'): PaletteItem[] {
-  const base = getPaletteForMode(mode);
-  if (ctx === 'export') return base.filter(item => EXPORT_PALETTE_TYPES.has(item.type));
-  return base;
-}
-
-export function getGroupsForContext(ctx: 'export' | 'workflow', mode: 'developer' | 'designer') {
-  if (ctx === 'export') return PALETTE_GROUPS.filter(g => g.key === 'input' || g.key === 'data' || g.key === 'output');
-  return getGroupsForMode(mode);
+export function getGroupsForContext(ctx: NodeContext, mode: 'developer' | 'designer'): { key: string; label: string; color: string; icon?: IconDefinition }[] {
+  if (ctx === 'export') {
+    // Export never surfaces the standalone 'input' group beyond request; keep the historical 3-group set.
+    return EXPORT_PALETTE_GROUPS.filter(g => g.key === 'input' || g.key === 'data' || g.key === 'output');
+  }
+  const allowed = mode === 'designer' ? WORKFLOW_DESIGNER_TYPES : WORKFLOW_DEVELOPER_TYPES;
+  const activeGroups = new Set(
+    NODE_PALETTE
+      .filter(item => allowed.has(item.type))
+      .map(item => WORKFLOW_GROUP_BY_TYPE[item.type])
+      .filter((g): g is WorkflowGroup => g !== undefined),
+  );
+  return WORKFLOW_PALETTE_GROUPS.filter(g => activeGroups.has(g.key));
 }
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
