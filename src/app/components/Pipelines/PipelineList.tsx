@@ -17,7 +17,7 @@ export function PipelineList() {
   const navigate = useNavigate();
 
   const handleCreatePipeline = () => {
-    navigate(`/project/${id}/pipelines/create`);
+    navigate(`/project/${id}/workflow/pipelines/create`);
   };
 
   return (
@@ -43,7 +43,7 @@ export function PipelineList() {
       ) : (
         <ul>
           {pipelines?.map((pipeline: PipelineRef) => (
-            <li title={pipeline.name} key={pipeline.id} onClick={() => navigate(`/project/${id}/pipelines/${pipeline.id}`)}>
+            <li title={pipeline.name} key={pipeline.id} onClick={() => navigate(`/project/${id}/workflow/pipelines/${pipeline.id}`)}>
               <PipelineCard pipeline={pipeline} />
             </li>
           ))}

@@ -42,7 +42,7 @@ export function CreatePipelineForm() {
         }));
       }
 
-      navigate(`/project/${projectId}/pipelines/${pipeline.id}`);
+      navigate(`/project/${projectId}/workflow/pipelines/${pipeline.id}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create pipeline.', type: 'error' }));
     } finally {
@@ -52,7 +52,7 @@ export function CreatePipelineForm() {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/project/${projectId}/pipelines`);
+    navigate(`/project/${projectId}/workflow/pipelines`);
   };
 
   return (

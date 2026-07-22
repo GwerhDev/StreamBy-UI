@@ -9,7 +9,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectWorkflow } from '../../../services/workflow';
-import { ApiConnection, DbConnection, Export, Project, StorageConnection, Workflow } from '../../../interfaces';
+import { ApiConnection, DbConnection, Export, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { TemplatePicker } from './TemplatePicker';
 
@@ -20,11 +20,13 @@ interface Props {
 export interface MgmtStorage { name: string; type?: string; }
 export interface BuiltinDb { name: string; value: string; }
 
-// Canvas column x-positions
-const X_CREDENTIALS = -200;
-const X_INPUTS      = 80;
-const X_STREAMBY    = 350;
-const X_EXPORTS     = 620;
+// Orchestrator side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API +
+// Credentials, Bottom = Exports, Right = reserved for future Distribution.
+const X_STREAMBY     = 350;
+const PIPELINE_XOFF  = -350;
+const Y_INPUTS       = -160;
+const Y_CREDENTIALS  = -320;
+const Y_EXPORTS      = 220;
 
 const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
 const EDGE_CREDENTIAL = { stroke: '#6366f1', strokeWidth: 1.5 };
@@ -37,25 +39,24 @@ export function buildSchemaFromProject(
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  const INPUT_SPACING = 140;
+  const INPUT_SPACING = 220;
 
-  let globalY     = 20;
-  let outputY     = 20;
+  let globalX     = X_STREAMBY - 550;
   let inputCount  = 0;
-  let firstInputY = 20;
-  let lastInputY  = 20;
+  let firstInputX = globalX;
+  let lastInputX  = globalX;
 
-  const registerInput = (nodeY: number) => {
-    if (inputCount === 0) firstInputY = nodeY;
-    lastInputY = nodeY;
+  const registerInput = (nodeX: number) => {
+    if (inputCount === 0) firstInputX = nodeX;
+    lastInputX = nodeX;
     inputCount++;
   };
 
   const addSimpleInputNode = (id: string, type: string, label: string, subtitle: string, data?: Record<string, unknown>) => {
-    registerInput(globalY);
-    nodes.push({ id, type, position: { x: X_INPUTS, y: globalY }, data: { label, subtitle, ...data } });
-    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-left', animated: false, style: EDGE_PRIMARY });
-    globalY += INPUT_SPACING;
+    registerInput(globalX);
+    nodes.push({ id, type, position: { x: globalX, y: Y_INPUTS }, data: { label, subtitle, ...data } });
+    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-top', animated: false, style: EDGE_PRIMARY });
+    globalX += INPUT_SPACING;
   };
 
   // --- All DB connections (builtin + external), with collection + record sub-nodes ---
@@ -77,14 +78,16 @@ export function buildSchemaFromProject(
   }
 
   // --- API connections (with optional credential node) ---
+  let credentialX = globalX;
   (project.apiConnections ?? []).forEach((api: ApiConnection) => {
     if (api.credentialId) {
       const cred = (project.credentials ?? []).find(c => c.id === api.credentialId);
       if (cred) {
         const credId = `credential-${cred.id}`;
-        nodes.push({ id: credId, type: 'credentialNode', position: { x: X_CREDENTIALS, y: globalY }, data: { label: cred.key, subtitle: 'Credential', credentialId: cred.id } });
+        nodes.push({ id: credId, type: 'credentialNode', position: { x: credentialX, y: Y_CREDENTIALS }, data: { label: cred.key, subtitle: 'Credential', credentialId: cred.id } });
         edges.push({ id: `e-orchestrator-${credId}`, source: 'streamby', sourceHandle: 'out-credentials', target: credId, targetHandle: 'in-streamby', animated: false, style: EDGE_CREDENTIAL });
         edges.push({ id: `e-${credId}-api`, source: credId, sourceHandle: 'out-credential', target: `api-${api.id}`, targetHandle: 'in-credential', animated: false, style: EDGE_CREDENTIAL });
+        credentialX += INPUT_SPACING;
       }
     }
     addSimpleInputNode(`api-${api.id}`, 'apiConnectionNode', api.name, api.method);
@@ -100,15 +103,22 @@ export function buildSchemaFromProject(
     addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type);
   });
 
-  // --- StreamBy orchestrator (center, vertically aligned to all inputs) ---
-  const streambyY = inputCount > 0 ? (firstInputY + lastInputY) / 2 : 20;
-  nodes.push({ id: 'streamby', type: 'orchestratorNode', position: { x: X_STREAMBY, y: streambyY }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
+  // --- StreamBy orchestrator (center, horizontally aligned to all inputs) ---
+  const streambyX = inputCount > 0 ? (firstInputX + lastInputX) / 2 : X_STREAMBY;
+  nodes.push({ id: 'streamby', type: 'orchestratorNode', position: { x: streambyX, y: 20 }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
 
-  // --- Exports (right column) ---
-  (project.exports ?? []).forEach((exp: Export) => {
-    nodes.push({ id: `export-${exp.id}`, type: 'exportNode', position: { x: X_EXPORTS, y: outputY }, data: { label: exp.name, subtitle: exp.method || 'GET' } });
-    edges.push({ id: `e-streamby-export-${exp.id}`, source: 'streamby', sourceHandle: 'out-right', target: `export-${exp.id}`, targetHandle: 'in-left', animated: true, style: EDGE_PRIMARY });
-    outputY += INPUT_SPACING;
+  // --- Pipelines (left column) — auto-drawn from project.pipelines[] ---
+  (project.pipelines ?? []).forEach((pipeline: PipelineRef, i: number) => {
+    const pipelineNodeId = `pipeline-${pipeline.id}`;
+    nodes.push({ id: pipelineNodeId, type: 'pipelineRefNode', position: { x: streambyX + PIPELINE_XOFF, y: 20 + i * INPUT_SPACING }, data: { label: pipeline.name, subtitle: 'Pipeline', pipelineId: pipeline.id } });
+    edges.push({ id: `e-streamby-${pipelineNodeId}`, source: 'streamby', sourceHandle: 'out-pipeline', target: pipelineNodeId, targetHandle: 'in-orchestrator', animated: true, style: EDGE_PRIMARY });
+  });
+
+  // --- Exports (bottom row) ---
+  (project.exports ?? []).forEach((exp: Export, i: number) => {
+    const exportNodeId = `export-${exp.id}`;
+    nodes.push({ id: exportNodeId, type: 'exportNode', position: { x: streambyX + i * INPUT_SPACING, y: Y_EXPORTS }, data: { label: exp.name, subtitle: exp.method || 'GET', exportId: exp.id } });
+    edges.push({ id: `e-streamby-${exportNodeId}`, source: 'streamby', sourceHandle: 'out-bottom', target: exportNodeId, targetHandle: 'in-orchestrator-bottom', animated: true, style: EDGE_PRIMARY });
   });
 
   return { nodes, edges };
@@ -201,7 +211,8 @@ export function WorkflowCanvas({ workflow }: Props) {
         editMode={editMode}
         projectId={projectId}
         canvasOverlay={saveButton}
-        onOpenPipeline={pipelineId => navigate(`/project/${projectId}/pipelines/${pipelineId}`)}
+        onOpenPipeline={pipelineId => navigate(`/project/${projectId}/workflow/pipelines/${pipelineId}/editor`)}
+        onOpenExport={exportId => navigate(`/project/${projectId}/workflow/exports/${exportId}/editor`)}
       />
 
       {/* Mode toggle — top center */}

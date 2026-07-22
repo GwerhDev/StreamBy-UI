@@ -2,7 +2,9 @@
 
 .wrapper {
   width: 100%;
+  height: 100%;
   flex-grow: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -20,7 +22,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: row;
-  height: 400px;
+  height: 100%;
   min-height: 0;
 }
 
@@ -29,6 +31,20 @@
   min-width: 0;
   height: 100%;
   position: relative;
+  overflow-y: auto;
+}
+
+.emptyCanvasState {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+  text-align: center;
+  overflow-y: auto;
+  padding-block: 1rem;
 }
 
 /* ─── Node Palette (vertical sidebar) ────────────────────────────────────── */
@@ -810,7 +826,9 @@
   border-bottom: 1px solid var(--color-surface);
 }
 
-.configRow:last-child { border-bottom: none; }
+.configRow:last-child {
+  border-bottom: none;
+}
 
 .configLabel {
   font-size: 0.75rem;
@@ -851,8 +869,13 @@
   transition: border-color 0.15s ease;
 }
 
-.configInput:focus { border-color: var(--color-accent); }
-.configInput::placeholder { color: var(--color-text-muted); }
+.configInput:focus {
+  border-color: var(--color-accent);
+}
+
+.configInput::placeholder {
+  color: var(--color-text-muted);
+}
 
 .configInput textarea {
   resize: vertical;

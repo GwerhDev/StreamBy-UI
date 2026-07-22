@@ -1,34 +1,29 @@
-import s from './ExportDetailsView.module.css';
-import CopyButton from '../Buttons/CopyButton';
+import s from './PipelineDetailsView.module.css';
 
 import React, { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API_BASE } from '../../../config/api';
-import { getExport } from '../../../services/exports';
+import { getPipeline } from '../../../services/pipelines';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { DeleteExportModal } from '../Modals/DeleteExportModal';
+import { DeletePipelineModal } from '../Modals/DeletePipelineModal';
 import {
-  faCode, faFileLines, faLink, faGlobe, faClock,
-  faTrash, faSitemap, faTableColumns, faXmark,
-  faFileExport, faBoxArchive, faComments,
+  faFileLines, faClock,
+  faTrash, faSitemap, faTableColumns, faXmark, faDiagramProject,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
-import { setCurrentExport, clearCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
+import { setCurrentPipeline, clearCurrentPipeline, setPipelineLoading, setPipelineError } from '../../../store/currentPipelineSlice';
 import { NodeViewer } from '../NodeViewer/NodeViewer';
-import { ResponsePreview } from './ResponsePreview';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { DeliverableTab } from './DeliverableTab';
-import { ReviewTab } from './ReviewTab';
+import { Export } from '../../../interfaces';
 
-type TabId = 'details' | 'nodes' | 'response' | 'deliverables' | 'reviews';
+type TabId = 'details' | 'nodes';
 
 interface PanelState {
   id: string;
@@ -41,26 +36,23 @@ interface ColumnState { id: string; rows: PanelState[]; }
 const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
   details: { label: 'Details', icon: faFileLines },
   nodes: { label: 'Nodes', icon: faSitemap },
-  response: { label: 'Response', icon: faCode },
-  deliverables: { label: 'Deliverables', icon: faBoxArchive },
-  reviews: { label: 'Reviews', icon: faComments },
 };
-const ALL_TABS: TabId[] = ['nodes', 'details', 'response', 'deliverables', 'reviews'];
+const ALL_TABS: TabId[] = ['nodes', 'details'];
 
 let _c = 0;
 const uid = () => `p${++_c}`;
 
-export const ExportDetailsView: React.FC = () => {
+export const PipelineDetailsView: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { id, exportId } = useParams<{ id: string; exportId: string }>();
+  const { id, pipelineId } = useParams<{ id: string; pipelineId: string }>();
 
   const [columns, setColumns] = useState<ColumnState[]>([
     { id: uid(), rows: [{ id: uid(), tabs: ALL_TABS, activeTab: 'nodes', isOriginal: true }] },
   ]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const { data: exportDetails, loading, error } = useSelector((state: RootState) => state.currentExport);
+  const { data: pipelineDetails, loading, error } = useSelector((state: RootState) => state.currentPipeline);
   const dragRef = useRef<{ fromPanelId: string; tab: TabId; isOriginal: boolean } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dropTarget, setDropTarget] = useState<{ panelId: string; zone: 'top' | 'bottom' | 'left' | 'right' } | null>(null);
@@ -72,26 +64,25 @@ export const ExportDetailsView: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!id || !exportId) {
-      dispatch(clearCurrentExport());
-      dispatch(setExportError('Project ID or Export ID is missing.'));
+    if (!id || !pipelineId) {
+      dispatch(clearCurrentPipeline());
+      dispatch(setPipelineError('Project ID or Pipeline ID is missing.'));
       return;
     }
-    dispatch(clearCurrentExport());
+    dispatch(clearCurrentPipeline());
     const doFetch = async () => {
-      dispatch(setExportLoading());
+      dispatch(setPipelineLoading());
       try {
-        const data = await getExport(id, exportId);
-        if (data) dispatch(setCurrentExport(data));
-        else dispatch(setExportError('Export not found.'));
+        const data = await getPipeline(id, pipelineId);
+        if (data) dispatch(setCurrentPipeline(data));
+        else dispatch(setPipelineError('Pipeline not found.'));
       } catch (err: unknown) {
-        dispatch(setExportError((err as { message: string }).message || 'Failed to fetch export details.'));
+        dispatch(setPipelineError((err as { message: string }).message || 'Failed to fetch pipeline details.'));
       }
     };
     doFetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, exportId]);
-
+  }, [id, pipelineId]);
 
   const splitRight = useCallback((colIdx: number, rowIdx: number) => {
     setColumns(prev => {
@@ -290,22 +281,32 @@ export const ExportDetailsView: React.FC = () => {
 
   if (loading) return <div className={s.container}><Spinner bg={false} isLoading /></div>;
   if (error) return <div>Error: {error}</div>;
-  if (!exportDetails) return <div>Export details not available.</div>;
+  if (!pipelineDetails) return <div>Pipeline details not available.</div>;
 
-  const endpointPath = `/streamby/${id}/export/${exportDetails.name}`;
-  const fullEndpoint = `${API_BASE}${endpointPath}`;
+  // Read-only adapter — mirrors the pipeline entity as an Export-shaped object so NodeViewer
+  // (which is shared across export/workflow/pipeline contexts) can render it.
+  const nodeViewerAdapter: Export = {
+    id: pipelineDetails.id,
+    name: pipelineDetails.name,
+    description: pipelineDetails.description ?? '',
+    status: 'completed',
+    createdAt: pipelineDetails.createdAt,
+    updatedAt: pipelineDetails.updatedAt,
+    projectId: id ?? '',
+    exportedBy: pipelineDetails.createdBy,
+    nodeSchema: pipelineDetails.nodeSchema ?? null,
+  };
 
   return (
     <div className={s.container}>
       <div className={s.pageHeader}>
         <SectionHeader
-          icon={faFileExport}
-          title={`/${exportDetails.name}`}
-          badge={exportDetails.method}
-          subtitle={exportDetails.description}
+          icon={faDiagramProject}
+          title={pipelineDetails.name}
+          subtitle={pipelineDetails.description ?? undefined}
         />
         <div className={s.buttonsContainer}>
-          <ActionButton icon={faSitemap} text="Open editor" onClick={() => navigate(`/project/${id}/workflow/exports/${exportId}/editor`)} />
+          <ActionButton icon={faSitemap} text="Open editor" onClick={() => navigate(`/project/${id}/workflow/pipelines/${pipelineId}/editor`)} />
           <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
         </div>
       </div>
@@ -358,51 +359,22 @@ export const ExportDetailsView: React.FC = () => {
                                 readOnly
                                 fields={[
                                   {
-                                    icon: faLink,
-                                    label: 'Endpoint',
-                                    value: (
-                                      <>
-                                        <a className={s.fieldLink} href={fullEndpoint} target="_blank" rel="noopener noreferrer">{endpointPath}</a>
-                                        <CopyButton title="Copy endpoint" textToCopy={endpointPath} />
-                                      </>
-                                    ),
-                                  },
-                                  {
                                     icon: faFileLines,
                                     label: 'Description',
-                                    value: exportDetails.description,
-                                    hidden: !exportDetails.description,
-                                  },
-                                  {
-                                    icon: faGlobe,
-                                    label: 'Allowed Origins',
-                                    value: exportDetails.allowedOrigin?.some(o => /^\*$/.test(o))
-                                      ? (currentProject?.data?.allowedOrigin?.join(', ') || '*')
-                                      : exportDetails.allowedOrigin?.join(', '),
-                                    hidden: !exportDetails.allowedOrigin?.length,
+                                    value: pipelineDetails.description,
+                                    hidden: !pipelineDetails.description,
                                   },
                                   {
                                     icon: faClock,
                                     label: 'Created',
-                                    value: new Date(exportDetails.createdAt).toLocaleString(),
+                                    value: new Date(pipelineDetails.createdAt).toLocaleString(),
                                   },
                                 ]}
                               />
                             </div>
                           )}
-                          {panel.activeTab === 'nodes' && <NodeViewer exportDetails={exportDetails} projectId={id} />}
-                          {panel.activeTab === 'response' && (
-                            <ResponsePreview
-                              projectId={id!}
-                              schema={exportDetails.nodeSchema}
-                              savedApiResponse={exportDetails.apiResponse}
-                            />
-                          )}
-                          {panel.activeTab === 'deliverables' && (
-                            <DeliverableTab />
-                          )}
-                          {panel.activeTab === 'reviews' && (
-                            <ReviewTab projectId={id!} assetId={exportDetails.id} />
+                          {panel.activeTab === 'nodes' && (
+                            <NodeViewer context="pipeline" exportDetails={nodeViewerAdapter} editMode={false} projectId={id} />
                           )}
                         </div>
                       </div>
@@ -416,10 +388,10 @@ export const ExportDetailsView: React.FC = () => {
       </PanelGroup>
 
       {showDeleteModal && (
-        <DeleteExportModal
-          exportId={exportId}
+        <DeletePipelineModal
+          pipelineId={pipelineId}
           currentProject={currentProject}
-          currentExport={exportDetails}
+          currentPipeline={pipelineDetails}
           onClose={() => setShowDeleteModal(false)}
         />
       )}

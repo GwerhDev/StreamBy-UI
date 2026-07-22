@@ -1,10 +1,17 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DropdownInput } from '../Inputs/DropdownInput';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { ActionButton } from '../Buttons/ActionButton';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { getConnectionResponse, createApiConnection, updateApiConnection } from '../../../services/connections';
 import { createCredential } from '../../../services/projects';
+import { createPipeline } from '../../../services/pipelines';
+import { createExport } from '../../../services/exports';
+import { updateProjectWorkflow } from '../../../services/workflow';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import ReactFlow, {
@@ -31,6 +38,7 @@ import {
   faPlus, faCode, faGear, faUser, faWrench,
   faChevronRight,
   faChevronLeft,
+  faSitemap,
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NodeEditContext } from './NodeContext';
@@ -87,6 +95,7 @@ export interface NodeViewerProps {
   canvasOverlay?: React.ReactNode;
   context?: NodeContext;
   onOpenPipeline?: (pipelineId: string) => void;
+  onOpenExport?: (exportId: string) => void;
 }
 
 export interface NodeViewerHandle {
@@ -108,10 +117,11 @@ const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline,
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
   const workspaceMode = useSelector((state: RootState) => state.session.mode ?? 'developer');
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
@@ -179,8 +189,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (projectId) fetchBuiltinDatabases().then(setBuiltinDbs);
   }, [projectId]);
 
-  const initialJsonRef = useRef(exportDetails.json);
-  const initialApiRef = useRef({ apiUrl: exportDetails.apiUrl, credentialId: exportDetails.credentialId });
   const apiConnectionsRef = useRef(apiConnections);
   const credentialsRef = useRef(currentProject?.credentials ?? []);
   const initialSchemaRef = useRef(exportDetails.nodeSchema);
@@ -188,23 +196,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const initialNodes = useMemo((): Node[] => {
     const schemaEdges = (initialSchemaRef.current?.edges ?? []) as Edge[];
 
+    // No auto-generated skeleton — an export/workflow/pipeline with no saved nodeSchema
+    // starts on a blank canvas, regardless of legacy json/apiUrl fields.
     const base: Node[] = initialSchemaRef.current?.nodes
       ? [...(initialSchemaRef.current.nodes as Node[])]
-      : (() => {
-          const nodes: Node[] = [
-            { id: 'request',  type: 'requestNode',  position: { x: 0,   y: 100 }, data: { label: 'Request',  subtitle: exportDetails.method || 'GET' } },
-            { id: 'streamby', type: 'streambyNode', position: { x: 280, y: 100 }, data: { label: 'StreamBy', subtitle: 'Middleware' } },
-            { id: 'response', type: 'responseNode', position: { x: 560, y: 100 }, data: { label: 'Response', subtitle: 'HTTP Response' } },
-          ];
-          if (initialJsonRef.current) {
-            nodes.push({ id: 'json-input', type: 'jsonInputNode', position: { x: 240, y: 320 }, data: { label: 'JSON Data', subtitle: 'Static data source', jsonString: JSON.stringify(initialJsonRef.current, null, 2) } });
-          }
-          if (initialApiRef.current.apiUrl) {
-            const conn = apiConnectionsRef.current.find(c => c.apiUrl === initialApiRef.current.apiUrl);
-            nodes.push({ id: 'api-conn', type: 'apiConnectionNode', position: { x: 240, y: 320 }, data: { label: conn?.name || 'API Connection', subtitle: initialApiRef.current.apiUrl || '', connectionId: conn?.id || '' } });
-          }
-          return nodes;
-        })();
+      : [];
 
     // Auto-inject credentialNode for any apiConnectionNode whose ApiConnection already has a credentialId
     const extra: Node[] = [];
@@ -231,24 +227,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const initialEdges = useMemo((): Edge[] => {
     const schemaNodes = (initialSchemaRef.current?.nodes ?? []) as Node[];
 
+    // No auto-generated skeleton edges — mirrors initialNodes above.
     const base: Edge[] = initialSchemaRef.current?.edges
       ? [...(initialSchemaRef.current.edges as Edge[])]
-      : (() => {
-          const edges: Edge[] = [
-            { id: 'e-request-streamby', source: 'request', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-left', animated: true, style: { stroke: H_LEFT, strokeWidth: 2 } },
-            { id: 'e-streamby-response', source: 'streamby', sourceHandle: 'out-right', target: 'response', targetHandle: 'in-left', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } },
-          ];
-          if (initialJsonRef.current) {
-            edges.push({ id: 'e-json-streamby', source: 'json-input', sourceHandle: 'out-right', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_RIGHT, strokeWidth: 2 } });
-          }
-          if (initialApiRef.current.apiUrl) {
-            edges.push(
-              { id: 'e-streamby-api', source: 'streamby', sourceHandle: 'out-bottom', target: 'api-conn', targetHandle: 'in-stream', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
-              { id: 'e-api-streamby', source: 'api-conn', sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-bottom', animated: true, style: { stroke: H_BOTTOM, strokeWidth: 2 } },
-            );
-          }
-          return edges;
-        })();
+      : [];
 
     // Auto-inject edges for the credential nodes injected in initialNodes
     const extra: Edge[] = [];
@@ -304,6 +286,14 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const visibleIds = new Set(visibleNodes.map(n => n.id));
     return edges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
   }, [visibleNodes, edges]);
+
+  // Read-only canvas with no nodes yet (e.g. a Pipeline/Export detail view before its
+  // canvas was ever built) — show an empty state with a shortcut into the editor instead
+  // of an empty ReactFlow canvas.
+  const isEmptyReadonly = !editMode && visibleNodes.length === 0 && (context === 'pipeline' || context === 'export');
+  const editorPath = context === 'pipeline'
+    ? `/project/${projectId}/workflow/pipelines/${exportDetails.id}/editor`
+    : `/project/${projectId}/workflow/exports/${exportDetails.id}/editor`;
 
   const connectedHandles = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -439,8 +429,14 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       return sh === 'out-filter' && th === 'in-filter';
     }
 
-    // Orchestrator → PipelineRef (Pipelines are the vertical dimension above the orchestrator)
+    // ─── Orchestrator side semantics (TCORE-64) ──────────────────────────────
+    // Left = Pipelines, Top = DB/Storage/API + Credentials, Bottom = Exports,
+    // Right = reserved for future Distribution (no node type uses it yet).
     if (st === 'orchestratorNode' && tt === 'pipelineRefNode') return sh === 'out-pipeline' && th === 'in-orchestrator';
+    if (st === 'orchestratorNode' && tt === 'exportNode') return sh === 'out-bottom' && th === 'in-orchestrator-bottom';
+    const orchestratorInputTypes = ['dataSourceNode', 'apiConnectionNode', 'ingestNode', 'proceduralAssetNode'];
+    if (orchestratorInputTypes.includes(st) && tt === 'orchestratorNode') return sh === 'out-stream' && th === 'in-top';
+    if (st === 'orchestratorNode' && tt === 'credentialNode') return sh === 'out-credentials' && th === 'in-streamby';
 
     return false;
   }, [nodes]);
@@ -883,7 +879,19 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node.type === 'pipelineRefNode') return {
       title: (node.data.label as string) || 'Pipeline',
-      description: 'References a Pipeline — a scoped sub-workflow of this project. Open it to edit its canvas.',
+      description: node.data.pipelineId
+        ? 'References a Pipeline — a scoped sub-workflow of this project. Open it to edit its canvas.'
+        : 'Not created yet. Name it and confirm to create the Pipeline.',
+      fields: [
+        { key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'exportNode') return {
+      title: (node.data.label as string) || 'Export',
+      description: node.data.exportId
+        ? 'References an Export of this project. Open it to edit its canvas.'
+        : 'Not created yet. Name it and confirm to create the Export.',
       fields: [
         { key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true },
       ],
@@ -900,7 +908,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
   const isCredentialNode = selectedNode?.type === 'credentialNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
-  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isCredentialNode && (isJsonNode || !isCoreNode || !!onSave);
+  // A pipelineRefNode/exportNode dropped from the palette has no entity id yet — it's a
+  // draft until the user names it and confirms creation (TCORE-64).
+  const isPipelineDraft = selectedNode?.type === 'pipelineRefNode' && !(selectedNode.data?.pipelineId as string);
+  const isExportDraft = selectedNode?.type === 'exportNode' && !(selectedNode.data?.exportId as string);
+  const isDraftNode = isPipelineDraft || isExportDraft;
+  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isCredentialNode && !isDraftNode && (isJsonNode || !isCoreNode || !!onSave);
   const credentialConnected = isCredentialNode && edges.some(e => e.target === selectedNodeId && e.targetHandle === 'in-streamby');
 
   // Stable primitives from the saved node data — avoids re-running effects on every ReactFlow state update
@@ -944,6 +957,15 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const resetConnFetch = () => { setConnFetching(false); setConnResult(null); setConnError(null); };
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => { setSelectedNodeId(node.id); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
+  const handleNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    if (node.type === 'pipelineRefNode') {
+      const pipelineId = (node.data?.pipelineId as string) || '';
+      if (pipelineId) onOpenPipeline?.(pipelineId);
+    } else if (node.type === 'exportNode') {
+      const exportId = (node.data?.exportId as string) || '';
+      if (exportId) onOpenExport?.(exportId);
+    }
+  }, [onOpenPipeline, onOpenExport]);
   const handleClosePanel = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
   const handleFieldChange = useCallback((key: string, value: string | boolean) => { setLocalData(prev => ({ ...prev, [key]: value })); if (key === 'jsonString') setJsonError(null); }, []);
 
@@ -1013,6 +1035,70 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
     setLocalData({});
   }, [selectedNodeId, localData, nodes, apiConnections, allDbConnections, onSave, setNodes]);
+
+  const [draftCreating, setDraftCreating] = useState(false);
+
+  // Persist the current node/edge schema so a newly-created draft survives a reload —
+  // best-effort, mirrors the pattern already used by CreateExportForm/CreatePipelineForm.
+  const persistWorkflowSchema = useCallback(async (nextNodes: Node[]) => {
+    if (!projectId || !currentProject?.workflow) return;
+    try {
+      const updated = await updateProjectWorkflow(projectId, { nodeSchema: { nodes: nextNodes, edges } });
+      dispatch(setCurrentProject({ ...currentProject, workflow: updated }));
+    } catch {
+      // Best-effort — the node still updates locally even if persistence fails.
+    }
+  }, [projectId, currentProject, edges, dispatch]);
+
+  const handleCreatePipelineFromDraft = useCallback(async () => {
+    if (!projectId || !selectedNodeId || !currentProject) return;
+    const name = (localData.label as string) ?? (selectedNode?.data.label as string) ?? '';
+    if (!name) return;
+    setDraftCreating(true);
+    try {
+      const pipeline = await createPipeline(projectId, { name });
+      const nextNodes = nodes.map(n => n.id === selectedNodeId
+        ? { ...n, data: { ...n.data, label: pipeline.name, pipelineId: pipeline.id } }
+        : n);
+      setNodes(nextNodes);
+      dispatch(setCurrentProject({
+        ...currentProject,
+        pipelines: [...(currentProject.pipelines ?? []), { id: pipeline.id, name: pipeline.name, order: pipeline.order }],
+      }));
+      await persistWorkflowSchema(nextNodes);
+      setLocalData({});
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create pipeline.';
+      dispatch(addApiResponse({ message, type: 'error' }));
+    } finally {
+      setDraftCreating(false);
+    }
+  }, [projectId, selectedNodeId, selectedNode, currentProject, localData, nodes, setNodes, dispatch, persistWorkflowSchema]);
+
+  const handleCreateExportFromDraft = useCallback(async () => {
+    if (!projectId || !selectedNodeId || !currentProject) return;
+    const name = (localData.label as string) ?? (selectedNode?.data.label as string) ?? '';
+    if (!name) return;
+    setDraftCreating(true);
+    try {
+      const created = await createExport(projectId, { name, allowedOrigin: ['*'] });
+      const nextNodes = nodes.map(n => n.id === selectedNodeId
+        ? { ...n, data: { ...n.data, label: name, exportId: created.exportId } }
+        : n);
+      setNodes(nextNodes);
+      dispatch(setCurrentProject({
+        ...currentProject,
+        exports: [...(currentProject.exports ?? []), created],
+      }));
+      await persistWorkflowSchema(nextNodes);
+      setLocalData({});
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create export.';
+      dispatch(addApiResponse({ message, type: 'error' }));
+    } finally {
+      setDraftCreating(false);
+    }
+  }, [projectId, selectedNodeId, selectedNode, currentProject, localData, nodes, setNodes, dispatch, persistWorkflowSchema]);
 
   const handleOpenApiPreview = useCallback(async () => {
     if (!projectId || !selectedNodeId) return;
@@ -1246,24 +1332,33 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
             onDragOver={editMode ? handleDragOver : undefined}
             onDrop={editMode ? handleDrop : undefined}
           >
-            <ReactFlow
-              nodes={visibleNodes} edges={visibleEdges}
-              onNodeClick={handleNodeClick}
-              onNodesChange={editMode ? onNodesChange : noop}
-              onEdgesChange={editMode ? onEdgesChange : noop}
-              onEdgesDelete={editMode ? onEdgesDelete : undefined}
-              onConnect={editMode ? onConnect : undefined}
-              isValidConnection={editMode ? isValidConnection : undefined}
-              nodeTypes={NODE_TYPES}
-              nodesDraggable={editMode} nodesConnectable={editMode}
-              elementsSelectable deleteKeyCode={editMode ? 'Delete' : null}
-              fitView fitViewOptions={{ padding: 0.35 }}
-            >
-              <Background variant={BackgroundVariant.Dots} color="var(--color-surface-sunken)" gap={22} size={1} />
-              <Controls showInteractive={false} />
-            </ReactFlow>
+            {isEmptyReadonly ? (
+              <div className={s.emptyCanvasState}>
+                <EmptyBackground />
+                <p>This {context === 'pipeline' ? 'Pipeline' : 'Export'} has no nodes yet.</p>
+                <ActionButton icon={faSitemap} text="Open editor" onClick={() => navigate(editorPath)} />
+              </div>
+            ) : (
+              <ReactFlow
+                nodes={visibleNodes} edges={visibleEdges}
+                onNodeClick={handleNodeClick}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                onNodesChange={editMode ? onNodesChange : noop}
+                onEdgesChange={editMode ? onEdgesChange : noop}
+                onEdgesDelete={editMode ? onEdgesDelete : undefined}
+                onConnect={editMode ? onConnect : undefined}
+                isValidConnection={editMode ? isValidConnection : undefined}
+                nodeTypes={NODE_TYPES}
+                nodesDraggable={editMode} nodesConnectable={editMode}
+                elementsSelectable deleteKeyCode={editMode ? 'Delete' : null}
+                fitView fitViewOptions={{ padding: 0.35 }}
+              >
+                <Background variant={BackgroundVariant.Dots} color="var(--color-surface-sunken)" gap={22} size={1} />
+                <Controls showInteractive={false} />
+              </ReactFlow>
+            )}
 
-            {selectedDetail && (
+            {!isEmptyReadonly && selectedDetail && (
               <div className={s.detailPanel}>
                 <div className={s.detailHeader}>
                   <span className={s.detailTitle}>{selectedDetail.title}</span>
@@ -1359,13 +1454,36 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                       type="button"
                       className={s.actionButton}
                       onClick={() => {
+                        if (isPipelineDraft) { handleCreatePipelineFromDraft(); return; }
                         const pipelineId = (selectedNode.data.pipelineId as string) || '';
                         if (pipelineId) onOpenPipeline?.(pipelineId);
                       }}
-                      disabled={!onOpenPipeline || !(selectedNode.data.pipelineId as string)}
+                      disabled={isPipelineDraft
+                        ? (draftCreating || !((localData.label as string) ?? (selectedNode.data.label as string)))
+                        : (!onOpenPipeline || !(selectedNode.data.pipelineId as string))}
                     >
                       <FontAwesomeIcon icon={faArrowsRotate} />
-                      Abrir editor
+                      {isPipelineDraft ? (draftCreating ? 'Creating…' : 'Create') : 'Open editor'}
+                    </button>
+                  </div>
+                )}
+
+                {selectedNode?.type === 'exportNode' && (
+                  <div className={s.nodeActions}>
+                    <button
+                      type="button"
+                      className={s.actionButton}
+                      onClick={() => {
+                        if (isExportDraft) { handleCreateExportFromDraft(); return; }
+                        const exportId = (selectedNode.data.exportId as string) || '';
+                        if (exportId) onOpenExport?.(exportId);
+                      }}
+                      disabled={isExportDraft
+                        ? (draftCreating || !((localData.label as string) ?? (selectedNode.data.label as string)))
+                        : (!onOpenExport || !(selectedNode.data.exportId as string))}
+                    >
+                      <FontAwesomeIcon icon={faArrowsRotate} />
+                      {isExportDraft ? (draftCreating ? 'Creating…' : 'Create') : 'Open editor'}
                     </button>
                   </div>
                 )}

@@ -3,14 +3,12 @@ import { useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { Node, Edge } from 'reactflow';
+import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updatePipeline } from '../../../services/pipelines';
 import { Export, Pipeline } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
-import { TemplatePicker } from './TemplatePicker';
 
 interface Props {
   pipeline: Pipeline;
@@ -19,26 +17,14 @@ interface Props {
 
 // A Pipeline is a scoped sub-workflow. Same canvas as the Workflow editor but bound to a
 // Pipeline entity (context="pipeline") instead of the project-level workflow.
+// Mirrors ExportEditor: always editable, no View/Edit toggle, no template picker — the
+// read-only view lives separately in PipelineDetailsView.
 export function PipelineCanvas({ pipeline, onChange }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
 
-  const [localSchema, setLocalSchema] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
-  const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
-
-  const displaySchema = useMemo<{ nodes: Node[]; edges: Edge[] } | null>(() => {
-    if (localSchema !== null) return localSchema;
-    if (pipeline.nodeSchema) return pipeline.nodeSchema as { nodes: Node[]; edges: Edge[] };
-    return null;
-  }, [localSchema, pipeline.nodeSchema]);
-
-  const nodeViewerKey = useMemo(() => {
-    if (pipeline.nodeSchema) return `saved-${pipeline.id}`;
-    if (localSchema) return 'template';
-    return 'empty';
-  }, [pipeline.nodeSchema, pipeline.id, localSchema]);
 
   const exportAdapter = useMemo<Export>(() => ({
     id: pipeline.id,
@@ -49,13 +35,8 @@ export function PipelineCanvas({ pipeline, onChange }: Props) {
     updatedAt: '',
     projectId: projectId ?? '',
     exportedBy: '',
-    nodeSchema: displaySchema,
-  }), [pipeline, projectId, displaySchema]);
-
-  const handleTemplateSelect = (schema: { nodes: Node[]; edges: Edge[] }) => {
-    setLocalSchema(schema);
-    setEditMode(true);
-  };
+    nodeSchema: pipeline.nodeSchema ?? null,
+  }), [pipeline, projectId]);
 
   const handleSave = async () => {
     if (!projectId) return;
@@ -72,15 +53,7 @@ export function PipelineCanvas({ pipeline, onChange }: Props) {
     }
   };
 
-  if (displaySchema === null) {
-    return (
-      <div className={s.container}>
-        <TemplatePicker onSelect={handleTemplateSelect} />
-      </div>
-    );
-  }
-
-  const saveButton = editMode ? (
+  const saveButton = (
     <button
       className={s.saveBtn}
       onClick={handleSave}
@@ -89,44 +62,19 @@ export function PipelineCanvas({ pipeline, onChange }: Props) {
     >
       <FontAwesomeIcon icon={faFloppyDisk} />
     </button>
-  ) : null;
+  );
 
   return (
     <div className={s.container}>
       <NodeViewer
-        key={nodeViewerKey}
+        key={`pipeline-${pipeline.id}`}
         ref={nodeViewerRef}
         context="pipeline"
         exportDetails={exportAdapter}
-        editMode={editMode}
+        editMode
         projectId={projectId}
         canvasOverlay={saveButton}
       />
-
-      {/* Mode toggle — top center */}
-      <div className={s.toggleOverlay}>
-        <div
-          className={s.track}
-          role="switch"
-          aria-checked={editMode}
-          tabIndex={0}
-          onClick={() => setEditMode(e => !e)}
-          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setEditMode(e => !e)}
-          title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
-        >
-          <span className={`${s.thumb} ${editMode ? s.thumbRight : ''}`} />
-          <div className={s.trackLabels}>
-            <span className={`${s.trackLabel} ${!editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
-              <FontAwesomeIcon icon={faEye} />
-              View
-            </span>
-            <span className={`${s.trackLabel} ${editMode ? s.trackLabelActive : s.trackLabelInactive}`}>
-              <FontAwesomeIcon icon={faPencil} />
-              Edit
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

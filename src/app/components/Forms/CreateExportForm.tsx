@@ -52,17 +52,29 @@ export function CreateExportForm() {
         let updatedWorkflow = workflow;
 
         if (workflow?.nodeSchema) {
-          const existingNodes = (workflow.nodeSchema.nodes ?? []) as object[];
+          const existingNodes = (workflow.nodeSchema.nodes ?? []) as any[];
+          const existingEdges = (workflow.nodeSchema.edges ?? []) as any[];
           const exportNodes = existingNodes.filter((n: any) => String(n.id).startsWith('export-'));
+          const streambyNode = existingNodes.find((n: any) => n.id === 'streamby');
+          const newNodeId = `export-${response.exportId}`;
           const newNode = {
-            id: `export-${response.exportId}`,
-            type: 'filterNode',
-            position: { x: 500, y: exportNodes.length * 140 + 20 },
-            data: { label: name, subtitle: 'export' },
+            id: newNodeId,
+            type: 'exportNode',
+            position: {
+              x: (streambyNode?.position?.x ?? 350) + exportNodes.length * 220,
+              y: (streambyNode?.position?.y ?? 20) + 220,
+            },
+            data: { label: name, subtitle: 'export', exportId: response.exportId },
+          };
+          const newEdge = {
+            id: `e-streamby-${newNodeId}`,
+            source: 'streamby', sourceHandle: 'out-bottom',
+            target: newNodeId, targetHandle: 'in-orchestrator-bottom',
+            animated: true, style: { stroke: '#38b6ff', strokeWidth: 1.5 },
           };
           const updatedSchema = {
             nodes: [...existingNodes, newNode],
-            edges: workflow.nodeSchema.edges ?? [],
+            edges: [...existingEdges, newEdge],
           };
           try {
             updatedWorkflow = await updateProjectWorkflow(projectId!, { nodeSchema: updatedSchema });
@@ -74,7 +86,7 @@ export function CreateExportForm() {
         dispatch(setCurrentProject({ ...project, workflow: updatedWorkflow }));
       }
 
-      navigate(`/project/${projectId}/exports/${response.exportId}/editor`);
+      navigate(`/project/${projectId}/workflow/exports/${response.exportId}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
     } finally {
@@ -84,7 +96,7 @@ export function CreateExportForm() {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/project/${projectId}/exports`);
+    navigate(`/project/${projectId}/workflow/exports`);
   };
 
   return (

@@ -37,7 +37,7 @@ export function ExportList() {
   const [devLoading, setDevLoading] = useState(false);
 
   const handleCreateExport = () => {
-    navigate(`/project/${id}/exports/create`);
+    navigate(`/project/${id}/workflow/exports/create`);
   };
 
   const applyDevMode = async (active: boolean, ports: number[]) => {
@@ -103,7 +103,7 @@ export function ExportList() {
       ) : (
         <ul>
           {exports?.map((exportItem: Export) => (
-            <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/exports/" + exportItem.id)}>
+            <li title={exportItem.name} key={exportItem.id} onClick={() => navigate('/project/' + id + "/workflow/exports/" + exportItem.id)}>
               <ExportCard key={exportItem.id} exports={exportItem} />
             </li>
           ))}

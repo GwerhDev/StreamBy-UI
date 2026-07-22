@@ -64,6 +64,7 @@ const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardP
 const WorkflowPage             = lazy(() => import('./app/pages/WorkflowPage').then(module => ({ default: module.WorkflowPage })));
 const Pipelines                = lazy(() => import('./app/pages/Pipelines').then(module => ({ default: module.Pipelines })));
 const PipelineCreate           = lazy(() => import('./app/pages/PipelineCreate').then(module => ({ default: module.PipelineCreate })));
+const PipelineDetails          = lazy(() => import('./app/pages/PipelineDetails').then(module => ({ default: module.PipelineDetails })));
 const PipelineEditorPage       = lazy(() => import('./app/pages/PipelineEditorPage').then(module => ({ default: module.PipelineEditorPage })));
 
 function App() {
@@ -105,10 +106,6 @@ function App() {
                   <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                   <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
                   <Route path="/project/:id/dashboard/members" element={<Members />} />
-                  <Route path="/project/:id/exports" element={<Exports />} />
-                  <Route path="/project/:id/exports/create" element={<ExportsCreate />} />
-                  <Route path="/project/:id/exports/:exportId" element={<ExportsDetails />} />
-                  <Route path="/project/:id/exports/:exportId/editor" element={<ExportEditorPage />} />
 
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
@@ -130,9 +127,14 @@ function App() {
                   <Route path="/project/:id/connections/credentials/create" element={<CredentialsCreate />} />
 
                   <Route path="/project/:id/workflow" element={<WorkflowPage />} />
-                  <Route path="/project/:id/pipelines" element={<Pipelines />} />
-                  <Route path="/project/:id/pipelines/create" element={<PipelineCreate />} />
-                  <Route path="/project/:id/pipelines/:pipelineId" element={<PipelineEditorPage />} />
+                  <Route path="/project/:id/workflow/pipelines" element={<Pipelines />} />
+                  <Route path="/project/:id/workflow/pipelines/create" element={<PipelineCreate />} />
+                  <Route path="/project/:id/workflow/pipelines/:pipelineId" element={<PipelineDetails />} />
+                  <Route path="/project/:id/workflow/pipelines/:pipelineId/editor" element={<PipelineEditorPage />} />
+                  <Route path="/project/:id/workflow/exports" element={<Exports />} />
+                  <Route path="/project/:id/workflow/exports/create" element={<ExportsCreate />} />
+                  <Route path="/project/:id/workflow/exports/:exportId" element={<ExportsDetails />} />
+                  <Route path="/project/:id/workflow/exports/:exportId/editor" element={<ExportEditorPage />} />
                   <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
                   <Route path="/project/:id/workflow/jobs" element={<JobMonitorPage />} />
                   <Route path="/project/:id/workflow/reviews" element={<ReviewListPage />} />

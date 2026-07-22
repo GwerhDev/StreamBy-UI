@@ -22,6 +22,12 @@ const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
 
+// pipelineRefNode/exportNode are reference/link nodes (TCORE-64) auto-drawn for every
+// Pipeline/Export — they already have their own dedicated sidebar sub-section, so they
+// must NOT count toward a workflow group (otherwise e.g. "Production" would appear just
+// because a Pipeline node exists on the canvas, with no real production node present).
+const WORKFLOW_SECTION_EXCLUDED_TYPES = new Set(['pipelineRefNode', 'exportNode']);
+
 interface RailItem { icon: IconDefinition; path: string; label: string; isActive?: (pathname: string, search: string) => boolean; }
 
 export const LateralMenu = ({ children, title, railItems }: { children?: React.ReactNode; title?: string; railItems?: RailItem[] } = {}) => {
@@ -43,13 +49,13 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const [workflowExportsExpanded, setWorkflowExportsExpanded] = useState(false);
   const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
   const [dbTablesLoading, setDbTablesLoading] = useState<Set<string>>(new Set());
-  const { menuOpen, closeMenu, toggleMenu } = useEditorMenu();
+  const { menuOpen, toggleMenu } = useEditorMenu();
   const location = useLocation();
 
   const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
   const isWorkflowsSection = location.pathname.includes(`/project/${id}/workflow`);
-  const isPipelinesSection = location.pathname.includes(`/project/${id}/pipelines`);
-  const isExportsSection = location.pathname.includes(`/project/${id}/exports`);
+  const isPipelinesSection = location.pathname.includes(`/project/${id}/workflow/pipelines`);
+  const isExportsSection = location.pathname.includes(`/project/${id}/workflow/exports`);
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
   const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
@@ -89,7 +95,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const activeWorkflowGroups = useMemo(() => {
     const groups = new Set<WorkflowGroup>();
     for (const node of workflowNodeTypes ?? []) {
-      const group = node.type ? WORKFLOW_GROUP_BY_TYPE[node.type] : undefined;
+      if (!node.type || WORKFLOW_SECTION_EXCLUDED_TYPES.has(node.type)) continue;
+      const group = WORKFLOW_GROUP_BY_TYPE[node.type];
       if (group) groups.add(group);
     }
     return groups;
@@ -98,13 +105,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const activeWorkflowSections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[])
     .filter(group => activeWorkflowGroups.has(group))
     .map(group => WORKFLOW_SECTION_BY_GROUP[group]!);
-
-  useEffect(() => {
-    const isEditorRoute = location.pathname.endsWith('/editor');
-    if (isEditorRoute) {
-      closeMenu();
-    }
-  }, [location]);
 
   const toggleStorage = (value: string) => {
     setExpandedStorages(prev => {
@@ -431,7 +431,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
                     {/* Pipelines — nested sub-section, visible in both modes (production concept) */}
                     <Link
-                      to={`/project/${id}/pipelines`}
+                      to={`/project/${id}/workflow/pipelines`}
                       className={`${s.serviceHeader} ${isPipelinesSection ? s.activeLink : ''}`}
                     >
                       <FontAwesomeIcon
@@ -445,7 +445,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                     {workflowPipelinesExpanded && (
                       (currentProject.data?.pipelines ?? []).length
                         ? currentProject.data!.pipelines!.map(pipeline => {
-                            const linkPath = `/project/${id}/pipelines/${pipeline.id}`;
+                            const linkPath = `/project/${id}/workflow/pipelines/${pipeline.id}`;
                             const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                             return (
                               <Link key={pipeline.id} to={linkPath} className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
@@ -460,7 +460,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                     {/* Exports — nested sub-section, developer only */}
                     {mode === 'developer' && (<>
                       <Link
-                        to={`/project/${id}/exports`}
+                        to={`/project/${id}/workflow/exports`}
                         className={`${s.serviceHeader} ${isExportsSection ? s.activeLink : ''}`}
                       >
                         <FontAwesomeIcon
@@ -474,7 +474,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                       {workflowExportsExpanded && (
                         (currentProject.data?.exports ?? []).length
                           ? currentProject.data!.exports!.map(exp => {
-                              const linkPath = `/project/${id}/exports/${exp.id}`;
+                              const linkPath = `/project/${id}/workflow/exports/${exp.id}`;
                               const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                               return (
                                 <Link key={exp.id} to={linkPath} className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>

@@ -127,6 +127,16 @@ export interface DeleteExportFormProps {
   handleDeleteExport: (e: React.FormEvent) => void;
 }
 
+export interface DeletePipelineFormProps {
+  loader: boolean;
+  disabled: boolean;
+  confirmText: string;
+  currentPipeline: Pipeline | undefined;
+  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleCancel: () => void;
+  handleDeletePipeline: (e: React.FormEvent) => void;
+}
+
 export interface DeleteCredentialFormProps {
   loader: boolean;
   disabled: boolean;

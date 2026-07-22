@@ -55,6 +55,7 @@
 .project-viewer {
   width: 100%;
   flex-grow: 1;
+  min-height: 0;
   display: flex;
   overflow: hidden;
   flex-direction: column;
@@ -83,6 +84,7 @@
 .dashboard-container {
   width: 100vw;
   flex-grow: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   background: var(--color-bg-surface);
@@ -90,12 +92,13 @@
 
 .dashboard-sections {
   flex-grow: 1;
+  min-height: 0;
   display: flex;
   border-top-left-radius: 10px;
   border: solid .5px var(--color-surface);
   border-right: none;
   border-bottom: none;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .notification-empty {

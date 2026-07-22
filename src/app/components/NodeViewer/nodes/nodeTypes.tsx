@@ -626,11 +626,11 @@ ExportFormatNode.displayName = 'ExportFormatNode';
 
 // ─── Pipeline reference node (TCORE-62) ───────────────────────────────────────
 
-// References a Pipeline (a project sub-workflow) from the Workflow canvas. Sits above the
-// orchestrator — Pipelines are the vertical dimension upward. Click opens the Pipeline editor.
+// References a Pipeline (a project sub-workflow) from the Workflow canvas. Sits to the left
+// of the orchestrator — Pipelines are the left side (TCORE-64). Click opens the Pipeline editor.
 export const PipelineRefNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Bottom} id="in-orchestrator" className={s.handle} style={hIn(H_TOP)} />
+    <Handle type="target" position={Position.Right} id="in-orchestrator" className={s.handle} style={hIn(H_LEFT)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
       <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
     </div>
@@ -644,10 +644,11 @@ PipelineRefNode.displayName = 'PipelineRefNode';
 
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
-// Architecture-only export node — icon hardcoded so it survives DB serialization round-trips
+// Architecture-only export node — icon hardcoded so it survives DB serialization round-trips.
+// Sits below the orchestrator — Exports are the bottom side (TCORE-64).
 export const ExportNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left} id="in-left" className={s.handle} style={hIn(H_RIGHT)} />
+    <Handle type="target" position={Position.Top} id="in-orchestrator-bottom" className={s.handle} style={hIn(H_BOTTOM)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1403' }}>
       <div className={s.nodeIcon} style={{ color: '#fbbf24' }}><FontAwesomeIcon icon={faFileExport} /></div>
     </div>
@@ -659,13 +660,15 @@ export const ExportNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => 
 ));
 ExportNode.displayName = 'ExportNode';
 
-// Workflow-only orchestrator node — visually distinct from StreamByNode (middleware)
+// Workflow-only orchestrator node — visually distinct from StreamByNode (middleware).
+// Side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API + Credentials,
+// Bottom = Exports, Right = reserved for future Distribution (not implemented here).
 export const OrchestratorNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left}  id="in-left"         className={s.handle} style={hIn(H_LEFT)} />
-    <Handle type="source" position={Position.Left}  id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), top: '75%' }} />
-    <Handle type="source" position={Position.Top}   id="out-pipeline"    className={s.handle} style={hOut(H_TOP)} />
-    <Handle type="source" position={Position.Right} id="out-right"       className={s.handle} style={hOut(H_RIGHT)} />
+    <Handle type="source" position={Position.Left}   id="out-pipeline"    className={s.handle} style={hOut(H_LEFT)} />
+    <Handle type="target" position={Position.Top}    id="in-top"          className={s.handle} style={{ ...hIn(H_TOP), left: '35%' }} />
+    <Handle type="source" position={Position.Top}    id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), left: '65%' }} />
+    <Handle type="source" position={Position.Bottom} id="out-bottom"      className={s.handle} style={hOut(H_BOTTOM)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
       <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
     </div>

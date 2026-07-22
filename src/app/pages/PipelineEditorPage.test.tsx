@@ -29,9 +29,9 @@ const PIPELINE: Pipeline = {
 
 const renderPage = () => render(
   <Provider store={store}>
-    <MemoryRouter initialEntries={['/project/proj1/pipelines/p1']}>
+    <MemoryRouter initialEntries={['/project/proj1/workflow/pipelines/p1/editor']}>
       <Routes>
-        <Route path="/project/:id/pipelines/:pipelineId" element={<PipelineEditorPage />} />
+        <Route path="/project/:id/workflow/pipelines/:pipelineId/editor" element={<PipelineEditorPage />} />
       </Routes>
     </MemoryRouter>
   </Provider>,

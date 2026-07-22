@@ -10,7 +10,7 @@ import { buildSchemaFromProject, BuiltinDb, MgmtStorage, WorkflowCanvas } from '
 import { NodeSkeleton } from '../components/NodeViewer/NodeSkeleton';
 
 // Derive a sorted fingerprint of all resource node IDs from the current project state.
-function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], builtinDbs: BuiltinDb[]): string {
+export function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], builtinDbs: BuiltinDb[]): string {
   const ids = [
     ...builtinDbs.map(db => `builtin-db-${db.name}`),
     ...(project.dbConnections ?? []).map((db: DbConnection) => `db-${db.id}`),
@@ -18,13 +18,14 @@ function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], built
     ...mgmtStorages.map((_, i) => `mgmt-storage-${i}`),
     ...(project.storageConnections ?? []).map((s: any) => `storage-${s.id}`),
     ...(project.exports ?? []).map((exp: any) => `export-${exp.id}`),
+    ...(project.pipelines ?? []).map(p => `pipeline-${p.id}`),
   ];
   return ids.sort().join(',');
 }
 
 // Derive the same fingerprint from node IDs already saved in the schema.
-function schemaFingerprint(schemaNodes: any[]): string {
-  const prefixes = ['builtin-db-', 'db-', 'api-', 'mgmt-storage-', 'storage-', 'export-'];
+export function schemaFingerprint(schemaNodes: any[]): string {
+  const prefixes = ['builtin-db-', 'db-', 'api-', 'mgmt-storage-', 'storage-', 'export-', 'pipeline-'];
   return schemaNodes
     .map((n: any) => n.id as string)
     .filter(id => prefixes.some(p => id?.startsWith(p)))
@@ -62,6 +63,7 @@ export function WorkflowPage() {
     ...(currentProject?.apiConnections ?? []).map((api: any) => api.id),
     ...(currentProject?.storageConnections ?? []).map((s: any) => s.id),
     ...(currentProject?.exports ?? []).map((exp: any) => exp.id),
+    ...(currentProject?.pipelines ?? []).map(p => p.id),
     ...mgmtStorages.map((_, i) => i),
     ...builtinDbs.map(db => db.name),
   ].join(',');
@@ -107,12 +109,20 @@ export function WorkflowPage() {
       const hasLegacyOutRightEdges = ((wf.nodeSchema as any)?.edges ?? []).some(
         (e: any) => e.sourceHandle === 'out-right' && e.target === 'streamby',
       );
+      // Stale if the orchestrator still uses the pre-TCORE-64 side layout (in-left for
+      // inputs, out-right for exports) instead of in-top/out-bottom.
+      const schemaEdges: any[] = (wf.nodeSchema as any)?.edges ?? [];
+      const hasLegacyOrchestratorLayout = schemaEdges.some(
+        (e: any) => (e.target === 'streamby' && e.targetHandle === 'in-left')
+          || (e.source === 'streamby' && e.sourceHandle === 'out-right'),
+      );
       const isStale =
         !wf.nodeSchema ||
         hasLegacyExportNodes ||
         hasLegacyCollectionNodes ||
         hasLegacyOrchestratorType ||
         hasLegacyOutRightEdges ||
+        hasLegacyOrchestratorLayout ||
         schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
 
       if (isStale) {
