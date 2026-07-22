@@ -9,7 +9,7 @@ import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
 import { ProjectStats } from '../ProjectStats/ProjectStats';
 import { ProjectCharts } from '../ProjectCharts/ProjectCharts';
-import { ProjectQuickAccess } from '../ProjectQuickAccess/ProjectQuickAccess';
+import { WorkflowPreview } from '../WorkflowPreview/WorkflowPreview';
 
 interface ProjectPresentationProps {
   preview?: boolean;
@@ -64,11 +64,11 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
       </div>
 
       <div className={s.stats}>
+        {currentProject?.id && (
+          <WorkflowPreview projectId={currentProject.id} readonly={preview} />
+        )}
         <ProjectStats readonly={preview} />
         <ProjectCharts readonly={preview} />
-        {!preview && currentProject?.id && (
-          <ProjectQuickAccess projectId={currentProject.id} readonly={preview} />
-        )}
       </div>
     </div>
   );

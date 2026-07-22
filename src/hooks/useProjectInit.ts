@@ -15,10 +15,12 @@ export function useProjectInit(projectId: string | undefined) {
       navigate('/project/not-found');
       return;
     }
+    let cancelled = false;
     (async () => {
       try {
         dispatch(setProjectLoading());
         const data = await fetchProject(projectId);
+        if (cancelled) return;
         dispatch(setCurrentProject(data));
 
         const selfMember = data?.members?.find((m: { userId: string }) => m.userId === session.userId);
@@ -26,8 +28,9 @@ export function useProjectInit(projectId: string | undefined) {
           navigate(`/preview/${projectId}`, { replace: true });
         }
       } catch {
-        navigate('/project/not-found');
+        if (!cancelled) navigate('/project/not-found');
       }
     })();
+    return () => { cancelled = true; };
   }, [projectId, session.userId, dispatch, navigate]);
 }

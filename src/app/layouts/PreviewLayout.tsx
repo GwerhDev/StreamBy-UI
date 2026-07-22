@@ -14,15 +14,21 @@ export default function PreviewLayout() {
 
   useEffect(() => {
     if (!projectId || projects.loading) return;
+    let cancelled = false;
     (async () => {
       try {
         const { project, membership } = await fetchProjectPreview(projectId);
+        // Guard against a stale response landing after the user has already navigated
+        // away (e.g. hit "back" before this resolved) — it would otherwise overwrite
+        // the real project data with this preview's reduced shape.
+        if (cancelled) return;
         dispatch(setCurrentProject(project));
         dispatch(setMembership(membership));
       } catch (err: any) {
-        dispatch(addApiResponse({ message: err.message || 'Failed to load project preview.', type: 'error' }));
+        if (!cancelled) dispatch(addApiResponse({ message: err.message || 'Failed to load project preview.', type: 'error' }));
       }
     })();
+    return () => { cancelled = true; };
   }, [projectId, projects.loading]);
 
   return (

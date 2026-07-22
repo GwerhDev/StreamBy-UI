@@ -1,0 +1,70 @@
+.container {
+  width: 100%;
+  max-width: 1024px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  transition: background 0.15s ease;
+}
+
+.container:hover {
+  background: var(--color-surface-hover);
+}
+
+.readonly {
+  cursor: default;
+}
+
+.readonly:hover {
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  color: var(--color-accent);
+}
+
+.title {
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.canvas {
+  width: 100%;
+  height: 240px;
+  min-height: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.canvas :global(.react-flow__controls) {
+  display: none;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--color-surface-base);
+  color: var(--color-text-muted);
+}
+
+.placeholderIcon {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+
