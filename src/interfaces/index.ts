@@ -58,6 +58,39 @@ export interface CurrentWorkflowState {
   error: string | null;
 }
 
+// A Pipeline is a project sub-workflow. Full entity (with nodeSchema) lives in the
+// `pipelines` collection; PipelineRef is the lightweight entry carried on project.pipelines[].
+export interface Pipeline {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string | null;
+  order: number;
+  nodeSchema?: { nodes: object[]; edges: object[] } | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PipelineRef {
+  id: string;
+  name: string;
+  order: number;
+}
+
+export interface PipelinePayload {
+  name?: string;
+  description?: string;
+  nodeSchema?: { nodes: object[]; edges: object[] } | null;
+  order?: number;
+}
+
+export interface CurrentPipelineState {
+  data: Pipeline | null;
+  loading: boolean;
+  error: string | null;
+}
+
 export type ProjectCategory = 'game' | 'film' | 'api' | 'creative';
 
 export interface Project {
@@ -72,7 +105,7 @@ export interface Project {
   credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
   workflow?: Workflow;              // single canvas per project
-  // pipelines?: Pipeline[];        // reserved for the future sub-workflow concept
+  pipelines?: PipelineRef[];        // lightweight refs; full entities live in the pipelines collection
   apiConnections?: ApiConnection[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];

@@ -10,6 +10,7 @@ import {
   faFingerprint,
   faFileImport, faGears, faClapperboard, faCheckDouble,
   faPalette, faVolumeHigh, faFileVideo, faShare, faStar,
+  faSitemap,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
@@ -68,6 +69,7 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'masterNode',        label: 'Master',        subtitle: 'Versioned master',      icon: faStar,             bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
   { type: 'exportFormatNode',  label: 'Export Format', subtitle: 'Codec / container',     icon: faFileVideo,        bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
   { type: 'distributeNode',    label: 'Distribute',    subtitle: 'Publish to platform',   icon: faShare,            bgColor: '#1a0d00', iconColor: H_JOB,    group: 'output' },
+  { type: 'pipelineRefNode',   label: 'Pipeline',      subtitle: 'Sub-workflow reference', icon: faSitemap,         bgColor: '#0a2826', iconColor: '#14b8a6', group: 'process' },
 ];
 
 // ─── Export context ──────────────────────────────────────────────────────────
@@ -91,7 +93,7 @@ export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filter
 // (transcode, caption, thumbnail, renderJob, formatConvert, lod, qcCheck), which are no longer
 // offered here — their components remain registered so saved schemas keep rendering.
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
-  'shotNode', 'assemblyNode', 'masterNode',
+  'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
   'ingestNode', 'dataSourceNode', 'apiConnectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode',
@@ -100,16 +102,32 @@ export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'credentialNode',
 ]);
 
-// Designer mode — production essentials only (shot, assembly, review, master, deliverable).
+// Designer mode — production essentials only (shot, assembly, pipeline ref, review, master, deliverable).
 export const WORKFLOW_DESIGNER_TYPES = new Set([
-  'shotNode', 'assemblyNode', 'masterNode',
+  'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
   'reviewGateNode',
   'deliverableNode',
 ]);
 
-// Workflow group assignment per node type — independent of the export-oriented `group` field.
+// Pipeline context (TCORE-62) — a Pipeline is a scoped sub-process. Its palette is the
+// production/process/review/delivery core, WITHOUT pipelineRefNode (no nesting) or the
+// orchestration/infra nodes (credential/api/dataSource/ingest/AI) that live in workflow.
+export const PIPELINE_DEVELOPER_TYPES = new Set([
+  'shotNode', 'assemblyNode', 'masterNode',
+  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
+  'reviewGateNode', 'annotationNode',
+  'exportFormatNode', 'deliverableNode', 'distributeNode',
+]);
+
+// Pipeline designer mode — production essentials + review.
+export const PIPELINE_DESIGNER_TYPES = new Set([
+  'shotNode', 'assemblyNode', 'masterNode',
+  'reviewGateNode',
+]);
+
+// Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
 const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
-  shotNode: 'production', assemblyNode: 'production', masterNode: 'production',
+  shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
   ingestNode: 'ingest', dataSourceNode: 'ingest', apiConnectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review',
@@ -131,10 +149,17 @@ export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon:
 
 // ─── Palette resolution ────────────────────────────────────────────────────────
 
-export type NodeContext = 'export' | 'workflow';
+export type NodeContext = 'export' | 'workflow' | 'pipeline';
 
 // A palette item tagged with the group it belongs to in the active context.
 export type ContextPaletteItem = PaletteItem & { contextGroup: string };
+
+// Workflow and pipeline share the group taxonomy (WORKFLOW_GROUP_BY_TYPE); they differ only
+// in which node types are allowed. Export has its own group model, handled separately.
+const allowedTypesFor = (ctx: 'workflow' | 'pipeline', mode: 'developer' | 'designer'): Set<string> => {
+  if (ctx === 'pipeline') return mode === 'designer' ? PIPELINE_DESIGNER_TYPES : PIPELINE_DEVELOPER_TYPES;
+  return mode === 'designer' ? WORKFLOW_DESIGNER_TYPES : WORKFLOW_DEVELOPER_TYPES;
+};
 
 export function getPaletteForContext(ctx: NodeContext, mode: 'developer' | 'designer'): ContextPaletteItem[] {
   if (ctx === 'export') {
@@ -142,7 +167,7 @@ export function getPaletteForContext(ctx: NodeContext, mode: 'developer' | 'desi
       .filter(item => EXPORT_PALETTE_TYPES.has(item.type))
       .map(item => ({ ...item, contextGroup: item.group }));
   }
-  const allowed = mode === 'designer' ? WORKFLOW_DESIGNER_TYPES : WORKFLOW_DEVELOPER_TYPES;
+  const allowed = allowedTypesFor(ctx, mode);
   return NODE_PALETTE
     .filter(item => allowed.has(item.type) && WORKFLOW_GROUP_BY_TYPE[item.type] !== undefined)
     .map(item => ({ ...item, contextGroup: WORKFLOW_GROUP_BY_TYPE[item.type] }));
@@ -153,7 +178,7 @@ export function getGroupsForContext(ctx: NodeContext, mode: 'developer' | 'desig
     // Export never surfaces the standalone 'input' group beyond request; keep the historical 3-group set.
     return EXPORT_PALETTE_GROUPS.filter(g => g.key === 'input' || g.key === 'data' || g.key === 'output');
   }
-  const allowed = mode === 'designer' ? WORKFLOW_DESIGNER_TYPES : WORKFLOW_DEVELOPER_TYPES;
+  const allowed = allowedTypesFor(ctx, mode);
   const activeGroups = new Set(
     NODE_PALETTE
       .filter(item => allowed.has(item.type))

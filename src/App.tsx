@@ -63,6 +63,9 @@ const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPa
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
 const WorkflowPage             = lazy(() => import('./app/pages/WorkflowPage').then(module => ({ default: module.WorkflowPage })));
+const Pipelines                = lazy(() => import('./app/pages/Pipelines').then(module => ({ default: module.Pipelines })));
+const PipelineCreate           = lazy(() => import('./app/pages/PipelineCreate').then(module => ({ default: module.PipelineCreate })));
+const PipelineEditorPage       = lazy(() => import('./app/pages/PipelineEditorPage').then(module => ({ default: module.PipelineEditorPage })));
 
 function App() {
   const session = useSelector((state: RootState) => state.session);
@@ -128,6 +131,9 @@ function App() {
                   <Route path="/project/:id/connections/credentials/create" element={<CredentialsCreate />} />
 
                   <Route path="/project/:id/workflow" element={<WorkflowPage />} />
+                  <Route path="/project/:id/pipelines" element={<Pipelines />} />
+                  <Route path="/project/:id/pipelines/create" element={<PipelineCreate />} />
+                  <Route path="/project/:id/pipelines/:pipelineId" element={<PipelineEditorPage />} />
                   <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
                   <Route path="/project/:id/workflow/jobs" element={<JobMonitorPage />} />
                   <Route path="/project/:id/workflow/reviews" element={<ReviewListPage />} />

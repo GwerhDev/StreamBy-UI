@@ -86,6 +86,7 @@ export interface NodeViewerProps {
   projectId?: string;
   canvasOverlay?: React.ReactNode;
   context?: NodeContext;
+  onOpenPipeline?: (pipelineId: string) => void;
 }
 
 export interface NodeViewerHandle {
@@ -111,7 +112,7 @@ const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export',
+  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -441,6 +442,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode', 'distributeNode'].includes(tt)) {
       return sh === 'out-filter' && th === 'in-filter';
     }
+
+    // Orchestrator → PipelineRef (Pipelines are the vertical dimension above the orchestrator)
+    if (st === 'orchestratorNode' && tt === 'pipelineRefNode') return sh === 'out-pipeline' && th === 'in-orchestrator';
 
     return false;
   }, [nodes]);
@@ -888,6 +892,14 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         { key: 'platform', label: 'Platform', value: (node.data.platform as string) || 'youtube', editable: true, inputType: 'select', options: AV_PLATFORM_OPTIONS },
         { key: 'region', label: 'Region', value: (node.data.region as string) || '', editable: true },
         { key: 'releaseDate', label: 'Release Date', value: (node.data.releaseDate as string) || '', editable: true },
+      ],
+    };
+
+    if (node.type === 'pipelineRefNode') return {
+      title: (node.data.label as string) || 'Pipeline',
+      description: 'References a Pipeline — a scoped sub-workflow of this project. Open it to edit its canvas.',
+      fields: [
+        { key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true },
       ],
     };
 
@@ -1351,6 +1363,23 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                     <button type="button" className={s.actionButton} onClick={handleOpenNodeLabelModal}>
                       <FontAwesomeIcon icon={faGear} />
                       Configure
+                    </button>
+                  </div>
+                )}
+
+                {selectedNode?.type === 'pipelineRefNode' && (
+                  <div className={s.nodeActions}>
+                    <button
+                      type="button"
+                      className={s.actionButton}
+                      onClick={() => {
+                        const pipelineId = (selectedNode.data.pipelineId as string) || '';
+                        if (pipelineId) onOpenPipeline?.(pipelineId);
+                      }}
+                      disabled={!onOpenPipeline || !(selectedNode.data.pipelineId as string)}
+                    >
+                      <FontAwesomeIcon icon={faArrowsRotate} />
+                      Abrir editor
                     </button>
                   </div>
                 )}

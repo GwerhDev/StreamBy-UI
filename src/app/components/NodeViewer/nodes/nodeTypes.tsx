@@ -640,6 +640,24 @@ export const DistributeNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
 ));
 DistributeNode.displayName = 'DistributeNode';
 
+// ─── Pipeline reference node (TCORE-62) ───────────────────────────────────────
+
+// References a Pipeline (a project sub-workflow) from the Workflow canvas. Sits above the
+// orchestrator — Pipelines are the vertical dimension upward. Click opens the Pipeline editor.
+export const PipelineRefNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Bottom} id="in-orchestrator" className={s.handle} style={hIn(H_TOP)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
+      <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+PipelineRefNode.displayName = 'PipelineRefNode';
+
 // ─── nodeTypes map ────────────────────────────────────────────────────────────
 
 // Architecture-only export node — icon hardcoded so it survives DB serialization round-trips
@@ -662,6 +680,7 @@ export const OrchestratorNode = memo(({ data, selected }: NodeProps<BaseNodeData
   <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
     <Handle type="target" position={Position.Left}  id="in-left"         className={s.handle} style={hIn(H_LEFT)} />
     <Handle type="source" position={Position.Left}  id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), top: '75%' }} />
+    <Handle type="source" position={Position.Top}   id="out-pipeline"    className={s.handle} style={hOut(H_TOP)} />
     <Handle type="source" position={Position.Right} id="out-right"       className={s.handle} style={hOut(H_RIGHT)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
       <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
@@ -713,4 +732,5 @@ export const nodeTypes = {
   masterNode: MasterNode,
   exportFormatNode: ExportFormatNode,
   distributeNode: DistributeNode,
+  pipelineRefNode: PipelineRefNode,
 };

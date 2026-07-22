@@ -1,0 +1,142 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Mode toggle (top center) ────────────────────────────────────────────── */
+
+.toggleOverlay {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+}
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 160px;
+  height: 44px;
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-surface);
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.track:hover {
+  border-color: var(--color-surface-raised);
+}
+
+.track:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 76px;
+  height: 34px;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.thumbRight {
+  transform: translateX(76px);
+}
+
+.track:active .thumb {
+  width: 82px;
+}
+
+.track:active .thumbRight {
+  transform: translateX(70px);
+}
+
+.trackLabels {
+  position: relative;
+  display: flex;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.trackLabel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.trackLabel svg {
+  font-size: 0.85rem;
+  margin-bottom: 1px;
+}
+
+.trackLabelActive {
+  color: var(--color-white);
+}
+
+.trackLabelInactive {
+  color: var(--color-text-muted);
+  opacity: 0.65;
+}
+
+/* ─── Save button (bottom-right, icon-only) ────────────────────────────────── */
+
+.saveBtn {
+  position: absolute;
+  bottom: 1.5rem;
+  right: calc(var(--rp-offset, 0px) + 1.5rem);
+  transition: right 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  transition: background 0.15s, transform 0.15s;
+  z-index: 10;
+}
+
+.saveBtn:hover {
+  background: color-mix(in srgb, var(--color-accent) 80%, #fff);
+  transform: scale(1.07);
+}
+
+.saveBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}

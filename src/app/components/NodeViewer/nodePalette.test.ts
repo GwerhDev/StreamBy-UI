@@ -1,9 +1,9 @@
 import { getPaletteForContext, getGroupsForContext, EXPORT_PALETTE_TYPES, EXPORT_ONLY_TYPES } from './nodePalette';
 
-const typesOf = (ctx: 'export' | 'workflow', mode: 'developer' | 'designer') =>
+const typesOf = (ctx: 'export' | 'workflow' | 'pipeline', mode: 'developer' | 'designer') =>
   new Set(getPaletteForContext(ctx, mode).map(i => i.type));
 
-const groupKeysOf = (ctx: 'export' | 'workflow', mode: 'developer' | 'designer') =>
+const groupKeysOf = (ctx: 'export' | 'workflow' | 'pipeline', mode: 'developer' | 'designer') =>
   getGroupsForContext(ctx, mode).map(g => g.key);
 
 describe('getPaletteForContext', () => {
@@ -38,6 +38,10 @@ describe('getPaletteForContext', () => {
       }
     });
 
+    it('includes pipelineRefNode (workflow references pipelines)', () => {
+      expect(types.has('pipelineRefNode')).toBe(true);
+    });
+
     it('no longer surfaces the generic StreamBy media nodes superseded by the AV nodes', () => {
       for (const t of ['transcodeNode', 'captionNode', 'thumbnailNode', 'renderJobNode', 'formatConvertNode', 'lodNode', 'qcCheckNode']) {
         expect(types.has(t)).toBe(false);
@@ -59,9 +63,9 @@ describe('getPaletteForContext', () => {
   describe('workflow context — designer mode', () => {
     const types = typesOf('workflow', 'designer');
 
-    it('exposes only the production essentials (shot, assembly, review, master, deliverable)', () => {
+    it('exposes only the production essentials (shot, assembly, pipeline ref, review, master, deliverable)', () => {
       expect(types).toEqual(new Set([
-        'shotNode', 'assemblyNode', 'masterNode',
+        'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
         'reviewGateNode',
         'deliverableNode',
       ]));
@@ -71,6 +75,35 @@ describe('getPaletteForContext', () => {
       for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode', 'distributeNode']) {
         expect(types.has(t)).toBe(false);
       }
+    });
+  });
+
+  describe('pipeline context', () => {
+    const dev = typesOf('pipeline', 'developer');
+    const des = typesOf('pipeline', 'designer');
+
+    it('developer exposes production + process + review + delivery core', () => {
+      for (const t of [
+        'shotNode', 'assemblyNode', 'masterNode',
+        'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
+        'reviewGateNode', 'annotationNode',
+        'exportFormatNode', 'deliverableNode', 'distributeNode',
+      ]) {
+        expect(dev.has(t)).toBe(true);
+      }
+    });
+
+    it('never nests pipelines (no pipelineRefNode) and excludes orchestration/infra + AI', () => {
+      for (const t of ['pipelineRefNode', 'credentialNode', 'apiConnectionNode', 'dataSourceNode', 'ingestNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
+        expect(dev.has(t)).toBe(false);
+      }
+    });
+
+    it('designer exposes only production + review', () => {
+      expect(des).toEqual(new Set([
+        'shotNode', 'assemblyNode', 'masterNode',
+        'reviewGateNode',
+      ]));
     });
   });
 });
@@ -88,8 +121,16 @@ describe('getGroupsForContext', () => {
     expect(groupKeysOf('workflow', 'designer')).toEqual(['production', 'review', 'delivery']);
   });
 
+  it('pipeline developer context surfaces production, process, review, delivery', () => {
+    expect(groupKeysOf('pipeline', 'developer')).toEqual(['production', 'process', 'review', 'delivery']);
+  });
+
+  it('pipeline designer context surfaces only production, review', () => {
+    expect(groupKeysOf('pipeline', 'designer')).toEqual(['production', 'review']);
+  });
+
   it('every palette item maps to an active group in its context', () => {
-    for (const ctx of ['export', 'workflow'] as const) {
+    for (const ctx of ['export', 'workflow', 'pipeline'] as const) {
       for (const mode of ['developer', 'designer'] as const) {
         const groupKeys = new Set(groupKeysOf(ctx, mode));
         for (const item of getPaletteForContext(ctx, mode)) {

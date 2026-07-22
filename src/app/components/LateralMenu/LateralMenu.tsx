@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { connectionsDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
@@ -45,6 +45,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
   const isDashboardSection = location.pathname.includes(`/project/${id}/dashboard`);
   const isWorkflowsSection = location.pathname.includes(`/project/${id}/workflow`);
+  const isPipelinesSection = location.pathname.includes(`/project/${id}/pipelines`);
   const isExportsSection = location.pathname.includes(`/project/${id}/exports`);
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
@@ -54,6 +55,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const [sectionOpen, setSectionOpen] = useState({
     dashboard: true,
     workflows: true,
+    pipelines: true,
     exports: true,
     storage: true,
     database: true,
@@ -65,13 +67,14 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     setSectionOpen(prev => ({
       dashboard: prev.dashboard || isDashboardSection,
       workflows: prev.workflows || isWorkflowsSection,
+      pipelines: prev.pipelines || isPipelinesSection,
       exports: prev.exports || isExportsSection,
       storage: prev.storage || isStorageSection,
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isWorkflowsSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+  }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -292,6 +295,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
                   <FontAwesomeIcon icon={faSitemap} />
                 </button>
+                <button className={`${s.railIcon} ${isPipelinesSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/pipelines`)} title="Pipelines">
+                  <FontAwesomeIcon icon={faDiagramProject} />
+                </button>
                 {mode === 'developer' && (
                   <button className={`${s.railIcon} ${isExportsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/exports`)} title="Exports">
                     <FontAwesomeIcon icon={faFileExport} />
@@ -411,6 +417,36 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                         </Link>
                       );
                     })}
+                  </div>
+                )}
+              </div>
+
+              {/* PIPELINES — visible in both modes (production concept) */}
+              <div className={s.accordionSection}>
+                <div className={`${s.sectionHeader} ${isPipelinesSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('pipelines')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/pipelines`); }}>
+                    Pipelines
+                  </span>
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.pipelines ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faDiagramProject} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
+                </div>
+                {sectionOpen.pipelines && (
+                  <div className={s.sectionBody}>
+                    {(currentProject.data?.pipelines ?? []).map(pipeline => {
+                      const linkPath = `/project/${id}/pipelines/${pipeline.id}`;
+                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                      return (
+                        <Link key={pipeline.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                          <FontAwesomeIcon icon={faDiagramProject} className={s.serviceIcon} />
+                          <span className={s.serviceName}>{pipeline.name}</span>
+                        </Link>
+                      );
+                    })}
+                    {!(currentProject.data?.pipelines?.length) && (
+                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No pipelines yet</span>
+                    )}
                   </div>
                 )}
               </div>

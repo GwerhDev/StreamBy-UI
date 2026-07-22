@@ -1,7 +1,7 @@
 import s from './WorkflowCanvas.module.css';
 import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
 import { Node, Edge } from 'reactflow';
@@ -116,6 +116,7 @@ export function buildSchemaFromProject(
 
 export function WorkflowCanvas({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
@@ -200,6 +201,7 @@ export function WorkflowCanvas({ workflow }: Props) {
         editMode={editMode}
         projectId={projectId}
         canvasOverlay={saveButton}
+        onOpenPipeline={pipelineId => navigate(`/project/${projectId}/pipelines/${pipelineId}`)}
       />
 
       {/* Mode toggle — top center */}
