@@ -407,7 +407,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
               {/* WORKFLOW — sub-sections derived from instantiated node groups; Pipelines/Exports nested within */}
               <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isWorkflowsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
+                <div className={`${s.sectionHeader} ${(isWorkflowsSection || isPipelinesSection || isExportsSection) ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflow`); }}>
                     Workflow
                   </span>
