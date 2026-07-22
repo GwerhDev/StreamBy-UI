@@ -1,10 +1,13 @@
 import { Node, Edge } from 'reactflow';
+import { NodeContext } from './nodePalette';
 
 export interface WorkflowTemplate {
   id: string;
   label: string;
   description: string;
   schema: { nodes: Node[]; edges: Edge[] };
+  // Which editor context(s) this template applies to — TemplatePicker filters by this.
+  contexts: NodeContext[];
 }
 
 export const BLANK_SCHEMA: { nodes: Node[]; edges: Edge[] } = { nodes: [], edges: [] };
@@ -14,6 +17,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     id: 'api-data-service',
     label: 'API / Data Service',
     description: 'Load data with a defined shape, store it, and expose it through exports.',
+    contexts: ['export'],
     schema: {
       nodes: [
         {
@@ -61,6 +65,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     id: 'audiovisual-production',
     label: 'Audiovisual Production',
     description: 'Full audiovisual pipeline: shot → assembly → grade → mix → review → master → export → deliverable.',
+    contexts: ['pipeline', 'workflow'],
     schema: {
       nodes: [
         { id: 'shot-1',      type: 'shotNode',       position: { x: 0,    y: 100 }, data: { label: 'Shot',         subtitle: 'Raw video clip',        fps: '24', resolution: '1920x1080' } },

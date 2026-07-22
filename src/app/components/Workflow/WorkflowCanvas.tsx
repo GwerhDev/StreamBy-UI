@@ -185,7 +185,7 @@ export function WorkflowCanvas({ workflow }: Props) {
   if (displaySchema === null) {
     return (
       <div className={s.container}>
-        <TemplatePicker onSelect={handleTemplateSelect} />
+        <TemplatePicker context="workflow" onSelect={handleTemplateSelect} />
       </div>
     );
   }

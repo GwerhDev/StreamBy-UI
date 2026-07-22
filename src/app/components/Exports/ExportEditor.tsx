@@ -16,7 +16,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { ResponsePreview } from './ResponsePreview';
+import { TemplatePicker } from '../Workflow/TemplatePicker';
 import { Export } from '../../../interfaces';
+import { Node as FlowNode, Edge as FlowEdge } from 'reactflow';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
@@ -205,6 +207,13 @@ export const ExportEditor: React.FC = () => {
     if (!exportDetails) return null;
     return { ...exportDetails, nodeSchema: pendingSchema ?? exportDetails.nodeSchema };
   }, [exportDetails, pendingSchema]);
+
+  const handleTemplateSelect = useCallback((schema: { nodes: FlowNode[]; edges: FlowEdge[] }) => {
+    setPendingSchema(schema);
+    prevEdgesKey.current = schemaKey(schema);
+    setSchemaVersion(v => v + 1);
+    setIsDirty(true);
+  }, []);
 
   const handleNodeSave = useCallback((updates: Record<string, string | boolean | object | null>) => {
     if (!exportDetails) return;
@@ -476,17 +485,21 @@ export const ExportEditor: React.FC = () => {
                               />
                             )}
                             {panel.activeTab === 'nodes' && exportForViewer && (
-                              <NodeViewer
-                                ref={nodeViewerRef}
-                                context="export"
-                                exportDetails={exportForViewer}
-                                editMode
-                                onSave={handleNodeSave}
-                                onChange={handleSchemaChange}
-                                apiConnections={currentProject.data?.apiConnections || []}
-                                dbConnections={currentProject.data?.dbConnections || []}
-                                projectId={projectId}
-                              />
+                              exportForViewer.nodeSchema ? (
+                                <NodeViewer
+                                  ref={nodeViewerRef}
+                                  context="export"
+                                  exportDetails={exportForViewer}
+                                  editMode
+                                  onSave={handleNodeSave}
+                                  onChange={handleSchemaChange}
+                                  apiConnections={currentProject.data?.apiConnections || []}
+                                  dbConnections={currentProject.data?.dbConnections || []}
+                                  projectId={projectId}
+                                />
+                              ) : (
+                                <TemplatePicker context="export" onSelect={handleTemplateSelect} />
+                              )
                             )}
                             {panel.activeTab === 'response' && exportDetails && (
                               <ResponsePreview
