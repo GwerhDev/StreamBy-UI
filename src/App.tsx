@@ -59,7 +59,6 @@ const Explore                  = lazy(() => import('./app/pages/Explore').then(m
 const JobMonitorPage           = lazy(() => import('./app/pages/JobMonitorPage').then(module => ({ default: module.JobMonitorPage })));
 const ReviewListPage           = lazy(() => import('./app/pages/ReviewListPage').then(module => ({ default: module.ReviewListPage })));
 const ReviewPlayerPage         = lazy(() => import('./app/pages/ReviewPlayerPage').then(module => ({ default: module.ReviewPlayerPage })));
-const RenderFarmListPage       = lazy(() => import('./app/pages/RenderFarmListPage').then(module => ({ default: module.RenderFarmListPage })));
 const DeliverableListPage      = lazy(() => import('./app/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const ProductionBoardPage      = lazy(() => import('./app/pages/ProductionBoardPage').then(module => ({ default: module.ProductionBoardPage })));
 const WorkflowPage             = lazy(() => import('./app/pages/WorkflowPage').then(module => ({ default: module.WorkflowPage })));
@@ -138,7 +137,6 @@ function App() {
                   <Route path="/project/:id/workflow/jobs" element={<JobMonitorPage />} />
                   <Route path="/project/:id/workflow/reviews" element={<ReviewListPage />} />
                   <Route path="/project/:id/workflow/review/:sessionId" element={<ReviewPlayerPage />} />
-                  <Route path="/project/:id/workflow/render-farm" element={<RenderFarmListPage />} />
                   <Route path="/project/:id/workflow/deliverables" element={<DeliverableListPage />} />
 
                   <Route path="/project/:id/settings" element={<Settings />} />

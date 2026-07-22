@@ -103,10 +103,6 @@ const CONTAINER_OPTIONS = ['mp4', 'mkv', 'mov', 'webm'].map(c => ({ value: c, la
 const SUBTITLE_SOURCE_OPTIONS = [{ value: 'transcription', label: 'Transcription node' }, { value: 'upload', label: 'External upload' }];
 const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f }));
 const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
-const AV_PLATFORM_OPTIONS = [
-  { value: 'youtube', label: 'YouTube' }, { value: 'vimeo', label: 'Vimeo' },
-  { value: 'festival', label: 'Festival' }, { value: 'broadcaster', label: 'Broadcaster' },
-];
 const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'apiConnectionNode', 'credentialNode', 'exportNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
 const CREATE_CRED_SENTINEL = '__create_cred__';
@@ -437,9 +433,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (avStageTypes.includes(st) && tt === 'reviewGateNode') return sh === 'out-right' && th === 'in-process';
     // Approved review gate feeds the master
     if (st === 'reviewGateNode' && tt === 'masterNode') return sh === 'out-review' && th === 'in-filter';
-    // Master → export format → deliverable / distribute (output lane, chained left→right)
-    const avOutputTypes = ['masterNode', 'exportFormatNode', 'deliverableNode', 'distributeNode'];
-    if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode', 'distributeNode'].includes(tt)) {
+    // Master → export format → deliverable / distribution (output lane, chained left→right)
+    const avOutputTypes = ['masterNode', 'exportFormatNode', 'deliverableNode', 'distributionNode'];
+    if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode', 'distributionNode'].includes(tt)) {
       return sh === 'out-filter' && th === 'in-filter';
     }
 
@@ -882,16 +878,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         { key: 'container', label: 'Container', value: (node.data.container as string) || 'mp4', editable: true, inputType: 'select', options: CONTAINER_OPTIONS },
         { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1920x1080', editable: true, inputType: 'select', options: RESOLUTION_OPTIONS },
         { key: 'bitrate', label: 'Bitrate', value: (node.data.bitrate as string) || '', editable: true },
-      ],
-    };
-
-    if (node.type === 'distributeNode') return {
-      title: 'Distribute',
-      description: 'Publishes the master to an audiovisual platform (YouTube, Vimeo, festival, broadcaster).',
-      fields: [
-        { key: 'platform', label: 'Platform', value: (node.data.platform as string) || 'youtube', editable: true, inputType: 'select', options: AV_PLATFORM_OPTIONS },
-        { key: 'region', label: 'Region', value: (node.data.region as string) || '', editable: true },
-        { key: 'releaseDate', label: 'Release Date', value: (node.data.releaseDate as string) || '', editable: true },
       ],
     };
 

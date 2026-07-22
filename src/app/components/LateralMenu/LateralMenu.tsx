@@ -1,12 +1,13 @@
 ﻿import s from './LateralMenu.module.css';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { connectionsDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, workflowSubDirectoryList } from '../../../config/consts';
+import { connectionsDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
+import { WORKFLOW_GROUP_BY_TYPE, WorkflowGroup } from '../NodeViewer/nodePalette';
 import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
 import { DbConnection, CloudStorage } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
@@ -38,6 +39,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1024);
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
+  const [workflowPipelinesExpanded, setWorkflowPipelinesExpanded] = useState(false);
+  const [workflowExportsExpanded, setWorkflowExportsExpanded] = useState(false);
   const [dbTables, setDbTables] = useState<Record<string, string[]>>({});
   const [dbTablesLoading, setDbTablesLoading] = useState<Set<string>>(new Set());
   const { menuOpen, closeMenu, toggleMenu } = useEditorMenu();
@@ -79,6 +82,22 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Workflow sub-sections are derived from the node types instantiated in the canvas —
+  // a section only shows up once its group has at least one node on the schema.
+  const workflowNodeTypes = currentProject.data?.workflow?.nodeSchema?.nodes as { type?: string }[] | undefined;
+  const activeWorkflowGroups = useMemo(() => {
+    const groups = new Set<WorkflowGroup>();
+    for (const node of workflowNodeTypes ?? []) {
+      const group = node.type ? WORKFLOW_GROUP_BY_TYPE[node.type] : undefined;
+      if (group) groups.add(group);
+    }
+    return groups;
+  }, [workflowNodeTypes]);
+
+  const activeWorkflowSections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[])
+    .filter(group => activeWorkflowGroups.has(group))
+    .map(group => WORKFLOW_SECTION_BY_GROUP[group]!);
 
   useEffect(() => {
     const isEditorRoute = location.pathname.endsWith('/editor');
@@ -292,17 +311,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 <FontAwesomeIcon icon={faTableColumns} />
               </button>
               {!isPending && (<>
-                <button className={`${s.railIcon} ${isWorkflowsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
+                <button className={`${s.railIcon} ${(isWorkflowsSection || isPipelinesSection || isExportsSection) ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workflow`)} title="Workflow">
                   <FontAwesomeIcon icon={faSitemap} />
                 </button>
-                <button className={`${s.railIcon} ${isPipelinesSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/pipelines`)} title="Pipelines">
-                  <FontAwesomeIcon icon={faDiagramProject} />
-                </button>
-                {mode === 'developer' && (
-                  <button className={`${s.railIcon} ${isExportsSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/exports`)} title="Exports">
-                    <FontAwesomeIcon icon={faFileExport} />
-                  </button>
-                )}
                 <button className={`${s.railIcon} ${isStorageSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/storage`)} title="Storage">
                   <FontAwesomeIcon icon={faBox} />
                 </button>
@@ -394,7 +405,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
             {!isPending && (<>
 
-              {/* WORKFLOW */}
+              {/* WORKFLOW — sub-sections derived from instantiated node groups; Pipelines/Exports nested within */}
               <div className={s.accordionSection}>
                 <div className={`${s.sectionHeader} ${isWorkflowsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workflows')}>
                   <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workflow`); }}>
@@ -407,81 +418,77 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.workflows && (
                   <div className={s.sectionBody}>
-                    {workflowSubDirectoryList.map(({ name, icon, path }, index) => {
+                    {activeWorkflowSections.map(({ name, icon, path }) => {
                       const subPath = `/project/${id}/workflow/${path}`;
                       const isSubActive = location.pathname === subPath || location.pathname.startsWith(`${subPath}/`);
                       return (
-                        <Link key={index} to={subPath} className={`${s.navItem} ${isSubActive ? s.activeLink : ''}`}>
+                        <Link key={path} to={subPath} className={`${s.navItem} ${isSubActive ? s.activeLink : ''}`}>
                           {icon && <FontAwesomeIcon icon={icon} />}
                           {name}
                         </Link>
                       );
                     })}
-                  </div>
-                )}
-              </div>
 
-              {/* PIPELINES — visible in both modes (production concept) */}
-              <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isPipelinesSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('pipelines')}>
-                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/pipelines`); }}>
-                    Pipelines
-                  </span>
-                  <div className={`${s.sectionChevronWrap} ${sectionOpen.pipelines ? s.sectionChevronWrapOpen : ''}`}>
-                    <FontAwesomeIcon icon={faDiagramProject} className={s.sectionChevronSectionIcon} />
-                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
-                  </div>
-                </div>
-                {sectionOpen.pipelines && (
-                  <div className={s.sectionBody}>
-                    {(currentProject.data?.pipelines ?? []).map(pipeline => {
-                      const linkPath = `/project/${id}/pipelines/${pipeline.id}`;
-                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                      return (
-                        <Link key={pipeline.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                          <FontAwesomeIcon icon={faDiagramProject} className={s.serviceIcon} />
-                          <span className={s.serviceName}>{pipeline.name}</span>
-                        </Link>
-                      );
-                    })}
-                    {!(currentProject.data?.pipelines?.length) && (
-                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No pipelines yet</span>
+                    {/* Pipelines — nested sub-section, visible in both modes (production concept) */}
+                    <Link
+                      to={`/project/${id}/pipelines`}
+                      className={`${s.serviceHeader} ${isPipelinesSection ? s.activeLink : ''}`}
+                    >
+                      <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className={`${s.serviceChevron} ${workflowPipelinesExpanded ? s.serviceChevronOpen : ''}`}
+                        onClick={e => { e.preventDefault(); e.stopPropagation(); setWorkflowPipelinesExpanded(v => !v); }}
+                      />
+                      <FontAwesomeIcon icon={faDiagramProject} className={s.serviceIcon} />
+                      <span className={s.serviceName}>Pipelines</span>
+                    </Link>
+                    {workflowPipelinesExpanded && (
+                      (currentProject.data?.pipelines ?? []).length
+                        ? currentProject.data!.pipelines!.map(pipeline => {
+                            const linkPath = `/project/${id}/pipelines/${pipeline.id}`;
+                            const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                            return (
+                              <Link key={pipeline.id} to={linkPath} className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
+                                <FontAwesomeIcon icon={faDiagramProject} />
+                                {pipeline.name}
+                              </Link>
+                            );
+                          })
+                        : <span className={`${s.storageItem} ${s.storageItemMuted}`}>No pipelines yet</span>
                     )}
-                  </div>
-                )}
-              </div>
 
-              {/* EXPORTS — Developer only */}
-              {mode === 'developer' && (
-              <div className={s.accordionSection}>
-                <div className={`${s.sectionHeader} ${isExportsSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('exports')}>
-                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/exports`); }}>
-                    Exports
-                  </span>
-                  <div className={`${s.sectionChevronWrap} ${sectionOpen.exports ? s.sectionChevronWrapOpen : ''}`}>
-                    <FontAwesomeIcon icon={faFileExport} className={s.sectionChevronSectionIcon} />
-                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
-                  </div>
-                </div>
-                {sectionOpen.exports && (
-                  <div className={s.sectionBody}>
-                    {(currentProject.data?.exports ?? []).map(exp => {
-                      const linkPath = `/project/${id}/exports/${exp.id}`;
-                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                      return (
-                        <Link key={exp.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                          <FontAwesomeIcon icon={faFileExport} className={s.serviceIcon} />
-                          <span className={s.serviceName}>{exp.name}</span>
-                        </Link>
-                      );
-                    })}
-                    {!(currentProject.data?.exports?.length) && (
-                      <span className={`${s.storageItem} ${s.storageItemMuted}`}>No exports yet</span>
-                    )}
+                    {/* Exports — nested sub-section, developer only */}
+                    {mode === 'developer' && (<>
+                      <Link
+                        to={`/project/${id}/exports`}
+                        className={`${s.serviceHeader} ${isExportsSection ? s.activeLink : ''}`}
+                      >
+                        <FontAwesomeIcon
+                          icon={faChevronDown}
+                          className={`${s.serviceChevron} ${workflowExportsExpanded ? s.serviceChevronOpen : ''}`}
+                          onClick={e => { e.preventDefault(); e.stopPropagation(); setWorkflowExportsExpanded(v => !v); }}
+                        />
+                        <FontAwesomeIcon icon={faFileExport} className={s.serviceIcon} />
+                        <span className={s.serviceName}>Exports</span>
+                      </Link>
+                      {workflowExportsExpanded && (
+                        (currentProject.data?.exports ?? []).length
+                          ? currentProject.data!.exports!.map(exp => {
+                              const linkPath = `/project/${id}/exports/${exp.id}`;
+                              const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                              return (
+                                <Link key={exp.id} to={linkPath} className={`${s.storageItem} ${isActive ? s.activeLink : ''}`}>
+                                  <FontAwesomeIcon icon={faFileExport} />
+                                  {exp.name}
+                                </Link>
+                              );
+                            })
+                          : <span className={`${s.storageItem} ${s.storageItemMuted}`}>No exports yet</span>
+                      )}
+                    </>)}
                   </div>
                 )}
               </div>
-              )}
 
               {/* STORAGE */}
               <div className={s.accordionSection}>

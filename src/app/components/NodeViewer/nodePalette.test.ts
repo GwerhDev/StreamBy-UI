@@ -17,7 +17,7 @@ describe('getPaletteForContext', () => {
 
     it('never exposes audiovisual production nodes', () => {
       const types = typesOf('export', 'developer');
-      for (const t of ['shotNode', 'assemblyNode', 'masterNode', 'colorGradeNode', 'distributeNode']) {
+      for (const t of ['shotNode', 'assemblyNode', 'masterNode', 'colorGradeNode', 'distributionNode']) {
         expect(types.has(t)).toBe(false);
       }
     });
@@ -33,7 +33,7 @@ describe('getPaletteForContext', () => {
     });
 
     it('includes the audiovisual production nodes', () => {
-      for (const t of ['shotNode', 'assemblyNode', 'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'exportFormatNode', 'masterNode', 'distributeNode']) {
+      for (const t of ['shotNode', 'assemblyNode', 'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'exportFormatNode', 'masterNode', 'distributionNode']) {
         expect(types.has(t)).toBe(true);
       }
     });
@@ -72,7 +72,7 @@ describe('getPaletteForContext', () => {
     });
 
     it('hides technical process/AI/auth nodes', () => {
-      for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode', 'distributeNode']) {
+      for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode', 'distributionNode']) {
         expect(types.has(t)).toBe(false);
       }
     });
@@ -87,7 +87,7 @@ describe('getPaletteForContext', () => {
         'shotNode', 'assemblyNode', 'masterNode',
         'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
         'reviewGateNode', 'annotationNode',
-        'exportFormatNode', 'deliverableNode', 'distributeNode',
+        'exportFormatNode', 'deliverableNode', 'distributionNode',
       ]) {
         expect(dev.has(t)).toBe(true);
       }

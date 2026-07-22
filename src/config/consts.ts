@@ -1,17 +1,21 @@
-import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faServer, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
+import type { WorkflowGroup } from "../app/components/NodeViewer/nodePalette";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
   { name: "Members", icon: faUsers, path: "dashboard/members" },
 ];
 
-export const workflowSubDirectoryList = [
-  { name: "Production", icon: faClipboardList, path: "production" },
-  { name: "Jobs", icon: faBriefcase, path: "jobs" },
-  { name: "Reviews", icon: faComments, path: "reviews" },
-  { name: "Render Farm", icon: faServer, path: "render-farm" },
-  { name: "Deliverables", icon: faBoxArchive, path: "deliverables" },
-];
+// Workflow sidebar sections, keyed by the same WorkflowGroup taxonomy nodePalette.ts uses.
+// A section is shown only when the Workflow canvas has an instantiated node of that group
+// (see LateralMenu's derivation from workflow.nodeSchema.nodes) — this map only carries
+// display metadata (label/icon/path), not visibility.
+export const WORKFLOW_SECTION_BY_GROUP: Partial<Record<WorkflowGroup, { name: string; icon: typeof faClipboardList; path: string }>> = {
+  production: { name: "Production", icon: faClipboardList, path: "production" },
+  process: { name: "Jobs", icon: faBriefcase, path: "jobs" },
+  review: { name: "Reviews", icon: faComments, path: "reviews" },
+  delivery: { name: "Deliverables", icon: faBoxArchive, path: "deliverables" },
+};
 
 export const exportsDirectoryList = [
   { name: "Exports", icon: faFileExport, path: "exports" },

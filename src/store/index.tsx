@@ -9,7 +9,6 @@ import notificationsReducer from './notificationsSlice';
 import currentNotificationReducer from './currentNotificationSlice';
 import currentStorageFolderReducer from './currentStorageFolderSlice';
 import currentJobReducer from './currentJobSlice';
-import renderFarmReducer from './renderFarmSlice';
 import currentReviewReducer from './currentReviewSlice';
 import currentWorkflowReducer from './currentWorkflowSlice';
 import currentPipelineReducer from './currentPipelineSlice';
@@ -26,7 +25,6 @@ export const store = configureStore({
     currentNotification: currentNotificationReducer,
     currentStorageFolder: currentStorageFolderReducer,
     currentJob: currentJobReducer,
-    renderFarm: renderFarmReducer,
     currentReview: currentReviewReducer,
     currentWorkflow: currentWorkflowReducer,
     currentPipeline: currentPipelineReducer,

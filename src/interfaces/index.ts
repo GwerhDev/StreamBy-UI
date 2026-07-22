@@ -403,19 +403,6 @@ export interface JobRecord {
   error?: string;
 }
 
-export type RenderFarmProvider = 'flamenco' | 'deadline' | 'rebusfarm' | 'sheepit' | 'custom';
-
-export interface RenderFarmConnection {
-  id: string;
-  name: string;
-  provider: RenderFarmProvider;
-  apiUrl: string;
-  credentialId?: string;
-  projectId: string;
-  createdAt?: string;
-  description?: string;
-}
-
 export interface LodLevel {
   level: number;
   ratio: number;

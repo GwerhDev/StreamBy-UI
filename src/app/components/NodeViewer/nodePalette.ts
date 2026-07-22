@@ -9,7 +9,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFingerprint,
   faFileImport, faGears, faClapperboard, faCheckDouble,
-  faPalette, faVolumeHigh, faFileVideo, faShare, faStar,
+  faPalette, faVolumeHigh, faFileVideo, faStar,
   faSitemap,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
@@ -68,7 +68,6 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'vfxNode',           label: 'VFX',           subtitle: 'Visual effects segment', icon: faWandMagicSparkles, bgColor: '#1a0d00', iconColor: H_JOB,   group: 'process' },
   { type: 'masterNode',        label: 'Master',        subtitle: 'Versioned master',      icon: faStar,             bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
   { type: 'exportFormatNode',  label: 'Export Format', subtitle: 'Codec / container',     icon: faFileVideo,        bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
-  { type: 'distributeNode',    label: 'Distribute',    subtitle: 'Publish to platform',   icon: faShare,            bgColor: '#1a0d00', iconColor: H_JOB,    group: 'output' },
   { type: 'pipelineRefNode',   label: 'Pipeline',      subtitle: 'Sub-workflow reference', icon: faSitemap,         bgColor: '#0a2826', iconColor: '#14b8a6', group: 'process' },
 ];
 
@@ -97,7 +96,7 @@ export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'ingestNode', 'dataSourceNode', 'apiConnectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode',
-  'exportFormatNode', 'deliverableNode', 'distributeNode', 'distributionNode',
+  'exportFormatNode', 'deliverableNode', 'distributionNode',
   'proceduralAssetNode', 'pipelineSuggestNode',
   'credentialNode',
 ]);
@@ -116,7 +115,7 @@ export const PIPELINE_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
   'reviewGateNode', 'annotationNode',
-  'exportFormatNode', 'deliverableNode', 'distributeNode',
+  'exportFormatNode', 'deliverableNode', 'distributionNode',
 ]);
 
 // Pipeline designer mode — production essentials + review.
@@ -126,12 +125,12 @@ export const PIPELINE_DESIGNER_TYPES = new Set([
 ]);
 
 // Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
-const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
+export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
   shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
   ingestNode: 'ingest', dataSourceNode: 'ingest', apiConnectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review',
-  exportFormatNode: 'delivery', deliverableNode: 'delivery', distributeNode: 'delivery', distributionNode: 'delivery',
+  exportFormatNode: 'delivery', deliverableNode: 'delivery', distributionNode: 'delivery',
   proceduralAssetNode: 'ai', pipelineSuggestNode: 'ai',
   credentialNode: 'auth',
 };

@@ -12,7 +12,7 @@ import {
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faFingerprint, faSitemap,
-  faPalette, faVolumeHigh, faFileVideo, faShare, faStar,
+  faPalette, faVolumeHigh, faFileVideo, faStar,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -624,22 +624,6 @@ export const ExportFormatNode = memo(({ data, selected }: NodeProps<BaseNodeData
 ));
 ExportFormatNode.displayName = 'ExportFormatNode';
 
-// Publishes the master to an audiovisual platform (YouTube, Vimeo, festival, broadcaster). Output lane.
-export const DistributeNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
-    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
-      <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faShare} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
-DistributeNode.displayName = 'DistributeNode';
-
 // ─── Pipeline reference node (TCORE-62) ───────────────────────────────────────
 
 // References a Pipeline (a project sub-workflow) from the Workflow canvas. Sits above the
@@ -731,6 +715,5 @@ export const nodeTypes = {
   vfxNode: VfxNode,
   masterNode: MasterNode,
   exportFormatNode: ExportFormatNode,
-  distributeNode: DistributeNode,
   pipelineRefNode: PipelineRefNode,
 };
