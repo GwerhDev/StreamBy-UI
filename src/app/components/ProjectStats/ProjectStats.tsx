@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faFileExport, faPlug, faFingerprint } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faFileExport, faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import skeleton from '../Loader/Skeleton.module.css';
 
 interface ProjectStatsProps {
@@ -22,10 +22,9 @@ export const ProjectStats = ({ readonly }: ProjectStatsProps) => {
   };
 
   const stats = [
-    { icon: faUsers,      label: 'Members',          value: currentProject?.members?.length ?? 0,       path: `/project/${id}/dashboard/members` },
-    { icon: faFileExport, label: 'Exports',           value: currentProject?.exports?.length ?? 0,       path: `/project/${id}/workflow/exports` },
-    { icon: faPlug,       label: 'API Connections',   value: currentProject?.apiConnections?.length ?? 0, path: `/project/${id}/connections/api` },
-    { icon: faFingerprint,        label: 'Credentials',       value: currentProject?.credentials?.length ?? 0,    path: `/project/${id}/connections/credentials` },
+    { icon: faUsers,          label: 'Members',   value: currentProject?.members?.length ?? 0,   path: `/project/${id}/dashboard/members` },
+    { icon: faDiagramProject, label: 'Pipelines', value: currentProject?.pipelines?.length ?? 0,  path: `/project/${id}/workflow/pipelines` },
+    { icon: faFileExport,     label: 'Exports',   value: currentProject?.exports?.length ?? 0,    path: `/project/${id}/workflow/exports` },
   ];
 
   return (
