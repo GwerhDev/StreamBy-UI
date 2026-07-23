@@ -169,6 +169,12 @@
   flex-shrink: 0;
 }
 
+.builtinIcon {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
+}
+
 /* ── Empty state ─────────────────────────── */
 .empty {
   font-size: 0.75rem;

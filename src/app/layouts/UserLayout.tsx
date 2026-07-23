@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
-  faUser, faChevronDown, faGear,
+  faUser, faChevronDown, faGear, faPlug,
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
@@ -35,6 +35,7 @@ export default function UserLayout() {
   const isUserRoute = pathname === '/user';
   const isProfileRoute = pathname === '/user/profile';
   const isArchiveRoute = pathname === '/user/archive';
+  const isIntegrationsRoute = pathname.startsWith('/user/integrations');
   const isSettingsRoute = pathname === '/user/settings';
   const [userOpen, setUserOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
@@ -49,7 +50,7 @@ export default function UserLayout() {
 
         <div className={s.accordionSection}>
           <div
-            className={`${s.sectionHeader} ${isUserRoute || isProfileRoute || isArchiveRoute ? s.sectionHeaderActive : ''}`}
+            className={`${s.sectionHeader} ${isUserRoute || isProfileRoute || isArchiveRoute || isIntegrationsRoute ? s.sectionHeaderActive : ''}`}
             onClick={() => setUserOpen(v => !v)}
           >
             <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate('/user'); }}>User</span>
@@ -73,6 +74,13 @@ export default function UserLayout() {
               >
                 <FontAwesomeIcon icon={faArchive} />
                 Archive
+              </Link>
+              <Link
+                to="/user/integrations"
+                className={`${s.navItem} ${isIntegrationsRoute ? s.activeLink : ''}`}
+              >
+                <FontAwesomeIcon icon={faPlug} />
+                Integrations
               </Link>
             </div>
           )}

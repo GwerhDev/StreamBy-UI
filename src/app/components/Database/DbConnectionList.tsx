@@ -1,16 +1,17 @@
 import s from './Database.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteDbConnection, fetchBuiltinDatabases } from '../../../services/database';
+import { deleteDbConnection } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 import { DbConnection } from '../../../interfaces';
 
@@ -19,26 +20,7 @@ export const DbConnectionList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
-  const connections: DbConnection[] = project?.dbConnections ?? [];
-
-  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
-
-  useEffect(() => {
-    fetchBuiltinDatabases()
-      .then(setBuiltinDbs)
-      .catch(() => {});
-  }, [projectId]);
-
-  const builtinConns: DbConnection[] = builtinDbs.map(db => ({
-    id: db.name,
-    name: db.name,
-    dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-    credentialId: '',
-    projectId: projectId!,
-    isBuiltin: true,
-  }));
-
-  const allConnections = [...builtinConns, ...connections];
+  const allConnections: DbConnection[] = project?.dbConnections ?? [];
 
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -53,7 +35,7 @@ export const DbConnectionList = () => {
       dispatch(addApiResponse({ message: 'Connection deleted.', type: 'success' }));
       dispatch(setCurrentProject({
         ...project,
-        dbConnections: connections.filter(c => c.id !== connId),
+        dbConnections: allConnections.filter(c => c.id !== connId),
       }));
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
@@ -93,7 +75,7 @@ export const DbConnectionList = () => {
               <span className={s.cardRight}>
                 {conn.isBuiltin && (
                   <span className={`${s.badge} ${s.badgeBuiltin} ${s.badgeIcon}`} title="Built-in">
-                    <FontAwesomeIcon icon={faCube} />
+                    <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} />
                   </span>
                 )}
                 <span className={`${s.badge} ${conn.dbType === 'postgresql' ? s.badgePg : s.badgeMg}`}>

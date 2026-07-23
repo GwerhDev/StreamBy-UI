@@ -2,7 +2,7 @@ import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faFloppyDisk, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faFloppyDisk, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -12,15 +12,22 @@ import {
   updateProjectImage,
   uploadProjectImage,
   uploadToPresignedUrl,
+  addProjectIntegration,
+  removeProjectIntegration,
 } from '../../../services/projects';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../../store';
+import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useNavigate } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
+import { IntegrationPicker } from '../Integrations/IntegrationPicker';
 
 export const UpdateProjectForm = () => {
   const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
+  const { integrations } = useSelector((state: RootState) => state.management);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState<string>(currentProjectData?.name || "");
   const [loader, setLoader] = useState<boolean>(false);
   const [preview, setPreview] = useState<string | null>(currentProjectData?.image || null);
@@ -29,9 +36,38 @@ export const UpdateProjectForm = () => {
   const [description, setDescription] = useState<string>(currentProjectData?.description || "");
   const [category, setCategory] = useState<ProjectCategory | ''>(currentProjectData?.category || '');
   const [isPublic, setIsPublic] = useState<boolean>(currentProjectData?.public ?? true);
+  const [integrationLoading, setIntegrationLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const session = useSelector((state: RootState) => state.session);
   const isFreemium = session.plan === 'freemium';
+
+  const connectedIntegrationIds = [
+    ...(currentProjectData?.dbConnections ?? []),
+    ...(currentProjectData?.storageConnections ?? []),
+  ].map(c => c.integrationId).filter((id): id is string => !!id);
+
+  const handleIntegrationsChange = async (ids: string[]) => {
+    if (!currentProjectData) return;
+    const added = ids.find(id => !connectedIntegrationIds.includes(id));
+    const removed = connectedIntegrationIds.find(id => !ids.includes(id));
+
+    setIntegrationLoading(true);
+    try {
+      if (added) {
+        const { project } = await addProjectIntegration(currentProjectData.id, added);
+        dispatch(setCurrentProject(project));
+        dispatch(addApiResponse({ message: 'Integration connected.', type: 'success' }));
+      } else if (removed) {
+        const { project } = await removeProjectIntegration(currentProjectData.id, removed);
+        dispatch(setCurrentProject(project));
+        dispatch(addApiResponse({ message: 'Integration disconnected.', type: 'success' }));
+      }
+    } catch (error: any) {
+      dispatch(addApiResponse({ message: error.message || 'Failed to update integrations.', type: 'error' }));
+    } finally {
+      setIntegrationLoading(false);
+    }
+  };
 
   useEffect(() => {
     setName(currentProjectData?.name || "");
@@ -180,6 +216,19 @@ export const UpdateProjectForm = () => {
                     { value: 'api', label: 'API / Data Service' },
                     { value: 'creative', label: 'Creative / Design' },
                   ]}
+                />
+              ),
+            },
+            {
+              icon: faPlug,
+              label: 'Integrations',
+              value: null,
+              editComponent: (
+                <IntegrationPicker
+                  pool={integrations}
+                  selected={connectedIntegrationIds}
+                  onChange={handleIntegrationsChange}
+                  disabled={integrationLoading}
                 />
               ),
             },

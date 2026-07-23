@@ -4,12 +4,13 @@ import { RootState } from '../../../store';
 import { DirectoryList } from '../Dashboard/DirectoryList';
 
 export const Storage = () => {
-  const storages = useSelector((state: RootState) => state.management.storages);
+  const integrations = useSelector((state: RootState) => state.management.integrations);
+  const storages = integrations.filter(i => i.kind === 'storage' && i.available);
 
-  const list = storages.map(s => ({
-    name: s.name,
+  const list = storages.map(entry => ({
+    name: entry.name,
     icon: faCloud,
-    path: `storage/${s.value}`,
+    path: `storage/${entry.id}`,
   }));
 
   return <DirectoryList list={list} />;

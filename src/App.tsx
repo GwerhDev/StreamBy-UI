@@ -35,6 +35,8 @@ const UserHub      = lazy(() => import('./app/pages/UserHub').then(module => ({ 
 const UserAccount  = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
 const UserArchive  = lazy(() => import('./app/pages/UserArchive').then(module => ({ default: module.UserArchive })));
 const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module => ({ default: module.UserSettings })));
+const UserIntegrations = lazy(() => import('./app/pages/UserIntegrations').then(module => ({ default: module.UserIntegrations })));
+const UserIntegrationCreate = lazy(() => import('./app/pages/UserIntegrationCreate').then(module => ({ default: module.UserIntegrationCreate })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
 const PermissionsCreate = lazy(() => import('./app/pages/PermissionsCreate').then(module => ({ default: module.PermissionsCreate })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
@@ -92,6 +94,8 @@ function App() {
                   <Route path="/user/profile" element={<UserAccount />} />
                   <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />
+                  <Route path="/user/integrations" element={<UserIntegrations />} />
+                  <Route path="/user/integrations/create" element={<UserIntegrationCreate />} />
                 </Route>
                 <Route element={<NotificationLayout />}>
                   <Route path="/user/notification" element={<UserNotification />} />

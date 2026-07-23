@@ -45,7 +45,6 @@ interface ProjectChartsProps {
 
 export const ProjectCharts = ({ readonly = false }: ProjectChartsProps) => {
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
-  const { databases: builtinDatabases } = useSelector((state: RootState) => state.management);
   const navigate = useNavigate();
   const id = currentProject?.id ?? '';
 
@@ -57,17 +56,9 @@ export const ProjectCharts = ({ readonly = false }: ProjectChartsProps) => {
   const [dbTableCounts, setDbTableCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (!id || !builtinDatabases.length) return;
+    const allConns = currentProject?.dbConnections ?? [];
+    if (!id || !allConns.length) return;
     setFetchingDb(true);
-    const builtinConns: DbConnection[] = builtinDatabases.map(db => ({
-      id: db.name,
-      name: db.name,
-      dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-      credentialId: '',
-      projectId: id,
-      isBuiltin: true,
-    }));
-    const allConns = [...builtinConns, ...(currentProject?.dbConnections ?? [])];
     setAllDbConns(allConns);
 
     Promise.all(
@@ -79,7 +70,7 @@ export const ProjectCharts = ({ readonly = false }: ProjectChartsProps) => {
       setDbTableCounts(Object.fromEntries(results));
       setFetchingDb(false);
     });
-  }, [id, builtinDatabases]);
+  }, [id, currentProject?.dbConnections]);
 
   useEffect(() => {
     if (!id) return;

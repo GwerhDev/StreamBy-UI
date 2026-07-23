@@ -6,7 +6,8 @@ const BASE = (projectId: string) => `${API_BASE}/streamby/projects/${projectId}/
 export interface StorageConnectionPayload {
   name: string;
   type: StorageConnectionType;
-  credentialId: string;
+  credentialId?: string;
+  integrationId?: string;
   description?: string;
 }
 

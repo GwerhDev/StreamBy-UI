@@ -10,7 +10,7 @@ export async function exploreProjects() {
   return projects;
 }
 
-export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean; category?: string | null }) {
+export async function createProject(payload: { name: string; description?: string; allowedOrigin?: string[]; public: boolean; category?: string | null; integrationIds?: string[] }) {
   const res = await fetch(`${API_BASE}/streamby/projects/create`, {
     method: 'POST',
     credentials: 'include',
@@ -20,6 +20,32 @@ export async function createProject(payload: { name: string; description?: strin
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.message || 'Failed to create project');
+  }
+  return res.json();
+}
+
+export async function addProjectIntegration(projectId: string, integrationId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/integrations`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ integrationId }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to add integration');
+  }
+  return res.json();
+}
+
+export async function removeProjectIntegration(projectId: string, integrationId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/integrations/${integrationId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to remove integration');
   }
   return res.json();
 }
@@ -166,32 +192,6 @@ export async function fetchProjectMembers(projectId: string) {
   }
   const { members } = await res.json();
   return members;
-}
-
-export async function getDatabases() {
-  const res = await fetch(`${API_BASE}/streamby/databases`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || 'Failed to fetch databases');
-  }
-  const response = await res.json() || {};
-  return response.databases;
-}
-
-export async function getStorages() {
-  const res = await fetch(`${API_BASE}/streamby/storages`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || 'Failed to fetch storages');
-  }
-  const response = await res.json() || {};
-  return response.storages;
 }
 
 export async function updateProjectOrigins(projectId: string, origins: string[]) {

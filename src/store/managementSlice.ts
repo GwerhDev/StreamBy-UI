@@ -1,39 +1,24 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getDatabases, getStorages } from '../services/projects';
-import { Database, CloudStorage } from '../interfaces';
+import { getUserIntegrations } from '../services/userIntegrations';
+import { IntegrationPoolEntry } from '../interfaces';
 
 interface ManagementState {
-  databases: Database[];
-  storages: CloudStorage[];
+  integrations: IntegrationPoolEntry[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ManagementState = {
-  databases: [],
-  storages: [],
+  integrations: [],
   loading: false,
   error: null,
 };
 
-export const fetchDatabases = createAsyncThunk(
-  'management/fetchDatabases',
+export const fetchIntegrations = createAsyncThunk(
+  'management/fetchIntegrations',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getDatabases();
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchStorages = createAsyncThunk(
-  'management/fetchStorages',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await getStorages();
-      return response;
+      return await getUserIntegrations();
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -43,25 +28,32 @@ export const fetchStorages = createAsyncThunk(
 const managementSlice = createSlice({
   name: 'management',
   initialState,
-  reducers: {},
+  reducers: {
+    upsertIntegration: (state, action: PayloadAction<IntegrationPoolEntry>) => {
+      const idx = state.integrations.findIndex(i => i.id === action.payload.id);
+      if (idx === -1) state.integrations.push(action.payload);
+      else state.integrations[idx] = action.payload;
+    },
+    removeIntegration: (state, action: PayloadAction<string>) => {
+      state.integrations = state.integrations.filter(i => i.id !== action.payload);
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchDatabases.pending, (state) => {
+      .addCase(fetchIntegrations.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchDatabases.fulfilled, (state, action: PayloadAction<Database[]>) => {
+      .addCase(fetchIntegrations.fulfilled, (state, action: PayloadAction<IntegrationPoolEntry[]>) => {
         state.loading = false;
-        state.databases = action.payload;
+        state.integrations = action.payload;
       })
-      .addCase(fetchDatabases.rejected, (state, action) => {
+      .addCase(fetchIntegrations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      .addCase(fetchStorages.fulfilled, (state, action: PayloadAction<CloudStorage[]>) => {
-        state.storages = action.payload;
       });
   },
 });
 
+export const { upsertIntegration, removeIntegration } = managementSlice.actions;
 export default managementSlice.reducer;

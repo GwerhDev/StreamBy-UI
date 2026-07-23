@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--size-4);
+  background: var(--color-surface-sunken);
+}
+
+.icon {
+  color: var(--color-warning);
+  font-size: 0.85rem;
+}
+
+.text {
+  font-size: 0.75rem;
+  color: var(--color-warning);
+  flex: 1;
+}

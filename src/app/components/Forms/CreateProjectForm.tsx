@@ -2,7 +2,7 @@ import s from './CreateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -20,6 +20,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setProjects } from '../../../store/projectsSlice';
 import { Spinner } from '../Spinner';
 import { CustomForm } from './CustomForm';
+import { IntegrationPicker } from '../Integrations/IntegrationPicker';
 
 export const CreateProjectForm = () => {
   const [name, setName] = useState<string>("");
@@ -30,11 +31,12 @@ export const CreateProjectForm = () => {
   const [description, setDescription] = useState<string>("");
   const [category, setCategory] = useState<ProjectCategory | ''>('');
   const [isPublic, setIsPublic] = useState<boolean>(true);
+  const [selectedIntegrationIds, setSelectedIntegrationIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { loading, error } = useSelector((state: RootState) => state.management);
+  const { integrations, loading, error } = useSelector((state: RootState) => state.management);
   const session = useSelector((state: RootState) => state.session);
   const isFreemium = session.plan === 'freemium';
 
@@ -42,7 +44,7 @@ export const CreateProjectForm = () => {
     e.preventDefault();
     try {
       setLoader(true);
-      const response = await createProject({ name, description, public: isPublic, category: category || null });
+      const response = await createProject({ name, description, public: isPublic, category: category || null, integrationIds: selectedIntegrationIds });
       const { projectId, projects } = response || {};
       if (projects) dispatch(setProjects(projects));
 
@@ -182,6 +184,18 @@ export const CreateProjectForm = () => {
                     { value: 'api', label: 'API / Data Service' },
                     { value: 'creative', label: 'Creative / Design' },
                   ]}
+                />
+              ),
+            },
+            {
+              icon: faPlug,
+              label: 'Integrations (optional)',
+              value: null,
+              editComponent: (
+                <IntegrationPicker
+                  pool={integrations}
+                  selected={selectedIntegrationIds}
+                  onChange={setSelectedIntegrationIds}
                 />
               ),
             },

@@ -135,6 +135,12 @@
   padding: 0.2rem 0.45rem;
 }
 
+.builtinIcon {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: block;
+}
+
 /* Delete button */
 .deleteBtn {
   padding: 0.4rem 0.6rem;

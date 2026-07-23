@@ -2,7 +2,7 @@ import s from './StorageConnectionCreate.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { faCloud, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { faCloud, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines, faPlug, faRoute } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -14,6 +14,7 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
 import { CustomForm } from '../Forms/CustomForm';
+import { IntegrationPicker } from '../Integrations/IntegrationPicker';
 
 const STORAGE_TYPES = [
   { value: 's3',    label: 'AWS S3' },
@@ -22,15 +23,23 @@ const STORAGE_TYPES = [
   { value: 'azure', label: 'Azure Blob Storage' },
 ];
 
+const SOURCE_MODES = [
+  { value: 'integration', label: 'Use an integration' },
+  { value: 'manual',      label: 'Configure manually' },
+];
+
 export const StorageConnectionCreate = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const project = useSelector((state: RootState) => state.currentProject.data);
+  const { integrations } = useSelector((state: RootState) => state.management);
 
+  const [sourceMode, setSourceMode] = useState<'integration' | 'manual'>('integration');
   const [name, setName] = useState('');
   const [type, setType] = useState<StorageConnectionType>('s3');
   const [credentialId, setCredentialId] = useState('');
+  const [integrationId, setIntegrationId] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
@@ -40,17 +49,36 @@ export const StorageConnectionCreate = () => {
     ...(project?.credentials?.map(c => ({ value: c.id, label: c.key || c.id })) ?? []),
   ];
 
-  useEffect(() => { setDisabled(!name || !credentialId || loading); }, [name, credentialId, loading]);
+  const connectedIntegrationIds = [
+    ...(project?.dbConnections ?? []),
+    ...(project?.storageConnections ?? []),
+  ].map(c => c.integrationId).filter((id): id is string => !!id);
+
+  const selectedIntegration = integrations.find(i => i.id === integrationId);
+
+  useEffect(() => {
+    const hasSource = sourceMode === 'integration' ? !!integrationId : !!(name && credentialId);
+    setDisabled(!hasSource || loading);
+  }, [name, sourceMode, credentialId, integrationId, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectId || !project) return;
     setLoading(true);
     try {
-      const payload: StorageConnectionPayload = {
-        name, type, credentialId,
-        ...(description && { description }),
-      };
+      // In integration mode, name/type come from the integration itself — an integration IS
+      // already a named, typed storage account, asking again would just duplicate/contradict it.
+      const payload: StorageConnectionPayload = sourceMode === 'integration'
+        ? {
+            name: selectedIntegration?.name ?? '',
+            type: selectedIntegration?.provider as StorageConnectionType,
+            integrationId,
+            ...(description && { description }),
+          }
+        : {
+            name, type, credentialId,
+            ...(description && { description }),
+          };
       const result = await createStorageConnection(projectId, payload);
       dispatch(addApiResponse({ message: 'Storage connection created.', type: 'success' }));
       dispatch(setCurrentProject({
@@ -74,9 +102,38 @@ export const StorageConnectionCreate = () => {
           header={{ icon: faCloud, title: 'New Storage Connection', subtitle: `Connect an external storage to ${project?.name}` }}
           fields={[
             {
+              icon: faRoute,
+              label: 'Source',
+              value: null,
+              editComponent: (
+                <LabeledSelect
+                  label="Source" id="storage-source" name="storage-source" htmlFor="storage-source"
+                  value={sourceMode} onChange={e => setSourceMode(e.target.value as typeof sourceMode)}
+                  options={SOURCE_MODES}
+                />
+              ),
+            },
+            {
+              icon: faPlug,
+              label: 'Integration',
+              value: integrationId || '—',
+              hidden: sourceMode !== 'integration',
+              editComponent: (
+                <IntegrationPicker
+                  pool={integrations}
+                  kind="storage"
+                  selected={integrationId ? [integrationId] : []}
+                  onChange={ids => setIntegrationId(ids[0] ?? '')}
+                  excludeIds={connectedIntegrationIds}
+                  single
+                />
+              ),
+            },
+            {
               icon: faTag,
               label: 'Name',
               value: name || '—',
+              hidden: sourceMode !== 'manual',
               editComponent: (
                 <LabeledInput
                   label="Name" name="name" value={name} type="text"
@@ -89,6 +146,7 @@ export const StorageConnectionCreate = () => {
               icon: faLayerGroup,
               label: 'Storage type',
               value: type,
+              hidden: sourceMode !== 'manual',
               editComponent: (
                 <LabeledSelect
                   label="Storage type" id="storage-type" name="storage-type" htmlFor="storage-type"
@@ -101,6 +159,7 @@ export const StorageConnectionCreate = () => {
               icon: faFingerprint,
               label: 'Credential (JSON config)',
               value: credentialId || '—',
+              hidden: sourceMode !== 'manual',
               editComponent: (
                 <LabeledSelect
                   label="Credential (JSON config)" id="storage-credential" name="storage-credential" htmlFor="storage-credential"

@@ -1,15 +1,17 @@
 import s from './IntegrationsInfo.module.css';
 import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Database, CloudStorage } from '../../../interfaces';
-import { fetchDatabases, fetchStorages } from '../../../store/managementSlice';
+import { IntegrationPoolEntry } from '../../../interfaces';
+import { fetchIntegrations } from '../../../store/managementSlice';
 import { AppDispatch } from '../../../store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate, faDatabase, faCloud, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { LockedIntegrationBadge } from '../Integrations/LockedIntegrationBadge';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface IntegrationsInfoModalProps {
-  databases: Database[];
-  storages: CloudStorage[];
+  databases: IntegrationPoolEntry[];
+  storages: IntegrationPoolEntry[];
   onClose: () => void;
 }
 
@@ -26,8 +28,7 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
   }, [onClose]);
 
   const handleRefresh = () => {
-    dispatch(fetchDatabases());
-    dispatch(fetchStorages());
+    dispatch(fetchIntegrations());
   };
 
   return (
@@ -50,10 +51,12 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
         ) : (
           <ul className={s.list}>
             {databases.map(db => (
-              <li key={db.value} className={s.item}>
+              <li key={db.id} className={s.item}>
                 <FontAwesomeIcon icon={faCircle} className={s.dot} />
                 <span className={s.itemName}>{db.name}</span>
-                <span className={s.itemValue}>{db.value}</span>
+                <span className={s.itemValue}>{db.provider}</span>
+                {db.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                {!db.available && <LockedIntegrationBadge requiredPlan={db.requiredPlan} />}
               </li>
             ))}
           </ul>
@@ -73,10 +76,12 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
         ) : (
           <ul className={s.list}>
             {storages.map(st => (
-              <li key={st.value} className={s.item}>
+              <li key={st.id} className={s.item}>
                 <FontAwesomeIcon icon={faCircle} className={s.dot} />
                 <span className={s.itemName}>{st.name}</span>
-                <span className={s.itemValue}>{st.value}</span>
+                <span className={s.itemValue}>{st.provider}</span>
+                {st.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                {!st.available && <LockedIntegrationBadge requiredPlan={st.requiredPlan} />}
               </li>
             ))}
           </ul>

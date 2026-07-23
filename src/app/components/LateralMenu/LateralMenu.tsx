@@ -8,8 +8,8 @@ import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { connectionsDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
 import { WORKFLOW_GROUP_BY_TYPE, WorkflowGroup } from '../NodeViewer/nodePalette';
-import { fetchTables, fetchBuiltinDatabases } from '../../../services/database';
-import { DbConnection, CloudStorage } from '../../../interfaces';
+import { fetchTables } from '../../../services/database';
+import { DbConnection } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
@@ -36,7 +36,6 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const session = useSelector((state: RootState) => state.session);
   const mode = session.mode ?? 'developer';
   const currentProject = useSelector((state: RootState) => state.currentProject);
-  const storages = useSelector((state: RootState) => state.management.storages);
   const { name, id, members } = currentProject.data || {};
   const selfMember = members?.find(m => m.userId === session.userId);
   const isPending = selfMember?.status === 'pending';
@@ -115,25 +114,13 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     });
   };
 
-  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
-
   useEffect(() => {
     setExpandedDbs(new Set());
     setDbTables({});
     setDbTablesLoading(new Set());
-    if (id) fetchBuiltinDatabases().then(setBuiltinDbs);
   }, [id]);
 
-  const builtinDbConns: DbConnection[] = builtinDbs.map(db => ({
-    id: db.name,
-    name: db.name,
-    dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-    credentialId: '',
-    projectId: id ?? '',
-    isBuiltin: true,
-  }));
-  const externalDbConns: DbConnection[] = currentProject.data?.dbConnections ?? [];
-  const allDbConns = [...builtinDbConns, ...externalDbConns];
+  const allDbConns: DbConnection[] = currentProject.data?.dbConnections ?? [];
 
   const toggleDb = async (connId: string) => {
     const willExpand = !expandedDbs.has(connId);
@@ -503,13 +490,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.storage && (
                   <div className={s.sectionBody}>
-                    {[
-                      ...storages.map((storage: CloudStorage, i: number) => ({
-                        id: i === 0 ? 'builtin' : `builtin-${i}`,
-                        name: storage.name,
-                      })),
-                      ...(currentProject.data?.storageConnections ?? []),
-                    ].map(conn => {
+                    {(currentProject.data?.storageConnections ?? []).map(conn => {
                       const isExpanded = expandedStorages.has(conn.id);
                       const linkPath = `/project/${id}/storage/${conn.id}`;
                       const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);

@@ -1,13 +1,26 @@
 .container {
   gap: 1rem;
   width: 100%;
-  margin: 0 auto;
   padding: 1rem;
+  margin: 0 auto;
   flex-grow: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.emptyState {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardSkeleton {
+  width: 100%;
+  height: 60px;
+  border-radius: 1rem;
 }
 
 .container ul {
@@ -34,10 +47,10 @@
   background-color: var(--color-surface-hover);
 }
 
-.cardSkeleton {
-  width: 100%;
-  height: 60px;
-  border-radius: 1rem;
+.container ul .createItem {
+  background-color: transparent;
+  border: dashed 0.2rem;
+  justify-content: center;
 }
 
 .cardLeft {
@@ -94,39 +107,6 @@
   gap: 0.5rem;
 }
 
-.badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.badgePg {
-  background-color: var(--color-accent-subtle);
-  color: var(--color-info);
-}
-
-.badgeMg {
-  background-color: var(--color-badge-mongo-subtle);
-  color: var(--color-badge-mongo);
-}
-
-.badgeBuiltin {
-  background-color: var(--color-badge-builtin-subtle);
-  color: var(--color-badge-builtin);
-}
-
-.badgeIcon {
-  padding: 0.2rem 0.45rem;
-}
-
-.builtinIcon {
-  width: 0.85rem;
-  height: 0.85rem;
-  display: block;
-}
-
 .deleteBtn {
   padding: 0.4rem 0.6rem;
   background: transparent;
@@ -140,10 +120,4 @@
 
 .deleteBtn:hover {
   color: var(--color-danger-200);
-}
-
-.container ul .createItem {
-  background-color: transparent;
-  border: dashed 0.2rem;
-  justify-content: center;
 }

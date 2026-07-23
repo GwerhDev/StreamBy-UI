@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloud, faPlus, faTrash, faCube } from '@fortawesome/free-solid-svg-icons';
+import { faCloud, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -12,6 +12,7 @@ import { fetchStorageConnections, deleteStorageConnection } from '../../../servi
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { StorageConnection } from '../../../interfaces';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 const STORAGE_LABELS: Record<string, string> = {
   s3:    'AWS S3',
@@ -103,7 +104,7 @@ export const StorageConnectionList = () => {
               <span className={s.cardRight}>
                 {conn.isBuiltin && (
                   <span className={`${s.badge} ${s.badgeBuiltin} ${s.badgeIcon}`} title="Built-in">
-                    <FontAwesomeIcon icon={faCube} />
+                    <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} />
                   </span>
                 )}
                 <span className={`${s.badge} ${STORAGE_BADGE_CLASS[conn.type] ?? s.badgePg}`}>

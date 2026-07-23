@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { RootState, AppDispatch } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useProjects } from '../../hooks/useProjects';
-import { fetchDatabases, fetchStorages } from '../../store/managementSlice';
+import { fetchIntegrations } from '../../store/managementSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
@@ -25,8 +25,7 @@ function DefaultLayoutInner() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    dispatch(fetchDatabases());
-    dispatch(fetchStorages());
+    dispatch(fetchIntegrations());
   }, [dispatch]);
 
   return (

@@ -27,7 +27,6 @@ export const Browser = (props: BrowserProps) => {
   const currentExport = useSelector((state: RootState) => state.currentExport.data);
   const currentWorkflow = useSelector((state: RootState) => state.currentWorkflow.data);
   const currentPipeline = useSelector((state: RootState) => state.currentPipeline.data);
-  const storages = useSelector((state: RootState) => state.management.storages);
   const currentStorageFolder = useSelector((state: RootState) => state.currentStorageFolder.data);
 
 
@@ -74,23 +73,20 @@ export const Browser = (props: BrowserProps) => {
 
   const isMongoId = (seg: string) => /^[a-f0-9]{24}$/.test(seg);
 
-  const resolveBuiltinStorageName = (seg: string): string | null => {
-    const match = seg === 'builtin' ? 0 : /^builtin-(\d+)$/.exec(seg)?.[1];
-    if (match === undefined || match === null) return null;
-    return storages[Number(match)]?.name ?? null;
-  };
-
   const isUUID = (seg: string) =>
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg);
+
+  const storageConnIds = currentProject?.storageConnections?.map(c => c.id) ?? [];
+  const dbConnIds = currentProject?.dbConnections?.map(c => c.id) ?? [];
 
   const formatSegment = (seg: string) => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
     if (currentWorkflow && seg === currentWorkflow.id) return currentWorkflow.name;
     if (currentPipeline && seg === currentPipeline.id) return currentPipeline.name;
-    const storageName = resolveBuiltinStorageName(seg);
-    if (storageName) return storageName.toLowerCase();
     const storageConn = currentProject?.storageConnections?.find(c => c.id === seg);
     if (storageConn) return storageConn.name.toLowerCase();
+    const dbConn = currentProject?.dbConnections?.find(c => c.id === seg);
+    if (dbConn) return dbConn.name.toLowerCase();
     if (currentStorageFolder && seg === currentStorageFolder.id) return currentStorageFolder.name;
     return seg.replace(/[_-]/g, ' ');
   };
@@ -114,7 +110,9 @@ export const Browser = (props: BrowserProps) => {
                       <FontAwesomeIcon icon={faChevronRight} />
                       <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
                         {(isMongoId(seg) && seg !== currentExport?.id && seg !== currentWorkflow?.id && seg !== currentPipeline?.id) ||
-                         (isUUID(seg) && seg !== currentWorkflow?.id && seg !== currentPipeline?.id && (!currentStorageFolder || currentStorageFolder.id !== seg))
+                         (isUUID(seg) && seg !== currentWorkflow?.id && seg !== currentPipeline?.id
+                           && (!currentStorageFolder || currentStorageFolder.id !== seg)
+                           && !storageConnIds.includes(seg) && !dbConnIds.includes(seg))
                           ? <FontAwesomeIcon icon={faSpinner} spin />
                           : formatSegment(seg)}
                       </span>

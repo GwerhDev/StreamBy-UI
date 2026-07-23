@@ -35,19 +35,9 @@ export function MoveModal({
 }: MoveModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((s: RootState) => s.currentProject.data);
-  const storages = useSelector((s: RootState) => s.management.storages);
 
-  // connId → StorageConnection name map, including builtins
-  const allConnections: { id: string; name: string; active: boolean }[] = [];
-  if (storages.length > 0) {
-    storages.forEach((st: any, i: number) => {
-      const id = i === 0 ? 'builtin' : `builtin-${i}`;
-      allConnections.push({ id, name: st.name ?? 'Builtin Storage', active: id === activeConnId });
-    });
-  }
-  (currentProject?.storageConnections ?? []).forEach(c => {
-    allConnections.push({ id: c.id, name: c.name, active: c.id === activeConnId });
-  });
+  const allConnections: { id: string; name: string; active: boolean }[] =
+    (currentProject?.storageConnections ?? []).map(c => ({ id: c.id, name: c.name, active: c.id === activeConnId }));
 
   // folder tree: key = `${connId}:${parentId ?? 'null'}` → StorageFolder[]
   const [folderMap, setFolderMap]   = useState<Record<string, StorageFolder[]>>({});

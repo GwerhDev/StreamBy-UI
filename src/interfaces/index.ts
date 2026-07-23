@@ -30,6 +30,9 @@ export interface StorageConnection {
   createdAt?: string;
   description?: string;
   isBuiltin?: boolean;
+  integrationId?: string;
+  source?: 'builtin' | 'integration' | 'manual';
+  available?: boolean;
 }
 
 export type WorkflowStatus = 'draft' | 'active' | 'archived';
@@ -276,6 +279,21 @@ export interface Database {
   name: string;
 }
 
+export type IntegrationKind = 'database' | 'storage';
+
+// Combined pool entry from GET /user/integrations — a user's own (BYOC) integrations plus
+// the deploy's built-ins, the latter gated by subscription. Built-ins without access are
+// still listed (available: false) so the UI can show them locked, never hidden.
+export interface IntegrationPoolEntry {
+  id: string;
+  kind: IntegrationKind;
+  name: string;
+  provider: string;
+  source: 'builtin' | 'integration';
+  available: boolean;
+  requiredPlan?: string;
+}
+
 export type ExternalDbType = 'postgresql' | 'mongodb';
 
 export interface DbConnection {
@@ -287,6 +305,8 @@ export interface DbConnection {
   createdAt?: string;
   description?: string;
   isBuiltin?: boolean;
+  integrationId?: string;
+  source?: 'builtin' | 'integration' | 'manual';
 }
 
 export interface DbColumnDefinition {
