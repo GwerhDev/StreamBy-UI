@@ -20,7 +20,6 @@ import { UserNotification } from './app/pages/UserNotification';
 import { UserNotificationDetail } from './app/pages/UserNotificationDetail';
 import { ProjectPreview } from './app/pages/ProjectPreview';
 
-const Connections = lazy(() => import('./app/pages/Connections').then(module => ({ default: module.Connections })));
 const Home = lazy(() => import('./app/pages/Home').then(module => ({ default: module.Home })));
 const StorageConnectionList = lazy(() => import('./app/components/Storage/StorageConnectionList').then(module => ({ default: module.StorageConnectionList })));
 const StorageConnectionCreate = lazy(() => import('./app/components/Storage/StorageConnectionCreate').then(module => ({ default: module.StorageConnectionCreate })));
@@ -46,12 +45,10 @@ const ProjectCreate = lazy(() => import('./app/pages/ProjectCreate').then(module
 const ExportsCreate = lazy(() => import('./app/pages/ExportsCreate').then(module => ({ default: module.ExportsCreate })));
 const ExportsDetails = lazy(() => import('./app/pages/ExportsDetails').then(module => ({ default: module.ExportsDetails })));
 const ExportEditorPage = lazy(() => import('./app/pages/ExportEditorPage').then(module => ({ default: module.ExportEditorPage })));
-const CredentialsList = lazy(() => import('./app/pages/CredentialsList').then(module => ({ default: module.CredentialsList })));
-const CredentialsCreate = lazy(() => import('./app/pages/CredentialsCreate').then(module => ({ default: module.CredentialsCreate })));
-const ApiConnectionEdit = lazy(() => import('./app/pages/ApiConnectionEdit').then(module => ({ default: module.ApiConnectionEdit })));
-const ApiConnectionsList = lazy(() => import('./app/pages/ApiConnectionsList').then(module => ({ default: module.ApiConnectionsList })));
-const ApiConnectionDetail = lazy(() => import('./app/pages/ApiConnectionDetail').then(module => ({ default: module.ApiConnectionDetail })));
-const ApiConnectionsCreate = lazy(() => import('./app/pages/ApiConnectionsCreate').then(module => ({ default: module.ApiConnectionsCreate })));
+const ConnectionEdit = lazy(() => import('./app/pages/ConnectionEdit').then(module => ({ default: module.ConnectionEdit })));
+const ConnectionsList = lazy(() => import('./app/pages/ConnectionsList').then(module => ({ default: module.ConnectionsList })));
+const ConnectionDetail = lazy(() => import('./app/pages/ConnectionDetail').then(module => ({ default: module.ConnectionDetail })));
+const ConnectionsCreate = lazy(() => import('./app/pages/ConnectionsCreate').then(module => ({ default: module.ConnectionsCreate })));
 const DatabaseConnections      = lazy(() => import('./app/pages/DatabaseConnections').then(module => ({ default: module.DatabaseConnections })));
 const DatabaseConnectionCreate = lazy(() => import('./app/pages/DatabaseConnectionCreate').then(module => ({ default: module.DatabaseConnectionCreate })));
 const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnectionDetail').then(module => ({ default: module.DatabaseConnectionDetail })));
@@ -122,13 +119,10 @@ function App() {
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
                   <Route path="/project/:id/database/:connId" element={<DatabaseConnectionDetail />} />
 
-                  <Route path="/project/:id/connections" element={<Connections />} />
-                  <Route path="/project/:id/connections/api" element={<ApiConnectionsList />} />
-                  <Route path="/project/:id/connections/api/create" element={<ApiConnectionsCreate />} />
-                  <Route path="/project/:id/connections/api/:apiConnectionId" element={<ApiConnectionDetail />} />
-                  <Route path="/project/:id/connections/api/:apiConnectionId/edit" element={<ApiConnectionEdit />} />
-                  <Route path="/project/:id/connections/credentials" element={<CredentialsList />} />
-                  <Route path="/project/:id/connections/credentials/create" element={<CredentialsCreate />} />
+                  <Route path="/project/:id/connections" element={<ConnectionsList />} />
+                  <Route path="/project/:id/connections/create" element={<ConnectionsCreate />} />
+                  <Route path="/project/:id/connections/:connectionId" element={<ConnectionDetail />} />
+                  <Route path="/project/:id/connections/:connectionId/edit" element={<ConnectionEdit />} />
 
                   <Route path="/project/:id/workflow" element={<WorkflowPage />} />
                   <Route path="/project/:id/workflow/pipelines" element={<Pipelines />} />

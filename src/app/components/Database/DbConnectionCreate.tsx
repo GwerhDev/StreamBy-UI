@@ -34,16 +34,11 @@ export const DbConnectionCreate = () => {
   const [sourceMode, setSourceMode] = useState<'integration' | 'manual'>('integration');
   const [name, setName] = useState('');
   const [dbType, setDbType] = useState<'postgresql' | 'mongodb'>('postgresql');
-  const [credentialId, setCredentialId] = useState('');
+  const [credential, setCredential] = useState('');
   const [integrationId, setIntegrationId] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
-
-  const availableCredentials = [
-    { value: '', label: 'Select a credential…' },
-    ...(project?.credentials?.map(c => ({ value: c.id, label: c.key || c.id })) ?? []),
-  ];
 
   const connectedIntegrationIds = [
     ...(project?.dbConnections ?? []),
@@ -53,9 +48,9 @@ export const DbConnectionCreate = () => {
   const selectedIntegration = integrations.find(i => i.id === integrationId);
 
   useEffect(() => {
-    const hasSource = sourceMode === 'integration' ? !!integrationId : !!(name && credentialId);
+    const hasSource = sourceMode === 'integration' ? !!integrationId : !!(name && credential);
     setDisabled(!hasSource || loading);
-  }, [name, sourceMode, credentialId, integrationId, loading]);
+  }, [name, sourceMode, credential, integrationId, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +67,7 @@ export const DbConnectionCreate = () => {
             ...(description && { description }),
           }
         : {
-            name, dbType, credentialId,
+            name, dbType, credential,
             ...(description && { description }),
           };
       const result = await createDbConnection(projectId, payload);
@@ -154,13 +149,14 @@ export const DbConnectionCreate = () => {
             {
               icon: faFingerprint,
               label: 'Credential (connection string)',
-              value: credentialId || '—',
+              value: credential ? '••••••••' : '—',
               hidden: sourceMode !== 'manual',
               editComponent: (
-                <LabeledSelect
-                  label="Credential (connection string)" id="db-credential" name="db-credential" htmlFor="db-credential"
-                  value={credentialId} onChange={e => setCredentialId(e.target.value)}
-                  options={availableCredentials}
+                <LabeledInput
+                  label="Credential (connection string)" name="db-credential" value={credential} type="text"
+                  placeholder="postgresql://user:pass@host:5432/db"
+                  id="db-credential" htmlFor="db-credential"
+                  onChange={e => setCredential(e.target.value)} disabled={loading}
                 />
               ),
             },

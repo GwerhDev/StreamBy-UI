@@ -4,9 +4,9 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { connectionsDirectoryList, dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
+import { dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
 import { WORKFLOW_GROUP_BY_TYPE, WorkflowGroup } from '../NodeViewer/nodePalette';
 import { fetchTables } from '../../../services/database';
 import { DbConnection } from '../../../interfaces';
@@ -588,16 +588,19 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.connections && (
                   <div className={s.sectionBody}>
-                    {connectionsDirectoryList.map(({ name, icon, path }, index) => {
-                      const linkPath = `/project/${id}/${path}`;
-                      const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
-                      return (
-                        <Link key={index} to={linkPath} className={`${s.navItem} ${isActive ? s.activeLink : ''}`}>
-                          {icon && <FontAwesomeIcon icon={icon} />}
-                          {name}
-                        </Link>
-                      );
-                    })}
+                    {(currentProject.data?.connections ?? []).length
+                      ? currentProject.data!.connections!.map(conn => {
+                          const linkPath = `/project/${id}/connections/${conn.id}`;
+                          const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
+                          return (
+                            <Link key={conn.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                              <FontAwesomeIcon icon={faCode} className={s.serviceIcon} />
+                              <span className={s.serviceName}>{conn.name}</span>
+                            </Link>
+                          );
+                        })
+                      : <span className={`${s.serviceHeader} ${s.storageItemMuted}`}>No connections yet</span>
+                    }
                   </div>
                 )}
               </div>}

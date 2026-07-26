@@ -1,8 +1,8 @@
 import { API_BASE } from "../config/api";
-import { ApiConnectionPayload } from '../interfaces';
+import { ConnectionPayload } from '../interfaces';
 
-export async function getApiConnections(projectId: string) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api`, {
+export async function getConnections(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections`, {
     method: 'GET',
     credentials: 'include',
   });
@@ -14,8 +14,8 @@ export async function getApiConnections(projectId: string) {
   return data;
 }
 
-export async function createApiConnection(projectId: string, payload: ApiConnectionPayload) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api`, {
+export async function createConnection(projectId: string, payload: ConnectionPayload) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -29,8 +29,8 @@ export async function createApiConnection(projectId: string, payload: ApiConnect
   return data;
 }
 
-export async function getApiConnection(projectId: string, connectionId: string) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
+export async function getConnection(projectId: string, connectionId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/${connectionId}`, {
     method: 'GET',
     credentials: 'include',
   });
@@ -42,8 +42,8 @@ export async function getApiConnection(projectId: string, connectionId: string) 
   return data;
 }
 
-export async function updateApiConnection(projectId: string, connectionId: string, payload: Partial<ApiConnectionPayload>) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
+export async function updateConnection(projectId: string, connectionId: string, payload: Partial<ConnectionPayload>) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/${connectionId}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -69,8 +69,8 @@ export async function getConnectionResponse(projectId: string, connectionId: str
   return res.json();
 }
 
-export async function deleteApiConnection(projectId: string, connectionId: string) {
-  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/api/${connectionId}`, {
+export async function deleteConnection(projectId: string, connectionId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections/${connectionId}`, {
     method: 'DELETE',
     credentials: 'include',
   });

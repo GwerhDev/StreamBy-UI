@@ -44,7 +44,7 @@ describe('deriving active sections from instantiated node types', () => {
   });
 
   it('mixed node types surface exactly their matching sections', () => {
-    const groups = deriveGroups(['shotNode', 'reviewGateNode', 'deliverableNode', 'credentialNode']);
+    const groups = deriveGroups(['shotNode', 'reviewGateNode', 'deliverableNode', 'jsonInputNode']);
     const sections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[]).filter(g => groups.has(g));
     expect(sections.sort()).toEqual(['delivery', 'production', 'review']);
   });

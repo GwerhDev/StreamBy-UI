@@ -17,7 +17,7 @@ const BASE = (projectId: string) => `${API_BASE}/streamby/projects/${projectId}/
 export interface DbConnectionPayload {
   name: string;
   dbType: 'postgresql' | 'mongodb';
-  credentialId?: string;
+  credential?: string;
   integrationId?: string;
   description?: string;
 }

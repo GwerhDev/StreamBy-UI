@@ -9,7 +9,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectWorkflow } from '../../../services/workflow';
-import { ApiConnection, DbConnection, Export, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
+import { Connection, DbConnection, Export, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { TemplatePicker } from './TemplatePicker';
 
@@ -20,16 +20,14 @@ interface Props {
 export interface MgmtStorage { name: string; type?: string; }
 export interface BuiltinDb { name: string; value: string; }
 
-// Orchestrator side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API +
-// Credentials, Bottom = Exports, Right = reserved for future Distribution.
+// Orchestrator side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API,
+// Bottom = Exports, Right = reserved for future Distribution.
 const X_STREAMBY     = 350;
 const PIPELINE_XOFF  = -350;
 const Y_INPUTS       = -160;
-const Y_CREDENTIALS  = -320;
 const Y_EXPORTS      = 220;
 
 const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
-const EDGE_CREDENTIAL = { stroke: '#6366f1', strokeWidth: 1.5 };
 
 export function buildSchemaFromProject(
   project: Project,
@@ -77,20 +75,9 @@ export function buildSchemaFromProject(
     addSimpleInputNode(db.id, 'dataSourceNode', db.label, db.subtitle);
   }
 
-  // --- API connections (with optional credential node) ---
-  let credentialX = globalX;
-  (project.apiConnections ?? []).forEach((api: ApiConnection) => {
-    if (api.credentialId) {
-      const cred = (project.credentials ?? []).find(c => c.id === api.credentialId);
-      if (cred) {
-        const credId = `credential-${cred.id}`;
-        nodes.push({ id: credId, type: 'credentialNode', position: { x: credentialX, y: Y_CREDENTIALS }, data: { label: cred.key, subtitle: 'Credential', credentialId: cred.id } });
-        edges.push({ id: `e-orchestrator-${credId}`, source: 'streamby', sourceHandle: 'out-credentials', target: credId, targetHandle: 'in-streamby', animated: false, style: EDGE_CREDENTIAL });
-        edges.push({ id: `e-${credId}-api`, source: credId, sourceHandle: 'out-credential', target: `api-${api.id}`, targetHandle: 'in-credential', animated: false, style: EDGE_CREDENTIAL });
-        credentialX += INPUT_SPACING;
-      }
-    }
-    addSimpleInputNode(`api-${api.id}`, 'apiConnectionNode', api.name, api.method);
+  // --- API connections ---
+  (project.connections ?? []).forEach((api: Connection) => {
+    addSimpleInputNode(`api-${api.id}`, 'connectionNode', api.name, api.method);
   });
 
   // --- Management-level storages ---

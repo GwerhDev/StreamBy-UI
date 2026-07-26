@@ -88,7 +88,7 @@ interface ResponsePreviewProps {
 type SchemaNode = { id: string; type?: string; data?: Record<string, unknown> };
 type SchemaEdge = { source?: string; sourceHandle?: string; target?: string; targetHandle?: string };
 
-const LIVE_TYPES = ['apiConnectionNode', 'dataSourceNode'];
+const LIVE_TYPES = ['connectionNode', 'dataSourceNode'];
 
 function isResponseConnected(schema: ResponsePreviewProps['schema']): boolean {
   if (!schema) return true; // legacy export without schema — allow preview
@@ -132,7 +132,7 @@ async function simulateLiveResponse(
         try { return JSON.parse((src.data?.jsonString as string) || '{}'); }
         catch { return null; }
       }
-      if (src.type === 'apiConnectionNode') {
+      if (src.type === 'connectionNode') {
         const schemaEdges = ((schema as any)?.edges ?? []) as SchemaEdge[];
         const linkedToStreamBy = schemaEdges.some(
           e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === src.id,

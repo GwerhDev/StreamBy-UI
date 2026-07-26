@@ -6,8 +6,7 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
-import { getConnectionResponse, createApiConnection, updateApiConnection } from '../../../services/connections';
-import { createCredential } from '../../../services/projects';
+import { getConnectionResponse, createConnection } from '../../../services/connections';
 import { createPipeline } from '../../../services/pipelines';
 import { createExport } from '../../../services/exports';
 import { updateProjectWorkflow } from '../../../services/workflow';
@@ -29,7 +28,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, ApiConnection, DbConnection } from '../../../interfaces';
+import { Export, Connection as ConnectionEntity, DbConnection } from '../../../interfaces';
 import { fetchRecords, fetchBuiltinDatabases, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -89,7 +88,7 @@ export interface NodeViewerProps {
   editMode?: boolean;
   onSave?: (updates: Record<string, string | boolean | object | null>) => void;
   onChange?: (schema: { nodes: Node[]; edges: Edge[] }) => void;
-  apiConnections?: ApiConnection[];
+  connections?: ConnectionEntity[];
   dbConnections?: DbConnection[];
   projectId?: string;
   canvasOverlay?: React.ReactNode;
@@ -112,12 +111,11 @@ const CONTAINER_OPTIONS = ['mp4', 'mkv', 'mov', 'webm'].map(c => ({ value: c, la
 const SUBTITLE_SOURCE_OPTIONS = [{ value: 'transcription', label: 'Transcription node' }, { value: 'upload', label: 'External upload' }];
 const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f }));
 const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
-const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'apiConnectionNode', 'credentialNode', 'exportNode']);
+const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'exportNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
-const CREATE_CRED_SENTINEL = '__create_cred__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, apiConnections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
+  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -161,13 +159,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [apiCreateUrl, setApiCreateUrl] = useState('');
   const [apiCreateMethod, setApiCreateMethod] = useState('GET');
   const [apiCreateUsesCredentials, setApiCreateUsesCredentials] = useState(false);
+  const [apiCreateToken, setApiCreateToken] = useState('');
   const [apiCreatePrefix, setApiCreatePrefix] = useState('');
   const [apiCreating, setApiCreating] = useState(false);
-  const [showCredentialModal, setShowCredentialModal] = useState(false);
-  const [credPickId, setCredPickId] = useState('');
-  const [credCreateKey, setCredCreateKey] = useState('');
-  const [credCreateValue, setCredCreateValue] = useState('');
-  const [credCreating, setCredCreating] = useState(false);
   const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
   const [nodeLabelModalData, setNodeLabelModalData] = useState({ label: '', subtitle: '' });
 
@@ -178,7 +172,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       name: db.name,
       dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
       isBuiltin: true,
-      credentialId: '',
       projectId: projectId ?? '',
     }));
     return [...builtins, ...dbConnections];
@@ -189,77 +182,25 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (projectId) fetchBuiltinDatabases().then(setBuiltinDbs);
   }, [projectId]);
 
-  const apiConnectionsRef = useRef(apiConnections);
-  const credentialsRef = useRef(currentProject?.credentials ?? []);
   const initialSchemaRef = useRef(exportDetails.nodeSchema);
 
   const initialNodes = useMemo((): Node[] => {
-    const schemaEdges = (initialSchemaRef.current?.edges ?? []) as Edge[];
-
     // No auto-generated skeleton — an export/workflow/pipeline with no saved nodeSchema
     // starts on a blank canvas, regardless of legacy json/apiUrl fields.
     const base: Node[] = initialSchemaRef.current?.nodes
       ? [...(initialSchemaRef.current.nodes as Node[])]
       : [];
 
-    // Auto-inject credentialNode for any apiConnectionNode whose ApiConnection already has a credentialId
-    const extra: Node[] = [];
-    for (const n of base) {
-      if (n.type !== 'apiConnectionNode') continue;
-      const connectionId = n.data.connectionId as string;
-      if (!connectionId) continue;
-      const conn = apiConnectionsRef.current.find(c => c.id === connectionId);
-      if (!conn?.credentialId) continue;
-      if (schemaEdges.some(e => e.target === n.id && e.targetHandle === 'in-credential')) continue;
-      const cred = credentialsRef.current.find(c => c.id === conn.credentialId);
-      extra.push({
-        id: `credential-${conn.credentialId}-for-${n.id}`,
-        type: 'credentialNode',
-        position: { x: n.position.x, y: n.position.y - 160 },
-        data: { label: cred?.key ?? 'Credential', subtitle: 'Credential', credentialId: conn.credentialId },
-      });
-    }
-
-    return extra.length ? [...base, ...extra] : base;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return base;
   }, []);
 
   const initialEdges = useMemo((): Edge[] => {
-    const schemaNodes = (initialSchemaRef.current?.nodes ?? []) as Node[];
-
     // No auto-generated skeleton edges — mirrors initialNodes above.
     const base: Edge[] = initialSchemaRef.current?.edges
       ? [...(initialSchemaRef.current.edges as Edge[])]
       : [];
 
-    // Auto-inject edges for the credential nodes injected in initialNodes
-    const extra: Edge[] = [];
-    for (const n of schemaNodes) {
-      if (n.type !== 'apiConnectionNode') continue;
-      const connectionId = n.data.connectionId as string;
-      if (!connectionId) continue;
-      const conn = apiConnectionsRef.current.find(c => c.id === connectionId);
-      if (!conn?.credentialId) continue;
-      if (base.some(e => e.target === n.id && e.targetHandle === 'in-credential')) continue;
-      const credNodeId = `credential-${conn.credentialId}-for-${n.id}`;
-      extra.push(
-        {
-          id: `e-sb-${credNodeId}`,
-          source: 'streamby', sourceHandle: 'out-credentials',
-          target: credNodeId, targetHandle: 'in-streamby',
-          animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
-        },
-        {
-          id: `e-${credNodeId}`,
-          source: credNodeId, sourceHandle: 'out-credential',
-          target: n.id, targetHandle: 'in-credential',
-          animated: true, style: { stroke: '#818cf8', strokeWidth: 2 },
-        },
-      );
-    }
-
-    return extra.length ? [...base, ...extra] : base;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return base;
   }, []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -267,7 +208,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const noop = useCallback(() => { }, []);
 
   const visibleNodes = useMemo(() => {
-    const connectorTypes = ['apiConnectionNode', 'dataSourceNode'];
+    const connectorTypes = ['connectionNode', 'dataSourceNode'];
     const connected = new Set(edges.flatMap(e => [e.source, e.target].filter(Boolean) as string[]));
     let result = editMode
       ? nodes
@@ -328,12 +269,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const st = src.type ?? '';
     const tt = tgt.type ?? '';
 
-    // StreamBy → Credential node (activates credential management)
-    if (st === 'streambyNode' && tt === 'credentialNode') return sh === 'out-credentials' && th === 'in-streamby';
-
-    // Credential → API connection node (attaches credential to API)
-    if (st === 'credentialNode' && tt === 'apiConnectionNode') return sh === 'out-credential' && th === 'in-credential';
-
     // Client / Request → StreamBy left input
     if ((st === 'clientNode' || st === 'requestNode') && tt === 'streambyNode') return th === 'in-left';
 
@@ -345,8 +280,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'processNode' && tt === 'streambyNode') return th === 'in-top';
 
     // StreamBy bottom ↔ DataSource/API top
-    if (st === 'streambyNode' && (tt === 'dataSourceNode' || tt === 'apiConnectionNode')) return sh === 'out-bottom';
-    if ((st === 'dataSourceNode' || st === 'apiConnectionNode') && tt === 'streambyNode') return th === 'in-bottom';
+    if (st === 'streambyNode' && (tt === 'dataSourceNode' || tt === 'connectionNode')) return sh === 'out-bottom';
+    if ((st === 'dataSourceNode' || st === 'connectionNode') && tt === 'streambyNode') return th === 'in-bottom';
 
     // JsonInput → DataSource left or StreamBy bottom
     if (st === 'jsonInputNode' && tt === 'dataSourceNode') return th === 'in-json';
@@ -371,8 +306,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // CaptionNode out-captions → filterNode input lane
     if (st === 'captionNode' && tt === 'filterNode') return sh === 'out-captions' && th === 'in-filter';
 
-    // ThumbnailNode in-asset: receives asset ref from dataSourceNode or apiConnectionNode
-    if ((st === 'dataSourceNode' || st === 'apiConnectionNode') && tt === 'thumbnailNode') return sh === 'out-stream' && th === 'in-asset';
+    // ThumbnailNode in-asset: receives asset ref from dataSourceNode or connectionNode
+    if ((st === 'dataSourceNode' || st === 'connectionNode') && tt === 'thumbnailNode') return sh === 'out-stream' && th === 'in-asset';
 
     // LodNode out-lod → filterNode (LOD manifest as output)
     if (st === 'lodNode' && tt === 'filterNode') return sh === 'out-lod' && th === 'in-filter';
@@ -430,41 +365,21 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
 
     // ─── Orchestrator side semantics (TCORE-64) ──────────────────────────────
-    // Left = Pipelines, Top = DB/Storage/API + Credentials, Bottom = Exports,
+    // Left = Pipelines, Top = DB/Storage/API, Bottom = Exports,
     // Right = reserved for future Distribution (no node type uses it yet).
     if (st === 'orchestratorNode' && tt === 'pipelineRefNode') return sh === 'out-pipeline' && th === 'in-orchestrator';
     if (st === 'orchestratorNode' && tt === 'exportNode') return sh === 'out-bottom' && th === 'in-orchestrator-bottom';
-    const orchestratorInputTypes = ['dataSourceNode', 'apiConnectionNode', 'ingestNode', 'proceduralAssetNode'];
+    const orchestratorInputTypes = ['dataSourceNode', 'connectionNode', 'ingestNode', 'proceduralAssetNode'];
     if (orchestratorInputTypes.includes(st) && tt === 'orchestratorNode') return sh === 'out-stream' && th === 'in-top';
-    if (st === 'orchestratorNode' && tt === 'credentialNode') return sh === 'out-credentials' && th === 'in-streamby';
 
     return false;
   }, [nodes]);
 
-  const onEdgesDelete = useCallback((deletedEdges: Edge[]) => {
-    if (!projectId) return;
-    for (const edge of deletedEdges) {
-      if (edge.targetHandle === 'in-credential') {
-        const apiNode = nodes.find(n => n.id === edge.target);
-        const connectionId = (apiNode?.data?.connectionId as string) || '';
-        if (connectionId) updateApiConnection(projectId, connectionId, { credentialId: '' }).catch(() => {});
-      }
-    }
-  }, [nodes, projectId]);
-
   const onConnect = useCallback((connection: Connection) => {
     const src = nodes.find(n => n.id === connection.source);
-    const tgt = nodes.find(n => n.id === connection.target);
     const color = edgeColorForSource(connection.sourceHandle, src?.type ?? '');
     setEdges(prev => addEdge({ ...connection, animated: true, style: { stroke: color, strokeWidth: 2 } }, prev));
-    if (src?.type === 'credentialNode' && tgt?.type === 'apiConnectionNode' && projectId) {
-      const credentialId = (src.data.credentialId as string) || '';
-      const connectionId = (tgt.data.connectionId as string) || '';
-      if (credentialId && connectionId) {
-        updateApiConnection(projectId, connectionId, { credentialId }).catch(() => {});
-      }
-    }
-  }, [nodes, setEdges, projectId]);
+  }, [nodes, setEdges]);
 
   const addNode = useCallback((config: PaletteItem, position?: { x: number; y: number }) => {
     const id = `${config.type}-${crypto.randomUUID()}`;
@@ -530,25 +445,15 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       fields: [],
     };
 
-    if (node.type === 'apiConnectionNode') {
-      const conn = apiConnections.find(c => c.id === (node.data.connectionId as string));
+    if (node.type === 'connectionNode') {
+      const conn = connections.find(c => c.id === (node.data.connectionId as string));
       const displayValue = conn ? `${conn.name} — ${conn.apiUrl}` : ((node.data.connectionId as string) ? (node.data.connectionId as string) : 'Not configured');
-      const credEdge = edges.find(e => e.target === node.id && e.targetHandle === 'in-credential');
-      const credNode = credEdge ? nodes.find(n => n.id === credEdge.source) : undefined;
       const fields = [{ key: 'connectionId', label: 'Connection', value: (node.data.connectionId as string) || '', displayValue }];
-      if (credNode) fields.push({ key: 'credentialId', label: 'Credential', value: (credNode.data.credentialId as string) || '', displayValue: (credNode.data.label as string) || 'Connected' });
+      fields.push({ key: 'hasCredential', label: 'Has credential', value: conn?.hasCredential ? 'Yes' : 'No', displayValue: conn?.hasCredential ? 'Yes' : 'No' });
       return {
         title: 'API Connection',
         description: 'External API that StreamBy queries via the data layer.',
         fields,
-      };
-    }
-
-    if (node.type === 'credentialNode') {
-      return {
-        title: 'Credential',
-        description: 'Project credential managed by StreamBy. Connect its output to an API node to authenticate requests.',
-        fields: [{ key: 'credentialId', label: 'Key', value: (node.data.credentialId as string) || '', displayValue: (node.data.label as string) || 'Not configured' }],
       };
     }
 
@@ -898,23 +803,21 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     return null;
-  }, [exportDetails, nodes, edges, apiConnections, allDbConnections, panelRecords, projectId]);
+  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
   const hasChanges = Object.keys(localData).length > 0;
   const isJsonNode = selectedNode?.type === 'jsonInputNode';
-  const isApiNode = selectedNode?.type === 'apiConnectionNode';
+  const isApiNode = selectedNode?.type === 'connectionNode';
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
-  const isCredentialNode = selectedNode?.type === 'credentialNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
   // A pipelineRefNode/exportNode dropped from the palette has no entity id yet — it's a
   // draft until the user names it and confirms creation (TCORE-64).
   const isPipelineDraft = selectedNode?.type === 'pipelineRefNode' && !(selectedNode.data?.pipelineId as string);
   const isExportDraft = selectedNode?.type === 'exportNode' && !(selectedNode.data?.exportId as string);
   const isDraftNode = isPipelineDraft || isExportDraft;
-  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isCredentialNode && !isDraftNode && (isJsonNode || !isCoreNode || !!onSave);
-  const credentialConnected = isCredentialNode && edges.some(e => e.target === selectedNodeId && e.targetHandle === 'in-streamby');
+  const canSave = editMode && hasChanges && !isApiNode && !isDbSourceNode && !isDraftNode && (isJsonNode || !isCoreNode || !!onSave);
 
   // Stable primitives from the saved node data — avoids re-running effects on every ReactFlow state update
   const savedNodeConnId = (selectedNode?.data?.connectionId as string) ?? '';
@@ -1007,9 +910,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       return;
     }
 
-    if (node?.type === 'apiConnectionNode') {
+    if (node?.type === 'connectionNode') {
       const connId = (localData.connectionId as string) ?? node.data.connectionId;
-      const conn = apiConnections.find(c => c.id === connId);
+      const conn = connections.find(c => c.id === connId);
       if (conn) setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: conn.name, subtitle: conn.apiUrl, connectionId: conn.id } } : n));
       setLocalData({});
       return;
@@ -1034,7 +937,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       onSave(localData as Record<string, string | boolean>);
     }
     setLocalData({});
-  }, [selectedNodeId, localData, nodes, apiConnections, allDbConnections, onSave, setNodes]);
+  }, [selectedNodeId, localData, nodes, connections, allDbConnections, onSave, setNodes]);
 
   const [draftCreating, setDraftCreating] = useState(false);
 
@@ -1195,56 +1098,13 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setShowDataSourceModal(false);
   }, [handleSave]);
 
-  const handleOpenCredentialModal = useCallback(() => {
-    const node = nodes.find(n => n.id === selectedNodeId);
-    setCredPickId((node?.data?.credentialId as string) || '');
-    setCredCreateKey('');
-    setCredCreateValue('');
-    setShowCredentialModal(true);
-  }, [nodes, selectedNodeId]);
-
-  const handleSaveCredentialModal = useCallback(async () => {
-    const node = nodes.find(n => n.id === selectedNodeId);
-    if (!node || !projectId || !currentProject) return;
-    let credentialId = credPickId;
-    let credKey = '';
-    if (credPickId === CREATE_CRED_SENTINEL) {
-      if (!credCreateKey || !credCreateValue) return;
-      setCredCreating(true);
-      try {
-        const newCred = await createCredential(projectId, credCreateKey, credCreateValue);
-        const updatedCreds = [...(currentProject.credentials ?? []), newCred];
-        dispatch(setCurrentProject({ ...currentProject, credentials: updatedCreds }));
-        credentialsRef.current = updatedCreds;
-        credentialId = newCred.id;
-        credKey = newCred.key;
-      } catch { setCredCreating(false); return; }
-      setCredCreating(false);
-    } else {
-      credKey = currentProject.credentials?.find(c => c.id === credPickId)?.key ?? '';
-    }
-    setNodes(prev => prev.map(n => n.id === selectedNodeId
-      ? { ...n, data: { ...n.data, label: credKey, credentialId } }
-      : n
-    ));
-    const credEdge = edges.find(e => e.source === selectedNodeId && e.sourceHandle === 'out-credential');
-    const apiNode = credEdge ? nodes.find(n => n.id === credEdge.target) : undefined;
-    const connectionId = (apiNode?.data?.connectionId as string) || '';
-    if (connectionId) {
-      updateApiConnection(projectId, connectionId, { credentialId }).catch(() => {});
-    }
-    setCredPickId('');
-    setCredCreateKey('');
-    setCredCreateValue('');
-    setShowCredentialModal(false);
-  }, [nodes, selectedNodeId, projectId, currentProject, credPickId, credCreateKey, credCreateValue, edges, dispatch, setNodes]);
-
   const handleOpenApiModal = useCallback(() => {
     setLocalData({});
     setApiCreateName('');
     setApiCreateUrl('');
     setApiCreateMethod('GET');
     setApiCreateUsesCredentials(false);
+    setApiCreateToken('');
     setApiCreatePrefix('');
     setShowApiModal(true);
   }, []);
@@ -1255,11 +1115,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       if (!apiCreateName || !apiCreateUrl || !projectId || !currentProject) return;
       setApiCreating(true);
       try {
-        const newConn = await createApiConnection(projectId, {
+        const newConn = await createConnection(projectId, {
           name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
+          ...(apiCreateUsesCredentials && apiCreateToken && { token: apiCreateToken }),
           ...(apiCreateUsesCredentials && apiCreatePrefix && { prefix: apiCreatePrefix }),
         });
-        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...(currentProject.apiConnections ?? []), newConn] }));
+        dispatch(setCurrentProject({ ...currentProject, connections: [...(currentProject.connections ?? []), newConn] }));
         setNodes(prev => prev.map(n => n.id === selectedNodeId
           ? { ...n, data: { ...n.data, label: newConn.name, subtitle: newConn.apiUrl, connectionId: newConn.id } }
           : n
@@ -1275,9 +1136,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setApiCreateUrl('');
     setApiCreateMethod('GET');
     setApiCreateUsesCredentials(false);
+    setApiCreateToken('');
     setApiCreatePrefix('');
     setShowApiModal(false);
-  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, apiCreateUsesCredentials, apiCreatePrefix, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
+  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, apiCreateUsesCredentials, apiCreateToken, apiCreatePrefix, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
 
   const handleOpenNodeLabelModal = useCallback(() => {
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -1345,7 +1207,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 onNodeDoubleClick={handleNodeDoubleClick}
                 onNodesChange={editMode ? onNodesChange : noop}
                 onEdgesChange={editMode ? onEdgesChange : noop}
-                onEdgesDelete={editMode ? onEdgesDelete : undefined}
                 onConnect={editMode ? onConnect : undefined}
                 isValidConnection={editMode ? isValidConnection : undefined}
                 nodeTypes={NODE_TYPES}
@@ -1492,20 +1353,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   <div className={s.nodeActions}>
                     <button type="button" className={s.actionButton} onClick={handleOpenFilterModal}>
                       <FontAwesomeIcon icon={faFilter} />
-                      Configure
-                    </button>
-                  </div>
-                )}
-
-                {isCredentialNode && projectId && (
-                  <div className={s.nodeActions}>
-                    <button
-                      type="button"
-                      className={s.actionButton}
-                      onClick={handleOpenCredentialModal}
-                      disabled={!editMode || !credentialConnected}
-                    >
-                      <FontAwesomeIcon icon={faGear} />
                       Configure
                     </button>
                   </div>
@@ -2038,7 +1885,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         const canSaveApiModal = isCreatingNew ? !!apiCreateName && !!apiCreateUrl && !apiCreating : true;
         const options = [
           { value: '', label: 'Select a connection' },
-          ...apiConnections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` })),
+          ...connections.map(c => ({ value: c.id, label: `${c.name} — ${c.apiUrl}` })),
           { value: CREATE_NEW_SENTINEL, label: '+ Create new connection...' },
         ];
         return (
@@ -2076,71 +1923,28 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                       <input
                         type="checkbox"
                         checked={apiCreateUsesCredentials}
-                        onChange={e => { setApiCreateUsesCredentials(e.target.checked); if (!e.target.checked) setApiCreatePrefix(''); }}
+                        onChange={e => { setApiCreateUsesCredentials(e.target.checked); if (!e.target.checked) { setApiCreateToken(''); setApiCreatePrefix(''); } }}
                         style={{ width: '14px', height: '14px', accentColor: '#818cf8', cursor: 'pointer' }}
                       />
                       Uses a credential
                     </label>
                   </div>
-                  {apiCreateUsesCredentials && (
+                  {apiCreateUsesCredentials && (<>
+                    <div className={s.configRow}>
+                      <label className={s.configLabel}>Secret</label>
+                      <input className={s.configInput} type="password" value={apiCreateToken} onChange={e => setApiCreateToken(e.target.value)} placeholder="sk-..." />
+                    </div>
                     <div className={s.configRow}>
                       <label className={s.configLabel}>Auth Prefix</label>
                       <input className={s.configInput} type="text" value={apiCreatePrefix} onChange={e => setApiCreatePrefix(e.target.value)} placeholder="Bearer" />
                     </div>
-                  )}
+                  </>)}
                 </>)}
               </div>
               <div className={s.modalFooter}>
                 <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowApiModal(false); }}>Cancel</button>
                 <button type="button" className={s.saveButton} onClick={handleSaveApiModal} disabled={!canSaveApiModal}>
                   <FontAwesomeIcon icon={faFloppyDisk} /> {apiCreating ? 'Creating…' : 'Save'}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {showCredentialModal && selectedNodeId && (() => {
-        const isCreatingNew = credPickId === CREATE_CRED_SENTINEL;
-        const canSaveCredModal = isCreatingNew ? !!credCreateKey && !!credCreateValue && !credCreating : !!credPickId && credPickId !== CREATE_CRED_SENTINEL;
-        const options = [
-          { value: '', label: 'Select a credential' },
-          ...(currentProject?.credentials ?? []).map(c => ({ value: c.id, label: c.key })),
-          { value: CREATE_CRED_SENTINEL, label: '+ Create new credential...' },
-        ];
-        return (
-          <div className={s.modalOverlay} onClick={() => setShowCredentialModal(false)}>
-            <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
-              <div className={s.modalHeader}>
-                <span className={s.modalTitle}>
-                  <FontAwesomeIcon icon={faGear} style={{ color: '#818cf8' }} />
-                  Credential Configuration
-                </span>
-                <button className={s.panelClose} type="button" onClick={() => setShowCredentialModal(false)}>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
-              <div className={s.configModalBody}>
-                <div className={s.configRow}>
-                  <label className={s.configLabel}>Credential</label>
-                  <DropdownInput value={credPickId} onChange={setCredPickId} options={options} />
-                </div>
-                {isCreatingNew && (<>
-                  <div className={s.configRow}>
-                    <label className={s.configLabel}>Key</label>
-                    <input className={s.configInput} type="text" value={credCreateKey} onChange={e => setCredCreateKey(e.target.value)} placeholder="MY_API_KEY" />
-                  </div>
-                  <div className={s.configRow}>
-                    <label className={s.configLabel}>Value</label>
-                    <input className={s.configInput} type="password" value={credCreateValue} onChange={e => setCredCreateValue(e.target.value)} placeholder="••••••••" />
-                  </div>
-                </>)}
-              </div>
-              <div className={s.modalFooter}>
-                <button type="button" className={s.cancelButton} onClick={() => setShowCredentialModal(false)}>Cancel</button>
-                <button type="button" className={s.saveButton} onClick={handleSaveCredentialModal} disabled={!canSaveCredModal}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> {credCreating ? 'Creating…' : 'Save'}
                 </button>
               </div>
             </div>

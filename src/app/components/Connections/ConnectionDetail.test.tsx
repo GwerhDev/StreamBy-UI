@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CreateCredentialForm } from './CreateCredentialForm';
+import { ConnectionDetail } from './ConnectionDetail';
 
-describe('CreateCredentialForm', () => {
+describe('ConnectionDetail', () => {
   it('renders without crashing', () => {
     // TODO: implement
   });

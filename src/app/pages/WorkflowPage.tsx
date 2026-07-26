@@ -14,7 +14,7 @@ export function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[]
   const ids = [
     ...builtinDbs.map(db => `builtin-db-${db.name}`),
     ...(project.dbConnections ?? []).map((db: DbConnection) => `db-${db.id}`),
-    ...(project.apiConnections ?? []).map((api: any) => `api-${api.id}`),
+    ...(project.connections ?? []).map((api: any) => `api-${api.id}`),
     ...mgmtStorages.map((_, i) => `mgmt-storage-${i}`),
     ...(project.storageConnections ?? []).map((s: any) => `storage-${s.id}`),
     ...(project.exports ?? []).map((exp: any) => `export-${exp.id}`),
@@ -60,7 +60,7 @@ export function WorkflowPage() {
 
   const resourceKey = [
     ...(currentProject?.dbConnections ?? []).map((db: DbConnection) => db.id),
-    ...(currentProject?.apiConnections ?? []).map((api: any) => api.id),
+    ...(currentProject?.connections ?? []).map((api: any) => api.id),
     ...(currentProject?.storageConnections ?? []).map((s: any) => s.id),
     ...(currentProject?.exports ?? []).map((exp: any) => exp.id),
     ...(currentProject?.pipelines ?? []).map(p => p.id),

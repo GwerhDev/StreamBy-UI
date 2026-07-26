@@ -1,21 +1,21 @@
-export interface ApiConnection {
+export interface Connection {
   id: string;
   name: string;
   apiUrl: string;
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
-  credentialId?: string;
+  hasCredential?: boolean;
   prefix?: string;
   projectId: string;
   createdAt?: string;
 }
 
-export interface ApiConnectionPayload {
+export interface ConnectionPayload {
   name: string;
   apiUrl: string;
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   description?: string;
-  credentialId?: string;
+  token?: string;
   prefix?: string;
 }
 
@@ -25,7 +25,7 @@ export interface StorageConnection {
   id: string;
   name: string;
   type: StorageConnectionType;
-  credentialId: string;
+  hasCredential?: boolean;
   projectId: string;
   createdAt?: string;
   description?: string;
@@ -105,11 +105,10 @@ export interface Project {
   dbType?: string;
   category?: ProjectCategory | null;
   allowedOrigin?: string[];
-  credentials?: { id: string; key: string; value: string }[];
   exports?: Export[];
   workflow?: Workflow;              // single canvas per project
   pipelines?: PipelineRef[];        // lightweight refs; full entities live in the pipelines collection
-  apiConnections?: ApiConnection[];
+  connections?: Connection[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];
   members?: { userId?: string; role: string; archived?: boolean; status?: 'pending' | 'active' }[];
@@ -138,16 +137,6 @@ export interface DeletePipelineFormProps {
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCancel: () => void;
   handleDeletePipeline: (e: React.FormEvent) => void;
-}
-
-export interface DeleteCredentialFormProps {
-  loader: boolean;
-  disabled: boolean;
-  confirmText: string;
-  currentCredential: { id: string; key: string; value: string } | undefined;
-  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleCancel: () => void;
-  handleDeleteCredential: (e: React.FormEvent) => void;
 }
 
 export interface MembershipInfo {
@@ -300,7 +289,7 @@ export interface DbConnection {
   id: string;
   name: string;
   dbType: ExternalDbType;
-  credentialId: string;
+  hasCredential?: boolean;
   projectId: string;
   createdAt?: string;
   description?: string;

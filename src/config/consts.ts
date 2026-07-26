@@ -1,4 +1,4 @@
-import { faCode, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faFingerprint, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
 import type { WorkflowGroup } from "../app/components/NodeViewer/nodePalette";
 
 export const dashboardDirectoryList = [
@@ -29,11 +29,8 @@ export const storageDirectoryList = [
 ];
 
 // databaseDirectoryList removed — Database section now uses dynamic DB connections routing.
-
-export const connectionsDirectoryList = [
-  { name: "API", icon: faCode, path: "connections/api" },
-  { name: "Credentials", icon: faFingerprint, path: "connections/credentials" },
-];
+// connectionsDirectoryList removed — "API" was the only entry (Credentials was retired
+// separately); Connections is now a flat link straight to /connections (see LateralMenu.tsx).
 
 export const settingsDirectoryList = [
   { name: "API Tokens", icon: faKey, path: "settings/api-tokens" },

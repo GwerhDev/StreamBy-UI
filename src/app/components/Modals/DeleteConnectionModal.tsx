@@ -1,4 +1,4 @@
-import s from './DeleteApiConnectionModal.module.css';
+import s from './DeleteConnectionModal.module.css';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,20 +6,20 @@ import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { deleteApiConnection } from '../../../services/connections';
+import { deleteConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { RootState, AppDispatch } from '../../../store';
 import { ModalShell } from './ModalShell';
 
-interface DeleteApiConnectionModalProps {
+interface DeleteConnectionModalProps {
   projectId: string;
   connectionId: string;
   connectionName: string;
   onClose: () => void;
 }
 
-export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionName, onClose }: DeleteApiConnectionModalProps) => {
+export const DeleteConnectionModal = ({ projectId, connectionId, connectionName, onClose }: DeleteConnectionModalProps) => {
   const [loader, setLoader] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const navigate = useNavigate();
@@ -31,14 +31,14 @@ export const DeleteApiConnectionModal = ({ projectId, connectionId, connectionNa
     if (!currentProject) return;
     try {
       setLoader(true);
-      const response = await deleteApiConnection(projectId, connectionId);
-      dispatch(addApiResponse({ message: response.message || 'API connection deleted.', type: 'success' }));
+      const response = await deleteConnection(projectId, connectionId);
+      dispatch(addApiResponse({ message: response.message || 'Connection deleted.', type: 'success' }));
       dispatch(setCurrentProject({
         ...currentProject,
-        apiConnections: currentProject.apiConnections?.filter(c => c.id !== connectionId) ?? [],
+        connections: currentProject.connections?.filter(c => c.id !== connectionId) ?? [],
       }));
       onClose();
-      navigate(`/project/${projectId}/connections/api`);
+      navigate(`/project/${projectId}/connections`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
     } finally {

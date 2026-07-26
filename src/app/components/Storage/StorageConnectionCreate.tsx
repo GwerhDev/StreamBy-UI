@@ -38,16 +38,11 @@ export const StorageConnectionCreate = () => {
   const [sourceMode, setSourceMode] = useState<'integration' | 'manual'>('integration');
   const [name, setName] = useState('');
   const [type, setType] = useState<StorageConnectionType>('s3');
-  const [credentialId, setCredentialId] = useState('');
+  const [credential, setCredential] = useState('');
   const [integrationId, setIntegrationId] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
-
-  const availableCredentials = [
-    { value: '', label: 'Select a credential…' },
-    ...(project?.credentials?.map(c => ({ value: c.id, label: c.key || c.id })) ?? []),
-  ];
 
   const connectedIntegrationIds = [
     ...(project?.dbConnections ?? []),
@@ -57,9 +52,9 @@ export const StorageConnectionCreate = () => {
   const selectedIntegration = integrations.find(i => i.id === integrationId);
 
   useEffect(() => {
-    const hasSource = sourceMode === 'integration' ? !!integrationId : !!(name && credentialId);
+    const hasSource = sourceMode === 'integration' ? !!integrationId : !!(name && credential);
     setDisabled(!hasSource || loading);
-  }, [name, sourceMode, credentialId, integrationId, loading]);
+  }, [name, sourceMode, credential, integrationId, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +71,7 @@ export const StorageConnectionCreate = () => {
             ...(description && { description }),
           }
         : {
-            name, type, credentialId,
+            name, type, credential,
             ...(description && { description }),
           };
       const result = await createStorageConnection(projectId, payload);
@@ -158,13 +153,14 @@ export const StorageConnectionCreate = () => {
             {
               icon: faFingerprint,
               label: 'Credential (JSON config)',
-              value: credentialId || '—',
+              value: credential ? '••••••••' : '—',
               hidden: sourceMode !== 'manual',
               editComponent: (
-                <LabeledSelect
-                  label="Credential (JSON config)" id="storage-credential" name="storage-credential" htmlFor="storage-credential"
-                  value={credentialId} onChange={e => setCredentialId(e.target.value)}
-                  options={availableCredentials}
+                <LabeledInput
+                  label="Credential (JSON config)" name="storage-credential" value={credential} type="text"
+                  placeholder='{"bucket":"...","region":"...","accessKeyId":"...","secretAccessKey":"..."}'
+                  id="storage-credential" htmlFor="storage-credential"
+                  onChange={e => setCredential(e.target.value)} disabled={loading}
                 />
               ),
             },

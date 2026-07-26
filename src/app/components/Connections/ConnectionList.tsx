@@ -1,4 +1,4 @@
-import s from './ApiConnectionList.module.css';
+import s from './ConnectionList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -6,23 +6,23 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTowerBroadcast } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../../store';
 import { ActionButton } from '../Buttons/ActionButton';
-import { ApiConnectionCard } from '../Cards/ApiConnectionCard';
+import { ConnectionCard } from '../Cards/ConnectionCard';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 
-export const ApiConnectionList = () => {
+export const ConnectionList = () => {
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);
-  const connections = currentProjectData?.apiConnections ?? [];
+  const connections = currentProjectData?.connections ?? [];
 
-  const handleCreate = () => navigate(`/project/${projectId}/connections/api/create`);
+  const handleCreate = () => navigate(`/project/${projectId}/connections/create`);
 
   return (
     <div className={s.container}>
       <SectionHeader
         icon={faTowerBroadcast}
-        title="API Connections"
+        title="Connections"
         subtitle="Manage the external API connections for this project."
         action={!loading && !connections.length
           ? <ActionButton icon={faPlus} text="Create new connection" onClick={handleCreate} />
@@ -45,9 +45,9 @@ export const ApiConnectionList = () => {
             <li
               key={conn.id}
               title={conn.name}
-              onClick={() => navigate(`/project/${projectId}/connections/api/${conn.id}`)}
+              onClick={() => navigate(`/project/${projectId}/connections/${conn.id}`)}
             >
-              <ApiConnectionCard connection={conn} />
+              <ConnectionCard connection={conn} />
             </li>
           ))}
           <li className={s.createConnection} onClick={handleCreate}>

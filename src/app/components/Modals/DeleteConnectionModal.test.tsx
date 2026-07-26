@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DeleteCredentialForm } from './DeleteCredentialForm';
+import { DeleteConnectionModal } from './DeleteConnectionModal';
 
-describe('DeleteCredentialForm', () => {
+describe('DeleteConnectionModal', () => {
   it('renders without crashing', () => {
     // TODO: implement
   });

@@ -48,8 +48,8 @@ describe('getPaletteForContext', () => {
       }
     });
 
-    it('keeps the shared ingest, AI and auth nodes', () => {
-      for (const t of ['ingestNode', 'credentialNode', 'apiConnectionNode', 'dataSourceNode', 'proceduralAssetNode', 'pipelineSuggestNode', 'reviewGateNode', 'deliverableNode']) {
+    it('keeps the shared ingest and AI nodes', () => {
+      for (const t of ['ingestNode', 'connectionNode', 'dataSourceNode', 'proceduralAssetNode', 'pipelineSuggestNode', 'reviewGateNode', 'deliverableNode']) {
         expect(types.has(t)).toBe(true);
       }
     });
@@ -71,8 +71,8 @@ describe('getPaletteForContext', () => {
       ]));
     });
 
-    it('hides technical process/AI/auth nodes', () => {
-      for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'credentialNode', 'apiConnectionNode', 'pipelineSuggestNode', 'distributionNode']) {
+    it('hides technical process/AI nodes', () => {
+      for (const t of ['colorGradeNode', 'audioMixNode', 'vfxNode', 'connectionNode', 'pipelineSuggestNode', 'distributionNode']) {
         expect(types.has(t)).toBe(false);
       }
     });
@@ -94,7 +94,7 @@ describe('getPaletteForContext', () => {
     });
 
     it('never nests pipelines (no pipelineRefNode) and excludes orchestration/infra + AI', () => {
-      for (const t of ['pipelineRefNode', 'credentialNode', 'apiConnectionNode', 'dataSourceNode', 'ingestNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
+      for (const t of ['pipelineRefNode', 'connectionNode', 'dataSourceNode', 'ingestNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
         expect(dev.has(t)).toBe(false);
       }
     });
@@ -114,7 +114,7 @@ describe('getGroupsForContext', () => {
   });
 
   it('workflow developer context leads with the production group', () => {
-    expect(groupKeysOf('workflow', 'developer')).toEqual(['production', 'ingest', 'process', 'review', 'delivery', 'ai', 'auth']);
+    expect(groupKeysOf('workflow', 'developer')).toEqual(['production', 'ingest', 'process', 'review', 'delivery', 'ai']);
   });
 
   it('workflow designer context surfaces only production, review, delivery', () => {

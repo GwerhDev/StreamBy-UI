@@ -1,9 +1,9 @@
-import s from './ApiConnectionCard.module.css';
+import s from './ConnectionCard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCode, faFingerprint } from '@fortawesome/free-solid-svg-icons';
-import { ApiConnection } from '../../../interfaces';
+import { Connection } from '../../../interfaces';
 
-export const ApiConnectionCard = ({ connection }: { connection: ApiConnection }) => {
+export const ConnectionCard = ({ connection }: { connection: Connection }) => {
   return (
     <>
       <span className={s.box}>
@@ -16,7 +16,7 @@ export const ApiConnectionCard = ({ connection }: { connection: ApiConnection })
         </span>
       </span>
       <span className={s.icons}>
-        {connection.credentialId && <FontAwesomeIcon icon={faFingerprint} title="Uses credentials" />}
+        {connection.hasCredential && <FontAwesomeIcon icon={faFingerprint} title="Uses credentials" />}
         <span className={s.methodBadge}>{connection.method}</span>
       </span>
     </>

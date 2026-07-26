@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ApiConnectionDetail } from './ApiConnectionDetail';
+import { ConnectionList } from './ConnectionList';
 
-describe('ApiConnectionDetail', () => {
+describe('ConnectionList', () => {
   it('renders without crashing', () => {
     // TODO: implement
   });

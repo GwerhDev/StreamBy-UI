@@ -11,7 +11,7 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
-  faFileExport, faFingerprint, faSitemap,
+  faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
@@ -102,7 +102,6 @@ export const StreamByNode = memo(({ data, selected }: NodeProps<BaseNodeData>) =
     <Handle type="target" position={Position.Left}   id="in-left"   className={s.handle} style={hIn(H_LEFT)} />
     <Handle type="source" position={Position.Top}    id="out-top"   className={s.handle} style={{ ...hOut(H_TOP),    left: '35%' }} />
     <Handle type="target" position={Position.Top}    id="in-top"    className={s.handle} style={{ ...hIn(H_TOP),     left: '65%' }} />
-    <Handle type="source" position={Position.Bottom} id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), left: '15%' }} />
     <Handle type="source" position={Position.Bottom} id="out-bottom"      className={s.handle} style={{ ...hOut(H_BOTTOM), left: '40%' }} />
     <Handle type="target" position={Position.Bottom} id="in-bottom"       className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '65%' }} />
     <Handle type="source" position={Position.Right}  id="out-right" className={s.handle} style={hOut(H_RIGHT)} />
@@ -151,11 +150,10 @@ export const DataSourceNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
 DataSourceNode.displayName = 'DataSourceNode';
 
 // Sits BELOW StreamBy — connects via StreamBy bottom handles
-export const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+export const ConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
     <Handle type="target" position={Position.Top}    id="in-stream"      className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
     <Handle type="source" position={Position.Top}    id="out-stream"     className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
-    <Handle type="target" position={Position.Left}   id="in-credential"  className={s.handle} style={hIn('#818cf8')} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
       <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faGlobe} /></div>
     </div>
@@ -165,23 +163,7 @@ export const ApiConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeDat
     </div>
   </div>
 ));
-ApiConnectionNode.displayName = 'ApiConnectionNode';
-
-// Project credential — receives from StreamBy, can feed into an API connection
-export const CredentialNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Top}   id="in-streamby"    className={s.handle} style={hIn('#818cf8')} />
-    <Handle type="source" position={Position.Right} id="out-credential" className={s.handle} style={hOut('#818cf8')} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#160e38' }}>
-      <div className={s.nodeIcon} style={{ color: '#818cf8' }}><FontAwesomeIcon icon={faFingerprint} /></div>
-    </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>Credential</div>
-    </div>
-  </div>
-));
-CredentialNode.displayName = 'CredentialNode';
+ConnectionNode.displayName = 'ConnectionNode';
 
 // Feeds static JSON into the data layer
 export const JsonInputNode = memo(({ data, selected }: NodeProps<JsonInputNodeData>) => (
@@ -661,13 +643,12 @@ export const ExportNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => 
 ExportNode.displayName = 'ExportNode';
 
 // Workflow-only orchestrator node — visually distinct from StreamByNode (middleware).
-// Side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API + Credentials,
+// Side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API,
 // Bottom = Exports, Right = reserved for future Distribution (not implemented here).
 export const OrchestratorNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${s.streambyNode} ${selected ? s.nodeSelected : ''}`}>
     <Handle type="source" position={Position.Left}   id="out-pipeline"    className={s.handle} style={hOut(H_LEFT)} />
     <Handle type="target" position={Position.Top}    id="in-top"          className={s.handle} style={{ ...hIn(H_TOP), left: '35%' }} />
-    <Handle type="source" position={Position.Top}    id="out-credentials" className={s.handle} style={{ ...hOut('#818cf8'), left: '65%' }} />
     <Handle type="source" position={Position.Bottom} id="out-bottom"      className={s.handle} style={hOut(H_BOTTOM)} />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0a2826' }}>
       <div className={s.nodeIcon} style={{ color: '#14b8a6' }}><FontAwesomeIcon icon={faSitemap} /></div>
@@ -687,8 +668,7 @@ export const nodeTypes = {
   streambyNode: StreamByNode,
   dataSourceNode: DataSourceNode,
   jsonInputNode: JsonInputNode,
-  apiConnectionNode: ApiConnectionNode,
-  credentialNode: CredentialNode,
+  connectionNode: ConnectionNode,
   processNode: ProcessNode,
   filterNode: FilterNode,
   exportNode: ExportNode,

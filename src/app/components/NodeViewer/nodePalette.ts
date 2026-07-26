@@ -7,7 +7,6 @@ import {
   faBoxArchive, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
-  faFingerprint,
   faFileImport, faGears, faClapperboard, faCheckDouble,
   faPalette, faVolumeHigh, faFileVideo, faStar,
   faSitemap,
@@ -17,7 +16,7 @@ import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeT
 // Export-context groups (request → process → response model)
 export type ExportGroup = 'input' | 'data' | 'process' | 'output';
 // Workflow-context groups (production pipeline model)
-export type WorkflowGroup = 'production' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai' | 'auth';
+export type WorkflowGroup = 'production' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai';
 
 export type PaletteItem = {
   type: string;
@@ -33,10 +32,9 @@ export type PaletteItem = {
 
 export const NODE_PALETTE: PaletteItem[] = [
   { type: 'requestNode',       label: 'Request',      subtitle: 'HTTP Request input',  icon: faArrowRightToBracket,  bgColor: '#0e2537', iconColor: H_LEFT,   group: 'input' },
-  { type: 'credentialNode',    label: 'Credential',   subtitle: 'Project credential',  icon: faFingerprint,          bgColor: '#160e38', iconColor: '#818cf8', group: 'data' },
   { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
   { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
-  { type: 'apiConnectionNode', label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
+  { type: 'connectionNode',    label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
   { type: 'processNode',       label: 'Transform',    subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa', group: 'process' },
   { type: 'processNode',       label: 'Auth',         subtitle: 'Authentication',      icon: faKey,          bgColor: '#1e1030', iconColor: H_TOP,    group: 'process' },
   { type: 'processNode',       label: 'Custom',       subtitle: 'Custom step',         icon: faWrench,       bgColor: '#251a0a', iconColor: H_RIGHT,  group: 'process' },
@@ -73,7 +71,7 @@ export const NODE_PALETTE: PaletteItem[] = [
 
 // ─── Export context ──────────────────────────────────────────────────────────
 
-export const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'apiConnectionNode', 'credentialNode', 'filterNode']);
+export const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'connectionNode', 'filterNode']);
 
 export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: string }[] = [
   { key: 'input',   label: 'Input',   color: H_LEFT },
@@ -93,12 +91,11 @@ export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filter
 // offered here — their components remain registered so saved schemas keep rendering.
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
-  'ingestNode', 'dataSourceNode', 'apiConnectionNode',
+  'ingestNode', 'dataSourceNode', 'connectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
   'proceduralAssetNode', 'pipelineSuggestNode',
-  'credentialNode',
 ]);
 
 // Designer mode — production essentials only (shot, assembly, pipeline ref, review, master, deliverable).
@@ -110,7 +107,7 @@ export const WORKFLOW_DESIGNER_TYPES = new Set([
 
 // Pipeline context (TCORE-62) — a Pipeline is a scoped sub-process. Its palette is the
 // production/process/review/delivery core, WITHOUT pipelineRefNode (no nesting) or the
-// orchestration/infra nodes (credential/api/dataSource/ingest/AI) that live in workflow.
+// orchestration/infra nodes (api/dataSource/ingest/AI) that live in workflow.
 export const PIPELINE_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
@@ -127,12 +124,11 @@ export const PIPELINE_DESIGNER_TYPES = new Set([
 // Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
 export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
   shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
-  ingestNode: 'ingest', dataSourceNode: 'ingest', apiConnectionNode: 'ingest',
+  ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review',
   exportFormatNode: 'delivery', deliverableNode: 'delivery', distributionNode: 'delivery',
   proceduralAssetNode: 'ai', pipelineSuggestNode: 'ai',
-  credentialNode: 'auth',
 };
 
 export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon: IconDefinition; color: string }[] = [
@@ -143,7 +139,6 @@ export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon:
   { key: 'review',   label: 'Review',   icon: faCheckDouble,         color: H_REVIEW },
   { key: 'delivery', label: 'Delivery', icon: faRocket,              color: H_JOB },
   { key: 'ai',       label: 'AI',       icon: faWandMagicSparkles,   color: H_REVIEW },
-  { key: 'auth',     label: 'Auth',     icon: faKey,                 color: '#818cf8' },
 ];
 
 // ─── Palette resolution ────────────────────────────────────────────────────────
@@ -189,7 +184,6 @@ export function getGroupsForContext(ctx: NodeContext, mode: 'developer' | 'desig
 
 export const edgeColorForSource = (sourceHandle: string | null | undefined, srcType: string): string => {
   if (srcType === 'jsonInputNode') return H_RIGHT;
-  if (srcType === 'credentialNode' || sourceHandle === 'out-credentials') return '#818cf8';
   if (sourceHandle === 'out-top' || sourceHandle === 'out-process') return H_TOP;
   if (sourceHandle === 'out-bottom' || sourceHandle === 'out-stream') return H_BOTTOM;
   if (sourceHandle === 'out-right' && srcType === 'streambyNode') return H_RIGHT;

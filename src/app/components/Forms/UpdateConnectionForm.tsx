@@ -1,17 +1,16 @@
-import s from './CreateApiConnectionForm.module.css';
+import s from './CreateConnectionForm.module.css';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
-import { createApiConnection } from '../../../services/connections';
-import { updateProjectWorkflow } from '../../../services/workflow';
+import { updateConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faTowerBroadcast, faXmark, faLink, faLayerGroup, faFileLines, faFingerprint, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faXmark, faLink, faLayerGroup, faFileLines, faFingerprint, faLock, faCode } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
 const HTTP_METHODS = [
@@ -22,71 +21,63 @@ const HTTP_METHODS = [
   { value: 'DELETE', label: 'DELETE' },
 ];
 
-export const CreateApiConnectionForm = () => {
-  const { id: projectId } = useParams<{ id: string }>();
+export const UpdateConnectionForm = () => {
+  const { id: projectId, connectionId } = useParams<{ id: string; connectionId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
+  const connection = currentProject?.connections?.find(c => c.id === connectionId);
 
   const [name, setName] = useState('');
   const [apiUrl, setApiUrl] = useState('');
-  const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('POST');
+  const [method, setMethod] = useState<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'>('GET');
   const [description, setDescription] = useState('');
   const [usesCredentials, setUsesCredentials] = useState(false);
-  const [prefix, setAuthPrefix] = useState('');
+  const [token, setToken] = useState('');
+  const [prefix, setPrefix] = useState('');
   const [loading, setLoading] = useState(false);
-  const [disabled, setDisabled] = useState(true);
 
   useEffect(() => {
-    setDisabled(!name || !apiUrl || loading);
-  }, [name, apiUrl, loading]);
+    if (!connection) return;
+    setName(connection.name);
+    setApiUrl(connection.apiUrl);
+    setMethod(connection.method);
+    setDescription(connection.description ?? '');
+    // token always starts blank — the server never sends the real secret back,
+    // only hasCredential. Leaving it blank on submit preserves the existing one.
+    setToken('');
+    setUsesCredentials(!!(connection.prefix || connection.hasCredential));
+    setPrefix(connection.prefix ?? '');
+  }, [connection]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectId || !currentProject) return;
+    if (!projectId || !connectionId || !currentProject) return;
     setLoading(true);
     try {
       const payload = {
         name, apiUrl, method,
         ...(description && { description }),
+        ...(usesCredentials && token && { token }),
         ...(usesCredentials && prefix && { prefix }),
       };
-      const response = await createApiConnection(projectId, payload);
-      if (response) {
-        const existing = currentProject.apiConnections ?? [];
-        const workflow = currentProject.workflow;
-        let updatedWorkflow = workflow;
-
-        if (workflow?.nodeSchema) {
-          const existingNodes = (workflow.nodeSchema.nodes ?? []) as object[];
-          const inputNodes = existingNodes.filter((n: any) => String(n.id).startsWith('api-') || String(n.id).startsWith('db-') || String(n.id).startsWith('storage-'));
-          const newNode = {
-            id: `api-${response.id}`,
-            type: 'apiConnectionNode',
-            position: { x: 80, y: inputNodes.length * 140 + 20 },
-            data: { label: response.name, subtitle: response.method ?? 'GET' },
-          };
-          const updatedSchema = {
-            nodes: [...existingNodes, newNode],
-            edges: workflow.nodeSchema.edges ?? [],
-          };
-          try {
-            updatedWorkflow = await updateProjectWorkflow(projectId, { nodeSchema: updatedSchema });
-          } catch {
-            // best-effort
-          }
-        }
-
-        dispatch(setCurrentProject({ ...currentProject, apiConnections: [...existing, response], workflow: updatedWorkflow }));
-        dispatch(addApiResponse({ message: 'API connection created successfully.', type: 'success' }));
+      const updated = await updateConnection(projectId, connectionId, payload);
+      if (updated && currentProject.connections) {
+        dispatch(setCurrentProject({
+          ...currentProject,
+          connections: currentProject.connections.map(c => c.id === connectionId ? updated : c),
+        }));
+        dispatch(addApiResponse({ message: 'Connection updated successfully.', type: 'success' }));
       }
-      navigate(`/project/${projectId}/connections/api`);
+      navigate(`/project/${projectId}/connections/${connectionId}`);
     } catch (error: any) {
-      dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
+      dispatch(addApiResponse({ message: error.message || 'Failed to update connection.', type: 'error' }));
     } finally {
       setLoading(false);
     }
   };
+
+  if (!connection) return null;
 
   return (
     <div className={s.container}>
@@ -95,7 +86,7 @@ export const CreateApiConnectionForm = () => {
           <CustomForm
             readOnly={false}
             isLoading={loading}
-            header={{ icon: faTowerBroadcast, title: 'New API Connection', subtitle: `Configure an external API connection for ${currentProject?.name}` }}
+            header={{ icon: faPenToSquare, title: 'Edit API Connection', subtitle: connection.name }}
             fields={[
               {
                 icon: faCode,
@@ -154,12 +145,26 @@ export const CreateApiConnectionForm = () => {
                     <input
                       type="checkbox"
                       checked={usesCredentials}
-                      onChange={e => { setUsesCredentials(e.target.checked); if (!e.target.checked) setAuthPrefix(''); }}
+                      onChange={e => { setUsesCredentials(e.target.checked); if (!e.target.checked) { setToken(''); setPrefix(''); } }}
                       disabled={loading}
                       style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#818cf8' }}
                     />
                     This connection uses a credential
                   </label>
+                ),
+              },
+              {
+                icon: faLock,
+                label: 'Secret',
+                value: token ? '••••••••' : (connection.hasCredential ? 'Configured' : '—'),
+                hidden: !usesCredentials,
+                editComponent: (
+                  <LabeledInput
+                    label="Secret (token / API key)" name="token" value={token} type="password"
+                    placeholder={connection.hasCredential ? 'Leave blank to keep current credential' : 'sk-...'}
+                    id="conn-token" htmlFor="conn-token"
+                    onChange={e => setToken(e.target.value)} disabled={loading}
+                  />
                 ),
               },
               {
@@ -171,14 +176,14 @@ export const CreateApiConnectionForm = () => {
                   <LabeledInput
                     label="Auth Prefix (optional)" name="prefix" value={prefix} type="text"
                     placeholder="Bearer" id="conn-auth-prefix" htmlFor="conn-auth-prefix"
-                    onChange={e => setAuthPrefix(e.target.value)} disabled={loading}
+                    onChange={e => setPrefix(e.target.value)} disabled={loading}
                   />
                 ),
               },
             ]}
             actions={
               <>
-                <ActionButton disabled={disabled} icon={faTowerBroadcast} text="Create" type="submit" />
+                <ActionButton disabled={!name || !apiUrl || loading} icon={faPenToSquare} text="Save changes" type="submit" />
                 <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
               </>
             }

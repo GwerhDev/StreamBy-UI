@@ -149,12 +149,12 @@ export function UpdateExportForm() {
     setSubmitting(true);
     try {
       const nodeSchema = nodeViewerRef.current?.getSchema() ?? liveSchemaRef.current as { nodes: object[]; edges: object[] } | null;
-      const apiConns = currentProject.data?.apiConnections || [];
-      const useConnections = nodeSchema?.nodes.some((n: object) => (n as { type?: string }).type === 'apiConnectionNode') ?? false;
+      const conns = currentProject.data?.connections || [];
+      const useConnections = nodeSchema?.nodes.some((n: object) => (n as { type?: string }).type === 'connectionNode') ?? false;
       const useCredentials = useConnections && nodeSchema!.nodes.some((n: object) => {
         const node = n as { type?: string; data?: { connectionId?: string } };
-        if (node.type !== 'apiConnectionNode') return false;
-        return !!apiConns.find(c => c.id === node.data?.connectionId)?.credentialId;
+        if (node.type !== 'connectionNode') return false;
+        return !!conns.find(c => c.id === node.data?.connectionId)?.hasCredential;
       });
       const payload = { name, description, allowedOrigin: selectedAllowedOrigins, private: isPrivate, useConnections, useCredentials, ...(nodeSchema ? { nodeSchema } : {}) };
       await updateExport(id || '', exportId || '', payload);
@@ -312,7 +312,7 @@ export function UpdateExportForm() {
                                 editMode
                                 onSave={handleNodeSave}
                                 onChange={handleSchemaChange}
-                                apiConnections={currentProject.data?.apiConnections || []}
+                                connections={currentProject.data?.connections || []}
                                 projectId={id}
                               />
                             )}
