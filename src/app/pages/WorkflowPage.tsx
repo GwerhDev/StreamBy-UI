@@ -6,16 +6,14 @@ import { setCurrentProject } from '../../store/currentProjectSlice';
 import { addApiResponse } from '../../store/apiResponsesSlice';
 import { getProjectWorkflow, updateProjectWorkflow } from '../../services/workflow';
 import { Project, Workflow, DbConnection } from '../../interfaces';
-import { buildSchemaFromProject, BuiltinDb, MgmtStorage, WorkflowCanvas } from '../components/Workflow/WorkflowCanvas';
+import { buildSchemaFromProject, WorkflowCanvas } from '../components/Workflow/WorkflowCanvas';
 import { NodeSkeleton } from '../components/NodeViewer/NodeSkeleton';
 
 // Derive a sorted fingerprint of all resource node IDs from the current project state.
-export function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[], builtinDbs: BuiltinDb[]): string {
+export function projectFingerprint(project: Project): string {
   const ids = [
-    ...builtinDbs.map(db => `builtin-db-${db.name}`),
     ...(project.dbConnections ?? []).map((db: DbConnection) => `db-${db.id}`),
     ...(project.connections ?? []).map((api: any) => `api-${api.id}`),
-    ...mgmtStorages.map((_, i) => `mgmt-storage-${i}`),
     ...(project.storageConnections ?? []).map((s: any) => `storage-${s.id}`),
     ...(project.exports ?? []).map((exp: any) => `export-${exp.id}`),
     ...(project.pipelines ?? []).map(p => `pipeline-${p.id}`),
@@ -25,7 +23,7 @@ export function projectFingerprint(project: Project, mgmtStorages: MgmtStorage[]
 
 // Derive the same fingerprint from node IDs already saved in the schema.
 export function schemaFingerprint(schemaNodes: any[]): string {
-  const prefixes = ['builtin-db-', 'db-', 'api-', 'mgmt-storage-', 'storage-', 'export-', 'pipeline-'];
+  const prefixes = ['db-', 'api-', 'storage-', 'export-', 'pipeline-'];
   return schemaNodes
     .map((n: any) => n.id as string)
     .filter(id => prefixes.some(p => id?.startsWith(p)))
@@ -36,24 +34,14 @@ export function schemaFingerprint(schemaNodes: any[]): string {
 function buildInitialSchema(
   _projectId: string,
   project: Project,
-  mgmtStorages: MgmtStorage[],
-  builtinDbs: BuiltinDb[],
 ) {
-  return buildSchemaFromProject(project, mgmtStorages, builtinDbs);
+  return buildSchemaFromProject(project);
 }
 
 export function WorkflowPage() {
   const { id: projectId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
-  const mgmtStorages: MgmtStorage[] = useSelector((state: RootState) => {
-    const extended = state as RootState & { management?: { storages?: MgmtStorage[] } };
-    return extended.management?.storages ?? [];
-  });
-  const builtinDbs: BuiltinDb[] = useSelector((state: RootState) => {
-    const extended = state as RootState & { management?: { databases?: BuiltinDb[] } };
-    return extended.management?.databases ?? [];
-  });
 
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,8 +52,6 @@ export function WorkflowPage() {
     ...(currentProject?.storageConnections ?? []).map((s: any) => s.id),
     ...(currentProject?.exports ?? []).map((exp: any) => exp.id),
     ...(currentProject?.pipelines ?? []).map(p => p.id),
-    ...mgmtStorages.map((_, i) => i),
-    ...builtinDbs.map(db => db.name),
   ].join(',');
 
   useEffect(() => {
@@ -123,11 +109,11 @@ export function WorkflowPage() {
         hasLegacyOrchestratorType ||
         hasLegacyOutRightEdges ||
         hasLegacyOrchestratorLayout ||
-        schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject, mgmtStorages, builtinDbs);
+        schemaFingerprint(schemaNodes) !== projectFingerprint(currentProject);
 
       if (isStale) {
         try {
-          const schema = await buildInitialSchema(projectId, currentProject, mgmtStorages, builtinDbs);
+          const schema = await buildInitialSchema(projectId, currentProject);
           wf = await updateProjectWorkflow(projectId, { nodeSchema: schema });
         } catch {
           // Best-effort — proceed without schema; WorkflowCanvas will show TemplatePicker

@@ -495,6 +495,7 @@ export const ExportEditor: React.FC = () => {
                                   onChange={handleSchemaChange}
                                   connections={currentProject.data?.connections || []}
                                   dbConnections={currentProject.data?.dbConnections || []}
+                                  storageConnections={currentProject.data?.storageConnections || []}
                                   projectId={projectId}
                                 />
                               ) : (

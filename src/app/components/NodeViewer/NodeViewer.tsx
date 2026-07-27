@@ -28,8 +28,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, Connection as ConnectionEntity, DbConnection } from '../../../interfaces';
-import { fetchRecords, fetchBuiltinDatabases, fetchTables } from '../../../services/database';
+import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection } from '../../../interfaces';
+import { fetchRecords, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faDatabase, faGlobe, faXmark, faFloppyDisk,
@@ -38,6 +38,7 @@ import {
   faChevronRight,
   faChevronLeft,
   faSitemap,
+  faCloudArrowDown,
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NodeEditContext } from './NodeContext';
@@ -90,6 +91,7 @@ export interface NodeViewerProps {
   onChange?: (schema: { nodes: Node[]; edges: Edge[] }) => void;
   connections?: ConnectionEntity[];
   dbConnections?: DbConnection[];
+  storageConnections?: StorageConnection[];
   projectId?: string;
   canvasOverlay?: React.ReactNode;
   context?: NodeContext;
@@ -115,7 +117,7 @@ const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'expo
 const CREATE_NEW_SENTINEL = '__create_new__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
+  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -136,7 +138,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [modalJsonValue, setModalJsonValue] = useState('{}');
   const [modalJsonValid, setModalJsonValid] = useState(true);
-  const [builtinDbs, setBuiltinDbs] = useState<{ name: string; value: string }[]>([]);
   const [panelTables, setPanelTables] = useState<string[]>([]);
   const [panelTablesLoading, setPanelTablesLoading] = useState(false);
   const [panelRecords, setPanelRecords] = useState<Array<{ id: string; label: string }>>([]);
@@ -154,6 +155,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [showClientModal, setShowClientModal] = useState(false);
   const [clientModalData, setClientModalData] = useState({ name: '', description: '', method: 'GET' });
   const [showDataSourceModal, setShowDataSourceModal] = useState(false);
+  const [showIngestModal, setShowIngestModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [apiCreateName, setApiCreateName] = useState('');
   const [apiCreateUrl, setApiCreateUrl] = useState('');
@@ -165,22 +167,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [showNodeLabelModal, setShowNodeLabelModal] = useState(false);
   const [nodeLabelModalData, setNodeLabelModalData] = useState({ label: '', subtitle: '' });
 
-  // Built-in DBs + external connections combined
-  const allDbConnections: DbConnection[] = useMemo(() => {
-    const builtins: DbConnection[] = builtinDbs.map(db => ({
-      id: db.name,
-      name: db.name,
-      dbType: db.value === 'sql' ? 'postgresql' : 'mongodb',
-      isBuiltin: true,
-      projectId: projectId ?? '',
-    }));
-    return [...builtins, ...dbConnections];
-  }, [builtinDbs, dbConnections, projectId]);
-
-  // Fetch built-in DBs once
-  useEffect(() => {
-    if (projectId) fetchBuiltinDatabases().then(setBuiltinDbs);
-  }, [projectId]);
+  // project.dbConnections already includes builtin rows (source: 'builtin', seeded once by
+  // backfillBuiltinConnections) — no need to separately merge in config.databases via
+  // fetchBuiltinDatabases, which duplicated the same builtin under a second, config-id-keyed entry.
+  const allDbConnections: DbConnection[] = dbConnections;
 
   const initialSchemaRef = useRef(exportDetails.nodeSchema);
 
@@ -250,6 +240,23 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     }
     return map;
   }, [edges]);
+
+  // Nodes whose execution-time persistence requirement (see streamby-core's
+  // NODE_PERSISTENCE) has no connection declared on the node itself. Mirrors executor.ts's
+  // validation, purely as a visual, non-blocking hint; the real check stays server-side at
+  // execution time. There is no project-level fallback — a project can have many database/
+  // storage/API providers connected, so each node always declares its own connection.
+  const unresolvedPersistenceNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const node of nodes) {
+      if (node.type === 'dataSourceNode') {
+        if (!(node.data?.connectionId as string)) ids.add(node.id);
+      } else if (node.type === 'ingestNode') {
+        if (!(node.data?.storageConnectionId as string)) ids.add(node.id);
+      }
+    }
+    return ids;
+  }, [nodes]);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -510,15 +517,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     // ─── Phase 1 — Media Asset Pipeline ───────────────────────────────────────
 
-    if (node.type === 'ingestNode') return {
-      title: 'Ingest',
-      description: 'Imports an uploaded file into the asset pipeline, extracts metadata and creates version 1.',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'label', label: 'Name', value: (node.data.label as string) || '' },
-        { key: 'subtitle', label: 'Description', value: (node.data.subtitle as string) || '' },
-      ],
-    };
+    if (node.type === 'ingestNode') {
+      const selectedStorageConnectionId = (node.data.storageConnectionId as string) ?? '';
+      const storageConnectionLabel = storageConnections.find(c => c.id === selectedStorageConnectionId)?.name ?? selectedStorageConnectionId;
+      return {
+        title: 'Ingest',
+        description: 'Imports an uploaded file into the asset pipeline, extracts metadata and creates version 1.',
+        fields: [
+          { key: 'storageConnectionId', label: 'Storage Connection', value: selectedStorageConnectionId, displayValue: storageConnectionLabel || 'Not configured' },
+          { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
+          { key: 'label', label: 'Name', value: (node.data.label as string) || '' },
+          { key: 'subtitle', label: 'Description', value: (node.data.subtitle as string) || '' },
+        ],
+      };
+    }
 
     if (node.type === 'transcodeNode') return {
       title: 'Transcode',
@@ -811,6 +823,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isJsonNode = selectedNode?.type === 'jsonInputNode';
   const isApiNode = selectedNode?.type === 'connectionNode';
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
+  const isIngestNode = selectedNode?.type === 'ingestNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
   // A pipelineRefNode/exportNode dropped from the palette has no entity id yet — it's a
   // draft until the user names it and confirms creation (TCORE-64).
@@ -927,6 +940,13 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         ...n,
         data: { ...n.data, connectionId, tableName, recordId, subtitle: tableName, ...(dbConn && { label: dbConn.name }) },
       } : n));
+      setLocalData({});
+      return;
+    }
+
+    if (node?.type === 'ingestNode') {
+      const storageConnectionId = (localData.storageConnectionId as string) ?? (node.data.storageConnectionId as string) ?? '';
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, storageConnectionId } } : n));
       setLocalData({});
       return;
     }
@@ -1098,6 +1118,16 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setShowDataSourceModal(false);
   }, [handleSave]);
 
+  const handleOpenIngestModal = useCallback(() => {
+    setLocalData({});
+    setShowIngestModal(true);
+  }, []);
+
+  const handleSaveIngestModal = useCallback(() => {
+    handleSave();
+    setShowIngestModal(false);
+  }, [handleSave]);
+
   const handleOpenApiModal = useCallback(() => {
     setLocalData({});
     setApiCreateName('');
@@ -1184,7 +1214,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   };
 
   return (
-    <NodeEditContext.Provider value={{ editMode, connectedHandles }}>
+    <NodeEditContext.Provider value={{ editMode, connectedHandles, unresolvedPersistenceNodeIds }}>
       <div className={`${s.wrapper} ${editMode ? s.wrapperEditMode : ''}`}>
         <div className={s.canvasArea}>
 
@@ -1270,8 +1300,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 )}
 
                 {(isDbSourceNode || isApiNode) && projectId && (() => {
+                  // Export context wires streamby(out-bottom) -> node; Workflow context wires
+                  // node(out-stream) -> streamby(in-top) — the node is connected to the
+                  // orchestrator in both, just in opposite edge directions.
                   const credentialed = edges.some(
-                    e => e.source === 'streamby' && e.sourceHandle === 'out-bottom' && e.target === selectedNodeId,
+                    e => (e.source === 'streamby' && e.target === selectedNodeId)
+                      || (e.target === 'streamby' && e.source === selectedNodeId),
                   );
                   const hasConnection = !!(selectedNode?.data?.connectionId as string);
                   const hasTable = !!(selectedNode?.data?.tableName as string);
@@ -1299,6 +1333,15 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                     </div>
                   );
                 })()}
+
+                {isIngestNode && editMode && (
+                  <div className={s.nodeActions}>
+                    <button type="button" className={s.actionButton} onClick={handleOpenIngestModal}>
+                      <FontAwesomeIcon icon={faGear} />
+                      Configure
+                    </button>
+                  </div>
+                )}
 
                 {selectedNode?.type === 'processNode' && editMode && (
                   <div className={s.nodeActions}>
@@ -1870,6 +1913,42 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <div className={s.modalFooter}>
                 <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowDataSourceModal(false); }}>Cancel</button>
                 <button type="button" className={s.saveButton} onClick={handleSaveDataSourceModal}>
+                  <FontAwesomeIcon icon={faFloppyDisk} /> Save
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {showIngestModal && selectedNodeId && (() => {
+        const node = nodes.find(n => n.id === selectedNodeId);
+        const storageConnId = (localData.storageConnectionId as string) ?? (node?.data?.storageConnectionId as string) ?? '';
+        const storageOptionsFull = [
+          { value: '', label: 'Select a storage connection' },
+          ...storageConnections.map(c => ({ value: c.id, label: `${c.name} (${c.type})` })),
+        ];
+        return (
+          <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowIngestModal(false); }}>
+            <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+              <div className={s.modalHeader}>
+                <span className={s.modalTitle}>
+                  <FontAwesomeIcon icon={faCloudArrowDown} style={{ color: 'var(--color-badge-builtin)' }} />
+                  Ingest Configuration
+                </span>
+                <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowIngestModal(false); }}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+              <div className={s.configModalBody}>
+                <div className={s.configRow}>
+                  <label className={s.configLabel}>Storage Connection</label>
+                  <DropdownInput value={storageConnId} onChange={v => handleFieldChange('storageConnectionId', v)} options={storageOptionsFull} />
+                </div>
+              </div>
+              <div className={s.modalFooter}>
+                <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowIngestModal(false); }}>Cancel</button>
+                <button type="button" className={s.saveButton} onClick={handleSaveIngestModal}>
                   <FontAwesomeIcon icon={faFloppyDisk} /> Save
                 </button>
               </div>

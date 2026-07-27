@@ -17,9 +17,6 @@ interface Props {
   workflow: Workflow;
 }
 
-export interface MgmtStorage { name: string; type?: string; }
-export interface BuiltinDb { name: string; value: string; }
-
 // Orchestrator side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API,
 // Bottom = Exports, Right = reserved for future Distribution.
 const X_STREAMBY     = 350;
@@ -31,8 +28,6 @@ const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
 
 export function buildSchemaFromProject(
   project: Project,
-  mgmtStorages: MgmtStorage[],
-  builtinDbs: BuiltinDb[],
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -57,37 +52,21 @@ export function buildSchemaFromProject(
     globalX += INPUT_SPACING;
   };
 
-  // --- All DB connections (builtin + external), with collection + record sub-nodes ---
-  const allDbs = [
-    ...builtinDbs.map(db => ({
-      id: `builtin-db-${db.name}`,
-      label: db.name,
-      subtitle: db.value === 'sql' ? 'postgresql' : 'mongodb',
-    })),
-    ...(project.dbConnections ?? []).map((db: DbConnection) => ({
-      id: `db-${db.id}`,
-      label: db.name,
-      subtitle: db.dbType,
-    })),
-  ];
-
-  for (const db of allDbs) {
-    addSimpleInputNode(db.id, 'dataSourceNode', db.label, db.subtitle);
-  }
+  // Builtin database connections already exist as real rows in project.dbConnections
+  // (source: 'builtin', seeded once by backfillBuiltinConnections) — plug-and-play means
+  // the node is born already wired to that row's id, no manual Configure step needed.
+  (project.dbConnections ?? []).forEach((db: DbConnection) => {
+    addSimpleInputNode(`db-${db.id}`, 'dataSourceNode', db.name, db.dbType, { connectionId: db.id });
+  });
 
   // --- API connections ---
   (project.connections ?? []).forEach((api: Connection) => {
     addSimpleInputNode(`api-${api.id}`, 'connectionNode', api.name, api.method);
   });
 
-  // --- Management-level storages ---
-  mgmtStorages.forEach((storage: MgmtStorage, i: number) => {
-    addSimpleInputNode(`mgmt-storage-${i}`, 'ingestNode', storage.name, storage.type ?? 'storage');
-  });
-
-  // --- External storage connections ---
+  // Builtin storage connections — same plug-and-play rationale as dbConnections above.
   (project.storageConnections ?? []).forEach((storage: StorageConnection) => {
-    addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type);
+    addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type, { storageConnectionId: storage.id });
   });
 
   // --- StreamBy orchestrator (center, horizontally aligned to all inputs) ---
@@ -196,6 +175,8 @@ export function WorkflowCanvas({ workflow }: Props) {
         context="workflow"
         exportDetails={exportAdapter}
         editMode={editMode}
+        dbConnections={currentProject?.dbConnections || []}
+        storageConnections={currentProject?.storageConnections || []}
         projectId={projectId}
         canvasOverlay={saveButton}
         onOpenPipeline={pipelineId => navigate(`/project/${projectId}/workflow/pipelines/${pipelineId}/editor`)}

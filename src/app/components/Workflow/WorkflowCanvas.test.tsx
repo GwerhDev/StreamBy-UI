@@ -13,7 +13,7 @@ describe('buildSchemaFromProject', () => {
       ...baseProject,
       pipelines: [{ id: 'p1', name: 'test', order: 0 }, { id: 'p2', name: 'second', order: 1 }],
     };
-    const { nodes } = buildSchemaFromProject(project, [], []);
+    const { nodes } = buildSchemaFromProject(project);
     const pipelineNodes = nodes.filter(n => n.type === 'pipelineRefNode');
 
     expect(pipelineNodes).toHaveLength(2);
@@ -23,7 +23,7 @@ describe('buildSchemaFromProject', () => {
 
   it('connects each pipelineRefNode to the orchestrator via out-pipeline/in-orchestrator', () => {
     const project: Project = { ...baseProject, pipelines: [{ id: 'p1', name: 'test', order: 0 }] };
-    const { edges } = buildSchemaFromProject(project, [], []);
+    const { edges } = buildSchemaFromProject(project);
     const edge = edges.find(e => e.target === 'pipeline-p1');
 
     expect(edge).toBeDefined();
@@ -37,7 +37,7 @@ describe('buildSchemaFromProject', () => {
       ...baseProject,
       exports: [{ id: 'e1', name: 'my-export', method: 'GET' } as any],
     };
-    const { nodes, edges } = buildSchemaFromProject(project, [], []);
+    const { nodes, edges } = buildSchemaFromProject(project);
     const exportNode = nodes.find(n => n.type === 'exportNode');
     const edge = edges.find(e => e.target === 'export-e1');
 
@@ -52,7 +52,7 @@ describe('buildSchemaFromProject', () => {
       ...baseProject,
       dbConnections: [{ id: 'db1', name: 'mydb', dbType: 'postgresql' } as any],
     };
-    const { edges } = buildSchemaFromProject(project, [], []);
+    const { edges } = buildSchemaFromProject(project);
     const edge = edges.find(e => e.source === 'db-db1');
 
     expect(edge?.targetHandle).toBe('in-top');
@@ -60,8 +60,28 @@ describe('buildSchemaFromProject', () => {
   });
 
   it('produces no pipeline/export nodes when the project has neither', () => {
-    const { nodes } = buildSchemaFromProject(baseProject, [], []);
+    const { nodes } = buildSchemaFromProject(baseProject);
     expect(nodes.some(n => n.type === 'pipelineRefNode')).toBe(false);
     expect(nodes.some(n => n.type === 'exportNode')).toBe(false);
+  });
+
+  it('dataSourceNode is born with connectionId already set — builtin/BYOC connections are plug-and-play', () => {
+    const project: Project = {
+      ...baseProject,
+      dbConnections: [{ id: 'db1', name: 'mydb', dbType: 'postgresql' } as any],
+    };
+    const { nodes } = buildSchemaFromProject(project);
+    const node = nodes.find(n => n.type === 'dataSourceNode');
+    expect(node?.data.connectionId).toBe('db1');
+  });
+
+  it('ingestNode is born with storageConnectionId already set — builtin/BYOC connections are plug-and-play', () => {
+    const project: Project = {
+      ...baseProject,
+      storageConnections: [{ id: 'st1', name: 'mystorage', type: 's3' } as any],
+    };
+    const { nodes } = buildSchemaFromProject(project);
+    const node = nodes.find(n => n.type === 'ingestNode');
+    expect(node?.data.storageConnectionId).toBe('st1');
   });
 });

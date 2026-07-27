@@ -1,4 +1,4 @@
-import React, { memo, useContext } from 'react';
+import React, { memo, useContext, useEffect, useRef, useState } from 'react';
 import { NodeProps, Handle as RFHandle, Position, useNodeId } from 'reactflow';
 import { NodeEditContext } from '../NodeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,6 +13,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
+  faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -50,6 +51,58 @@ const Handle = (props: React.ComponentProps<typeof RFHandle>) => {
       {...props}
       style={{ ...props.style, ...extraStyle, opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none' } as React.CSSProperties}
     />
+  );
+};
+
+const PERSISTENCE_WARNING_COPY: Record<'database' | 'storage', string> = {
+  database: 'This node has no database connection — connect one to run this workflow.',
+  storage: 'This node has no storage connection — connect one to run this workflow.',
+};
+
+// Small non-blocking warning shown on nodes whose execution-time persistence requirement
+// (a database/storage connection) has no connection declared on the node itself — see
+// NodeViewer's unresolvedPersistenceNodeIds and executor.ts's matching server-side
+// validation. Click opens a popover explaining what's missing; the underlying node stays
+// fully editable.
+const PersistenceWarningBadge = ({ kind }: { kind: 'database' | 'storage' }) => {
+  const { unresolvedPersistenceNodeIds } = useContext(NodeEditContext);
+  const nodeId = useNodeId() ?? '';
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    // Capture phase, not bubble — ReactFlow's own pane/drag handlers can stop propagation
+    // on mousedown before it would otherwise reach a document-level bubble listener.
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown, true);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown, true);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  if (!unresolvedPersistenceNodeIds.has(nodeId)) return null;
+
+  return (
+    <div ref={ref} className={s.nodeWarningWrap}>
+      <button
+        type="button"
+        className={s.nodeWarningBadge}
+        onClick={e => { e.stopPropagation(); setOpen(v => !v); }}
+      >
+        <FontAwesomeIcon icon={faTriangleExclamation} />
+      </button>
+      {open && (
+        <div className={s.nodeWarningPopover} onClick={e => e.stopPropagation()}>
+          {PERSISTENCE_WARNING_COPY[kind]}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -138,6 +191,7 @@ export const DataSourceNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
     <Handle type="target" position={Position.Top}  id="in-stream"  className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
     <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
     <Handle type="target" position={Position.Left} id="in-json"    className={s.handle} style={hIn(H_RIGHT)} />
+    <PersistenceWarningBadge kind="database" />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
       <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faDatabase} /></div>
     </div>
@@ -203,6 +257,7 @@ export const IngestNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => 
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
     <Handle type="target" position={Position.Left} id="in-left"    className={s.handle} style={hIn(H_LEFT)} />
     <Handle type="source" position={Position.Top}  id="out-stream" className={s.handle} style={hOut(H_BOTTOM)} />
+    <PersistenceWarningBadge kind="storage" />
     <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0d00' }}>
       <div className={s.nodeIcon} style={{ color: H_JOB }}><FontAwesomeIcon icon={faCloudArrowDown} /></div>
     </div>
