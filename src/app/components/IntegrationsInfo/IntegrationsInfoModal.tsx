@@ -5,17 +5,18 @@ import { IntegrationPoolEntry } from '../../../interfaces';
 import { fetchIntegrations } from '../../../store/managementSlice';
 import { AppDispatch } from '../../../store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowsRotate, faDatabase, faCloud, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faDatabase, faCloud, faCircle, faPlug } from '@fortawesome/free-solid-svg-icons';
 import { LockedIntegrationBadge } from '../Integrations/LockedIntegrationBadge';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface IntegrationsInfoModalProps {
   databases: IntegrationPoolEntry[];
   storages: IntegrationPoolEntry[];
+  services: IntegrationPoolEntry[];
   onClose: () => void;
 }
 
-export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ databases, storages, onClose }) => {
+export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ databases, storages, services, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -82,6 +83,31 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
                 <span className={s.itemValue}>{st.provider}</span>
                 {st.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
                 {!st.available && <LockedIntegrationBadge requiredPlan={st.requiredPlan} />}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className={s.divider} />
+
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <FontAwesomeIcon icon={faPlug} className={s.sectionIcon} />
+          <span className={s.sectionTitle}>Services</span>
+          <span className={s.sectionCount}>{services.length}</span>
+        </div>
+        {services.length === 0 ? (
+          <p className={s.empty}>No services connected.</p>
+        ) : (
+          <ul className={s.list}>
+            {services.map(svc => (
+              <li key={svc.id} className={s.item}>
+                <FontAwesomeIcon icon={faCircle} className={s.dot} />
+                <span className={s.itemName}>{svc.name}</span>
+                <span className={s.itemValue}>{svc.provider}</span>
+                {svc.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                {!svc.available && <LockedIntegrationBadge requiredPlan={svc.requiredPlan} />}
               </li>
             ))}
           </ul>

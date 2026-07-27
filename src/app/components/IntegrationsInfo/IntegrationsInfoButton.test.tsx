@@ -21,6 +21,7 @@ const renderButton = (integrations: IntegrationPoolEntry[] = [], loading = false
 
 const db: IntegrationPoolEntry = { id: 'db1', kind: 'database', name: 'Postgres', provider: 'postgresql', source: 'builtin', available: true };
 const storage: IntegrationPoolEntry = { id: 'st1', kind: 'storage', name: 'S3', provider: 's3', source: 'builtin', available: true };
+const service: IntegrationPoolEntry = { id: 'svc1', kind: 'service', name: 'Claude', provider: 'claude', source: 'integration', available: true };
 
 describe('IntegrationsInfoButton', () => {
   it('renders without crashing', () => {
@@ -29,8 +30,13 @@ describe('IntegrationsInfoButton', () => {
   });
 
   it('renders with required props', () => {
-    renderButton([db, storage]);
+    renderButton([db, storage, service]);
     expect(screen.getByRole('button')).toHaveAttribute('title', 'All integrations connected');
+  });
+
+  it('is only "partial" when the service bucket is missing', () => {
+    renderButton([db, storage]);
+    expect(screen.getByRole('button')).toHaveAttribute('title', 'Some integrations connected');
   });
 
   it('handles user interaction', async () => {

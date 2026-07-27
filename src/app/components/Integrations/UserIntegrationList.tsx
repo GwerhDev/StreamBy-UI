@@ -1,21 +1,30 @@
 import s from './UserIntegrationList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlug, faPlus, faTrash, faDatabase, faCloud } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { fetchIntegrations } from '../../../store/managementSlice';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { DeleteUserIntegrationModal } from './DeleteUserIntegrationModal';
-import { IntegrationPoolEntry } from '../../../interfaces';
+import { IntegrationKind, IntegrationPoolEntry, ServiceProviderType } from '../../../interfaces';
+import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
+
+const KIND_ICON: Record<IntegrationKind, typeof faDatabase> = {
+  database: faDatabase,
+  storage: faCloud,
+  service: faPlug,
+};
 
 export const UserIntegrationList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { integrations, loading } = useSelector((state: RootState) => state.management);
   const owned = integrations.filter(i => i.source === 'integration');
 
@@ -24,6 +33,21 @@ export const UserIntegrationList = () => {
   useEffect(() => {
     dispatch(fetchIntegrations());
   }, [dispatch]);
+
+  useEffect(() => {
+    const connected = searchParams.get('connected');
+    const oauthError = searchParams.get('oauthError');
+    if (!connected && !oauthError) return;
+
+    dispatch(fetchIntegrations());
+    if (connected) {
+      dispatch(addApiResponse({ message: `${connected} connected.`, type: 'success' }));
+    } else if (oauthError) {
+      dispatch(addApiResponse({ message: `Failed to connect: ${oauthError}`, type: 'error' }));
+    }
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line
+  }, []);
 
   const handleCreate = () => navigate('/user/integrations/create');
 
@@ -52,7 +76,7 @@ export const UserIntegrationList = () => {
             <li key={entry.id}>
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
-                  <FontAwesomeIcon icon={entry.kind === 'database' ? faDatabase : faCloud} />
+                  <FontAwesomeIcon icon={entry.kind === 'service' ? SERVICE_PROVIDER_ICON[entry.provider as ServiceProviderType] : KIND_ICON[entry.kind]} />
                 </span>
                 <span className={s.cardInfo}>
                   <h4>{entry.name}</h4>

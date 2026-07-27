@@ -21,3 +21,9 @@
   height: 0.85rem;
   flex-shrink: 0;
 }
+
+.providerIcon {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}

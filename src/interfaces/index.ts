@@ -111,6 +111,7 @@ export interface Project {
   connections?: Connection[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];
+  integrationConnections?: IntegrationConnection[];
   members?: { userId?: string; role: string; archived?: boolean; status?: 'pending' | 'active' }[];
   rootFolders?: string[];
   settings?: {
@@ -268,7 +269,8 @@ export interface Database {
   name: string;
 }
 
-export type IntegrationKind = 'database' | 'storage';
+export type IntegrationKind = 'database' | 'storage' | 'service';
+export type ServiceProviderType = 'claude' | 'jira' | 'google';
 
 // Combined pool entry from GET /user/integrations — a user's own (BYOC) integrations plus
 // the deploy's built-ins, the latter gated by subscription. Built-ins without access are
@@ -296,6 +298,22 @@ export interface DbConnection {
   isBuiltin?: boolean;
   integrationId?: string;
   source?: 'builtin' | 'integration' | 'manual';
+}
+
+// A project-level connection to an account-level SERVICE integration (Claude/Jira/Google).
+// Unlike DbConnection/StorageConnection there is no builtin/manual variant — a service
+// connection can only ever come from an account-level UserIntegration, and it carries no
+// credential field at all (the backend never returns one; hasCredential is hardcoded true).
+export interface IntegrationConnection {
+  id: string;
+  name: string;
+  provider: ServiceProviderType;
+  projectId: string;
+  createdAt?: string;
+  description?: string;
+  integrationId: string;
+  source: 'integration';
+  hasCredential?: true;
 }
 
 export interface DbColumnDefinition {

@@ -9,7 +9,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectWorkflow } from '../../../services/workflow';
-import { Connection, DbConnection, Export, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
+import { Connection, DbConnection, Export, IntegrationConnection, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
 import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
 import { TemplatePicker } from './TemplatePicker';
 
@@ -67,6 +67,11 @@ export function buildSchemaFromProject(
   // Builtin storage connections — same plug-and-play rationale as dbConnections above.
   (project.storageConnections ?? []).forEach((storage: StorageConnection) => {
     addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type, { storageConnectionId: storage.id });
+  });
+
+  // Service connections (Claude/Jira/Google) — same plug-and-play rationale as db/storage above.
+  (project.integrationConnections ?? []).forEach((svc: IntegrationConnection) => {
+    addSimpleInputNode(`svc-${svc.id}`, 'integrationConnectionNode', svc.name, svc.provider, { integrationConnectionId: svc.id });
   });
 
   // --- StreamBy orchestrator (center, horizontally aligned to all inputs) ---
@@ -177,6 +182,7 @@ export function WorkflowCanvas({ workflow }: Props) {
         editMode={editMode}
         dbConnections={currentProject?.dbConnections || []}
         storageConnections={currentProject?.storageConnections || []}
+        integrationConnections={currentProject?.integrationConnections || []}
         projectId={projectId}
         canvasOverlay={saveButton}
         onOpenPipeline={pipelineId => navigate(`/project/${projectId}/workflow/pipelines/${pipelineId}/editor`)}

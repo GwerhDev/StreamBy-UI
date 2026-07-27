@@ -1,7 +1,9 @@
 import s from './IntegrationPicker.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { LockedIntegrationBadge } from './LockedIntegrationBadge';
-import { IntegrationKind, IntegrationPoolEntry } from '../../../interfaces';
+import { IntegrationKind, IntegrationPoolEntry, ServiceProviderType } from '../../../interfaces';
+import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface IntegrationPickerProps {
@@ -46,6 +48,9 @@ export const IntegrationPicker = ({ pool, kind, selected, onChange, single, disa
             disabled={disabled || !entry.available}
             onChange={e => toggle(entry.id, e.target.checked)}
           />
+          {entry.kind === 'service' && (
+            <FontAwesomeIcon icon={SERVICE_PROVIDER_ICON[entry.provider as ServiceProviderType]} className={s.providerIcon} />
+          )}
           {entry.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
           {!entry.available && <LockedIntegrationBadge requiredPlan={entry.requiredPlan} />}
         </div>

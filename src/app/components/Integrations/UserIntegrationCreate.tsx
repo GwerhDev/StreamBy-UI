@@ -8,6 +8,7 @@ import { upsertIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createUserIntegration } from '../../../services/userIntegrations';
 import { IntegrationKind } from '../../../interfaces';
+import { API_BASE } from '../../../config/api';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -17,6 +18,7 @@ import { CustomForm } from '../Forms/CustomForm';
 const KINDS = [
   { value: 'database', label: 'Database' },
   { value: 'storage',  label: 'Storage' },
+  { value: 'service',  label: 'Service' },
 ];
 
 const DB_PROVIDERS = [
@@ -30,6 +32,17 @@ const STORAGE_PROVIDERS = [
   { value: 'r2',    label: 'Cloudflare R2' },
   { value: 'azure', label: 'Azure Blob Storage' },
 ];
+
+const SERVICE_PROVIDERS = [
+  { value: 'claude', label: 'Claude' },
+  { value: 'jira',   label: 'Jira' },
+  { value: 'google', label: 'Google' },
+];
+
+// jira/google are OAuth-only — the backend rejects a direct POST for these providers and
+// requires starting the OAuth flow instead, so the create form must never submit for them.
+const OAUTH_PROVIDERS = new Set(['jira', 'google']);
+const isOAuthProvider = (p: string) => OAUTH_PROVIDERS.has(p);
 
 export const UserIntegrationCreate = () => {
   const navigate = useNavigate();
@@ -45,11 +58,12 @@ export const UserIntegrationCreate = () => {
   const [region, setRegion] = useState('');
   const [accessKeyId, setAccessKeyId] = useState('');
   const [secretAccessKey, setSecretAccessKey] = useState('');
+  const [apiKey, setApiKey] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
 
-  const providerOptions = kind === 'database' ? DB_PROVIDERS : STORAGE_PROVIDERS;
+  const providerOptions = kind === 'database' ? DB_PROVIDERS : kind === 'storage' ? STORAGE_PROVIDERS : SERVICE_PROVIDERS;
 
   useEffect(() => {
     setProvider(providerOptions[0].value);
@@ -59,17 +73,26 @@ export const UserIntegrationCreate = () => {
   useEffect(() => {
     const hasCredential = kind === 'database'
       ? !!connectionString
-      : !!(bucket && region && accessKeyId && secretAccessKey);
+      : kind === 'storage'
+      ? !!(bucket && region && accessKeyId && secretAccessKey)
+      : provider === 'claude' ? !!apiKey : true;
     setDisabled(!name || !hasCredential || loading);
-  }, [kind, name, connectionString, bucket, region, accessKeyId, secretAccessKey, loading]);
+  }, [kind, provider, name, connectionString, bucket, region, accessKeyId, secretAccessKey, apiKey, loading]);
+
+  const handleConnectOAuth = () => {
+    window.location.href = `${API_BASE}/streamby/user/integrations/oauth/${provider}/start`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (kind === 'service' && isOAuthProvider(provider)) return;
     setLoading(true);
     try {
       const credential = kind === 'database'
         ? connectionString
-        : { bucket, region, accessKeyId, secretAccessKey };
+        : kind === 'storage'
+        ? { bucket, region, accessKeyId, secretAccessKey }
+        : apiKey;
 
       const integration = await createUserIntegration({
         kind, provider, name,
@@ -141,7 +164,18 @@ export const UserIntegrationCreate = () => {
                   onChange={e => setConnectionString(e.target.value)} disabled={loading}
                 />
               ),
-            }] : [
+            }] : kind === 'service' ? (provider === 'claude' ? [{
+              icon: faKey,
+              label: 'API key',
+              value: apiKey ? '••••••••' : '—',
+              editComponent: (
+                <LabeledInput
+                  label="API key" name="apiKey" value={apiKey} type="password"
+                  placeholder="sk-ant-..." id="integration-api-key" htmlFor="integration-api-key"
+                  onChange={e => setApiKey(e.target.value)} disabled={loading}
+                />
+              ),
+            }] : []) : [
               {
                 icon: faKey,
                 label: 'Bucket',
@@ -205,10 +239,22 @@ export const UserIntegrationCreate = () => {
             },
           ]}
           actions={
-            <>
-              <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
-              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
-            </>
+            kind === 'service' && isOAuthProvider(provider) ? (
+              <>
+                <ActionButton
+                  icon={faPlug}
+                  text={`Conectar con ${provider === 'jira' ? 'Jira' : 'Google'}`}
+                  type="button"
+                  onClick={handleConnectOAuth}
+                />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
+              </>
+            ) : (
+              <>
+                <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
+              </>
+            )
           }
         />
       </form>

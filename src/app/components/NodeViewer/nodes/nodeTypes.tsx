@@ -13,7 +13,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faTriangleExclamation,
+  faTriangleExclamation, faPlug,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -218,6 +218,25 @@ export const ConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
   </div>
 ));
 ConnectionNode.displayName = 'ConnectionNode';
+
+// Feeds a project-level Claude/Jira/Google service connection into the workflow — same
+// "external input" role as ConnectionNode, but backed by an IntegrationConnection instead
+// of an ad hoc API. No PersistenceWarningBadge: this node's backend NodePersistence
+// classification is 'none' (it doesn't write to a real db/storage), matching ConnectionNode.
+export const IntegrationConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Top}    id="in-stream"      className={s.handle} style={{ ...hIn(H_BOTTOM),  left: '35%' }} />
+    <Handle type="source" position={Position.Top}    id="out-stream"     className={s.handle} style={{ ...hOut(H_BOTTOM), left: '65%' }} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0b1e35' }}>
+      <div className={s.nodeIcon} style={{ color: H_LEFT }}><FontAwesomeIcon icon={faPlug} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+IntegrationConnectionNode.displayName = 'IntegrationConnectionNode';
 
 // Feeds static JSON into the data layer
 export const JsonInputNode = memo(({ data, selected }: NodeProps<JsonInputNodeData>) => (
@@ -724,6 +743,7 @@ export const nodeTypes = {
   dataSourceNode: DataSourceNode,
   jsonInputNode: JsonInputNode,
   connectionNode: ConnectionNode,
+  integrationConnectionNode: IntegrationConnectionNode,
   processNode: ProcessNode,
   filterNode: FilterNode,
   exportNode: ExportNode,

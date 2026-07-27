@@ -9,7 +9,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileImport, faGears, faClapperboard, faCheckDouble,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faSitemap,
+  faSitemap, faPlug,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
@@ -42,6 +42,7 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'filterNode',        label: 'Filter',       subtitle: 'Output filter',       icon: faFilter,           bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
   { type: 'filterNode',        label: 'Transform',    subtitle: 'Output transform',    icon: faArrowRight,       bgColor: '#1a1200', iconColor: H_RIGHT,  group: 'output' },
   { type: 'ingestNode',        label: 'Ingest',       subtitle: 'Import asset',        icon: faCloudArrowDown,   bgColor: '#1a0d00', iconColor: H_JOB,    group: 'data' },
+  { type: 'integrationConnectionNode', label: 'Service', subtitle: 'Claude / Jira / Google', icon: faPlug, bgColor: '#0b1e35', iconColor: H_LEFT, group: 'data' },
   { type: 'transcodeNode',     label: 'Transcode',    subtitle: 'Convert media',       icon: faFilm,             bgColor: '#14103a', iconColor: H_TOP,    group: 'process' },
   { type: 'captionNode',       label: 'Captions',     subtitle: 'Generate captions',   icon: faClosedCaptioning, bgColor: '#1a0f2e', iconColor: '#c084fc', group: 'process' },
   { type: 'thumbnailNode',      label: 'Thumbnail',     subtitle: 'Extract frame',       icon: faImage,          bgColor: '#0d2016', iconColor: '#4ade80', group: 'process' },
@@ -91,7 +92,7 @@ export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filter
 // offered here — their components remain registered so saved schemas keep rendering.
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
-  'ingestNode', 'dataSourceNode', 'connectionNode',
+  'ingestNode', 'dataSourceNode', 'connectionNode', 'integrationConnectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
@@ -124,7 +125,7 @@ export const PIPELINE_DESIGNER_TYPES = new Set([
 // Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
 export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
   shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
-  ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest',
+  ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest', integrationConnectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review',
   exportFormatNode: 'delivery', deliverableNode: 'delivery', distributionNode: 'delivery',

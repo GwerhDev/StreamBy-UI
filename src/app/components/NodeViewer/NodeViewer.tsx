@@ -28,7 +28,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection } from '../../../interfaces';
+import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection, IntegrationConnection } from '../../../interfaces';
 import { fetchRecords, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -39,6 +39,7 @@ import {
   faChevronLeft,
   faSitemap,
   faCloudArrowDown,
+  faPlug,
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NodeEditContext } from './NodeContext';
@@ -92,6 +93,7 @@ export interface NodeViewerProps {
   connections?: ConnectionEntity[];
   dbConnections?: DbConnection[];
   storageConnections?: StorageConnection[];
+  integrationConnections?: IntegrationConnection[];
   projectId?: string;
   canvasOverlay?: React.ReactNode;
   context?: NodeContext;
@@ -113,11 +115,11 @@ const CONTAINER_OPTIONS = ['mp4', 'mkv', 'mov', 'webm'].map(c => ({ value: c, la
 const SUBTITLE_SOURCE_OPTIONS = [{ value: 'transcription', label: 'Transcription node' }, { value: 'upload', label: 'External upload' }];
 const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f }));
 const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
-const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'exportNode']);
+const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'exportNode', 'integrationConnectionNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
+  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], integrationConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -156,6 +158,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const [clientModalData, setClientModalData] = useState({ name: '', description: '', method: 'GET' });
   const [showDataSourceModal, setShowDataSourceModal] = useState(false);
   const [showIngestModal, setShowIngestModal] = useState(false);
+  const [showIntegrationConnectionModal, setShowIntegrationConnectionModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [apiCreateName, setApiCreateName] = useState('');
   const [apiCreateUrl, setApiCreateUrl] = useState('');
@@ -253,6 +256,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         if (!(node.data?.connectionId as string)) ids.add(node.id);
       } else if (node.type === 'ingestNode') {
         if (!(node.data?.storageConnectionId as string)) ids.add(node.id);
+      } else if (node.type === 'integrationConnectionNode') {
+        if (!(node.data?.integrationConnectionId as string)) ids.add(node.id);
       }
     }
     return ids;
@@ -376,7 +381,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // Right = reserved for future Distribution (no node type uses it yet).
     if (st === 'orchestratorNode' && tt === 'pipelineRefNode') return sh === 'out-pipeline' && th === 'in-orchestrator';
     if (st === 'orchestratorNode' && tt === 'exportNode') return sh === 'out-bottom' && th === 'in-orchestrator-bottom';
-    const orchestratorInputTypes = ['dataSourceNode', 'connectionNode', 'ingestNode', 'proceduralAssetNode'];
+    const orchestratorInputTypes = ['dataSourceNode', 'connectionNode', 'ingestNode', 'integrationConnectionNode', 'proceduralAssetNode'];
     if (orchestratorInputTypes.includes(st) && tt === 'orchestratorNode') return sh === 'out-stream' && th === 'in-top';
 
     return false;
@@ -526,6 +531,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         fields: [
           { key: 'storageConnectionId', label: 'Storage Connection', value: selectedStorageConnectionId, displayValue: storageConnectionLabel || 'Not configured' },
           { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
+          { key: 'label', label: 'Name', value: (node.data.label as string) || '' },
+          { key: 'subtitle', label: 'Description', value: (node.data.subtitle as string) || '' },
+        ],
+      };
+    }
+
+    if (node.type === 'integrationConnectionNode') {
+      const selectedIntegrationConnectionId = (node.data.integrationConnectionId as string) ?? '';
+      const conn = integrationConnections.find(c => c.id === selectedIntegrationConnectionId);
+      return {
+        title: 'Service Connection',
+        description: 'Feeds a project-level Claude/Jira/Google service connection into the workflow.',
+        fields: [
+          { key: 'integrationConnectionId', label: 'Service Connection', value: selectedIntegrationConnectionId, displayValue: conn ? `${conn.name} (${conn.provider})` : 'Not configured' },
           { key: 'label', label: 'Name', value: (node.data.label as string) || '' },
           { key: 'subtitle', label: 'Description', value: (node.data.subtitle as string) || '' },
         ],
@@ -815,7 +834,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     return null;
-  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId]);
+  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
@@ -824,6 +843,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const isApiNode = selectedNode?.type === 'connectionNode';
   const isDbSourceNode = selectedNode?.type === 'dataSourceNode';
   const isIngestNode = selectedNode?.type === 'ingestNode';
+  const isIntegrationConnectionNode = selectedNode?.type === 'integrationConnectionNode';
   const isCoreNode = selectedNodeId !== null && CORE_NODE_IDS.includes(selectedNodeId);
   // A pipelineRefNode/exportNode dropped from the palette has no entity id yet — it's a
   // draft until the user names it and confirms creation (TCORE-64).
@@ -951,13 +971,24 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       return;
     }
 
+    if (node?.type === 'integrationConnectionNode') {
+      const integrationConnectionId = (localData.integrationConnectionId as string) ?? (node.data.integrationConnectionId as string) ?? '';
+      const conn = integrationConnections.find(c => c.id === integrationConnectionId);
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? {
+        ...n,
+        data: { ...n.data, integrationConnectionId, ...(conn && { label: conn.name, subtitle: conn.provider }) },
+      } : n));
+      setLocalData({});
+      return;
+    }
+
     if (!CORE_NODE_IDS.includes(selectedNodeId)) {
       setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, ...localData } } : n));
     } else if (onSave) {
       onSave(localData as Record<string, string | boolean>);
     }
     setLocalData({});
-  }, [selectedNodeId, localData, nodes, connections, allDbConnections, onSave, setNodes]);
+  }, [selectedNodeId, localData, nodes, connections, allDbConnections, integrationConnections, onSave, setNodes]);
 
   const [draftCreating, setDraftCreating] = useState(false);
 
@@ -1126,6 +1157,16 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const handleSaveIngestModal = useCallback(() => {
     handleSave();
     setShowIngestModal(false);
+  }, [handleSave]);
+
+  const handleOpenIntegrationConnectionModal = useCallback(() => {
+    setLocalData({});
+    setShowIntegrationConnectionModal(true);
+  }, []);
+
+  const handleSaveIntegrationConnectionModal = useCallback(() => {
+    handleSave();
+    setShowIntegrationConnectionModal(false);
   }, [handleSave]);
 
   const handleOpenApiModal = useCallback(() => {
@@ -1337,6 +1378,15 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 {isIngestNode && editMode && (
                   <div className={s.nodeActions}>
                     <button type="button" className={s.actionButton} onClick={handleOpenIngestModal}>
+                      <FontAwesomeIcon icon={faGear} />
+                      Configure
+                    </button>
+                  </div>
+                )}
+
+                {isIntegrationConnectionNode && editMode && (
+                  <div className={s.nodeActions}>
+                    <button type="button" className={s.actionButton} onClick={handleOpenIntegrationConnectionModal}>
                       <FontAwesomeIcon icon={faGear} />
                       Configure
                     </button>
@@ -1949,6 +1999,42 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <div className={s.modalFooter}>
                 <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowIngestModal(false); }}>Cancel</button>
                 <button type="button" className={s.saveButton} onClick={handleSaveIngestModal}>
+                  <FontAwesomeIcon icon={faFloppyDisk} /> Save
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {showIntegrationConnectionModal && selectedNodeId && (() => {
+        const node = nodes.find(n => n.id === selectedNodeId);
+        const connId = (localData.integrationConnectionId as string) ?? (node?.data?.integrationConnectionId as string) ?? '';
+        const options = [
+          { value: '', label: 'Select a service connection' },
+          ...integrationConnections.map(c => ({ value: c.id, label: `${c.name} (${c.provider})` })),
+        ];
+        return (
+          <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowIntegrationConnectionModal(false); }}>
+            <div className={s.configModalContainer} onClick={e => e.stopPropagation()}>
+              <div className={s.modalHeader}>
+                <span className={s.modalTitle}>
+                  <FontAwesomeIcon icon={faPlug} style={{ color: 'var(--color-badge-builtin)' }} />
+                  Service Connection Configuration
+                </span>
+                <button className={s.panelClose} type="button" onClick={() => { setLocalData({}); setShowIntegrationConnectionModal(false); }}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+              <div className={s.configModalBody}>
+                <div className={s.configRow}>
+                  <label className={s.configLabel}>Service Connection</label>
+                  <DropdownInput value={connId} onChange={v => handleFieldChange('integrationConnectionId', v)} options={options} />
+                </div>
+              </div>
+              <div className={s.modalFooter}>
+                <button type="button" className={s.cancelButton} onClick={() => { setLocalData({}); setShowIntegrationConnectionModal(false); }}>Cancel</button>
+                <button type="button" className={s.saveButton} onClick={handleSaveIntegrationConnectionModal}>
                   <FontAwesomeIcon icon={faFloppyDisk} /> Save
                 </button>
               </div>

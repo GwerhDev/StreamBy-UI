@@ -4,7 +4,9 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faPlug, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
+import { ServiceProviderType } from '../../../interfaces';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
 import { WORKFLOW_GROUP_BY_TYPE, WorkflowGroup } from '../NodeViewer/nodePalette';
@@ -58,6 +60,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const isStorageSection = location.pathname.includes(`/project/${id}/storage`);
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
   const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
+  const isServicesSection = location.pathname.includes(`/project/${id}/services`);
   const isSettingsSection = location.pathname.includes(`/project/${id}/settings`);
 
   const [sectionOpen, setSectionOpen] = useState({
@@ -68,6 +71,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     storage: true,
     database: true,
     connections: true,
+    services: true,
     settings: true,
   });
 
@@ -80,9 +84,10 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       storage: prev.storage || isStorageSection,
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
+      services: prev.services || isServicesSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isSettingsSection]);
+  }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isServicesSection, isSettingsSection]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -304,6 +309,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 <button className={`${s.railIcon} ${isStorageSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/storage`)} title="Storage">
                   <FontAwesomeIcon icon={faBox} />
                 </button>
+                <button className={`${s.railIcon} ${isServicesSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/services`)} title="Services">
+                  <FontAwesomeIcon icon={faPlug} />
+                </button>
                 {mode === 'developer' && (<>
                   <button className={`${s.railIcon} ${isDatabaseSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/database`)} title="Database">
                     <FontAwesomeIcon icon={faDatabase} />
@@ -516,6 +524,33 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                             );
                           })}
                         </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* SERVICES */}
+              <div className={s.accordionSection}>
+                <div className={`${s.sectionHeader} ${isServicesSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('services')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/services`); }}>
+                    Services
+                  </span>
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.services ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faPlug} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
+                </div>
+                {sectionOpen.services && (
+                  <div className={s.sectionBody}>
+                    {(currentProject.data?.integrationConnections ?? []).map(conn => {
+                      const linkPath = `/project/${id}/services`;
+                      const isActive = location.pathname === linkPath;
+                      return (
+                        <Link key={conn.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                          <FontAwesomeIcon icon={SERVICE_PROVIDER_ICON[conn.provider as ServiceProviderType]} className={s.serviceIcon} />
+                          <span className={s.serviceName}>{conn.name}</span>
+                        </Link>
                       );
                     })}
                   </div>

@@ -84,4 +84,28 @@ describe('buildSchemaFromProject', () => {
     const node = nodes.find(n => n.type === 'ingestNode');
     expect(node?.data.storageConnectionId).toBe('st1');
   });
+
+  it('draws an integrationConnectionNode per project.integrationConnections[], born with integrationConnectionId already set', () => {
+    const project: Project = {
+      ...baseProject,
+      integrationConnections: [{ id: 'ic1', name: 'My Claude', provider: 'claude', projectId: 'proj1', integrationId: 'int1', source: 'integration' } as any],
+    };
+    const { nodes } = buildSchemaFromProject(project);
+    const node = nodes.find(n => n.type === 'integrationConnectionNode');
+    expect(node).toBeDefined();
+    expect(node?.data.integrationConnectionId).toBe('ic1');
+    expect(node?.data.label).toBe('My Claude');
+    expect(node?.data.subtitle).toBe('claude');
+  });
+
+  it('integrationConnectionNode connects to the orchestrator via in-top, matching the other input node types', () => {
+    const project: Project = {
+      ...baseProject,
+      integrationConnections: [{ id: 'ic1', name: 'My Claude', provider: 'claude', projectId: 'proj1', integrationId: 'int1', source: 'integration' } as any],
+    };
+    const { edges } = buildSchemaFromProject(project);
+    const edge = edges.find(e => e.source === 'svc-ic1');
+    expect(edge?.targetHandle).toBe('in-top');
+    expect(edge?.target).toBe('streamby');
+  });
 });

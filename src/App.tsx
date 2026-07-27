@@ -54,6 +54,8 @@ const DatabaseConnectionCreate = lazy(() => import('./app/pages/DatabaseConnecti
 const DatabaseConnectionDetail = lazy(() => import('./app/pages/DatabaseConnectionDetail').then(module => ({ default: module.DatabaseConnectionDetail })));
 const DatabaseTableCreate      = lazy(() => import('./app/pages/DatabaseTableCreate').then(module => ({ default: module.DatabaseTableCreate })));
 const DatabaseRecords          = lazy(() => import('./app/pages/DatabaseRecords').then(module => ({ default: module.DatabaseRecords })));
+const IntegrationConnections      = lazy(() => import('./app/pages/IntegrationConnections').then(module => ({ default: module.IntegrationConnections })));
+const IntegrationConnectionCreate = lazy(() => import('./app/pages/IntegrationConnectionCreate').then(module => ({ default: module.IntegrationConnectionCreate })));
 const Explore                  = lazy(() => import('./app/pages/Explore').then(module => ({ default: module.Explore })));
 const JobMonitorPage           = lazy(() => import('./app/pages/JobMonitorPage').then(module => ({ default: module.JobMonitorPage })));
 const ReviewListPage           = lazy(() => import('./app/pages/ReviewListPage').then(module => ({ default: module.ReviewListPage })));
@@ -118,6 +120,9 @@ function App() {
                   <Route path="/project/:id/database/:connId/create" element={<DatabaseTableCreate />} />
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
                   <Route path="/project/:id/database/:connId" element={<DatabaseConnectionDetail />} />
+
+                  <Route path="/project/:id/services" element={<IntegrationConnections />} />
+                  <Route path="/project/:id/services/create" element={<IntegrationConnectionCreate />} />
 
                   <Route path="/project/:id/connections" element={<ConnectionsList />} />
                   <Route path="/project/:id/connections/create" element={<ConnectionsCreate />} />

@@ -12,15 +12,21 @@ const makeStore = () =>
     },
   });
 
-const renderModal = (databases: IntegrationPoolEntry[] = [], storages: IntegrationPoolEntry[] = [], onClose = vi.fn()) =>
+const renderModal = (
+  databases: IntegrationPoolEntry[] = [],
+  storages: IntegrationPoolEntry[] = [],
+  services: IntegrationPoolEntry[] = [],
+  onClose = vi.fn(),
+) =>
   render(
     <Provider store={makeStore()}>
-      <IntegrationsInfoModal databases={databases} storages={storages} onClose={onClose} />
+      <IntegrationsInfoModal databases={databases} storages={storages} services={services} onClose={onClose} />
     </Provider>
   );
 
 const db: IntegrationPoolEntry = { id: 'db1', kind: 'database', name: 'Postgres', provider: 'postgresql', source: 'builtin', available: true };
 const lockedStorage: IntegrationPoolEntry = { id: 'st1', kind: 'storage', name: 'S3', provider: 's3', source: 'builtin', available: false, requiredPlan: 'Subscriber' };
+const svc: IntegrationPoolEntry = { id: 'svc1', kind: 'service', name: 'Claude', provider: 'claude', source: 'integration', available: true };
 
 describe('IntegrationsInfoModal', () => {
   it('renders without crashing', () => {
@@ -29,14 +35,15 @@ describe('IntegrationsInfoModal', () => {
   });
 
   it('renders with required props', () => {
-    renderModal([db], [lockedStorage]);
+    renderModal([db], [lockedStorage], [svc]);
     expect(screen.getByText('Postgres')).toBeInTheDocument();
     expect(screen.getByText('S3')).toBeInTheDocument();
+    expect(screen.getByText('Claude')).toBeInTheDocument();
   });
 
   it('handles user interaction', async () => {
     const onClose = vi.fn();
-    renderModal([db], [], onClose);
+    renderModal([db], [], [], onClose);
     const user = userEvent.setup();
     await user.click(screen.getByTitle('Refresh'));
     expect(screen.getByText('Integrations')).toBeInTheDocument();
@@ -48,13 +55,20 @@ describe('IntegrationsInfoModal', () => {
   });
 
   it('shows empty/disabled state', () => {
-    renderModal([], []);
+    renderModal([], [], []);
     expect(screen.getByText('No databases connected.')).toBeInTheDocument();
     expect(screen.getByText('No storage connected.')).toBeInTheDocument();
+    expect(screen.getByText('No services connected.')).toBeInTheDocument();
   });
 
   it('shows a locked badge for unavailable entries', () => {
-    renderModal([], [lockedStorage]);
+    renderModal([], [lockedStorage], []);
     expect(screen.getByText('Requires Subscriber plan')).toBeInTheDocument();
+  });
+
+  it('renders the Services section with its count', () => {
+    renderModal([], [], [svc]);
+    expect(screen.getByText('Services')).toBeInTheDocument();
+    expect(screen.getByText('claude')).toBeInTheDocument();
   });
 });

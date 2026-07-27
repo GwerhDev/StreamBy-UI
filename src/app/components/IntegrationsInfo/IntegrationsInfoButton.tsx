@@ -12,8 +12,9 @@ export const IntegrationsInfoButton: React.FC = () => {
 
   const databaseEntries = integrations.filter(i => i.kind === 'database');
   const storageEntries = integrations.filter(i => i.kind === 'storage');
-  const allConnected = databaseEntries.length > 0 && storageEntries.length > 0;
-  const anyConnected = databaseEntries.length > 0 || storageEntries.length > 0;
+  const serviceEntries = integrations.filter(i => i.kind === 'service');
+  const allConnected = databaseEntries.length > 0 && storageEntries.length > 0 && serviceEntries.length > 0;
+  const anyConnected = databaseEntries.length > 0 || storageEntries.length > 0 || serviceEntries.length > 0;
 
   const getIcon = () => {
     if (loading) return <FontAwesomeIcon icon={faSpinner} spin className={s.icon} />;
@@ -38,6 +39,7 @@ export const IntegrationsInfoButton: React.FC = () => {
         <IntegrationsInfoModal
           databases={databaseEntries}
           storages={storageEntries}
+          services={serviceEntries}
           onClose={() => setIsModalOpen(false)}
         />
       )}

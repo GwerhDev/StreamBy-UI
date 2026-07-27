@@ -1,4 +1,5 @@
 import { API_BASE } from "../config/api";
+import { DbConnection, IntegrationConnection, Project, StorageConnection } from "../interfaces";
 
 export async function exploreProjects() {
   const res = await fetch(`${API_BASE}/streamby/projects/explore`, { credentials: 'include' });
@@ -24,7 +25,7 @@ export async function createProject(payload: { name: string; description?: strin
   return res.json();
 }
 
-export async function addProjectIntegration(projectId: string, integrationId: string) {
+export async function addProjectIntegration(projectId: string, integrationId: string): Promise<{ data: DbConnection | StorageConnection | IntegrationConnection; project: Project }> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/integrations`, {
     method: 'POST',
     credentials: 'include',
