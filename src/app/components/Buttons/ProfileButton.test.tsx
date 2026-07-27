@@ -18,11 +18,11 @@ const store = configureStore({
   },
 });
 
-const renderBtn = (overrides: Partial<Session> = {}) =>
+const renderBtn = (overrides: Partial<Session> = {}, onGoArchive?: () => void) =>
   render(
     <Provider store={store}>
       <MemoryRouter>
-        <ProfileButton userData={{ ...userData, ...overrides }} />
+        <ProfileButton userData={{ ...userData, ...overrides }} onGoArchive={onGoArchive} />
       </MemoryRouter>
     </Provider>
   );
@@ -44,10 +44,20 @@ describe('ProfileButton', () => {
     const user = userEvent.setup();
     renderBtn();
     await user.click(screen.getByText('a'));
-    expect(screen.getByTitle('Home')).toBeInTheDocument();
-    expect(screen.getByTitle('Account')).toBeInTheDocument();
+    expect(screen.getByTitle('Profile')).toBeInTheDocument();
     expect(screen.getByTitle('Archive')).toBeInTheDocument();
+    expect(screen.getByTitle('Integrations')).toBeInTheDocument();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();
+  });
+
+  it('calls onGoArchive and closes the menu when Archive is clicked', async () => {
+    const user = userEvent.setup();
+    const onGoArchive = vi.fn();
+    renderBtn({}, onGoArchive);
+    await user.click(screen.getByText('a'));
+    await user.click(screen.getByTitle('Archive'));
+    expect(onGoArchive).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTitle('Archive')).not.toBeInTheDocument();
   });
 
   it('hides menu after clicking outside', async () => {
@@ -63,8 +73,8 @@ describe('ProfileButton', () => {
       </Provider>
     );
     await user.click(screen.getByText('a'));
-    expect(screen.getByTitle('Home')).toBeInTheDocument();
+    expect(screen.getByTitle('Profile')).toBeInTheDocument();
     await user.click(screen.getByText('outside'));
-    expect(screen.queryByTitle('Home')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Profile')).not.toBeInTheDocument();
   });
 });

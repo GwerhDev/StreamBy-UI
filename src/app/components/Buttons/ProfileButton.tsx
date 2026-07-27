@@ -2,11 +2,8 @@ import s from "./ProfileButton.module.css";
 import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArchive, faGear, faHome, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faArchive, faGear, faPlug, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from '../../../store';
-import { clearCurrentProject } from "../../../store/currentProjectSlice";
 import { Session } from "../../../interfaces";
 
 interface ProfileButtonProps {
@@ -20,16 +17,9 @@ export const ProfileButton = (props: ProfileButtonProps) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
 
   const handleProfileButton = () => {
     setShowCanvas((prev) => !prev);
-  };
-
-  const handleGoHome = () => {
-    dispatch(clearCurrentProject());
-    setShowCanvas(false);
-    navigate("/");
   };
 
   useEffect(() => {
@@ -55,14 +45,14 @@ export const ProfileButton = (props: ProfileButtonProps) => {
         <div className={s.profileButtonContainer}>
           {showCanvas && (
             <ul className={s.accountActionsContainer}>
-              <button title="Home" onClick={handleGoHome}>
-                <FontAwesomeIcon icon={faHome} />
-              </button>
-              <button title="Account" onClick={() => { setShowCanvas(false); navigate('/user/profile'); }}>
+              <button title="Profile" onClick={() => { setShowCanvas(false); navigate('/user/profile'); }}>
                 <FontAwesomeIcon icon={faUser} />
               </button>
               <button title="Archive" onClick={() => { onGoArchive?.(); setShowCanvas(false); }}>
                 <FontAwesomeIcon icon={faArchive} />
+              </button>
+              <button title="Integrations" onClick={() => { setShowCanvas(false); navigate('/user/integrations'); }}>
+                <FontAwesomeIcon icon={faPlug} />
               </button>
               <button title="Settings" onClick={() => { setShowCanvas(false); navigate('/user/settings'); }}>
                 <FontAwesomeIcon icon={faGear} />
