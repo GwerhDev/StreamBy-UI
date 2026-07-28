@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { upsertIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -11,6 +11,7 @@ import { createUserIntegration } from '../../../services/userIntegrations';
 import { API_BASE } from '../../../config/api';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
@@ -182,7 +183,10 @@ export const UserIntegrationCreate = () => {
             },
           ]}
           actions={
-            <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
+            <>
+              <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
+            </>
           }
         />
       </form>
