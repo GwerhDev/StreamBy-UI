@@ -2,7 +2,7 @@ import s from "./ProfileButton.module.css";
 import { useEffect, useRef, useState } from "react";
 import { ProfileCanvas } from "../Canvas/ProfileCanvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArchive, faGear, faPlug, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faArchive, faGear, faGlobe, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { Session } from "../../../interfaces";
 
@@ -52,7 +52,7 @@ export const ProfileButton = (props: ProfileButtonProps) => {
                 <FontAwesomeIcon icon={faArchive} />
               </button>
               <button title="Integrations" onClick={() => { setShowCanvas(false); navigate('/user/integrations'); }}>
-                <FontAwesomeIcon icon={faPlug} />
+                <FontAwesomeIcon icon={faGlobe} />
               </button>
               <button title="Settings" onClick={() => { setShowCanvas(false); navigate('/user/settings'); }}>
                 <FontAwesomeIcon icon={faGear} />

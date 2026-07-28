@@ -121,3 +121,9 @@
 .deleteBtn:hover {
   color: var(--color-danger-200);
 }
+
+.builtinIcon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+}

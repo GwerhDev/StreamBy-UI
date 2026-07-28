@@ -2,102 +2,78 @@ import s from './UserIntegrationCreate.module.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { faPlug, faXmark, faTag, faLayerGroup, faKey, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { upsertIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createUserIntegration } from '../../../services/userIntegrations';
-import { IntegrationKind } from '../../../interfaces';
 import { API_BASE } from '../../../config/api';
 import { LabeledInput } from '../Inputs/LabeledInput';
-import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { CustomForm } from '../Forms/CustomForm';
+import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
 
-const KINDS = [
-  { value: 'database', label: 'Database' },
-  { value: 'storage',  label: 'Storage' },
-  { value: 'service',  label: 'Service' },
+type Choice = 'claude' | 'jira' | 'google' | 'custom' | null;
+
+// Jira/Google OAuth requires client credentials registered on the deploy (config.oauthProviders)
+// that don't exist yet — the backend 503s on /oauth/:provider/start until they're configured.
+// Disable the tiles until that's live rather than let users hit a dead-end redirect.
+const TILES: { id: Choice; label: string; description: string; icon: typeof faWrench; soon?: boolean }[] = [
+  { id: 'claude', label: 'Claude',  description: 'Connect with an API key', icon: SERVICE_PROVIDER_ICON.claude },
+  { id: 'jira',   label: 'Jira',    description: 'Connect via OAuth',        icon: SERVICE_PROVIDER_ICON.jira, soon: true },
+  { id: 'google', label: 'Google',  description: 'Connect via OAuth',        icon: SERVICE_PROVIDER_ICON.google, soon: true },
+  { id: 'custom', label: 'Custom',  description: 'Your own database, storage, or API credential', icon: faWrench },
 ];
-
-const DB_PROVIDERS = [
-  { value: 'postgresql', label: 'PostgreSQL' },
-  { value: 'mongodb',    label: 'MongoDB' },
-];
-
-const STORAGE_PROVIDERS = [
-  { value: 's3',    label: 'AWS S3' },
-  { value: 'gcs',   label: 'Google Cloud Storage' },
-  { value: 'r2',    label: 'Cloudflare R2' },
-  { value: 'azure', label: 'Azure Blob Storage' },
-];
-
-const SERVICE_PROVIDERS = [
-  { value: 'claude', label: 'Claude' },
-  { value: 'jira',   label: 'Jira' },
-  { value: 'google', label: 'Google' },
-];
-
-// jira/google are OAuth-only — the backend rejects a direct POST for these providers and
-// requires starting the OAuth flow instead, so the create form must never submit for them.
-const OAUTH_PROVIDERS = new Set(['jira', 'google']);
-const isOAuthProvider = (p: string) => OAUTH_PROVIDERS.has(p);
 
 export const UserIntegrationCreate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const [kind, setKind] = useState<IntegrationKind>('database');
-  const [provider, setProvider] = useState(DB_PROVIDERS[0].value);
+  const [choice, setChoice] = useState<Choice>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
-  const [connectionString, setConnectionString] = useState('');
-  const [bucket, setBucket] = useState('');
-  const [region, setRegion] = useState('');
-  const [accessKeyId, setAccessKeyId] = useState('');
-  const [secretAccessKey, setSecretAccessKey] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [credential, setCredential] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
 
-  const providerOptions = kind === 'database' ? DB_PROVIDERS : kind === 'storage' ? STORAGE_PROVIDERS : SERVICE_PROVIDERS;
-
   useEffect(() => {
-    setProvider(providerOptions[0].value);
-    // eslint-disable-next-line
-  }, [kind]);
-
-  useEffect(() => {
-    const hasCredential = kind === 'database'
-      ? !!connectionString
-      : kind === 'storage'
-      ? !!(bucket && region && accessKeyId && secretAccessKey)
-      : provider === 'claude' ? !!apiKey : true;
+    const hasCredential = choice === 'claude' ? !!apiKey : choice === 'custom' ? !!credential : false;
     setDisabled(!name || !hasCredential || loading);
-  }, [kind, provider, name, connectionString, bucket, region, accessKeyId, secretAccessKey, apiKey, loading]);
+  }, [choice, name, apiKey, credential, loading]);
 
-  const handleConnectOAuth = () => {
+  const handleConnectOAuth = (provider: 'jira' | 'google') => {
     window.location.href = `${API_BASE}/streamby/user/integrations/oauth/${provider}/start`;
+  };
+
+  const handleSelectTile = (id: Choice) => {
+    if (TILES.find(t => t.id === id)?.soon) return;
+    if (id === 'jira' || id === 'google') {
+      handleConnectOAuth(id);
+      return;
+    }
+    setChoice(id);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (kind === 'service' && isOAuthProvider(provider)) return;
+    if (choice !== 'claude' && choice !== 'custom') return;
     setLoading(true);
     try {
-      const credential = kind === 'database'
-        ? connectionString
-        : kind === 'storage'
-        ? { bucket, region, accessKeyId, secretAccessKey }
-        : apiKey;
+      // Custom has no free-standing provider slot on the backend — it always submits as a
+      // plain database/postgresql credential store, the closest already-valid shape to a
+      // single opaque credential string. The UI never surfaces "Database"/"PostgreSQL"
+      // anywhere; the field is simply labeled "Credential".
+      const payload = choice === 'claude'
+        ? { kind: 'service' as const, provider: 'claude', name, credential: apiKey }
+        : { kind: 'database' as const, provider: 'postgresql', name, credential };
 
       const integration = await createUserIntegration({
-        kind, provider, name,
+        ...payload,
         ...(description && { description }),
-        credential,
       });
       dispatch(addApiResponse({ message: 'Integration created.', type: 'success' }));
       dispatch(upsertIntegration(integration));
@@ -109,38 +85,54 @@ export const UserIntegrationCreate = () => {
     }
   };
 
+  if (!choice) {
+    return (
+      <div className={s.container}>
+        <SectionHeader
+          icon={faArrowLeft}
+          title="New Integration"
+          onIconClick={() => navigate(-1)}
+        />
+        <div className={s.gridWrapper}>
+          <h3 className={s.gridTitle}>Add an integration</h3>
+          <div className={s.grid}>
+            {TILES.map(tile => (
+              <button
+                key={tile.id}
+                type="button"
+                className={`${s.card} ${tile.soon ? s.cardDisabled : ''}`}
+                disabled={tile.soon}
+                onClick={() => handleSelectTile(tile.id)}
+              >
+                <span className={s.cardIcon}><FontAwesomeIcon icon={tile.icon} /></span>
+                <span className={s.cardLabelRow}>
+                  <span className={s.cardLabel}>{tile.label}</span>
+                  {tile.soon && <span className={s.soon}>Soon</span>}
+                </span>
+                <span className={s.cardDesc}>{tile.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={s.container}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={s.formWrapper}>
         <CustomForm
           readOnly={false}
           isLoading={loading}
-          header={{ icon: faPlug, title: 'New Integration', subtitle: 'Connect your own database or storage account' }}
+          header={
+            <SectionHeader
+              icon={faArrowLeft}
+              title={choice === 'claude' ? 'Connect Claude' : 'Custom Integration'}
+              subtitle={choice === 'claude' ? 'Connect with an API key' : 'Your own database, storage, or API credential'}
+              onIconClick={() => setChoice(null)}
+            />
+          }
           fields={[
-            {
-              icon: faLayerGroup,
-              label: 'Kind',
-              value: kind,
-              editComponent: (
-                <LabeledSelect
-                  label="Kind" id="integration-kind" name="integration-kind" htmlFor="integration-kind"
-                  value={kind} onChange={e => setKind(e.target.value as IntegrationKind)}
-                  options={KINDS}
-                />
-              ),
-            },
-            {
-              icon: faLayerGroup,
-              label: 'Provider',
-              value: provider,
-              editComponent: (
-                <LabeledSelect
-                  label="Provider" id="integration-provider" name="integration-provider" htmlFor="integration-provider"
-                  value={provider} onChange={e => setProvider(e.target.value)}
-                  options={providerOptions}
-                />
-              ),
-            },
             {
               icon: faTag,
               label: 'Name',
@@ -148,23 +140,12 @@ export const UserIntegrationCreate = () => {
               editComponent: (
                 <LabeledInput
                   label="Name" name="name" value={name} type="text"
-                  placeholder="My Postgres DB" id="integration-name" htmlFor="integration-name"
+                  placeholder={choice === 'claude' ? 'My Claude Key' : 'My Integration'} id="integration-name" htmlFor="integration-name"
                   onChange={e => setName(e.target.value)} disabled={loading}
                 />
               ),
             },
-            ...(kind === 'database' ? [{
-              icon: faKey,
-              label: 'Connection string',
-              value: connectionString ? '••••••••' : '—',
-              editComponent: (
-                <LabeledInput
-                  label="Connection string" name="connectionString" value={connectionString} type="password"
-                  placeholder="postgres://user:pass@host:5432/db" id="integration-connstring" htmlFor="integration-connstring"
-                  onChange={e => setConnectionString(e.target.value)} disabled={loading}
-                />
-              ),
-            }] : kind === 'service' ? (provider === 'claude' ? [{
+            choice === 'claude' ? {
               icon: faKey,
               label: 'API key',
               value: apiKey ? '••••••••' : '—',
@@ -175,56 +156,18 @@ export const UserIntegrationCreate = () => {
                   onChange={e => setApiKey(e.target.value)} disabled={loading}
                 />
               ),
-            }] : []) : [
-              {
-                icon: faKey,
-                label: 'Bucket',
-                value: bucket || '—',
-                editComponent: (
-                  <LabeledInput
-                    label="Bucket" name="bucket" value={bucket} type="text"
-                    placeholder="my-bucket" id="integration-bucket" htmlFor="integration-bucket"
-                    onChange={e => setBucket(e.target.value)} disabled={loading}
-                  />
-                ),
-              },
-              {
-                icon: faKey,
-                label: 'Region',
-                value: region || '—',
-                editComponent: (
-                  <LabeledInput
-                    label="Region" name="region" value={region} type="text"
-                    placeholder="us-east-1" id="integration-region" htmlFor="integration-region"
-                    onChange={e => setRegion(e.target.value)} disabled={loading}
-                  />
-                ),
-              },
-              {
-                icon: faKey,
-                label: 'Access key ID',
-                value: accessKeyId ? '••••••••' : '—',
-                editComponent: (
-                  <LabeledInput
-                    label="Access key ID" name="accessKeyId" value={accessKeyId} type="password"
-                    placeholder="" id="integration-access-key" htmlFor="integration-access-key"
-                    onChange={e => setAccessKeyId(e.target.value)} disabled={loading}
-                  />
-                ),
-              },
-              {
-                icon: faKey,
-                label: 'Secret access key',
-                value: secretAccessKey ? '••••••••' : '—',
-                editComponent: (
-                  <LabeledInput
-                    label="Secret access key" name="secretAccessKey" value={secretAccessKey} type="password"
-                    placeholder="" id="integration-secret-key" htmlFor="integration-secret-key"
-                    onChange={e => setSecretAccessKey(e.target.value)} disabled={loading}
-                  />
-                ),
-              },
-            ]),
+            } : {
+              icon: faKey,
+              label: 'Credential',
+              value: credential ? '••••••••' : '—',
+              editComponent: (
+                <LabeledInput
+                  label="Credential" name="credential" value={credential} type="password"
+                  placeholder="" id="integration-credential" htmlFor="integration-credential"
+                  onChange={e => setCredential(e.target.value)} disabled={loading}
+                />
+              ),
+            },
             {
               icon: faFileLines,
               label: 'Description',
@@ -239,22 +182,7 @@ export const UserIntegrationCreate = () => {
             },
           ]}
           actions={
-            kind === 'service' && isOAuthProvider(provider) ? (
-              <>
-                <ActionButton
-                  icon={faPlug}
-                  text={`Conectar con ${provider === 'jira' ? 'Jira' : 'Google'}`}
-                  type="button"
-                  onClick={handleConnectOAuth}
-                />
-                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
-              </>
-            ) : (
-              <>
-                <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
-                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
-              </>
-            )
+            <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
           }
         />
       </form>

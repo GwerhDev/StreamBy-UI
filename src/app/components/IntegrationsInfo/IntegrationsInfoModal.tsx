@@ -89,30 +89,30 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
         )}
       </div>
 
-      <div className={s.divider} />
+      {services.length > 0 && (
+        <>
+          <div className={s.divider} />
 
-      <div className={s.section}>
-        <div className={s.sectionHeader}>
-          <FontAwesomeIcon icon={faPlug} className={s.sectionIcon} />
-          <span className={s.sectionTitle}>Services</span>
-          <span className={s.sectionCount}>{services.length}</span>
-        </div>
-        {services.length === 0 ? (
-          <p className={s.empty}>No services connected.</p>
-        ) : (
-          <ul className={s.list}>
-            {services.map(svc => (
-              <li key={svc.id} className={s.item}>
-                <FontAwesomeIcon icon={faCircle} className={s.dot} />
-                <span className={s.itemName}>{svc.name}</span>
-                <span className={s.itemValue}>{svc.provider}</span>
-                {svc.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
-                {!svc.available && <LockedIntegrationBadge requiredPlan={svc.requiredPlan} />}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          <div className={s.section}>
+            <div className={s.sectionHeader}>
+              <FontAwesomeIcon icon={faPlug} className={s.sectionIcon} />
+              <span className={s.sectionTitle}>Services</span>
+              <span className={s.sectionCount}>{services.length}</span>
+            </div>
+            <ul className={s.list}>
+              {services.map(svc => (
+                <li key={svc.id} className={s.item}>
+                  <FontAwesomeIcon icon={faCircle} className={s.dot} />
+                  <span className={s.itemName}>{svc.name}</span>
+                  <span className={s.itemValue}>{svc.provider}</span>
+                  {svc.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                  {!svc.available && <LockedIntegrationBadge requiredPlan={svc.requiredPlan} />}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 };

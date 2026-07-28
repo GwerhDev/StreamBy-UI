@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faIdCard, faPalette, faBell, faCode, faShield, faCreditCard, faArchive,
-  faUser, faChevronDown, faGear, faPlug,
+  faUser, faChevronDown, faGear, faGlobe,
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
@@ -12,7 +12,7 @@ import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { LateralMenu } from '../components/LateralMenu/LateralMenu';
 
 const SETTINGS_CATEGORIES = [
-  { id: 'account',       label: 'Account',       icon: faUser       },
+  { id: 'account',       label: 'Account',       icon: faIdCard     },
   { id: 'appearance',    label: 'Appearance',     icon: faPalette    },
   { id: 'notifications', label: 'Notifications',  icon: faBell       },
   { id: 'editor',        label: 'Editor',         icon: faCode       },
@@ -21,8 +21,8 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const RAIL_ITEMS = [
-  { icon: faIdCard, path: '/user',          label: 'User'     },
-  { icon: faGear,   path: '/user/settings', label: 'Settings' },
+  { icon: faUser, path: '/user',          label: 'User'     },
+  { icon: faGear, path: '/user/settings', label: 'Settings' },
 ];
 
 export default function UserLayout() {
@@ -55,7 +55,7 @@ export default function UserLayout() {
           >
             <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate('/user'); }}>User</span>
             <div className={`${s.sectionChevronWrap} ${userOpen ? s.sectionChevronWrapOpen : ''}`}>
-              <FontAwesomeIcon icon={faIdCard} className={s.sectionChevronSectionIcon} />
+              <FontAwesomeIcon icon={faUser} className={s.sectionChevronSectionIcon} />
               <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function UserLayout() {
                 to="/user/profile"
                 className={`${s.navItem} ${isProfileRoute ? s.activeLink : ''}`}
               >
-                <FontAwesomeIcon icon={faIdCard} />
+                <FontAwesomeIcon icon={faUser} />
                 Profile
               </Link>
               <Link
@@ -79,7 +79,7 @@ export default function UserLayout() {
                 to="/user/integrations"
                 className={`${s.navItem} ${isIntegrationsRoute ? s.activeLink : ''}`}
               >
-                <FontAwesomeIcon icon={faPlug} />
+                <FontAwesomeIcon icon={faGlobe} />
                 Integrations
               </Link>
             </div>

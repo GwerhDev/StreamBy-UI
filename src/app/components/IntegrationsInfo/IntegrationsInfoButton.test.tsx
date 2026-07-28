@@ -34,8 +34,13 @@ describe('IntegrationsInfoButton', () => {
     expect(screen.getByRole('button')).toHaveAttribute('title', 'All integrations connected');
   });
 
-  it('is only "partial" when the service bucket is missing', () => {
+  it('is "all connected" even without any service integration, since services are optional', () => {
     renderButton([db, storage]);
+    expect(screen.getByRole('button')).toHaveAttribute('title', 'All integrations connected');
+  });
+
+  it('is only "partial" when database or storage (the required kinds) is missing', () => {
+    renderButton([db, service]);
     expect(screen.getByRole('button')).toHaveAttribute('title', 'Some integrations connected');
   });
 

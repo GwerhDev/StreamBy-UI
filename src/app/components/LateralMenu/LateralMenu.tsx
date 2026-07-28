@@ -543,16 +543,19 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.services && (
                   <div className={s.sectionBody}>
-                    {(currentProject.data?.integrationConnections ?? []).map(conn => {
-                      const linkPath = `/project/${id}/services`;
-                      const isActive = location.pathname === linkPath;
-                      return (
-                        <Link key={conn.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
-                          <FontAwesomeIcon icon={SERVICE_PROVIDER_ICON[conn.provider as ServiceProviderType]} className={s.serviceIcon} />
-                          <span className={s.serviceName}>{conn.name}</span>
-                        </Link>
-                      );
-                    })}
+                    {(currentProject.data?.integrationConnections ?? []).length
+                      ? currentProject.data!.integrationConnections!.map(conn => {
+                          const linkPath = `/project/${id}/services`;
+                          const isActive = location.pathname === linkPath;
+                          return (
+                            <Link key={conn.id} to={linkPath} className={`${s.serviceHeader} ${isActive ? s.activeLink : ''}`}>
+                              <FontAwesomeIcon icon={SERVICE_PROVIDER_ICON[conn.provider as ServiceProviderType]} className={s.serviceIcon} />
+                              <span className={s.serviceName}>{conn.name}</span>
+                            </Link>
+                          );
+                        })
+                      : <span className={`${s.serviceHeader} ${s.storageItemMuted}`}>No services yet</span>
+                    }
                   </div>
                 )}
               </div>

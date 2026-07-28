@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlug, faPlus, faTrash, faDatabase, faCloud } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faPlug, faPlus, faTrash, faDatabase, faCloud } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { fetchIntegrations } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -14,6 +14,7 @@ import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { DeleteUserIntegrationModal } from './DeleteUserIntegrationModal';
 import { IntegrationKind, IntegrationPoolEntry, ServiceProviderType } from '../../../interfaces';
 import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 const KIND_ICON: Record<IntegrationKind, typeof faDatabase> = {
   database: faDatabase,
@@ -26,7 +27,6 @@ export const UserIntegrationList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { integrations, loading } = useSelector((state: RootState) => state.management);
-  const owned = integrations.filter(i => i.source === 'integration');
 
   const [selected, setSelected] = useState<IntegrationPoolEntry | null>(null);
 
@@ -54,10 +54,10 @@ export const UserIntegrationList = () => {
   return (
     <div className={s.container}>
       <SectionHeader
-        icon={faPlug}
+        icon={faGlobe}
         title="Integrations"
         subtitle="Connect your own databases and storage to use across projects."
-        action={!loading && owned.length === 0 ? <ActionButton icon={faPlus} text="Add integration" onClick={handleCreate} /> : undefined}
+        action={!loading && integrations.length === 0 ? <ActionButton icon={faPlus} text="Add integration" onClick={handleCreate} /> : undefined}
       />
 
       {loading ? (
@@ -66,13 +66,13 @@ export const UserIntegrationList = () => {
             <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
           ))}
         </ul>
-      ) : owned.length === 0 ? (
+      ) : integrations.length === 0 ? (
         <div className={s.emptyState}>
           <EmptyBackground />
         </div>
       ) : (
         <ul>
-          {owned.map(entry => (
+          {integrations.map(entry => (
             <li key={entry.id}>
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
@@ -84,13 +84,17 @@ export const UserIntegrationList = () => {
                 </span>
               </span>
               <span className={s.cardRight}>
-                <button
-                  className={s.deleteBtn}
-                  onClick={() => setSelected(entry)}
-                  title="Delete integration"
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
+                {entry.source === 'builtin' ? (
+                  <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />
+                ) : (
+                  <button
+                    className={s.deleteBtn}
+                    onClick={() => setSelected(entry)}
+                    title="Delete integration"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                )}
               </span>
             </li>
           ))}

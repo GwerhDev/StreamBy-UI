@@ -13,7 +13,9 @@ export const IntegrationsInfoButton: React.FC = () => {
   const databaseEntries = integrations.filter(i => i.kind === 'database');
   const storageEntries = integrations.filter(i => i.kind === 'storage');
   const serviceEntries = integrations.filter(i => i.kind === 'service');
-  const allConnected = databaseEntries.length > 0 && storageEntries.length > 0 && serviceEntries.length > 0;
+  // Services are optional (not every project needs Claude/Jira/Google) — the connected
+  // status only reflects database/storage, the two kinds every project actually needs.
+  const allConnected = databaseEntries.length > 0 && storageEntries.length > 0;
   const anyConnected = databaseEntries.length > 0 || storageEntries.length > 0 || serviceEntries.length > 0;
 
   const getIcon = () => {

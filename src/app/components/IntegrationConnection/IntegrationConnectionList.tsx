@@ -11,6 +11,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { deleteIntegrationConnection } from '../../../services/integrationConnections';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
 
 import { IntegrationConnection, ServiceProviderType } from '../../../interfaces';
@@ -59,6 +60,10 @@ export const IntegrationConnectionList = () => {
             <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
           ))}
         </ul>
+      ) : allConnections.length === 0 ? (
+        <div className={s.emptyState}>
+          <EmptyBackground />
+        </div>
       ) : (
         <ul>
           {allConnections.map(conn => (

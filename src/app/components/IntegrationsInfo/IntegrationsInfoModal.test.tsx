@@ -58,7 +58,11 @@ describe('IntegrationsInfoModal', () => {
     renderModal([], [], []);
     expect(screen.getByText('No databases connected.')).toBeInTheDocument();
     expect(screen.getByText('No storage connected.')).toBeInTheDocument();
-    expect(screen.getByText('No services connected.')).toBeInTheDocument();
+  });
+
+  it('hides the Services section entirely when there are no service integrations', () => {
+    renderModal([], [], []);
+    expect(screen.queryByText('Services')).not.toBeInTheDocument();
   });
 
   it('shows a locked badge for unavailable entries', () => {
