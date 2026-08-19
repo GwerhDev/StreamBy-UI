@@ -71,4 +71,19 @@
   --space-10: 40px;
   --space-11: 44px;
   --space-12: 48px;
+
+  /* ── NHEXA desktop chrome ── shared token names+values across every NHEXA app
+     (Spellcast-Client, Spectra-Client, StreamBy-UI): the app launcher ("Desktop"),
+     the header's AppSwitcher/AccountMenu/NotificationsButton popovers, and the splash
+     all live in the shared "OS shell" outside any single app's own themed content, so
+     they use these instead of this app's own tokens above -- same look, same names, in
+     every app. Keep these names and values identical across the three repos when
+     changing any of them (source of truth: Spellcast-Client's root.css). */
+  --nhexa-desktop-surface: #2b2a2e;
+  --nhexa-desktop-border: #515151;
+  --nhexa-desktop-border-soft: #3c3c3c;
+  --nhexa-desktop-text: #cbcbcb;
+  --nhexa-desktop-text-dim: #7b7b7b;
+  --nhexa-desktop-skeleton-1: #3c3c3c;
+  --nhexa-desktop-skeleton-2: #2f2f2f;
 }
