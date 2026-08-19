@@ -31,38 +31,40 @@ function DefaultLayoutInner() {
   return (
     <main>
       {APP_SWITCHER_URL && <Desktop />}
-      <motion.div
-        className='app-window'
-        data-minimized={minimized}
-        onClick={minimized ? () => setMinimized(false) : undefined}
-        animate={minimized
-          ? { scale: 0.52, y: '-8%', borderRadius: 16 }
-          : { scale: 1, y: 0, borderRadius: 0 }
-        }
-        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-        style={{ transformOrigin: 'center' }}
-      >
-        <div className='dashboard-container'>
+      <div className='app-window'>
+        {/* Stays put, only .dashboard-container below minimizes -- same pattern as
+            Spellcast-Client/Spectra-Client's header bar. */}
+        <div className="header-app">
+          <span className="title-container">
+            {APP_SWITCHER_URL
+              ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
+              : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)
+            }
+          </span>
+          <span className='info-buttons'>
+            <ModeToggle />
+            <NotificationsInfoButton />
+            <IntegrationsInfoButton />
+          </span>
+        </div>
+        <motion.div
+          className='dashboard-container'
+          data-minimized={minimized}
+          onClick={minimized ? () => setMinimized(false) : undefined}
+          animate={minimized
+            ? { scale: 0.52, y: '-8%', borderRadius: 16 }
+            : { scale: 1, y: 0, borderRadius: 0 }
+          }
+          transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+          style={{ transformOrigin: 'center' }}
+        >
           <LateralTab userData={session} projectList={projectList} />
           <div className="project-viewer">
-            <div className="header-app">
-              <span className="title-container">
-                {APP_SWITCHER_URL
-                  ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
-                  : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)
-                }
-              </span>
-              <span className='info-buttons'>
-                <ModeToggle />
-                <NotificationsInfoButton />
-                <IntegrationsInfoButton />
-              </span>
-            </div>
             <Outlet />
           </div>
-        </div>
-        <LogoutModal />
-      </motion.div>
+          <LogoutModal />
+        </motion.div>
+      </div>
     </main>
   );
 }
