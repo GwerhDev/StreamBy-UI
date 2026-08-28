@@ -52,6 +52,17 @@
   border-radius: 100%;
 }
 
+/* The app's own brand mark (moved here from LateralTab's project rail) -- not a project
+   avatar, so it skips the circular-crop/fixed-size rule above. */
+.streamby-brand-icon {
+  width: auto;
+  height: 18px;
+  aspect-ratio: auto;
+  border-radius: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .project-viewer {
   width: 100%;
   flex-grow: 1;

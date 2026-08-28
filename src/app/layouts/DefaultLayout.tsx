@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { RootState, AppDispatch } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useProjects } from '../../hooks/useProjects';
 import { fetchIntegrations } from '../../store/managementSlice';
+import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
 import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
@@ -15,6 +16,7 @@ import { AppSwitcher } from '../components/AppSwitcher/AppSwitcher';
 import { Desktop } from '../components/AppSwitcher/Desktop';
 import { ModeToggle } from '../components/ModeToggle/ModeToggle';
 import { APP_SWITCHER_URL } from '../../config/api';
+import streambyIcon from '../../assets/streamby-icon.svg';
 
 function DefaultLayoutInner() {
   const session = useSelector((state: RootState) => state.session);
@@ -23,10 +25,19 @@ function DefaultLayoutInner() {
   const { name, image } = currentProject.data || {};
   const { projectList } = useProjects();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(fetchIntegrations());
   }, [dispatch]);
+
+  // Moved here from LateralTab's own icon -- the app's own logo/identity belongs in the
+  // header (same spot as the other NHEXA apps' brand mark), not the project rail, which is
+  // just project navigation.
+  const handleGoHome = () => {
+    dispatch(clearCurrentProject());
+    navigate('/');
+  };
 
   return (
     <main>
@@ -36,6 +47,13 @@ function DefaultLayoutInner() {
             Spellcast-Client/Spectra-Client's header bar. */}
         <div className="header-app">
           <span className="title-container">
+            <img
+              className="streamby-brand-icon"
+              onClick={handleGoHome}
+              src={streambyIcon}
+              alt="StreamBy"
+              height={18}
+            />
             {APP_SWITCHER_URL
               ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
               : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)

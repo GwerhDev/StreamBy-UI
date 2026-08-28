@@ -24,7 +24,6 @@ import { AddProjectButton } from '../Buttons/AddProjectButton';
 import { ExploreButton } from '../Buttons/ExploreButton';
 import { clearCurrentProject } from '../../../store/currentProjectSlice';
 import { ProjectList, Session } from '../../../interfaces';
-import streambyIcon from '../../../assets/streamby-icon.svg';
 import { RootState, AppDispatch } from '../../../store';
 import { ProjectsState } from '../../../store/projectsSlice';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
@@ -109,11 +108,6 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
     navigate('/project/create');
   };
 
-  const handleGoHome = () => {
-    dispatch(clearCurrentProject());
-    navigate("/");
-  };
-
   const handleGoArchive = () => {
     dispatch(clearCurrentProject());
     navigate("/user/archive");
@@ -126,9 +120,6 @@ export const LateralTab = (props: { projectList: ProjectsState, userData: Sessio
 
   return (
     <div className={s.container}>
-      <span className={s.iconContainer}>
-        <img onClick={handleGoHome} src={streambyIcon} alt="StreamBy Icon" height={25} />
-      </span>
       <ul className={s.projects}>
         {
           projectsLoading ? (

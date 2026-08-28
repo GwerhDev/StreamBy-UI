@@ -9,16 +9,6 @@
   align-items: center;
 }
 
-.iconContainer {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.iconContainer img {
-  cursor: pointer;
-}
-
 .projects {
   padding: 0;
   padding-block: .5rem;
