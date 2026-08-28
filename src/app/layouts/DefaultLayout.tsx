@@ -46,7 +46,10 @@ function DefaultLayoutInner() {
         {/* Stays put, only .dashboard-container below minimizes -- same pattern as
             Spellcast-Client/Spectra-Client's header bar. */}
         <div className="header-app">
-          <span className="title-container">
+          {/* Same fixed width as LateralTab's own .container (the rail below) so this
+              icon sits centered directly above the rail, not just centered within the
+              header's title block. */}
+          <span className="streamby-brand-slot">
             <img
               className="streamby-brand-icon"
               onClick={handleGoHome}
@@ -54,6 +57,8 @@ function DefaultLayoutInner() {
               alt="StreamBy"
               height={18}
             />
+          </span>
+          <span className="title-container">
             {APP_SWITCHER_URL
               ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
               : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)

@@ -1,12 +1,18 @@
+/* width is explicit (not just whatever the 50px project buttons + padding happen to add up
+   to) so the header's own brand-icon slot (DefaultLayout.tsx's .streamby-brand-slot) can
+   match it exactly and sit centered above this rail, not just above the buttons inside it. */
 .container {
   gap: .5rem;
+  width: 60px;
   padding: 0;
-  flex-grow: 1;
+  flex-grow: 0;
+  flex-shrink: 0;
   min-height: 0;
   padding-inline: .3rem;
   flex-direction: column;
   display: flex;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .projects {
