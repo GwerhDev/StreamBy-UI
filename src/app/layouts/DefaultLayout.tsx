@@ -46,28 +46,35 @@ function DefaultLayoutInner() {
         {/* Stays put, only .dashboard-container below minimizes -- same pattern as
             Spellcast-Client/Spectra-Client's header bar. */}
         <div className="header-app">
-          {/* Same fixed width as LateralTab's own .container (the rail below) so this
-              icon sits centered directly above the rail, not just centered within the
-              header's title block. */}
-          <span className="streamby-brand-slot">
-            <img
-              className="streamby-brand-icon"
-              onClick={handleGoHome}
-              src={streambyIcon}
-              alt="StreamBy"
-              height={18}
-            />
+          {/* Left section: the app's own brand icon, in its own inner slot (same fixed
+              width as LateralTab's .container -- the rail below) so it sits centered
+              directly above the rail, at the start of this outer (1fr) column. */}
+          <span className="header-left">
+            <span className="streamby-brand-slot">
+              <img
+                className="streamby-brand-icon"
+                onClick={handleGoHome}
+                src={streambyIcon}
+                alt="StreamBy"
+                height={18}
+              />
+            </span>
           </span>
+          {/* Center section: current project name/AppSwitcher, centered on the header's
+              real width regardless of how wide header-left/header-right end up being. */}
           <span className="title-container">
             {APP_SWITCHER_URL
               ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
               : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)
             }
           </span>
-          <span className='info-buttons'>
-            <ModeToggle />
-            <NotificationsInfoButton />
-            <IntegrationsInfoButton />
+          {/* Right section: user action icons, at the end of this outer (1fr) column. */}
+          <span className="header-right">
+            <span className='info-buttons'>
+              <ModeToggle />
+              <NotificationsInfoButton />
+              <IntegrationsInfoButton />
+            </span>
           </span>
         </div>
         <motion.div

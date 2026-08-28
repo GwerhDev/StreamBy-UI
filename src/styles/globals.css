@@ -25,23 +25,36 @@
 .info-buttons {
   gap: 1rem;
   display: flex;
-  /* Right grid column of .header-app -- see the comment there. Right-aligned so it hugs
-     the header's right edge exactly like it did as a plain flex sibling before. */
-  justify-content: flex-end;
 }
 
-/* 3-column grid (left slot / title / info-buttons) instead of a flex row: the two outer
-   columns are both 1fr, so they're ALWAYS equal width to each other regardless of which
-   one's content is wider -- title-container (the middle, auto-sized column) ends up
-   centered against the real header width, not just against whatever space happened to be
-   left over after two differently-sized flex siblings. No manual width to keep in sync if
-   a button gets added/resized on either side later. */
+/* 3-column grid: header-left / title-container / header-right. The two outer columns are
+   both 1fr, so they're ALWAYS equal width to each other regardless of which one's content
+   is wider -- title-container (the middle, auto-sized column) ends up centered against the
+   real header width, not just against whatever space happened to be left over after two
+   differently-sized flex siblings. No manual width to keep in sync if a button gets added/
+   resized on either side later. */
 .header-app {
   width: 100%;
   height: 25px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
+}
+
+/* Left grid column -- holds the brand-icon slot at its start. display: flex (not the
+   default block) so justify-content actually pins that slot to the column's start edge
+   instead of drifting to the middle of this now-wider (1fr, matching header-right) column. */
+.header-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Right grid column -- holds info-buttons at its end. */
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .title-container {
@@ -61,13 +74,15 @@
   border-radius: 100%;
 }
 
-/* Left grid column of .header-app -- see the comment there. Left-aligned so the icon
-   still sits near the header's left edge, close to the project rail below it, rather than
-   drifting to the middle of this now-wider (1fr, matching info-buttons) column. */
+/* The app's own brand icon's own inner slot -- same fixed width as LateralTab.module.css's
+   .container (60px, the project rail below), so the icon centers directly above the rail
+   instead of just floating somewhere inside header-left's (wider, 1fr) column. */
 .streamby-brand-slot {
+  width: 60px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 /* The app's own brand mark (moved here from LateralTab's project rail) -- not a project
