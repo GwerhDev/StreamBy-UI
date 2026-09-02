@@ -1,4 +1,6 @@
-# React + TypeScript + Vite
+# StreamBy UI
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -52,3 +54,11 @@ export default tseslint.config({
   },
 })
 ```
+
+---
+
+## License
+
+Copyright (C) 2026 TerminalCore Labs
+
+This program is licensed under the [GNU Affero General Public License v3.0](./LICENSE) (AGPL-3.0-only). Because StreamBy is offered as a hosted web application, the AGPL's network-use clause applies: anyone who runs a modified version of this app and lets others interact with it over a network must also make that modified source available to those users. See the "About" section under User Settings for the license and source code links.

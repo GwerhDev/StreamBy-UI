@@ -8,10 +8,11 @@ import {
   faGlobe, faCompress, faSlidersH, faIndent, faObjectGroup,
   faMap, faAt, faMobile, faLink, faHashtag, faKey,
   faFingerprint, faTerminal, faBuilding, faChartBar, faUsers, faRocket,
-  faGear,
+  faGear, faCircleInfo, faScaleBalanced, faCodeBranch,
 } from '@fortawesome/free-solid-svg-icons';
+import { EXTERNAL_LINKS } from '../../../config/externalLinks';
 
-type CategoryId = 'account' | 'appearance' | 'notifications' | 'editor' | 'security' | 'billing';
+type CategoryId = 'account' | 'appearance' | 'notifications' | 'editor' | 'security' | 'billing' | 'about';
 
 interface SettingItem {
   icon: typeof faUser;
@@ -82,6 +83,15 @@ const buildCategories = (): Category[] => [
       { icon: faChartBar,   label: 'Usage',          description: 'Storage, requests, and bandwidth consumption', soon: true },
       { icon: faUsers,      label: 'Seat management', description: 'Manage members and seats across your organization', soon: true },
       { icon: faCreditCard, label: 'Billing info',   description: 'Payment methods and invoice history', soon: true },
+    ],
+  },
+  {
+    // TCORE-84: AGPLv3 network-use clause -- an always-reachable notice with the license
+    // and a link to the source code.
+    id: 'about', label: 'About', icon: faCircleInfo,
+    items: [
+      { icon: faScaleBalanced, label: 'License', description: 'StreamBy is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only)', href: EXTERNAL_LINKS.licenseText },
+      { icon: faCodeBranch,    label: 'Source code', description: 'View the complete source code, including any modifications running on this instance', href: EXTERNAL_LINKS.sourceCode },
     ],
   },
 ];
