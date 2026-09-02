@@ -72,7 +72,7 @@ CSS variables defined in `src/styles/root.css`. All global styles live under `sr
 `--space-{1-12}` → 4px to 48px (multiples of 4px).
 
 ### Typography
-- Body: Inter, system-ui
+- Body: Ubuntu (self-hosted via `@fontsource/ubuntu`)
 - Display: Poppins, Big Shoulders Inline Display
 
 ### Rules
