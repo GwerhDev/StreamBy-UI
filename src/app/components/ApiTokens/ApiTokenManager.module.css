@@ -26,6 +26,7 @@
 .container ul li {
   gap: 1rem;
   width: 100%;
+  max-width: 500px;
   padding: 1rem 2rem;
   border-radius: 1rem;
   background-color: var(--color-surface);
@@ -37,6 +38,13 @@
 
 .container ul li:hover {
   background-color: var(--color-surface-hover);
+}
+
+.emptyState {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container ul .createItem {

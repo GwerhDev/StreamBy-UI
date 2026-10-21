@@ -61,12 +61,28 @@ describe('ApiTokenManager', () => {
     expect(screen.getByTestId('api-token-c')).toBeInTheDocument();
   });
 
+  it('without tokens, offers making one in the header and says there are none', async () => {
+    vi.spyOn(apiTokensService, 'getApiTokens').mockResolvedValue([]);
+    renderManager();
+    expect(await screen.findByTestId('api-token-empty')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /New token/ })).toBeInTheDocument();
+    expect(screen.queryByTestId('api-token-new')).not.toBeInTheDocument();
+  });
+
+  it('with tokens, offers making one at the end of the list instead', async () => {
+    vi.spyOn(apiTokensService, 'getApiTokens').mockResolvedValue([token({})]);
+    renderManager();
+    expect(await screen.findByTestId('api-token-new')).toBeInTheDocument();
+    expect(screen.queryByTestId('api-token-empty')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /New token/ })).not.toBeInTheDocument();
+  });
+
   it('makes a token with what was chosen, and shows it once', async () => {
     vi.spyOn(apiTokensService, 'getApiTokens').mockResolvedValue([]);
     const create = vi.spyOn(apiTokensService, 'createApiToken').mockResolvedValue({ token: 'sbt_the-secret', apiToken: token({}) });
     renderManager();
     const user = userEvent.setup();
-    await user.click(await screen.findByTestId('api-token-new'));
+    await user.click(await screen.findByRole('button', { name: /New token/ }));
     const form = screen.getByTestId('api-token-form');
     const submit = within(form).getByRole('button', { name: /Create token/ });
     expect(submit).toBeDisabled();
@@ -88,7 +104,7 @@ describe('ApiTokenManager', () => {
     const create = vi.spyOn(apiTokensService, 'createApiToken').mockResolvedValue({ token: 'sbt_x', apiToken: token({}) });
     renderManager();
     const user = userEvent.setup();
-    await user.click(await screen.findByTestId('api-token-new'));
+    await user.click(await screen.findByRole('button', { name: /New token/ }));
     await user.type(screen.getByLabelText('Name'), 'All');
     await user.click(screen.getByLabelText(/All my projects/));
     expect(screen.queryByLabelText('Alpha')).not.toBeInTheDocument();
@@ -101,7 +117,7 @@ describe('ApiTokenManager', () => {
     const create = vi.spyOn(apiTokensService, 'createApiToken').mockResolvedValue({ token: 'sbt_x', apiToken: token({}) });
     renderManager('p1');
     const user = userEvent.setup();
-    await user.click(await screen.findByTestId('api-token-new'));
+    await user.click(await screen.findByRole('button', { name: /New token/ }));
     await user.type(screen.getByLabelText('Name'), 'Here');
     await user.click(screen.getByRole('button', { name: /Create token/ }));
     await waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({ projectIds: ['p1'] })));

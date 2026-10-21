@@ -10,6 +10,7 @@ import { useProjects } from '../../../hooks/useProjects';
 import { createApiToken, getApiTokens, revokeApiToken } from '../../../services/apiTokens';
 import { ApiToken, ApiTokenAccess } from '../../../interfaces';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
+import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import CopyButton from '../Buttons/CopyButton';
@@ -123,6 +124,9 @@ export const ApiTokenManager = ({ projectId }: ApiTokenManagerProps) => {
     }
   };
 
+  const startCreating = () => { setCreated(null); setCreating(true); };
+  const isEmpty = tokens !== null && shown.length === 0;
+
   const toggleProject = (id: string, on: boolean) =>
     setChosen(list => (on ? [...new Set([...list, id])] : list.filter(p => p !== id)));
 
@@ -134,6 +138,7 @@ export const ApiTokenManager = ({ projectId }: ApiTokenManagerProps) => {
         subtitle={projectId
           ? 'Your tokens that reach this project. Agents and services use them to work with StreamBy as you.'
           : 'Let agents and services work with StreamBy as you, without your session.'}
+        action={isEmpty && !creating ? <ActionButton icon={faPlus} text="New token" onClick={startCreating} /> : undefined}
       />
 
       {created && (
@@ -202,7 +207,13 @@ export const ApiTokenManager = ({ projectId }: ApiTokenManagerProps) => {
         </form>
       )}
 
-      {tokens === null ? (
+      {isEmpty ? (
+        !creating && !created && (
+          <div className={s.emptyState} data-testid="api-token-empty">
+            <EmptyBackground />
+          </div>
+        )
+      ) : tokens === null ? (
         <ul>
           {Array.from({ length: 2 }).map((_, i) => <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />)}
         </ul>
@@ -237,7 +248,7 @@ export const ApiTokenManager = ({ projectId }: ApiTokenManagerProps) => {
             </li>
           ))}
           {!creating && (
-            <li className={s.createItem} data-testid="api-token-new" onClick={() => { setCreated(null); setCreating(true); }}>
+            <li className={s.createItem} data-testid="api-token-new" onClick={startCreating}>
               <FontAwesomeIcon icon={faPlus} />
               <h4>New token</h4>
             </li>
