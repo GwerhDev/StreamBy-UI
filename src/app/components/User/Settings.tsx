@@ -20,6 +20,7 @@ interface SettingItem {
   description: string;
   soon?: boolean;
   href?: string;
+  path?: string;
 }
 
 interface Category {
@@ -71,7 +72,7 @@ const buildCategories = (): Category[] => [
     id: 'security', label: 'Security', icon: faShield,
     items: [
       { icon: faFingerprint, label: 'Two-factor auth',     description: 'Add an extra layer of security to your account', soon: true },
-      { icon: faKey,         label: 'Personal API tokens', description: 'Generate tokens to access the Streamby API', soon: true },
+      { icon: faKey,         label: 'Personal API tokens', description: 'Generate tokens to access the Streamby API', path: '/user/settings/api-tokens' },
       { icon: faBuilding,    label: 'Active sessions',     description: 'View and revoke active login sessions', soon: true },
       { icon: faTerminal,    label: 'OAuth applications',  description: 'Manage third-party apps with access to your account', soon: true },
     ],
@@ -154,6 +155,10 @@ export const Settings = () => {
             <li key={item.label} className={s.item}>
               <a href={item.href} target="_blank" rel="noopener noreferrer" className={s.itemLink}>{inner}</a>
             </li>
+          );
+
+          if (item.path) return (
+            <li key={item.label} className={s.item} onClick={() => navigate(item.path!)}>{inner}</li>
           );
 
           return <li key={item.label} className={s.item}>{inner}</li>;

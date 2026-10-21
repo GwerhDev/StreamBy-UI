@@ -10,15 +10,16 @@ interface CopyButtonProps {
   title: string;
   textToCopy: string;
   children?: React.ReactNode;
+  copiedMessage?: string;
 }
 
-const CopyButton: React.FC<CopyButtonProps> = ({ title, textToCopy, children }) => {
+const CopyButton: React.FC<CopyButtonProps> = ({ title, textToCopy, children, copiedMessage = 'Endpoint copied to clipboard!' }) => {
   const dispatch = useDispatch<AppDispatch>();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
-        dispatch(addApiResponse({ message: 'Endpoint copied to clipboard!', type: 'success' }));
+        dispatch(addApiResponse({ message: copiedMessage, type: 'success' }));
       })
       .catch(err => {
         dispatch(addApiResponse({ message: 'Failed to copy endpoint.', type: 'error' }));

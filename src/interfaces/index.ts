@@ -168,6 +168,26 @@ export interface DeleteProjectFormProps {
   confirmText: string;
 }
 
+export type ApiTokenAccess = 'read' | 'write';
+
+export interface ApiToken {
+  id: string;
+  name: string;
+  prefix: string;
+  access: ApiTokenAccess;
+  projectIds: string[] | '*';
+  createdAt: string;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+}
+
+export interface CreateApiTokenPayload {
+  name: string;
+  access: ApiTokenAccess;
+  projectIds: string[] | '*';
+  expiresInDays: number | null;
+}
+
 export interface ProjectList {
   id: string;
   name: string;
