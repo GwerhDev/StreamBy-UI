@@ -1,0 +1,67 @@
+.container {
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  margin: 0 auto;
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.emptyState {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container > ul {
+  gap: 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  align-items: start;
+}
+
+.container > ul > li {
+  width: 100%;
+  max-width: 500px;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+  display: flex;
+  overflow: hidden;
+  transition: background-color 0.15s;
+}
+
+.container > ul > li:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.container > ul > .cardSkeleton {
+  height: 180px;
+}
+
+.container > ul > .createItem {
+  min-height: 180px;
+  gap: 1rem;
+  cursor: pointer;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: dashed 0.2rem;
+}
+
+.container > ul > .createItem:hover {
+  background-color: transparent;
+}
+
+.createItem h4 {
+  margin: 0;
+}

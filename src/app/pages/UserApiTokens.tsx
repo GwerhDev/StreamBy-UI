@@ -1,3 +1,3 @@
-import { ApiTokenManager } from '../components/ApiTokens/ApiTokenManager';
+import { ApiTokenList } from '../components/ApiTokens/ApiTokenList';
 
-export const UserApiTokens = () => <ApiTokenManager />;
+export const UserApiTokens = () => <ApiTokenList />;

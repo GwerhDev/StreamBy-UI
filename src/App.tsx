@@ -29,7 +29,9 @@ const Overview = lazy(() => import('./app/pages/Overview').then(module => ({ def
 const NotFound = lazy(() => import('./app/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Settings = lazy(() => import('./app/pages/Settings').then(module => ({ default: module.Settings })));
 const ApiTokens = lazy(() => import('./app/pages/ApiTokens').then(module => ({ default: module.ApiTokens })));
+const ApiTokenCreate = lazy(() => import('./app/pages/ApiTokenCreate').then(module => ({ default: module.ApiTokenCreate })));
 const UserApiTokens = lazy(() => import('./app/pages/UserApiTokens').then(module => ({ default: module.UserApiTokens })));
+const UserApiTokenCreate = lazy(() => import('./app/pages/UserApiTokenCreate').then(module => ({ default: module.UserApiTokenCreate })));
 const Dashboard = lazy(() => import('./app/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const UserHub      = lazy(() => import('./app/pages/UserHub').then(module => ({ default: module.UserHub })));
 const UserAccount  = lazy(() => import('./app/pages/UserAccount').then(module => ({ default: module.UserAccount })));
@@ -95,6 +97,7 @@ function App() {
                   <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />
                   <Route path="/user/settings/api-tokens" element={<UserApiTokens />} />
+                  <Route path="/user/settings/api-tokens/create" element={<UserApiTokenCreate />} />
                   <Route path="/user/integrations" element={<UserIntegrations />} />
                   <Route path="/user/integrations/create" element={<UserIntegrationCreate />} />
                 </Route>
@@ -148,6 +151,7 @@ function App() {
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/api-tokens" element={<ApiTokens />} />
+                  <Route path="/project/:id/settings/api-tokens/create" element={<ApiTokenCreate />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
                   <Route path="/project/:id/settings/permissions/create" element={<PermissionsCreate />} />
 

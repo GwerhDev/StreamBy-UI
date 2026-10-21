@@ -168,23 +168,39 @@ export interface DeleteProjectFormProps {
   confirmText: string;
 }
 
-export type ApiTokenAccess = 'read' | 'write';
+export type ApiTokenKind = 'user' | 'project';
+
+export type ProjectPermission =
+  | 'project:read' | 'project:update' | 'project:delete'
+  | 'members:read' | 'members:manage'
+  | 'assets:read' | 'assets:write' | 'assets:delete'
+  | 'production:read' | 'production:write' | 'production:delete'
+  | 'workflow:read' | 'workflow:write'
+  | 'exports:read' | 'exports:write'
+  | 'rights:read' | 'rights:write'
+  | 'jobs:read' | 'jobs:run';
+export type AccountPermission = 'projects:create';
+export type ApiTokenPermission = ProjectPermission | AccountPermission;
 
 export interface ApiToken {
   id: string;
+  kind: ApiTokenKind;
   name: string;
   prefix: string;
-  access: ApiTokenAccess;
+  permissions: ApiTokenPermission[];
   projectIds: string[] | '*';
   createdAt: string;
   expiresAt: string | null;
   lastUsedAt: string | null;
+  // isMember: only in a project's list, whether whoever made it is still in the project.
+  createdBy: { userId: string; username: string | null; isMember?: boolean };
 }
 
 export interface CreateApiTokenPayload {
   name: string;
-  access: ApiTokenAccess;
-  projectIds: string[] | '*';
+  permissions: ApiTokenPermission[];
+  // A user's token only: a project's reaches its project.
+  projectIds?: string[] | '*';
   expiresInDays: number | null;
 }
 

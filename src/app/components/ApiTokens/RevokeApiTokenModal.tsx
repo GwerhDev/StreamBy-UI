@@ -1,4 +1,4 @@
-import s from './ApiTokenManager.module.css';
+import s from './RevokeApiTokenModal.module.css';
 import { faBan, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { ModalShell } from '../Modals/ModalShell';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
@@ -13,7 +13,7 @@ interface RevokeApiTokenModalProps {
 
 export const RevokeApiTokenModal = ({ name, busy, onConfirm, onClose }: RevokeApiTokenModalProps) => (
   <ModalShell title={`Revoke ${name}`} onClose={onClose}>
-    <div className={s.modalBody}>
+    <div className={s.body}>
       <p>Anything using this token stops working right away. This can't be undone.</p>
       <div className={s.actions}>
         <PrimaryButton type="button" disabled={busy} icon={faBan} text="Revoke" onClick={onConfirm} />
