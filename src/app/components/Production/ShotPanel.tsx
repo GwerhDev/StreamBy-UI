@@ -1,10 +1,14 @@
 import s from './ShotPanel.module.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faXmark, faPlus, faCheck, faLink, faSpinner, faTrash,
+  faXmark, faPlus, faCheck, faLink, faSpinner, faTrash, faPen,
 } from '@fortawesome/free-solid-svg-icons';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { useProjectMembers } from '../../../hooks/useProjectMembers';
 import {
   getTasks, createTask, updateTask, deleteTask, updateShot,
 } from '../../../services/production';
@@ -12,6 +16,8 @@ import {
   ProductionShot, ProductionTask, ShotStatus, TaskPriority,
 } from '../../../interfaces';
 import { ShotDeliverables } from './ShotDeliverables';
+import { formatDueDate } from './dueDate';
+import { EditShotModal, EditTaskModal } from './ProductionEditModals';
 
 interface Props {
   shot: ProductionShot;
@@ -49,6 +55,15 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
   const [newTaskName, setNewTaskName]   = useState('');
   const [addingTask, setAddingTask]     = useState(false);
   const [savingTask, setSavingTask]     = useState(false);
+  const [editingShot, setEditingShot]   = useState(false);
+  const [editTask, setEditTask]         = useState<ProductionTask | null>(null);
+  const [saving, setSaving]             = useState(false);
+  const { members, nameOf } = useProjectMembers(projectId);
+
+  const dispatch = useDispatch<AppDispatch>();
+  // A failed change says so, instead of failing silently.
+  const failed = (err: unknown, fallback: string) =>
+    dispatch(addApiResponse({ message: err instanceof Error && err.message ? err.message : fallback, type: 'error' }));
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +80,9 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
     try {
       const updated = await updateShot(projectId, shot.id, { status });
       onUpdate(updated);
-    } catch {}
+    } catch (err) {
+      failed(err, "Failed to change the shot's status.");
+    }
   };
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -77,6 +94,8 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
       setTasks(prev => [...prev, task]);
       setNewTaskName('');
       setAddingTask(false);
+    } catch (err) {
+      failed(err, 'Failed to add the task.');
     } finally { setSavingTask(false); }
   };
 
@@ -85,8 +104,9 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next } : t));
     try {
       await updateTask(projectId, shot.id, task.id, { status: next });
-    } catch {
+    } catch (err) {
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
+      failed(err, 'Failed to update the task.');
     }
   };
 
@@ -94,8 +114,9 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, priority } : t));
     try {
       await updateTask(projectId, shot.id, task.id, { priority });
-    } catch {
+    } catch (err) {
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
+      failed(err, 'Failed to update the task.');
     }
   };
 
@@ -103,9 +124,32 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
     setTasks(prev => prev.filter(t => t.id !== task.id));
     try {
       await deleteTask(projectId, shot.id, task.id);
-    } catch {
+    } catch (err) {
       setTasks(prev => [...prev, task]);
+      failed(err, 'Failed to delete the task.');
     }
+  };
+
+  const handleSaveShot = async (changes: Partial<ProductionShot>) => {
+    setSaving(true);
+    try {
+      onUpdate(await updateShot(projectId, shot.id, changes as Parameters<typeof updateShot>[2]));
+      setEditingShot(false);
+    } catch (err) {
+      failed(err, 'Failed to save the shot.');
+    } finally { setSaving(false); }
+  };
+
+  const handleSaveTask = async (changes: Partial<ProductionTask>) => {
+    if (!editTask) return;
+    setSaving(true);
+    try {
+      const updated = await updateTask(projectId, shot.id, editTask.id, changes as Parameters<typeof updateTask>[3]);
+      setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
+      setEditTask(null);
+    } catch (err) {
+      failed(err, 'Failed to save the task.');
+    } finally { setSaving(false); }
   };
 
   const doneCount = tasks.filter(t => t.status === 'done').length;
@@ -117,6 +161,9 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
       <div className={s.header}>
         <span className={s.title}>{shot.name}</span>
         <div className={s.headerActions}>
+          <button type="button" className={s.closeBtn} onClick={() => setEditingShot(true)} title="Edit shot">
+            <FontAwesomeIcon icon={faPen} />
+          </button>
           <button type="button" className={s.deleteBtn} onClick={() => onDelete(shot.id)} title="Delete shot">
             <FontAwesomeIcon icon={faTrash} />
           </button>
@@ -141,11 +188,22 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
           </div>
         </div>
 
+        {/* Description */}
+        {shot.description && <p className={s.description}>{shot.description}</p>}
+
+        {/* Assignees */}
+        <div className={s.field}>
+          <span className={s.fieldLabel}>Assigned</span>
+          <span className={s.fieldText} data-testid="shot-assignees">
+            {shot.assignedTo?.length ? shot.assignedTo.map(nameOf).join(', ') : 'Nobody'}
+          </span>
+        </div>
+
         {/* Due date */}
         {shot.dueDate && (
           <div className={s.field}>
             <span className={s.fieldLabel}>Due</span>
-            <span className={s.fieldText}>{new Date(shot.dueDate).toLocaleDateString()}</span>
+            <span className={s.fieldText}>{formatDueDate(shot.dueDate)}</span>
           </div>
         )}
 
@@ -220,7 +278,14 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
                   >
                     {task.status === 'done' && <FontAwesomeIcon icon={faCheck} />}
                   </button>
-                  <span className={s.taskName}>{task.name}</span>
+                  <span className={s.taskName}>
+                    {task.name}
+                    {(task.assignedTo || task.dueDate) && (
+                      <small className={s.taskMeta}>
+                        {[task.assignedTo && nameOf(task.assignedTo), task.dueDate && formatDueDate(task.dueDate)].filter(Boolean).join(' · ')}
+                      </small>
+                    )}
+                  </span>
                   <select
                     className={`${s.priorityChip} ${PRIORITY_CHIP[task.priority]}`}
                     value={task.priority}
@@ -231,6 +296,14 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
                     <option value="medium">Med</option>
                     <option value="high">High</option>
                   </select>
+                  <button
+                    type="button"
+                    className={s.taskDeleteBtn}
+                    onClick={() => setEditTask(task)}
+                    aria-label={`Edit task ${task.name}`}
+                  >
+                    <FontAwesomeIcon icon={faPen} />
+                  </button>
                   <button
                     type="button"
                     className={s.taskDeleteBtn}
@@ -268,6 +341,13 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
           )}
         </div>
       </div>
+
+      {editingShot && (
+        <EditShotModal shot={shot} members={members} saving={saving} onSave={handleSaveShot} onClose={() => setEditingShot(false)} />
+      )}
+      {editTask && (
+        <EditTaskModal task={editTask} members={members} saving={saving} onSave={handleSaveTask} onClose={() => setEditTask(null)} />
+      )}
     </div>
   );
 }

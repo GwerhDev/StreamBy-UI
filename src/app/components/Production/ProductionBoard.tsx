@@ -1,20 +1,25 @@
 import s from './ProductionBoard.module.css';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faClipboardList, faPlus, faSpinner, faTableColumns, faList,
-  faTrash, faEllipsisVertical,
+  faTrash, faEllipsisVertical, faPen,
 } from '@fortawesome/free-solid-svg-icons';
+import { AppDispatch } from '../../../store';
+import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ModalShell } from '../Modals/ModalShell';
 import {
-  getSequences, createSequence, deleteSequence,
+  getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
 } from '../../../services/production';
 import { ProductionSequence, ProductionShot, ShotStatus } from '../../../interfaces';
 import { ShotPanel } from './ShotPanel';
+import { formatDueDate } from './dueDate';
+import { EditSequenceModal } from './ProductionEditModals';
 
 type ViewMode = 'board' | 'list';
 
@@ -59,9 +64,19 @@ export function ProductionBoard() {
   const [newShotName, setNewShotName]          = useState('');
   const [shotSaving, setShotSaving]            = useState(false);
 
+  // edit sequence
+  const [editSeqId, setEditSeqId]   = useState<string | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+
   // delete confirms
   const [deleteSeqId, setDeleteSeqId]   = useState<string | null>(null);
   const [deleteShotId, setDeleteShotId] = useState<string | null>(null);
+  const [deleting, setDeleting]         = useState(false);
+
+  const dispatch = useDispatch<AppDispatch>();
+  // A failed change says so, instead of leaving its dialog open with nothing shown.
+  const failed = (err: unknown, fallback: string) =>
+    dispatch(addApiResponse({ message: err instanceof Error && err.message ? err.message : fallback, type: 'error' }));
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -89,15 +104,34 @@ export function ProductionBoard() {
       setSequences(prev => [...prev, seq]);
       setNewSeqName('');
       setShowCreateSeq(false);
+    } catch (err) {
+      failed(err, 'Failed to create the sequence.');
     } finally { setSeqSaving(false); }
   };
 
+  const handleEditSequence = async (changes: Partial<ProductionSequence>) => {
+    if (!editSeqId) return;
+    setEditSaving(true);
+    try {
+      const updated = await updateSequence(projectId, editSeqId, changes as { name: string; description: string });
+      setSequences(prev => prev.map(seq => (seq.id === updated.id ? updated : seq)));
+      setEditSeqId(null);
+    } catch (err) {
+      failed(err, 'Failed to save the sequence.');
+    } finally { setEditSaving(false); }
+  };
+
   const handleDeleteSequence = async (seqId: string) => {
-    await deleteSequence(projectId, seqId);
-    setSequences(prev => prev.filter(s => s.id !== seqId));
-    setShots(prev => prev.filter(sh => sh.sequenceId !== seqId));
-    if (selectedShot?.sequenceId === seqId) setSelectedShot(null);
-    setDeleteSeqId(null);
+    setDeleting(true);
+    try {
+      await deleteSequence(projectId, seqId);
+      setSequences(prev => prev.filter(s => s.id !== seqId));
+      setShots(prev => prev.filter(sh => sh.sequenceId !== seqId));
+      if (selectedShot?.sequenceId === seqId) setSelectedShot(null);
+      setDeleteSeqId(null);
+    } catch (err) {
+      failed(err, 'Failed to delete the sequence.');
+    } finally { setDeleting(false); }
   };
 
   const handleCreateShot = async (e: React.FormEvent) => {
@@ -112,24 +146,32 @@ export function ProductionBoard() {
       setShots(prev => [...prev, shot]);
       setNewShotName('');
       setCreateShotSeqId(null);
+    } catch (err) {
+      failed(err, 'Failed to create the shot.');
     } finally { setShotSaving(false); }
   };
 
   const handleDeleteShot = async (shotId: string) => {
     const shot = shots.find(sh => sh.id === shotId);
     if (!shot) return;
-    await deleteShot(projectId, shotId);
-    setShots(prev => prev.filter(sh => sh.id !== shotId));
-    if (selectedShot?.id === shotId) setSelectedShot(null);
-    setDeleteShotId(null);
+    setDeleting(true);
+    try {
+      await deleteShot(projectId, shotId);
+      setShots(prev => prev.filter(sh => sh.id !== shotId));
+      if (selectedShot?.id === shotId) setSelectedShot(null);
+      setDeleteShotId(null);
+    } catch (err) {
+      failed(err, 'Failed to delete the shot.');
+    } finally { setDeleting(false); }
   };
 
   const handleStatusChange = async (shot: ProductionShot, status: ShotStatus) => {
     setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, status } : sh));
     try {
       await updateShot(projectId, shot.id, { status });
-    } catch {
+    } catch (err) {
       setShots(prev => prev.map(sh => sh.id === shot.id ? shot : sh));
+      failed(err, "Failed to change the shot's status.");
     }
   };
 
@@ -149,6 +191,7 @@ export function ProductionBoard() {
   }
 
   const seqToDelete = sequences.find(s => s.id === deleteSeqId);
+  const seqToEdit = sequences.find(s => s.id === editSeqId);
   const shotToDelete = shots.find(sh => sh.id === deleteShotId);
 
   return (
@@ -203,6 +246,7 @@ export function ProductionBoard() {
             onStatusChange={handleStatusChange}
             onAddShot={seqId => { setCreateShotSeqId(seqId); setNewShotName(''); }}
             onDeleteSeq={id => setDeleteSeqId(id)}
+            onEditSeq={id => setEditSeqId(id)}
             onDeleteShot={id => setDeleteShotId(id)}
             selectedShotId={selectedShot?.id}
           />
@@ -214,6 +258,7 @@ export function ProductionBoard() {
             onStatusChange={handleStatusChange}
             onAddShot={seqId => { setCreateShotSeqId(seqId); setNewShotName(''); }}
             onDeleteSeq={id => setDeleteSeqId(id)}
+            onEditSeq={id => setEditSeqId(id)}
             onDeleteShot={id => setDeleteShotId(id)}
             selectedShotId={selectedShot?.id}
             statusChip={STATUS_CHIP}
@@ -283,16 +328,21 @@ export function ProductionBoard() {
         </ModalShell>
       )}
 
+      {/* Edit sequence */}
+      {editSeqId && seqToEdit && (
+        <EditSequenceModal sequence={seqToEdit} saving={editSaving} onSave={handleEditSequence} onClose={() => setEditSeqId(null)} />
+      )}
+
       {/* Delete sequence confirm */}
       {deleteSeqId && seqToDelete && (
         <ModalShell title="Delete sequence" icon={faTrash} onClose={() => setDeleteSeqId(null)}>
           <div className={s.confirmBody}>
             <p className={s.confirmText}>
-              Delete <strong>{seqToDelete.name}</strong>? All shots in this sequence will also be deleted.
+              Delete <strong>{seqToDelete.name}</strong>? All shots in this sequence, and their tasks, will also be deleted.
             </p>
             <div className={s.formActions}>
-              <button type="button" className={s.dangerBtn} onClick={() => handleDeleteSequence(deleteSeqId)}>
-                Delete sequence
+              <button type="button" className={s.dangerBtn} disabled={deleting} onClick={() => handleDeleteSequence(deleteSeqId)}>
+                {deleting ? 'Deleting…' : 'Delete sequence'}
               </button>
               <button type="button" className={s.cancelBtn} onClick={() => setDeleteSeqId(null)}>
                 Cancel
@@ -310,8 +360,8 @@ export function ProductionBoard() {
               Delete <strong>{shotToDelete.name}</strong>? All tasks in this shot will also be deleted.
             </p>
             <div className={s.formActions}>
-              <button type="button" className={s.dangerBtn} onClick={() => handleDeleteShot(deleteShotId)}>
-                Delete shot
+              <button type="button" className={s.dangerBtn} disabled={deleting} onClick={() => handleDeleteShot(deleteShotId)}>
+                {deleting ? 'Deleting…' : 'Delete shot'}
               </button>
               <button type="button" className={s.cancelBtn} onClick={() => setDeleteShotId(null)}>
                 Cancel
@@ -334,10 +384,11 @@ interface BoardProps {
   onStatusChange: (shot: ProductionShot, status: ShotStatus) => void;
   onAddShot: (seqId: string) => void;
   onDeleteSeq: (id: string) => void;
+  onEditSeq: (id: string) => void;
   onDeleteShot: (id: string) => void;
 }
 
-function BoardView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onDeleteShot }: BoardProps) {
+function BoardView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onEditSeq, onDeleteShot }: BoardProps) {
   return (
     <div className={s.board}>
       {STATUSES.map(status => (
@@ -356,14 +407,24 @@ function BoardView({ sequences, shots, selectedShotId, onSelectShot, onStatusCha
                   <div className={s.seqRow}>
                     <span className={s.seqName}>{seq.name}</span>
                     {status === 'todo' && (
-                      <button
-                        type="button"
-                        className={s.seqDeleteBtn}
-                        onClick={() => onDeleteSeq(seq.id)}
-                        title="Delete sequence"
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className={s.seqEditBtn}
+                          onClick={() => onEditSeq(seq.id)}
+                          title="Edit sequence"
+                        >
+                          <FontAwesomeIcon icon={faPen} />
+                        </button>
+                        <button
+                          type="button"
+                          className={s.seqDeleteBtn}
+                          onClick={() => onDeleteSeq(seq.id)}
+                          title="Delete sequence"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </>
                     )}
                   </div>
                   {seqShots.map(shot => (
@@ -400,7 +461,7 @@ interface ListProps extends Omit<BoardProps, 'selectedShotId'> {
   statusLabel: Record<ShotStatus, string>;
 }
 
-function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onDeleteShot, statusChip, statusLabel }: ListProps) {
+function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onEditSeq, onDeleteShot, statusChip, statusLabel }: ListProps) {
   return (
     <div className={s.list}>
       <div className={s.listHead}>
@@ -415,6 +476,14 @@ function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChan
           <div key={seq.id} className={s.listGroup}>
             <div className={s.listSeqRow}>
               <span className={s.listSeqName}>{seq.name}</span>
+              <button
+                type="button"
+                className={s.seqEditBtn}
+                onClick={() => onEditSeq(seq.id)}
+                title="Edit sequence"
+              >
+                <FontAwesomeIcon icon={faPen} />
+              </button>
               <button
                 type="button"
                 className={s.seqDeleteBtn}
@@ -441,7 +510,7 @@ function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChan
                   </select>
                 </span>
                 <span className={s.listDue}>
-                  {shot.dueDate ? new Date(shot.dueDate).toLocaleDateString() : '—'}
+                  {shot.dueDate ? formatDueDate(shot.dueDate) : '—'}
                 </span>
                 <span onClick={e => e.stopPropagation()}>
                   <button
@@ -503,7 +572,7 @@ function ShotCard({ shot, selected, onSelect, onStatusChange, onDelete }: {
         )}
       </div>
       {shot.dueDate && (
-        <span className={s.cardDue}>{new Date(shot.dueDate).toLocaleDateString()}</span>
+        <span className={s.cardDue}>{formatDueDate(shot.dueDate)}</span>
       )}
       <div onClick={e => e.stopPropagation()}>
         <select

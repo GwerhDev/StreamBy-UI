@@ -9,7 +9,8 @@ import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
 import { ServiceProviderType } from '../../../interfaces';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { dashboardDirectoryList, settingsDirectoryList, storageDirectoryList, WORKFLOW_SECTION_BY_GROUP } from '../../../config/consts';
-import { WORKFLOW_GROUP_BY_TYPE, WorkflowGroup } from '../NodeViewer/nodePalette';
+import { WorkflowGroup } from '../NodeViewer/nodePalette';
+import { activeWorkflowGroupsOf } from './workflowSections';
 import { fetchTables } from '../../../services/database';
 import { DbConnection } from '../../../interfaces';
 import { RootState, AppDispatch } from '../../../store';
@@ -23,12 +24,6 @@ import { useEditorMenu } from '../../../context/EditorMenuContext';
 const MENU_MIN_WIDTH = 160;
 const MENU_MAX_WIDTH = 480;
 const MENU_DEFAULT_WIDTH = 250;
-
-// pipelineRefNode/exportNode are reference/link nodes (TCORE-64) auto-drawn for every
-// Pipeline/Export — they already have their own dedicated sidebar sub-section, so they
-// must NOT count toward a workflow group (otherwise e.g. "Production" would appear just
-// because a Pipeline node exists on the canvas, with no real production node present).
-const WORKFLOW_SECTION_EXCLUDED_TYPES = new Set(['pipelineRefNode', 'exportNode']);
 
 interface RailItem { icon: IconDefinition; path: string; label: string; isActive?: (pathname: string, search: string) => boolean; }
 
@@ -96,15 +91,11 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   // Workflow sub-sections are derived from the node types instantiated in the canvas —
   // a section only shows up once its group has at least one node on the schema.
   const workflowNodeTypes = currentProject.data?.workflow?.nodeSchema?.nodes as { type?: string }[] | undefined;
-  const activeWorkflowGroups = useMemo(() => {
-    const groups = new Set<WorkflowGroup>();
-    for (const node of workflowNodeTypes ?? []) {
-      if (!node.type || WORKFLOW_SECTION_EXCLUDED_TYPES.has(node.type)) continue;
-      const group = WORKFLOW_GROUP_BY_TYPE[node.type];
-      if (group) groups.add(group);
-    }
-    return groups;
-  }, [workflowNodeTypes]);
+  const hasProductionData = !!currentProject.data?.hasProductionData;
+  const activeWorkflowGroups = useMemo(
+    () => activeWorkflowGroupsOf(workflowNodeTypes, hasProductionData),
+    [workflowNodeTypes, hasProductionData],
+  );
 
   const activeWorkflowSections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[])
     .filter(group => activeWorkflowGroups.has(group))

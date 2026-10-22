@@ -267,6 +267,7 @@
 
 .taskName {
   flex: 1;
+  min-width: 0;
   font-size: 0.78rem;
   color: var(--color-text-secondary);
   overflow: hidden;
@@ -276,6 +277,7 @@
 
 /* ── Priority chip ────────────────────────────────────────────────────────── */
 .priorityChip {
+  width: auto;
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 5px;
@@ -377,4 +379,19 @@
 .addTaskCancel:hover {
   color: var(--color-text-bright);
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Description and task details ────────────────────────────────────────── */
+.description {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+}
+
+.taskMeta {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
 }

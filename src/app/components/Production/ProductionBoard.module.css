@@ -197,6 +197,7 @@
   white-space: nowrap;
 }
 
+.seqEditBtn,
 .seqDeleteBtn {
   background: none;
   border: none;
@@ -209,9 +210,19 @@
   flex-shrink: 0;
 }
 
+.seqBlock:hover .seqEditBtn,
+.listSeqRow:hover .seqEditBtn,
 .seqBlock:hover .seqDeleteBtn,
 .listSeqRow:hover .seqDeleteBtn {
   color: var(--color-text-muted);
+}
+
+.seqBlock:hover .seqEditBtn:hover,
+.listSeqRow:hover .seqEditBtn:hover,
+.seqEditBtn:hover,
+.seqEditBtn:focus-visible {
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
 }
 
 .seqBlock:hover .seqDeleteBtn:hover,
@@ -374,6 +385,7 @@
 }
 
 .listSeqName {
+  flex: 1;
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;

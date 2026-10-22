@@ -107,6 +107,8 @@ export interface Project {
   allowedOrigin?: string[];
   exports?: Export[];
   workflow?: Workflow;              // single canvas per project
+  // Whether it has production data: its Production section shows even without a production node.
+  hasProductionData?: boolean;
   pipelines?: PipelineRef[];        // lightweight refs; full entities live in the pipelines collection
   connections?: Connection[];
   dbConnections?: DbConnection[];
