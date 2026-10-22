@@ -15,7 +15,7 @@ import {
 import {
   ProductionShot, ProductionTask, ShotStatus, TaskPriority,
 } from '../../../interfaces';
-import { ShotDeliverables } from './ShotDeliverables';
+import { DeliverableItems } from '../Deliverables/DeliverableItems';
 import { formatDueDate } from './dueDate';
 import { EditShotModal, EditTaskModal } from './ProductionEditModals';
 
@@ -235,7 +235,7 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
           </div>
         )}
 
-        <ShotDeliverables projectId={projectId} shotId={shot.id} />
+        <DeliverableItems projectId={projectId} of={{ shotId: shot.id }} />
 
         <div className={s.divider} />
 

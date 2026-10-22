@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import { AssetRights, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
+import { AssetMetadata, AssetRights, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
   `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
@@ -207,6 +207,18 @@ export async function moveStorageFile(
     body: JSON.stringify({ folderId }),
   });
   if (!res.ok) throw new Error((await res.json()).message);
+}
+
+// ── Asset metadata ────────────────────────────────────────────────────────────
+
+// An asset's metadata (its custom tags among them), or null when it has none yet.
+export async function getAssetMetadata(projectId: string, assetId: string): Promise<AssetMetadata | null> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/assets/${assetId}/metadata`, {
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `HTTP ${res.status}`);
+  const { metadata } = await res.json();
+  return metadata;
 }
 
 // ── Asset Rights ──────────────────────────────────────────────────────────────

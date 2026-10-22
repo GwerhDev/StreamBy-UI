@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory, AssetRights, LicenseType } from '../../../interfaces';
 import { RootState } from '../../../store';
-import { getAssetRights, putAssetRights } from '../../../services/storage';
+import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
 
 interface FileDetailPanelProps {
   file: StorageFile;
@@ -45,7 +45,18 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-function MetadataTab({ file }: { file: StorageFile }) {
+function MetadataTab({ file, projectId }: { file: StorageFile; projectId: string }) {
+  // Its custom tags (set from the API or by an agent), shown under its own fields.
+  const [customTags, setCustomTags] = useState<Record<string, string> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setCustomTags(null);
+    getAssetMetadata(projectId, file.id)
+      .then(meta => { if (!cancelled) setCustomTags(meta?.customTags ?? {}); })
+      .catch(() => { if (!cancelled) setCustomTags({}); });
+    return () => { cancelled = true; };
+  }, [projectId, file.id]);
+
   const fields: { label: string; value: string }[] = [
     { label: 'Content type', value: file.contentType || '—' },
     { label: 'Size', value: formatBytes(file.size) },
@@ -64,6 +75,17 @@ function MetadataTab({ file }: { file: StorageFile }) {
           <p className={s.fieldValue}>{f.value}</p>
         </div>
       ))}
+      {customTags && Object.keys(customTags).length > 0 && (
+        <div className={s.customTags} data-testid="custom-tags">
+          <p className={s.sectionLabel}>Custom tags</p>
+          {Object.entries(customTags).map(([key, value]) => (
+            <div key={key} className={s.field}>
+              <p className={s.fieldLabel}>{key}</p>
+              <p className={s.fieldValue}>{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -409,7 +431,7 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
               )}
             </div>
           )}
-          {activeTab === 'metadata' && <MetadataTab file={file} />}
+          {activeTab === 'metadata' && <MetadataTab file={file} projectId={projectId} />}
           {activeTab === 'jobs' && <JobsTab fileId={file.id} />}
           {activeTab === 'rights' && <RightsTab fileId={file.id} projectId={projectId} />}
         </div>

@@ -1,4 +1,5 @@
-import { buildSchemaFromProject } from './WorkflowCanvas';
+import type { Edge, Node } from 'reactflow';
+import { buildSchemaFromProject, rebuildSchemaFromProject } from './WorkflowCanvas';
 import { Project } from '../../../interfaces';
 
 const baseProject: Project = {
@@ -107,5 +108,35 @@ describe('buildSchemaFromProject', () => {
     const edge = edges.find(e => e.source === 'svc-ic1');
     expect(edge?.targetHandle).toBe('in-top');
     expect(edge?.target).toBe('streamby');
+  });
+});
+
+describe('rebuildSchemaFromProject', () => {
+  const saved: { nodes: Node[]; edges: Edge[] } = {
+    nodes: [
+      { id: 'streamby', type: 'orchestratorNode', position: { x: 0, y: 0 }, data: {} },
+      { id: 'pipeline-gone', type: 'pipelineRefNode', position: { x: 0, y: 0 }, data: {} },
+      { id: 'shotNode-1', type: 'shotNode', position: { x: 240, y: 300 }, data: { label: 'Shot' } },
+      { id: 'reviewGateNode-1', type: 'reviewGateNode', position: { x: 400, y: 300 }, data: { label: 'Review Gate' } },
+    ],
+    edges: [
+      { id: 'e-user', source: 'shotNode-1', target: 'reviewGateNode-1' },
+      { id: 'e-to-gone', source: 'pipeline-gone', target: 'shotNode-1' },
+    ],
+  };
+
+  it('keeps the nodes placed on the canvas, and their edges, while redrawing the resources', () => {
+    const project: Project = { ...baseProject, pipelines: [{ id: 'p1', name: 'new', order: 0 }] };
+    const { nodes, edges } = rebuildSchemaFromProject(project, saved);
+    expect(nodes.map(n => n.id)).toEqual(expect.arrayContaining(['streamby', 'pipeline-p1', 'shotNode-1', 'reviewGateNode-1']));
+    expect(nodes.map(n => n.id)).not.toContain('pipeline-gone');
+    expect(nodes.find(n => n.id === 'shotNode-1')).toEqual(saved.nodes[2]);
+    expect(edges.map(e => e.id)).toContain('e-user');
+    expect(edges.map(e => e.id)).not.toContain('e-to-gone');
+    expect(nodes.filter(n => n.id === 'streamby')).toHaveLength(1);
+  });
+
+  it('with nothing saved, is the drawn schema', () => {
+    expect(rebuildSchemaFromProject(baseProject, null)).toEqual(buildSchemaFromProject(baseProject));
   });
 });

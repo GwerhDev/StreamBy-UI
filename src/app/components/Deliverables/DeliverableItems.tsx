@@ -1,4 +1,4 @@
-import s from './ShotDeliverables.module.css';
+import s from './DeliverableItems.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -17,11 +17,14 @@ const CATEGORY_ICON: Record<string, typeof faFile> = {
 
 interface Props {
   projectId: string;
-  shotId: string;
+  // What they were delivered for: a shot, or an export.
+  of: { shotId: string } | { exportId: string };
 }
 
-// What's been delivered for a shot: each asset (or version), downloadable.
-export function ShotDeliverables({ projectId, shotId }: Props) {
+// What's been delivered for a shot or an export: each asset (or version), downloadable.
+export function DeliverableItems({ projectId, of }: Props) {
+  const shotId = 'shotId' in of ? of.shotId : undefined;
+  const exportId = 'exportId' in of ? of.exportId : undefined;
   const dispatch = useDispatch<AppDispatch>();
   const [deliverables, setDeliverables] = useState<Deliverable[] | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -29,11 +32,11 @@ export function ShotDeliverables({ projectId, shotId }: Props) {
   useEffect(() => {
     let cancelled = false;
     setDeliverables(null);
-    getDeliverables(projectId, { shotId })
+    getDeliverables(projectId, shotId ? { shotId } : { exportId })
       .then(list => { if (!cancelled) setDeliverables(list); })
       .catch(() => { if (!cancelled) setDeliverables([]); });
     return () => { cancelled = true; };
-  }, [projectId, shotId]);
+  }, [projectId, shotId, exportId]);
 
   const download = async (deliverable: Deliverable) => {
     setDownloading(deliverable.id);
@@ -47,7 +50,7 @@ export function ShotDeliverables({ projectId, shotId }: Props) {
   };
 
   return (
-    <div className={s.section} data-testid="shot-deliverables">
+    <div className={s.section} data-testid="deliverables">
       <span className={s.label}>
         Deliverables
         {!!deliverables?.length && <span className={s.count}>{deliverables.length}</span>}

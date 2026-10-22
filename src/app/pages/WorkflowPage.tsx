@@ -6,7 +6,7 @@ import { setCurrentProject } from '../../store/currentProjectSlice';
 import { addApiResponse } from '../../store/apiResponsesSlice';
 import { getProjectWorkflow, updateProjectWorkflow } from '../../services/workflow';
 import { Project, Workflow, DbConnection } from '../../interfaces';
-import { buildSchemaFromProject, WorkflowCanvas } from '../components/Workflow/WorkflowCanvas';
+import { rebuildSchemaFromProject, WorkflowCanvas } from '../components/Workflow/WorkflowCanvas';
 import { NodeSkeleton } from '../components/NodeViewer/NodeSkeleton';
 
 // Derive a sorted fingerprint of all resource node IDs from the current project state.
@@ -29,13 +29,6 @@ export function schemaFingerprint(schemaNodes: any[]): string {
     .filter(id => prefixes.some(p => id?.startsWith(p)))
     .sort()
     .join(',');
-}
-
-function buildInitialSchema(
-  _projectId: string,
-  project: Project,
-) {
-  return buildSchemaFromProject(project);
 }
 
 export function WorkflowPage() {
@@ -102,8 +95,12 @@ export function WorkflowPage() {
         (e: any) => (e.target === 'streamby' && e.targetHandle === 'in-left')
           || (e.source === 'streamby' && e.sourceHandle === 'out-right'),
       );
+      // Stale without its orchestrator: a schema that only has nodes placed on it (an agent
+      // adds a production node before anything is drawn) still needs its resources drawn.
+      const hasOrchestrator = schemaNodes.some(n => n.id === 'streamby');
       const isStale =
         !wf.nodeSchema ||
+        !hasOrchestrator ||
         hasLegacyExportNodes ||
         hasLegacyCollectionNodes ||
         hasLegacyOrchestratorType ||
@@ -113,7 +110,8 @@ export function WorkflowPage() {
 
       if (isStale) {
         try {
-          const schema = await buildInitialSchema(projectId, currentProject);
+          // The nodes placed on it (by a user, or an agent) stay; only the drawn ones change.
+          const schema = rebuildSchemaFromProject(currentProject, wf.nodeSchema as Parameters<typeof rebuildSchemaFromProject>[1]);
           wf = await updateProjectWorkflow(projectId, { nodeSchema: schema });
         } catch {
           // Best-effort — proceed without schema; WorkflowCanvas will show TemplatePicker

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ShotDeliverables } from './ShotDeliverables';
+import { DeliverableItems } from './DeliverableItems';
 import * as deliverablesService from '../../../services/deliverables';
 import { Deliverable } from '../../../interfaces';
 
@@ -13,14 +13,14 @@ const deliverable = (over: Partial<Deliverable>): Deliverable => ({
   version: 2, shotName: 'SH010', exportName: null, ...over,
 });
 
-const renderSection = () => {
+const renderSection = (of: { shotId: string } | { exportId: string } = { shotId: 's1' }) => {
   const store = configureStore({
     reducer: {
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
   });
-  render(<Provider store={store}><ShotDeliverables projectId="p1" shotId="s1" /></Provider>);
+  render(<Provider store={store}><DeliverableItems projectId="p1" of={of} /></Provider>);
   return store;
 };
 
@@ -32,7 +32,14 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-describe('ShotDeliverables', () => {
+describe('DeliverableItems', () => {
+  it("lists an export's deliverables", async () => {
+    const list = vi.spyOn(deliverablesService, 'getDeliverables').mockResolvedValue([deliverable({ shotId: null, exportId: 'e1' })]);
+    renderSection({ exportId: 'e1' });
+    expect(await screen.findByTestId('deliverable-d1')).toHaveTextContent('SH010_layout.glb');
+    expect(list).toHaveBeenCalledWith('p1', { exportId: 'e1' });
+  });
+
   it("lists the shot's deliverables, with their version and note", async () => {
     const list = vi.spyOn(deliverablesService, 'getDeliverables').mockResolvedValue([
       deliverable({}), deliverable({ id: 'd2', versionId: null, version: null, note: null, asset: { displayName: 'SH010.png', category: 'images', contentType: 'image/png' } }),

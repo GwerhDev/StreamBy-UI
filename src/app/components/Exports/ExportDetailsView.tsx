@@ -399,7 +399,7 @@ export const ExportDetailsView: React.FC = () => {
                             />
                           )}
                           {panel.activeTab === 'deliverables' && (
-                            <DeliverableTab />
+                            <DeliverableTab projectId={id!} exportId={exportId!} />
                           )}
                           {panel.activeTab === 'reviews' && (
                             <ReviewTab projectId={id!} assetId={exportDetails.id} />

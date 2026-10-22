@@ -95,6 +95,31 @@ export function buildSchemaFromProject(
   return { nodes, edges };
 }
 
+// Nodes drawn from the project's own resources (and the orchestrator, and the sub-nodes of
+// an older layout): rebuilt from the project, never kept from a saved schema.
+const DRAWN_NODE_PREFIXES = ['db-', 'api-', 'storage-', 'svc-', 'export-', 'pipeline-', 'coll-', 'rec-'];
+const isDrawnNode = (id: string) => id === 'streamby' || DRAWN_NODE_PREFIXES.some(prefix => id.startsWith(prefix));
+
+/**
+ * The project's schema rebuilt from its resources, keeping every node a user (or an agent)
+ * placed -- a Shot, a Review Gate, a Deliverable... -- and their edges between nodes still
+ * there. Rebuilding from the resources alone would drop them, and their workflow sections.
+ */
+export function rebuildSchemaFromProject(
+  project: Project,
+  saved?: { nodes?: Node[]; edges?: Edge[] } | null,
+): { nodes: Node[]; edges: Edge[] } {
+  const fresh = buildSchemaFromProject(project);
+  const kept = (saved?.nodes ?? []).filter(node => typeof node.id === 'string' && !isDrawnNode(node.id));
+  const keptIds = new Set(kept.map(node => node.id));
+  const ids = new Set([...fresh.nodes.map(node => node.id), ...keptIds]);
+  const freshEdgeIds = new Set(fresh.edges.map(edge => edge.id));
+  const keptEdges = (saved?.edges ?? []).filter(edge =>
+    (keptIds.has(edge.source) || keptIds.has(edge.target))
+    && ids.has(edge.source) && ids.has(edge.target) && !freshEdgeIds.has(edge.id));
+  return { nodes: [...fresh.nodes, ...kept], edges: [...fresh.edges, ...keptEdges] };
+}
+
 export function WorkflowCanvas({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
