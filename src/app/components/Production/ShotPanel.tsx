@@ -11,6 +11,7 @@ import {
 import {
   ProductionShot, ProductionTask, ShotStatus, TaskPriority,
 } from '../../../interfaces';
+import { ShotDeliverables } from './ShotDeliverables';
 
 interface Props {
   shot: ProductionShot;
@@ -175,6 +176,8 @@ export function ShotPanel({ shot, projectId, onClose, onUpdate, onDelete }: Prop
             </button>
           </div>
         )}
+
+        <ShotDeliverables projectId={projectId} shotId={shot.id} />
 
         <div className={s.divider} />
 

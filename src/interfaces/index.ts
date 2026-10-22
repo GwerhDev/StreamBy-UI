@@ -620,6 +620,24 @@ export interface ProductionSequence {
   updatedAt: string;
 }
 
+// An asset (or one of its versions) delivered for a production shot or an export.
+export interface Deliverable {
+  id: string;
+  projectId: string;
+  assetId: string;
+  versionId: string | null;
+  shotId: string | null;
+  exportId: string | null;
+  note: string | null;
+  createdBy: string;
+  createdAt: string;
+  asset: { displayName: string; category: string; contentType: string | null } | null;
+  // The version's number, when it's of one.
+  version: number | null;
+  shotName: string | null;
+  exportName: string | null;
+}
+
 export interface ProductionShot {
   id: string;
   sequenceId: string;
