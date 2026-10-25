@@ -1,6 +1,6 @@
 import s from './StorageConnectionList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,6 +13,7 @@ import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { StorageConnection } from '../../../interfaces';
 import streambyIcon from '../../../assets/streamby-icon.svg';
+import { useProjectResource } from '../../../hooks/useProjectResource';
 
 const STORAGE_LABELS: Record<string, string> = {
   s3:    'AWS S3',
@@ -34,18 +35,9 @@ export const StorageConnectionList = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
 
-  const [connections, setConnections] = useState<StorageConnection[]>([]);
-  const [fetchLoading, setFetchLoading] = useState(true);
+  useProjectResource('storageConnections', fetchStorageConnections);
+  const connections: StorageConnection[] = project?.storageConnections ?? [];
   const [deleting, setDeleting] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!projectId) return;
-    setFetchLoading(true);
-    fetchStorageConnections(projectId)
-      .then(data => setConnections(data))
-      .catch((error: any) => dispatch(addApiResponse({ message: error.message || 'Failed to load storage connections.', type: 'error' })))
-      .finally(() => setFetchLoading(false));
-  }, [projectId]);
 
   const handleCreate = () => navigate(`/project/${projectId}/storage/create`);
 
@@ -56,7 +48,6 @@ export const StorageConnectionList = () => {
     try {
       await deleteStorageConnection(projectId, connId);
       dispatch(addApiResponse({ message: 'Storage connection deleted.', type: 'success' }));
-      setConnections(prev => prev.filter(c => c.id !== connId));
       dispatch(setCurrentProject({
         ...project,
         storageConnections: (project.storageConnections ?? []).filter(c => c.id !== connId),
@@ -68,7 +59,7 @@ export const StorageConnectionList = () => {
     }
   };
 
-  const isLoading = loading || fetchLoading;
+  const isLoading = loading;
 
   return (
     <div className={s.container}>

@@ -9,11 +9,14 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { ConnectionCard } from '../Cards/ConnectionCard';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
+import { useProjectResource } from '../../../hooks/useProjectResource';
+import { getConnections } from '../../../services/connections';
 
 export const ConnectionList = () => {
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('connections', getConnections);
   const connections = currentProjectData?.connections ?? [];
 
   const handleCreate = () => navigate(`/project/${projectId}/connections/create`);

@@ -210,3 +210,15 @@ export async function updateProjectOrigins(projectId: string, origins: string[])
   return project;
 }
 
+export async function fetchProjectOrigins(projectId: string): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/origins`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `HTTP ${res.status}`);
+  }
+  const { data } = await res.json();
+  return data;
+}

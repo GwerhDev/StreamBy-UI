@@ -8,19 +8,21 @@ import { faPlug, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteIntegrationConnection } from '../../../services/integrationConnections';
+import { deleteIntegrationConnection, fetchIntegrationConnections } from '../../../services/integrationConnections';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
 
 import { IntegrationConnection, ServiceProviderType } from '../../../interfaces';
+import { useProjectResource } from '../../../hooks/useProjectResource';
 
 export const IntegrationConnectionList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('integrationConnections', fetchIntegrationConnections);
   const allConnections: IntegrationConnection[] = project?.integrationConnections ?? [];
 
   const [deleting, setDeleting] = useState<string | null>(null);

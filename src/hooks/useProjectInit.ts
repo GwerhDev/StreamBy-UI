@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store';
 import { fetchProject } from '../services/projects';
 import { setCurrentProject, setProjectLoading } from '../store/currentProjectSlice';
@@ -10,9 +10,16 @@ export function useProjectInit(projectId: string | undefined) {
   const navigate = useNavigate();
   const session = useSelector((state: RootState) => state.session);
 
+  // useNavigate() returns a new function on every location change: as a dependency, every
+  // navigation inside the project set it back to loading (every list to its skeleton).
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+  const userIdRef = useRef(session.userId);
+  userIdRef.current = session.userId;
+
   useEffect(() => {
     if (!projectId) {
-      navigate('/project/not-found');
+      navigateRef.current('/project/not-found');
       return;
     }
     let cancelled = false;
@@ -23,14 +30,34 @@ export function useProjectInit(projectId: string | undefined) {
         if (cancelled) return;
         dispatch(setCurrentProject(data));
 
-        const selfMember = data?.members?.find((m: { userId: string }) => m.userId === session.userId);
+        const selfMember = data?.members?.find((m: { userId: string }) => m.userId === userIdRef.current);
         if (selfMember?.status === 'pending') {
-          navigate(`/preview/${projectId}`, { replace: true });
+          navigateRef.current(`/preview/${projectId}`, { replace: true });
         }
       } catch {
-        if (!cancelled) navigate('/project/not-found');
+        if (!cancelled) navigateRef.current('/project/not-found');
       }
     })();
     return () => { cancelled = true; };
-  }, [projectId, session.userId, dispatch, navigate]);
+  }, [projectId, dispatch]);
+}
+
+// The whole project again, in the background (no loading): for a view that shows all of it,
+// such as its overview. Each section of a single resource fetches that one instead (see
+// useProjectResource).
+export function useProjectRefresh() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { id: projectId } = useParams();
+  const loaded = useSelector((state: RootState) => !state.currentProject.loading && state.currentProject.data?.id === projectId);
+
+  useEffect(() => {
+    if (!projectId || !loaded) return;
+    let cancelled = false;
+    fetchProject(projectId)
+      .then(data => { if (!cancelled) dispatch(setCurrentProject(data)); })
+      .catch(() => { /* the project as last loaded stays */ });
+    return () => { cancelled = true; };
+  // Once per visit: not again when this refresh itself sets the project.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, dispatch]);
 }

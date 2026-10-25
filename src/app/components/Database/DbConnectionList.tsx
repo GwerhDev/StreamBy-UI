@@ -8,18 +8,20 @@ import { faDatabase, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteDbConnection } from '../../../services/database';
+import { deleteDbConnection, fetchDbConnections } from '../../../services/database';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
 import { DbConnection } from '../../../interfaces';
+import { useProjectResource } from '../../../hooks/useProjectResource';
 
 export const DbConnectionList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('dbConnections', fetchDbConnections);
   const allConnections: DbConnection[] = project?.dbConnections ?? [];
 
   const [deleting, setDeleting] = useState<string | null>(null);

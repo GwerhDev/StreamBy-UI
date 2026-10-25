@@ -29,8 +29,14 @@ const currentProjectSlice = createSlice({
     setProjectLoading: (state) => {
       state.loading = true;
     },
+    // One of the project's resources, fetched on its own (see useProjectResource).
+    setProjectResource: <K extends keyof Project>(state: CurrentProjectState, action: PayloadAction<{ projectId: string; key: K; value: Project[K] }>) => {
+      const { projectId, key, value } = action.payload;
+      if (state.data?.id !== projectId) return;
+      state.data = { ...state.data, [key]: value };
+    },
   },
 });
 
-export const { setCurrentProject, setMembership, clearCurrentProject, setProjectLoading } = currentProjectSlice.actions;
+export const { setCurrentProject, setMembership, clearCurrentProject, setProjectLoading, setProjectResource } = currentProjectSlice.actions;
 export default currentProjectSlice.reducer;

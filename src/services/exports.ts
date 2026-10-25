@@ -79,3 +79,16 @@ export async function deleteExport(projectId: string | undefined, exportId: stri
   }
   return res.json();
 }
+
+export async function fetchProjectExports(projectId: string) {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `HTTP ${res.status}`);
+  }
+  const { data } = await res.json();
+  return data;
+}

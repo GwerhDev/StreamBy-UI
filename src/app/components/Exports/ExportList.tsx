@@ -15,6 +15,8 @@ import { DevModeModal } from "./DevModeModal";
 import { updateProjectOrigins } from "../../../services/projects";
 import { setCurrentProject } from "../../../store/currentProjectSlice";
 import { addApiResponse } from "../../../store/apiResponsesSlice";
+import { useProjectResource } from "../../../hooks/useProjectResource";
+import { fetchProjectExports } from "../../../services/exports";
 
 const LOCALHOST_RE = /^https?:\/\/localhost:(\d+)$/;
 
@@ -27,6 +29,7 @@ function extractLocalhostPorts(origins: string[] = []): number[] {
 export function ExportList() {
   const dispatch = useDispatch<AppDispatch>();
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('exports', fetchProjectExports);
   const { exports, id, allowedOrigin } = currentProjectData || {};
   const navigate = useNavigate();
 

@@ -7,14 +7,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { updateProjectOrigins } from '../../../services/projects';
+import { updateProjectOrigins, fetchProjectOrigins } from '../../../services/projects';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useProjectResource } from '../../../hooks/useProjectResource';
 
 export const AllowedOriginsList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('allowedOrigin', fetchProjectOrigins);
   const allowedOrigins = currentProjectData?.allowedOrigin ?? [];
 
   const [saving, setSaving] = useState(false);

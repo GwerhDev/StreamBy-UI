@@ -1,3 +1,4 @@
+import { API_BASE } from '../config/api';
 import { addProjectIntegration, removeProjectIntegration } from './projects';
 import { IntegrationConnection } from '../interfaces';
 
@@ -11,4 +12,17 @@ export async function createIntegrationConnection(projectId: string, integration
 
 export async function deleteIntegrationConnection(projectId: string, integrationId: string): Promise<void> {
   await removeProjectIntegration(projectId, integrationId);
+}
+
+export async function fetchIntegrationConnections(projectId: string): Promise<IntegrationConnection[]> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/integrations`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `HTTP ${res.status}`);
+  }
+  const { data } = await res.json();
+  return data;
 }

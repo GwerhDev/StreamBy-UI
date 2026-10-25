@@ -10,9 +10,17 @@ import { faPlus, faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { ActionButton } from "../Buttons/ActionButton";
 import { SectionHeader } from "../SectionHeader/SectionHeader";
 import { EmptyBackground } from "../Backgrounds/EmptyBackground";
+import { useProjectResource } from "../../../hooks/useProjectResource";
+import { listPipelines } from "../../../services/pipelines";
+
+// The project keeps its pipelines as references (what the menu and this list show).
+const fetchPipelineRefs = (projectId: string) =>
+  listPipelines(projectId).then(pipelines => pipelines.map(({ id, name, order }) => ({ id, name, order })));
+
 
 export function PipelineList() {
   const { data: currentProjectData, loading: currentProjectLoading } = useSelector((state: RootState) => state.currentProject);
+  useProjectResource('pipelines', fetchPipelineRefs);
   const { pipelines, id } = currentProjectData || {};
   const navigate = useNavigate();
 
