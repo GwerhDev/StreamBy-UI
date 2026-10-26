@@ -1,10 +1,11 @@
 import { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import currentJob from '../store/currentJobSlice';
 import { JobRecord, Worker } from '../interfaces';
+import { Where } from './Where';
 
 export const worker = (over: Partial<Worker> = {}): Worker => ({
   source: 'builtin', id: 'gltf', name: 'glTF optimizer', provider: 'streamby-worker', kinds: ['gltf-optimize', 'lod'],
@@ -16,8 +17,6 @@ export const job = (over: Partial<JobRecord> = {}): JobRecord => ({
   kind: 'gltf-optimize', worker: { source: 'builtin', id: 'gltf', name: 'glTF optimizer' }, resultMode: 'derived',
   createdAt: '2026-10-26T10:00:00Z', ...over,
 });
-
-const Where = () => <p data-testid="location">{useLocation().pathname}</p>;
 
 // A component at a project's route, with the job store and the toasts.
 export const renderAt = (path: string, route: string, element: ReactNode) => {
