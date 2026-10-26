@@ -1,8 +1,7 @@
 import { CreateAllowedOriginForm } from '../components/Forms/CreateAllowedOriginForm';
 
-export const PermissionsCreate = () => {
+export const AllowedOriginsCreate = () => {
   return (
     <CreateAllowedOriginForm />
   );
 };
-

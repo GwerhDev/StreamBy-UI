@@ -33,7 +33,7 @@ export const CreateAllowedOriginForm = () => {
       const updated = await updateProjectOrigins(projectId, [...existing, trimmed]);
       dispatch(addApiResponse({ message: 'Allowed origin added.', type: 'success' }));
       dispatch(setCurrentProject(updated));
-      navigate(`/project/${projectId}/settings/permissions`);
+      navigate(`/project/${projectId}/settings/allowed-origins`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to add allowed origin.', type: 'error' }));
     } finally {

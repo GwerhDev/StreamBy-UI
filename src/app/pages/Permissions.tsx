@@ -1,7 +1,3 @@
-import { AllowedOriginsList } from '../components/Permissions/AllowedOriginsList';
+import { ProjectPermissions } from '../components/Permissions/ProjectPermissions';
 
-export const Permissions = () => {
-  return (
-    <AllowedOriginsList />
-  );
-};
+export const Permissions = () => <ProjectPermissions />;

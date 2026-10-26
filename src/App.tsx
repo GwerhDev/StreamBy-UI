@@ -40,7 +40,8 @@ const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module =
 const UserIntegrations = lazy(() => import('./app/pages/UserIntegrations').then(module => ({ default: module.UserIntegrations })));
 const UserIntegrationCreate = lazy(() => import('./app/pages/UserIntegrationCreate').then(module => ({ default: module.UserIntegrationCreate })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
-const PermissionsCreate = lazy(() => import('./app/pages/PermissionsCreate').then(module => ({ default: module.PermissionsCreate })));
+const AllowedOrigins = lazy(() => import('./app/pages/AllowedOrigins').then(module => ({ default: module.AllowedOrigins })));
+const AllowedOriginsCreate = lazy(() => import('./app/pages/AllowedOriginsCreate').then(module => ({ default: module.AllowedOriginsCreate })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
 const OverviewEdit = lazy(() => import('./app/pages/OverviewEdit').then(module => ({ default: module.OverviewEdit })));
 const StorageDrive = lazy(() => import('./app/components/Storage/StorageDrive').then(module => ({ default: module.StorageDrive })));
@@ -152,8 +153,9 @@ function App() {
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/api-tokens" element={<ApiTokens />} />
                   <Route path="/project/:id/settings/api-tokens/create" element={<ApiTokenCreate />} />
+                  <Route path="/project/:id/settings/allowed-origins" element={<AllowedOrigins />} />
+                  <Route path="/project/:id/settings/allowed-origins/create" element={<AllowedOriginsCreate />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
-                  <Route path="/project/:id/settings/permissions/create" element={<PermissionsCreate />} />
 
                   <Route path="/project/:id/not-found" element={<NotFound />} />
                   <Route path="/project/:id/*" element={<NotFound />} />

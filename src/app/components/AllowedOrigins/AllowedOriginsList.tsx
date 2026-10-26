@@ -65,7 +65,7 @@ export const AllowedOriginsList = () => {
       items={items}
       loading={loading}
       layout="grid"
-      onAdd={() => navigate(`/project/${projectId}/settings/permissions/create`)}
+      onAdd={() => navigate(`/project/${projectId}/settings/allowed-origins/create`)}
       addLabel="Add a new origin"
     />
   );
