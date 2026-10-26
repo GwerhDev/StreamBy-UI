@@ -11,8 +11,13 @@ const currentJobSlice = createSlice({
   name: 'currentJob',
   initialState,
   reducers: {
+    // A job event carries part of a job: it's merged into what's known of it.
     upsertJob(state, action: PayloadAction<JobRecord>) {
-      state.jobs[action.payload.jobId] = action.payload;
+      state.jobs[action.payload.jobId] = { ...state.jobs[action.payload.jobId], ...action.payload };
+    },
+    // Jobs as fetched (they're kept by StreamBy, so a reload doesn't lose them).
+    upsertJobs(state, action: PayloadAction<JobRecord[]>) {
+      for (const job of action.payload) state.jobs[job.jobId] = { ...state.jobs[job.jobId], ...job };
     },
     completeJob(state, action: PayloadAction<string>) {
       const job = state.jobs[action.payload];
@@ -25,5 +30,5 @@ const currentJobSlice = createSlice({
   },
 });
 
-export const { upsertJob, completeJob, failJob } = currentJobSlice.actions;
+export const { upsertJob, upsertJobs, completeJob, failJob } = currentJobSlice.actions;
 export default currentJobSlice.reducer;

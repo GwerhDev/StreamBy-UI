@@ -40,6 +40,8 @@ const UserSettings = lazy(() => import('./app/pages/UserSettings').then(module =
 const UserIntegrations = lazy(() => import('./app/pages/UserIntegrations').then(module => ({ default: module.UserIntegrations })));
 const UserIntegrationCreate = lazy(() => import('./app/pages/UserIntegrationCreate').then(module => ({ default: module.UserIntegrationCreate })));
 const Permissions = lazy(() => import('./app/pages/Permissions').then(module => ({ default: module.Permissions })));
+const Workers = lazy(() => import('./app/pages/Workers').then(module => ({ default: module.Workers })));
+const WorkerCreate = lazy(() => import('./app/pages/WorkerCreate').then(module => ({ default: module.WorkerCreate })));
 const AllowedOrigins = lazy(() => import('./app/pages/AllowedOrigins').then(module => ({ default: module.AllowedOrigins })));
 const AllowedOriginsCreate = lazy(() => import('./app/pages/AllowedOriginsCreate').then(module => ({ default: module.AllowedOriginsCreate })));
 const Unauthorized = lazy(() => import('./app/pages/Unauthorized').then(module => ({ default: module.Unauthorized })));
@@ -155,6 +157,8 @@ function App() {
                   <Route path="/project/:id/settings/api-tokens/create" element={<ApiTokenCreate />} />
                   <Route path="/project/:id/settings/allowed-origins" element={<AllowedOrigins />} />
                   <Route path="/project/:id/settings/allowed-origins/create" element={<AllowedOriginsCreate />} />
+                  <Route path="/project/:id/settings/workers" element={<Workers />} />
+                  <Route path="/project/:id/settings/workers/create" element={<WorkerCreate />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
 
                   <Route path="/project/:id/not-found" element={<NotFound />} />

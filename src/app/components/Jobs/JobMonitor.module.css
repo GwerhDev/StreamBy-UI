@@ -132,3 +132,17 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+.retry {
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}

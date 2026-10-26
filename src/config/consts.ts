@@ -1,4 +1,4 @@
-import { faGlobe, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faGears, faGlobe, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
 import type { WorkflowGroup } from "../app/components/NodeViewer/nodePalette";
 
 export const dashboardDirectoryList = [
@@ -35,5 +35,6 @@ export const storageDirectoryList = [
 export const settingsDirectoryList = [
   { name: "API Tokens", icon: faKey, path: "settings/api-tokens" },
   { name: "Allowed Origins", icon: faGlobe, path: "settings/allowed-origins" },
+  { name: "Workers", icon: faGears, path: "settings/workers" },
   { name: "Permissions", icon: faShield, path: "settings/permissions" },
 ];

@@ -1,6 +1,5 @@
 import s from './FileDetailPanel.module.css';
 import { useState, useRef, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,7 +8,7 @@ import {
   faFileLines, faDatabase, faBolt, faShield, faTriangleExclamation, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory, AssetRights, LicenseType } from '../../../interfaces';
-import { RootState } from '../../../store';
+import { AssetJobs } from '../Jobs/AssetJobs';
 import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
 
 interface FileDetailPanelProps {
@@ -86,43 +85,6 @@ function MetadataTab({ file, projectId }: { file: StorageFile; projectId: string
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function JobsTab({ fileId }: { fileId: string }) {
-  const jobs = useSelector((state: RootState) => state.currentJob.jobs);
-  const related = Object.values(jobs).filter(j => j.assetId === fileId);
-
-  if (!related.length) {
-    return (
-      <div className={s.tabEmpty}>
-        <FontAwesomeIcon icon={faBolt} className={s.tabEmptyIcon} />
-        <p>No active jobs for this file.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={s.tabContent}>
-      {related.map(job => (
-        <div key={job.jobId} className={s.jobRow}>
-          <div className={s.jobInfo}>
-            <span className={s.jobType}>{job.jobType}</span>
-            <span className={s.jobStage}>{job.stage}</span>
-          </div>
-          <div className={s.jobProgress}>
-            <div className={s.jobProgressTrack}>
-              <div
-                className={`${s.jobProgressFill} ${job.error ? s.jobProgressError : job.progress >= 100 ? s.jobProgressDone : ''}`}
-                style={{ width: `${Math.min(100, job.progress)}%` }}
-              />
-            </div>
-            <span className={s.jobPercent}>{job.progress}%</span>
-          </div>
-          {job.error && <p className={s.jobError}>{job.error}</p>}
-        </div>
-      ))}
     </div>
   );
 }
@@ -432,7 +394,7 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
             </div>
           )}
           {activeTab === 'metadata' && <MetadataTab file={file} projectId={projectId} />}
-          {activeTab === 'jobs' && <JobsTab fileId={file.id} />}
+          {activeTab === 'jobs' && <AssetJobs projectId={projectId} assetId={file.id} category={category} />}
           {activeTab === 'rights' && <RightsTab fileId={file.id} projectId={projectId} />}
         </div>
       </div>

@@ -468,14 +468,53 @@ export interface AssetMetadata {
   customTags: Record<string, string>;
 }
 
+export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type WorkerResultMode = 'derived' | 'version';
+
 export interface JobRecord {
   jobId: string;
-  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail' | 'render' | 'format-convert' | 'lod' | 'transcription' | 'upscale' | 'generate-asset';
+  jobType: 'ingest' | 'transcode' | 'caption' | 'thumbnail' | 'render' | 'format-convert' | 'lod' | 'transcription' | 'upscale' | 'generate-asset' | 'process';
+  projectId?: string;
   assetId?: string;
+  status?: JobStatus;
   stage: string;
   progress: number;
   message?: string;
-  error?: string;
+  error?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  // A worker's job: who processes it, what it asked, and what came of it.
+  worker?: { source: 'builtin' | 'project'; id: string; name: string } | null;
+  kind?: string | null;
+  resultMode?: WorkerResultMode | null;
+  attempts?: number;
+  maxAttempts?: number;
+  report?: Record<string, unknown> | null;
+  result?: { assetId: string; versionId: string; mode: WorkerResultMode } | null;
+}
+
+// A processing worker a project can use: the host's, or the project's own.
+export interface Worker {
+  source: 'builtin' | 'project';
+  id: string;
+  name: string;
+  provider: string;
+  kinds: string[];
+  categories: StorageCategory[];
+  autoKind: string | null;
+  description: string | null;
+  hasCredential: boolean;
+  createdBy: string | null;
+}
+
+export interface CreateWorkerPayload {
+  name: string;
+  endpoint: string;
+  credential?: string;
+  kinds: string[];
+  categories: StorageCategory[];
+  autoKind?: string | null;
+  description?: string;
 }
 
 export interface LodLevel {
