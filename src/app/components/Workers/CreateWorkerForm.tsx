@@ -8,6 +8,7 @@ import {
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createWorker } from '../../../services/workers';
+import { addWorker } from '../../../store/workersSlice';
 import { StorageCategory } from '../../../interfaces';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
@@ -31,7 +32,7 @@ export const CreateWorkerForm = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id: projectId = '' } = useParams<{ id: string }>();
-  const listPath = `/project/${projectId}/settings/workers`;
+  const listPath = `/project/${projectId}/workers`;
 
   const [name, setName] = useState('');
   const [endpoint, setEndpoint] = useState('');
@@ -53,12 +54,13 @@ export const CreateWorkerForm = () => {
     if (!canSave) return;
     setSaving(true);
     try {
-      await createWorker(projectId, {
+      const created = await createWorker(projectId, {
         name: name.trim(), endpoint: endpoint.trim(), kinds, categories,
         autoKind: kinds.includes(autoKind) ? autoKind : null,
         ...(credential ? { credential } : {}),
         ...(description.trim() ? { description: description.trim() } : {}),
       });
+      dispatch(addWorker(created));
       dispatch(addApiResponse({ message: 'Worker connected.', type: 'success' }));
       navigate(listPath);
     } catch (err) {

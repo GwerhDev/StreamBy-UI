@@ -4,7 +4,7 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faPlug, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faGears, faPlug, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
 import { ServiceProviderType } from '../../../interfaces';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -17,6 +17,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { archiveProject, unarchiveProject } from '../../../services/projects';
 import { setProjects } from '../../../store/projectsSlice';
+import { fetchWorkers } from '../../../store/workersSlice';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { CustomCanvas } from '../Canvas/CustomCanvas';
 import { useEditorMenu } from '../../../context/EditorMenuContext';
@@ -33,6 +34,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const session = useSelector((state: RootState) => state.session);
   const mode = session.mode ?? 'developer';
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const workers = useSelector((state: RootState) => state.workers);
   const { name, id, members } = currentProject.data || {};
   const selfMember = members?.find(m => m.userId === session.userId);
   const isPending = selfMember?.status === 'pending';
@@ -56,6 +58,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const isDatabaseSection = location.pathname.includes(`/project/${id}/database`);
   const isConnectionsSection = location.pathname.includes(`/project/${id}/connections`);
   const isServicesSection = location.pathname.includes(`/project/${id}/services`);
+  const isWorkersSection = location.pathname.includes(`/project/${id}/workers`);
   const isSettingsSection = location.pathname.includes(`/project/${id}/settings`);
 
   const [sectionOpen, setSectionOpen] = useState({
@@ -67,6 +70,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     database: true,
     connections: true,
     services: true,
+    workers: true,
     settings: true,
   });
 
@@ -80,9 +84,14 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       database: prev.database || isDatabaseSection,
       connections: prev.connections || isConnectionsSection,
       services: prev.services || isServicesSection,
+      workers: prev.workers || isWorkersSection,
       settings: prev.settings || isSettingsSection,
     }));
-  }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isServicesSection, isSettingsSection]);
+  }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isServicesSection, isWorkersSection, isSettingsSection]);
+
+  useEffect(() => {
+    if (id && !isPending && workers.projectId !== id) dispatch(fetchWorkers(id));
+  }, [dispatch, id, isPending, workers.projectId]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -302,6 +311,9 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </button>
                 <button className={`${s.railIcon} ${isServicesSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/services`)} title="Services">
                   <FontAwesomeIcon icon={faPlug} />
+                </button>
+                <button className={`${s.railIcon} ${isWorkersSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/workers`)} title="Workers" data-testid="rail-workers">
+                  <FontAwesomeIcon icon={faGears} />
                 </button>
                 {mode === 'developer' && (<>
                   <button className={`${s.railIcon} ${isDatabaseSection ? s.railIconActive : ''}`} onClick={() => navigate(`/project/${id}/database`)} title="Database">
@@ -546,6 +558,37 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                           );
                         })
                       : <span className={`${s.serviceHeader} ${s.storageItemMuted}`}>No services yet</span>
+                    }
+                  </div>
+                )}
+              </div>
+
+              {/* WORKERS */}
+              <div className={s.accordionSection} data-testid="workers-section">
+                <div className={`${s.sectionHeader} ${isWorkersSection ? s.sectionHeaderActive : ''}`} onClick={() => toggleSection('workers')}>
+                  <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate(`/project/${id}/workers`); }}>
+                    Workers
+                  </span>
+                  <div className={`${s.sectionChevronWrap} ${sectionOpen.workers ? s.sectionChevronWrapOpen : ''}`}>
+                    <FontAwesomeIcon icon={faGears} className={s.sectionChevronSectionIcon} />
+                    <FontAwesomeIcon icon={faChevronDown} className={s.sectionChevronArrow} />
+                  </div>
+                </div>
+                {sectionOpen.workers && (
+                  <div className={s.sectionBody}>
+                    {workers.projectId !== id || workers.list === null
+                      ? <span className={`${s.serviceHeader} ${s.storageItemLoading}`}>Loading…</span>
+                      : workers.list.length
+                        ? workers.list.map(worker => {
+                            const linkPath = `/project/${id}/workers`;
+                            return (
+                              <Link key={`${worker.source}-${worker.id}`} to={linkPath} className={`${s.serviceHeader} ${location.pathname === linkPath ? s.activeLink : ''}`} data-testid="workers-section-item">
+                                <FontAwesomeIcon icon={faGears} className={s.serviceIcon} />
+                                <span className={s.serviceName}>{worker.name}</span>
+                              </Link>
+                            );
+                          })
+                        : <span className={`${s.serviceHeader} ${s.storageItemMuted}`}>No workers yet</span>
                     }
                   </div>
                 )}

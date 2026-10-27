@@ -12,6 +12,7 @@ import currentJobReducer from './currentJobSlice';
 import currentReviewReducer from './currentReviewSlice';
 import currentWorkflowReducer from './currentWorkflowSlice';
 import currentPipelineReducer from './currentPipelineSlice';
+import workersReducer from './workersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     currentReview: currentReviewReducer,
     currentWorkflow: currentWorkflowReducer,
     currentPipeline: currentPipelineReducer,
+    workers: workersReducer,
   },
 });
 

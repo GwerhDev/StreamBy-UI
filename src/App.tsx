@@ -132,6 +132,9 @@ function App() {
                   <Route path="/project/:id/services" element={<IntegrationConnections />} />
                   <Route path="/project/:id/services/create" element={<IntegrationConnectionCreate />} />
 
+                  <Route path="/project/:id/workers" element={<Workers />} />
+                  <Route path="/project/:id/workers/create" element={<WorkerCreate />} />
+
                   <Route path="/project/:id/connections" element={<ConnectionsList />} />
                   <Route path="/project/:id/connections/create" element={<ConnectionsCreate />} />
                   <Route path="/project/:id/connections/:connectionId" element={<ConnectionDetail />} />
@@ -157,8 +160,6 @@ function App() {
                   <Route path="/project/:id/settings/api-tokens/create" element={<ApiTokenCreate />} />
                   <Route path="/project/:id/settings/allowed-origins" element={<AllowedOrigins />} />
                   <Route path="/project/:id/settings/allowed-origins/create" element={<AllowedOriginsCreate />} />
-                  <Route path="/project/:id/settings/workers" element={<Workers />} />
-                  <Route path="/project/:id/settings/workers/create" element={<WorkerCreate />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
 
                   <Route path="/project/:id/not-found" element={<NotFound />} />

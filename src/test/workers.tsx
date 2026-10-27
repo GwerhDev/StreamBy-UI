@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import currentJob from '../store/currentJobSlice';
+import workers from '../store/workersSlice';
 import { JobRecord, Worker } from '../interfaces';
 import { Where } from './Where';
 
@@ -18,11 +19,12 @@ export const job = (over: Partial<JobRecord> = {}): JobRecord => ({
   createdAt: '2026-10-26T10:00:00Z', ...over,
 });
 
-// A component at a project's route, with the job store and the toasts.
+// A component at a project's route, with the job and worker stores and the toasts.
 export const renderAt = (path: string, route: string, element: ReactNode) => {
   const store = configureStore({
     reducer: {
       currentJob,
+      workers,
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },

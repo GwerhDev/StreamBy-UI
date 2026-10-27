@@ -4,13 +4,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateWorkerForm } from './CreateWorkerForm';
 import * as workers from '../../../services/workers';
 import { renderAt, worker } from '../../../test/workers';
+import { fetchWorkers } from '../../../store/workersSlice';
 
 beforeEach(() => vi.restoreAllMocks());
 
 describe('CreateWorkerForm', () => {
   it('connects a worker with what it does and takes, and goes back to the list', async () => {
-    const create = vi.spyOn(workers, 'createWorker').mockResolvedValue(worker({ source: 'project' }));
-    renderAt('/project/p1/settings/workers/create', '/project/:id/settings/workers/create', <CreateWorkerForm />);
+    const create = vi.spyOn(workers, 'createWorker').mockResolvedValue(worker({ source: 'project', id: 'w9' }));
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([worker()]);
+    const store = renderAt('/project/p1/workers/create', '/project/:id/workers/create', <CreateWorkerForm />);
+    // The list the menu shows, loaded already.
+    await store.dispatch(fetchWorkers('p1'));
     const user = userEvent.setup();
     const submit = screen.getByRole('button', { name: /Connect$/ });
     expect(submit).toBeDisabled();
@@ -29,6 +33,7 @@ describe('CreateWorkerForm', () => {
       name: 'Optimizer', endpoint: 'https://worker.example.com/jobs', kinds: ['gltf-optimize', 'lod'],
       categories: ['3d-models'], autoKind: 'lod', credential: 'secret',
     }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/project/p1/settings/workers');
+    expect(screen.getByTestId('location')).toHaveTextContent('/project/p1/workers');
+    expect(store.getState().workers.list?.map(w => w.id)).toEqual(['gltf', 'w9']);
   });
 });

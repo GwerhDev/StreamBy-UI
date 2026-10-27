@@ -5,7 +5,7 @@ import { WorkerList } from './WorkerList';
 import * as workers from '../../../services/workers';
 import { renderAt, worker } from '../../../test/workers';
 
-const ROUTE = '/project/:id/settings/workers';
+const ROUTE = '/project/:id/workers';
 beforeEach(() => vi.restoreAllMocks());
 
 describe('WorkerList', () => {
@@ -13,7 +13,7 @@ describe('WorkerList', () => {
     vi.spyOn(workers, 'getWorkers').mockResolvedValue([
       worker(), worker({ source: 'project', id: 'w2', name: 'Own LOD', kinds: ['lod'], autoKind: 'lod' }),
     ]);
-    renderAt('/project/p1/settings/workers', ROUTE, <WorkerList />);
+    renderAt('/project/p1/workers', ROUTE, <WorkerList />);
     const host = await screen.findByTestId('worker-gltf');
     expect(host).toHaveTextContent('Host');
     expect(host).toHaveTextContent('gltf-optimize, lod · 3d-models');
@@ -26,7 +26,7 @@ describe('WorkerList', () => {
   it("removes one of the project's once confirmed", async () => {
     const list = vi.spyOn(workers, 'getWorkers').mockResolvedValue([worker({ source: 'project', id: 'w2', name: 'Own LOD' })]);
     const remove = vi.spyOn(workers, 'deleteWorker').mockResolvedValue({});
-    renderAt('/project/p1/settings/workers', ROUTE, <WorkerList />);
+    renderAt('/project/p1/workers', ROUTE, <WorkerList />);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Remove Own LOD' }));
     list.mockResolvedValue([]);
@@ -37,8 +37,8 @@ describe('WorkerList', () => {
 
   it('connects a new one on its own page', async () => {
     vi.spyOn(workers, 'getWorkers').mockResolvedValue([]);
-    renderAt('/project/p1/settings/workers', ROUTE, <WorkerList />);
+    renderAt('/project/p1/workers', ROUTE, <WorkerList />);
     await userEvent.setup().click(await screen.findByRole('button', { name: /Connect a worker/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/project/p1/settings/workers/create');
+    expect(screen.getByTestId('location')).toHaveTextContent('/project/p1/workers/create');
   });
 });

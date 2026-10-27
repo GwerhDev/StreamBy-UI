@@ -1,12 +1,13 @@
 import s from './WorkerList.module.css';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGears, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { AppDispatch } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteWorker, getWorkers } from '../../../services/workers';
+import { deleteWorker } from '../../../services/workers';
+import { fetchWorkers, removeWorker } from '../../../store/workersSlice';
 import { Worker } from '../../../interfaces';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { ModalShell } from '../Modals/ModalShell';
@@ -18,20 +19,15 @@ export const WorkerList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id: projectId = '' } = useParams<{ id: string }>();
-  const [workers, setWorkers] = useState<Worker[] | null>(null);
+  const workers = useSelector((state: RootState) => (state.workers.projectId === projectId ? state.workers.list : null));
   const [toRemove, setToRemove] = useState<Worker | null>(null);
   const [removing, setRemoving] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      setWorkers(await getWorkers(projectId));
-    } catch (err) {
-      setWorkers([]);
-      dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to load workers.', type: 'error' }));
-    }
+  // Fresh each time the page is opened (the menu may have loaded them a while ago).
+  useEffect(() => {
+    dispatch(fetchWorkers(projectId)).unwrap().catch(err =>
+      dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to load workers.', type: 'error' })));
   }, [dispatch, projectId]);
-
-  useEffect(() => { load(); }, [load]);
 
   const handleRemove = async () => {
     if (!toRemove) return;
@@ -39,8 +35,8 @@ export const WorkerList = () => {
     try {
       await deleteWorker(projectId, toRemove.id);
       dispatch(addApiResponse({ message: `${toRemove.name} removed.`, type: 'success' }));
+      dispatch(removeWorker(toRemove.id));
       setToRemove(null);
-      await load();
     } catch (err) {
       dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to remove the worker.', type: 'error' }));
     } finally {
@@ -85,7 +81,7 @@ export const WorkerList = () => {
         items={items}
         loading={workers === null}
         layout="grid"
-        onAdd={() => navigate(`/project/${projectId}/settings/workers/create`)}
+        onAdd={() => navigate(`/project/${projectId}/workers/create`)}
         addLabel="Connect a worker"
       />
       {toRemove && (
