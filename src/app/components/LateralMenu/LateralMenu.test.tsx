@@ -10,13 +10,14 @@ import currentProject, { setCurrentProject } from '../../../store/currentProject
 import projects from '../../../store/projectsSlice';
 import apiResponses from '../../../store/apiResponsesSlice';
 import workers from '../../../store/workersSlice';
+import documents from '../../../store/documentsSlice';
 import * as workersService from '../../../services/workers';
 import { Project, WorkspaceMode } from '../../../interfaces';
 import { worker } from '../../../test/workers';
 import { Where } from '../../../test/Where';
 
 const renderMenu = (mode: WorkspaceMode, path = '/project/p1/storage') => {
-  const store = configureStore({ reducer: { session, currentProject, projects, apiResponses, workers } });
+  const store = configureStore({ reducer: { session, currentProject, projects, apiResponses, workers, documents } });
   store.dispatch(setMode(mode));
   store.dispatch(setCurrentProject({ id: 'p1', name: 'Demo', public: false } as Project));
   render(
@@ -62,5 +63,16 @@ describe('LateralMenu — Workers', () => {
     renderMenu('developer', '/project/p1/settings');
     const links = screen.getAllByRole('link').map(a => a.getAttribute('href'));
     expect(links).not.toContain('/project/p1/settings/workers');
+  });
+});
+
+describe('LateralMenu — Documents', () => {
+  it("are in the Dashboard, after Members, not a section of their own", () => {
+    vi.spyOn(workersService, 'getWorkers').mockResolvedValue([]);
+    renderMenu('designer');
+    const links = screen.getAllByRole('link').map(a => a.getAttribute('href'));
+    expect(links.slice(links.indexOf('/project/p1/dashboard/overview'), links.indexOf('/project/p1/dashboard/overview') + 3))
+      .toEqual(['/project/p1/dashboard/overview', '/project/p1/dashboard/members', '/project/p1/dashboard/documents']);
+    expect(screen.queryByTestId('documents-section')).not.toBeInTheDocument();
   });
 });

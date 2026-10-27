@@ -1,0 +1,252 @@
+.container {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  /* The editor is a form: not centered, as forms are by default. */
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1rem;
+  min-height: 0;
+  flex-grow: 1;
+}
+
+/* Side by side; on a narrow screen they go one under the other. */
+.actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.badge {
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-subtle-border);
+}
+
+.iconButton {
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.iconButton:hover {
+  color: var(--color-danger-text);
+  background-color: transparent;
+}
+
+.emptyState {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The drive's buttons, together at the end of its toolbar. */
+.toolbarActions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── A title, as items show it ── */
+
+.treeTitle {
+  color: var(--color-text-bright);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── A document ── */
+
+.headerSkeleton {
+  height: 56px;
+  border-radius: 1rem;
+}
+
+.bodySkeleton {
+  height: 320px;
+  border-radius: 1rem;
+}
+
+.page {
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 2rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-surface-sunken);
+  text-align: start;
+}
+
+.notice,
+.warning {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  text-align: start;
+}
+
+.notice {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-subtle-border);
+}
+
+.warning {
+  color: var(--color-warning);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning-subtle-border);
+}
+
+.warning p {
+  margin: 0;
+}
+
+/* ── Editing ── */
+
+.editorPanes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  min-height: 420px;
+}
+
+.editorText {
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-surface-sunken);
+  background: var(--color-surface-base);
+  color: var(--color-text-bright);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.editorPreview {
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+@media (max-width: 900px) {
+  .editorPanes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── History ── */
+
+.history {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.versionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.versionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  background-color: var(--color-surface);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: start;
+}
+
+.versionItem:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.versionSelected {
+  border-color: var(--color-accent-subtle-border);
+  background-color: var(--color-surface-hover);
+}
+
+.versionPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.versionToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .history {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Modals ── */
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}

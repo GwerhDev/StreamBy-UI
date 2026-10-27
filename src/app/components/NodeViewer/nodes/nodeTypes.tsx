@@ -13,7 +13,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faTriangleExclamation, faPlug,
+  faTriangleExclamation, faPlug, faBook,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -202,6 +202,21 @@ export const DataSourceNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
   </div>
 ));
 DataSourceNode.displayName = 'DataSourceNode';
+
+// Sits BELOW StreamBy: the project's documents, as published (never a draft)
+export const DocumentsNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="source" position={Position.Top} id="out-stream" className={s.handle} style={hOut(H_BOTTOM)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0d2a1e' }}>
+      <div className={s.nodeIcon} style={{ color: H_BOTTOM }}><FontAwesomeIcon icon={faBook} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+));
+DocumentsNode.displayName = 'DocumentsNode';
 
 // Sits BELOW StreamBy — connects via StreamBy bottom handles
 export const ConnectionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
@@ -742,6 +757,7 @@ export const nodeTypes = {
   streambyNode: StreamByNode,
   dataSourceNode: DataSourceNode,
   jsonInputNode: JsonInputNode,
+  documentsNode: DocumentsNode,
   connectionNode: ConnectionNode,
   integrationConnectionNode: IntegrationConnectionNode,
   processNode: ProcessNode,

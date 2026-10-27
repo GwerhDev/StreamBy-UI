@@ -180,7 +180,8 @@ export type ProjectPermission =
   | 'workflow:read' | 'workflow:write'
   | 'exports:read' | 'exports:write'
   | 'rights:read' | 'rights:write'
-  | 'jobs:read' | 'jobs:run';
+  | 'jobs:read' | 'jobs:run'
+  | 'docs:read' | 'docs:write' | 'docs:delete';
 export type AccountPermission = 'projects:create';
 export type ApiTokenPermission = ProjectPermission | AccountPermission;
 
@@ -753,4 +754,62 @@ export interface Annotation {
   resolved: boolean;
   resolvedBy?: string;
   createdAt: string;
+}
+
+// ── Project documents ──
+
+/** Who saved a document's version: a user, an API token, or an app on a user's behalf. */
+export interface DocumentAuthor {
+  userId: string;
+  username: string;
+  via: 'session' | 'apiToken' | 'oauth';
+  tokenId?: string;
+  clientId?: string;
+  clientName?: string;
+}
+
+export type DocumentKind = 'document' | 'folder';
+
+/** A document as the tree lists it (no content). */
+export interface DocumentSummary {
+  id: string;
+  projectId: string;
+  kind: DocumentKind;
+  title: string;
+  parentId: string | null;
+  position: number;
+  version: number;
+  exportable: boolean;
+  publishedVersion: number | null;
+  createdAt: string;
+  createdBy: DocumentAuthor;
+  updatedAt: string;
+  updatedBy: DocumentAuthor;
+}
+
+export interface ProjectDocument extends DocumentSummary {
+  content: string;
+}
+
+export interface DocumentVersionSummary {
+  documentId: string;
+  projectId: string;
+  version: number;
+  title: string;
+  author: DocumentAuthor;
+  createdAt: string;
+}
+
+export interface DocumentVersion extends DocumentVersionSummary {
+  content: string;
+}
+
+/** A change to a project's documents, as the websocket brings it. */
+export interface DocumentEvent {
+  projectId: string;
+  action: 'created' | 'saved' | 'changed' | 'deleted';
+  documentIds: string[];
+  version?: number;
+  title?: string;
+  author: DocumentAuthor;
 }

@@ -70,6 +70,14 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
+    resource: 'docs', label: 'Documents', description: "The project's documents and their history",
+    actions: [
+      { permission: 'docs:read', label: 'Read' },
+      { permission: 'docs:write', label: 'Write' },
+      { permission: 'docs:delete', label: 'Delete' },
+    ],
+  },
+  {
     resource: 'account', label: 'Account', description: 'Creating projects', account: true,
     actions: [{ permission: 'projects:create', label: 'Create projects' }],
   },
@@ -111,6 +119,7 @@ export const RISKY_ACTIONS: Partial<Record<ApiTokenPermission, string>> = {
   'members:manage': 'manage its members',
   'assets:delete': 'delete assets',
   'production:delete': 'delete sequences, shots and tasks',
+  'docs:delete': 'delete documents',
 };
 export const RISKY_PERMISSIONS = Object.keys(RISKY_ACTIONS) as ApiTokenPermission[];
 

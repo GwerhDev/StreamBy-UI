@@ -1,9 +1,10 @@
-import { faGlobe, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faGlobe, faCubes, faDiagramProject, faFileExport, faHeadphones, faImage, faUsers, faVideo, faShield, faComments, faBoxArchive, faBriefcase, faClipboardList, faKey } from "@fortawesome/free-solid-svg-icons";
 import type { WorkflowGroup } from "../app/components/NodeViewer/nodePalette";
 
 export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
   { name: "Members", icon: faUsers, path: "dashboard/members" },
+  { name: "Documents", icon: faBook, path: "dashboard/documents" },
 ];
 
 // Workflow sidebar sections, keyed by the same WorkflowGroup taxonomy nodePalette.ts uses.

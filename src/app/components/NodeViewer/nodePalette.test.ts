@@ -143,6 +143,6 @@ describe('getGroupsForContext', () => {
 
 describe('EXPORT_ONLY_TYPES', () => {
   it('lists the export-exclusive node types for defensive cleanup', () => {
-    expect(EXPORT_ONLY_TYPES).toEqual(new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode']));
+    expect(EXPORT_ONLY_TYPES).toEqual(new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode', 'documentsNode']));
   });
 });

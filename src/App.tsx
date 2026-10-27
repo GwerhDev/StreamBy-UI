@@ -43,6 +43,10 @@ const UserIntegrationCreate = lazyPage(() => import('./app/pages/UserIntegration
 const Permissions = lazyPage(() => import('./app/pages/Permissions'), 'Permissions');
 const Workers = lazyPage(() => import('./app/pages/Workers'), 'Workers');
 const WorkerCreate = lazyPage(() => import('./app/pages/WorkerCreate'), 'WorkerCreate');
+const Documents = lazyPage(() => import('./app/pages/Documents'), 'Documents');
+const DocumentDetails = lazyPage(() => import('./app/pages/DocumentDetails'), 'DocumentDetails');
+const DocumentEdit = lazyPage(() => import('./app/pages/DocumentEdit'), 'DocumentEdit');
+const DocumentVersions = lazyPage(() => import('./app/pages/DocumentVersions'), 'DocumentVersions');
 const AllowedOrigins = lazyPage(() => import('./app/pages/AllowedOrigins'), 'AllowedOrigins');
 const AllowedOriginsCreate = lazyPage(() => import('./app/pages/AllowedOriginsCreate'), 'AllowedOriginsCreate');
 const Unauthorized = lazyPage(() => import('./app/pages/Unauthorized'), 'Unauthorized');
@@ -137,6 +141,11 @@ function App() {
 
                   <Route path="/project/:id/workers" element={<Workers />} />
                   <Route path="/project/:id/workers/create" element={<WorkerCreate />} />
+
+                  <Route path="/project/:id/dashboard/documents" element={<Documents />} />
+                  <Route path="/project/:id/dashboard/documents/:docId" element={<DocumentDetails />} />
+                  <Route path="/project/:id/dashboard/documents/:docId/edit" element={<DocumentEdit />} />
+                  <Route path="/project/:id/dashboard/documents/:docId/versions" element={<DocumentVersions />} />
 
                   <Route path="/project/:id/connections" element={<ConnectionsList />} />
                   <Route path="/project/:id/connections/create" element={<ConnectionsCreate />} />

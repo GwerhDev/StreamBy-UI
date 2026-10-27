@@ -11,6 +11,8 @@ import { createPipeline } from '../../../services/pipelines';
 import { createExport } from '../../../services/exports';
 import { updateProjectWorkflow } from '../../../services/workflow';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { fetchDocuments } from '../../../store/documentsSlice';
+import { folderOptions } from '../Documents/DocumentTree';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import ReactFlow, {
@@ -127,6 +129,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   const sessionUserId = useSelector((state: RootState) => state.session.userId ?? state.session.username);
   const workspaceMode = useSelector((state: RootState) => state.session.mode ?? 'developer');
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
+  // The project's folders, for a Documents node to deliver one of them.
+  const documentList = useSelector((state: RootState) => (state.documents.projectId === projectId ? state.documents.list : null));
+  useEffect(() => {
+    if (projectId && context === 'export' && !documentList) dispatch(fetchDocuments(projectId));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, context]);
 
   const activePalette = getPaletteForContext(context, workspaceMode);
   const activeGroups = getGroupsForContext(context, workspaceMode);
@@ -298,6 +306,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // JsonInput → DataSource left or StreamBy bottom
     if (st === 'jsonInputNode' && tt === 'dataSourceNode') return th === 'in-json';
     if (st === 'jsonInputNode' && tt === 'streambyNode') return th === 'in-bottom';
+    if (st === 'documentsNode' && tt === 'streambyNode') return th === 'in-bottom';
 
     // StreamBy right → FilterNode left
     if (st === 'streambyNode' && tt === 'filterNode') return sh === 'out-right';
@@ -449,6 +458,15 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         { key: 'allowedOrigin', label: 'Allowed Origins', value: exportDetails.allowedOrigin?.join(', ') || '*' },
         { key: 'devMode', label: 'Dev Mode', value: exportDetails.devMode ? 'Enabled' : 'Disabled' },
       ],
+    };
+
+    if (node.type === 'documentsNode') return {
+      title: 'Documents',
+      description: "The project's exportable documents, each as its published version: an edit isn't delivered until a version of it is published. Connect it to StreamBy bottom.",
+      fields: [{
+        key: 'folderId', label: 'Documents of', value: (node.data.folderId as string) || '', editable: true, inputType: 'select',
+        options: [{ value: '', label: 'The whole project' }, ...folderOptions(documentList ?? []).slice(1)],
+      }],
     };
 
     if (node.type === 'jsonInputNode') return {
@@ -834,7 +852,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     return null;
-  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections]);
+  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections, documentList]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;

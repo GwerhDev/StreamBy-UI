@@ -1,6 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-  faDatabase, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
+  faDatabase, faBook, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
@@ -34,6 +34,7 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'requestNode',       label: 'Request',      subtitle: 'HTTP Request input',  icon: faArrowRightToBracket,  bgColor: '#0e2537', iconColor: H_LEFT,   group: 'input' },
   { type: 'dataSourceNode',    label: 'Data Source',  subtitle: 'DB collection',       icon: faDatabase,     bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
   { type: 'jsonInputNode',     label: 'JSON Data',    subtitle: 'Static data feed',    icon: faCode,         bgColor: '#1e1403', iconColor: H_RIGHT,  group: 'data' },
+  { type: 'documentsNode',     label: 'Documents',    subtitle: 'Published documents', icon: faBook,         bgColor: '#0d2a1e', iconColor: H_BOTTOM, group: 'data' },
   { type: 'connectionNode',    label: 'API',          subtitle: 'External endpoint',   icon: faGlobe,        bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'data' },
   { type: 'processNode',       label: 'Transform',    subtitle: 'Data transformation', icon: faArrowsRotate, bgColor: '#0e1f35', iconColor: '#60a5fa', group: 'process' },
   { type: 'processNode',       label: 'Auth',         subtitle: 'Authentication',      icon: faKey,          bgColor: '#1e1030', iconColor: H_TOP,    group: 'process' },
@@ -72,7 +73,7 @@ export const NODE_PALETTE: PaletteItem[] = [
 
 // ─── Export context ──────────────────────────────────────────────────────────
 
-export const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'connectionNode', 'filterNode']);
+export const EXPORT_PALETTE_TYPES = new Set(['requestNode', 'responseNode', 'dataSourceNode', 'jsonInputNode', 'documentsNode', 'connectionNode', 'filterNode']);
 
 export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: string }[] = [
   { key: 'input',   label: 'Input',   color: H_LEFT },
@@ -84,7 +85,7 @@ export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: st
 // ─── Workflow context ──────────────────────────────────────────────────────────
 
 // Types exclusive to the export editor — never shown or kept in the workflow canvas.
-export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode']);
+export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode', 'documentsNode']);
 
 // Full workflow palette (developer mode). Order defines display order within groups.
 // The audiovisual production nodes (TCORE-56) supersede the generic StreamBy media nodes

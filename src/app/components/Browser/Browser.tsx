@@ -28,6 +28,7 @@ export const Browser = (props: BrowserProps) => {
   const currentWorkflow = useSelector((state: RootState) => state.currentWorkflow.data);
   const currentPipeline = useSelector((state: RootState) => state.currentPipeline.data);
   const currentStorageFolder = useSelector((state: RootState) => state.currentStorageFolder.data);
+  const documents = useSelector((state: RootState) => state.documents.list);
 
 
   const isPending = membership?.isMember && membership?.status === 'pending';
@@ -78,6 +79,7 @@ export const Browser = (props: BrowserProps) => {
 
   const storageConnIds = currentProject?.storageConnections?.map(c => c.id) ?? [];
   const dbConnIds = currentProject?.dbConnections?.map(c => c.id) ?? [];
+  const documentTitle = (seg: string) => documents?.find(d => d.id === seg)?.title;
 
   const formatSegment = (seg: string) => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
@@ -88,6 +90,8 @@ export const Browser = (props: BrowserProps) => {
     const dbConn = currentProject?.dbConnections?.find(c => c.id === seg);
     if (dbConn) return dbConn.name.toLowerCase();
     if (currentStorageFolder && seg === currentStorageFolder.id) return currentStorageFolder.name;
+    const title = documentTitle(seg);
+    if (title) return title;
     return seg.replace(/[_-]/g, ' ');
   };
 
@@ -112,7 +116,7 @@ export const Browser = (props: BrowserProps) => {
                         {(isMongoId(seg) && seg !== currentExport?.id && seg !== currentWorkflow?.id && seg !== currentPipeline?.id) ||
                          (isUUID(seg) && seg !== currentWorkflow?.id && seg !== currentPipeline?.id
                            && (!currentStorageFolder || currentStorageFolder.id !== seg)
-                           && !storageConnIds.includes(seg) && !dbConnIds.includes(seg))
+                           && !storageConnIds.includes(seg) && !dbConnIds.includes(seg) && !documentTitle(seg))
                           ? <FontAwesomeIcon icon={faSpinner} spin />
                           : formatSegment(seg)}
                       </span>
