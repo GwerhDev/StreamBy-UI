@@ -5,6 +5,7 @@ import { SwitcherApp, SwitcherCategory } from '../../../interfaces';
 import { fetchAppEnv } from '../../../services/appSwitcher';
 import { APP_SWITCHER_URL } from '../../../config/api';
 import { useDesktop } from '../../../context/DesktopContext';
+import { DesktopDock } from './DesktopDock';
 
 const sameHost = (app: SwitcherApp): boolean => {
   try {
@@ -75,6 +76,20 @@ export const Desktop = () => {
   return (
     <>
       <div className={s.desktop} data-minimized={minimized} aria-hidden={!minimized} />
+      <div className={s.dockWrapper}>
+        <AnimatePresence>
+          {minimized && (
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.35, ease: 'easeOut', delay: 0.1 }}
+            >
+              <DesktopDock />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <div className={s.launcherWrapper}>
         <AnimatePresence>
           {minimized && (
