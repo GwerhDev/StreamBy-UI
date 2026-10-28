@@ -2,13 +2,12 @@ import s from './IntegrationConnection.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlug, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
-import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteIntegrationConnection, fetchIntegrationConnections } from '../../../services/integrationConnections';
+import { faLinkSlash, faPlug, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { RootState } from '../../../store';
+import { fetchIntegrationConnections } from '../../../services/integrationConnections';
+import { RemoveResourceModal } from '../Modals/RemoveResourceModal';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
@@ -19,33 +18,14 @@ import { useProjectResource } from '../../../hooks/useProjectResource';
 
 export const IntegrationConnectionList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
-  const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('integrationConnections', fetchIntegrationConnections);
   const allConnections: IntegrationConnection[] = project?.integrationConnections ?? [];
 
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<IntegrationConnection | null>(null);
 
   const handleCreate = () => navigate(`/project/${projectId}/services/create`);
-
-  const handleDelete = async (e: React.MouseEvent, conn: IntegrationConnection) => {
-    e.stopPropagation();
-    if (!projectId || !project) return;
-    setDeleting(conn.id);
-    try {
-      await deleteIntegrationConnection(projectId, conn.integrationId);
-      dispatch(addApiResponse({ message: 'Connection deleted.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        integrationConnections: allConnections.filter(c => c.id !== conn.id),
-      }));
-    } catch (error: any) {
-      dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
-    } finally {
-      setDeleting(null);
-    }
-  };
 
   return (
     <div className={s.container}>
@@ -69,24 +49,26 @@ export const IntegrationConnectionList = () => {
       ) : (
         <ul>
           {allConnections.map(conn => (
-            <li key={conn.id}>
+            <li key={conn.id} className={removingIds?.includes(conn.id) ? s.removing : undefined} data-testid={`service-${conn.id}`}>
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
                   <FontAwesomeIcon icon={SERVICE_PROVIDER_ICON[conn.provider as ServiceProviderType]} />
                 </span>
                 <span className={s.cardInfo}>
                   <h4>{conn.name}</h4>
-                  <small>{conn.description || conn.provider}</small>
+                  <small>{removingIds?.includes(conn.id) ? 'Disconnecting…' : (conn.description || conn.provider)}</small>
                 </span>
               </span>
               <span className={s.cardRight}>
                 <button
                   className={s.deleteBtn}
-                  disabled={deleting === conn.id}
-                  onClick={e => handleDelete(e, conn)}
-                  title="Delete connection"
+                  data-testid={`disconnect-${conn.id}`}
+                  disabled={removingIds?.includes(conn.id)}
+                  onClick={e => { e.stopPropagation(); setToRemove(conn); }}
+                  title="Disconnect"
+                  aria-label={`Disconnect ${conn.name}`}
                 >
-                  <FontAwesomeIcon icon={faTrash} />
+                  <FontAwesomeIcon icon={faLinkSlash} />
                 </button>
               </span>
             </li>
@@ -97,6 +79,7 @@ export const IntegrationConnectionList = () => {
           </li>
         </ul>
       )}
+      {toRemove && <RemoveResourceModal kind="service" resource={toRemove} onClose={() => setToRemove(null)} />}
     </div>
   );
 };

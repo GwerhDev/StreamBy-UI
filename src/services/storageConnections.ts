@@ -18,7 +18,8 @@ export async function fetchStorageConnections(projectId: string): Promise<Storag
   return data;
 }
 
-export async function createStorageConnection(projectId: string, payload: StorageConnectionPayload): Promise<StorageConnection> {
+/** The connection made, and the project's storage connections as they are now. */
+export async function createStorageConnection(projectId: string, payload: StorageConnectionPayload): Promise<{ data: StorageConnection; storageConnections: StorageConnection[] }> {
   const res = await fetch(BASE(projectId), {
     method: 'POST',
     credentials: 'include',
@@ -26,8 +27,7 @@ export async function createStorageConnection(projectId: string, payload: Storag
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error((await res.json()).message);
-  const { data } = await res.json();
-  return data;
+  return res.json();
 }
 
 export async function deleteStorageConnection(projectId: string, connId: string): Promise<void> {

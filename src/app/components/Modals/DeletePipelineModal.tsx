@@ -4,10 +4,11 @@ import { FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { DeletePipelineForm } from '../Forms/DeletePipelineForm';
 import { CurrentProjectState, Pipeline } from '../../../interfaces';
 import { ModalShell } from './ModalShell';
+import { ResourceDependents } from './ResourceDependents';
 
 interface DeletePipelineModalProps {
   pipelineId: string | undefined;
@@ -30,15 +31,9 @@ export const DeletePipelineModal = (props: DeletePipelineModalProps) => {
     if (!projectId || !pipelineId) return;
     try {
       setLoader(true);
-      await deletePipeline(projectId, pipelineId);
+      const pipelines = await deletePipeline(projectId, pipelineId);
       dispatch(addApiResponse({ message: 'Pipeline deleted.', type: 'success' }));
-      const project = currentProject?.data;
-      if (project) {
-        dispatch(setCurrentProject({
-          ...project,
-          pipelines: (project.pipelines ?? []).filter(p => p.id !== pipelineId),
-        }));
-      }
+      dispatch(setProjectResource({ projectId, key: 'pipelines', value: pipelines }));
       onClose();
       navigate('/project/' + projectId + '/workflow/pipelines');
     } catch (error: any) {
@@ -56,6 +51,7 @@ export const DeletePipelineModal = (props: DeletePipelineModalProps) => {
 
   return (
     <ModalShell title="Delete Pipeline" onClose={onClose}>
+      {currentProject?.data?.id && pipelineId && <ResourceDependents projectId={currentProject.data.id} kind="pipeline" resourceId={pipelineId} />}
       <DeletePipelineForm
         loader={loader}
         disabled={disabled}

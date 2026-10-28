@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faCloud, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines, faPlug, faRoute } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createStorageConnection, StorageConnectionPayload } from '../../../services/storageConnections';
 import { StorageConnectionType } from '../../../interfaces';
@@ -74,12 +74,9 @@ export const StorageConnectionCreate = () => {
             name, type, credential,
             ...(description && { description }),
           };
-      const result = await createStorageConnection(projectId, payload);
+      const { storageConnections } = await createStorageConnection(projectId, payload);
       dispatch(addApiResponse({ message: 'Storage connection created.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        storageConnections: [...(project.storageConnections ?? []), result],
-      }));
+      dispatch(setProjectResource({ projectId, key: 'storageConnections', value: storageConnections }));
       navigate(`/project/${projectId}/storage`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create storage connection.', type: 'error' }));

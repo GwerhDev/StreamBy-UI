@@ -1,5 +1,5 @@
 import { API_BASE } from '../config/api';
-import { IntegrationKind, IntegrationPoolEntry } from '../interfaces';
+import { DbConnection, IntegrationConnection, IntegrationKind, IntegrationPoolEntry, StorageConnection } from '../interfaces';
 
 const BASE = `${API_BASE}/streamby/user/integrations`;
 
@@ -45,7 +45,25 @@ export async function updateUserIntegration(
   return data;
 }
 
-export async function deleteUserIntegration(id: string): Promise<void> {
+/** The projects it was disconnected from, each with its connections as they are now. */
+export async function deleteUserIntegration(id: string): Promise<{ affected: { projectId: string; dbConnections: DbConnection[]; storageConnections: StorageConnection[]; integrationConnections: IntegrationConnection[] }[] }> {
   const res = await fetch(`${BASE}/${id}`, { method: 'DELETE', credentials: 'include' });
   if (!res.ok) throw new Error((await res.json()).message);
+  const body = await res.json();
+  return { affected: body.affected ?? [] };
+}
+
+export interface IntegrationDependent {
+  projectId: string;
+  projectName: string;
+  kind: 'db' | 'storage' | 'service';
+  connectionId: string;
+  name: string;
+}
+
+/** The projects' connections that use it: deleting it disconnects them. */
+export async function getUserIntegrationDependents(id: string): Promise<IntegrationDependent[]> {
+  const res = await fetch(`${API_BASE}/streamby/user/integrations/${encodeURIComponent(id)}/dependents`, { credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `HTTP ${res.status}`);
+  return (await res.json()).dependents;
 }

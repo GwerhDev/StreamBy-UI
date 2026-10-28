@@ -2,13 +2,12 @@ import s from './Database.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
-import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteDbConnection, fetchDbConnections } from '../../../services/database';
+import { faDatabase, faLinkSlash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { RootState } from '../../../store';
+import { fetchDbConnections } from '../../../services/database';
+import { RemoveResourceModal } from '../Modals/RemoveResourceModal';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import streambyIcon from '../../../assets/streamby-icon.svg';
@@ -18,33 +17,14 @@ import { useProjectResource } from '../../../hooks/useProjectResource';
 
 export const DbConnectionList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
-  const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('dbConnections', fetchDbConnections);
   const allConnections: DbConnection[] = project?.dbConnections ?? [];
 
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<DbConnection | null>(null);
 
   const handleCreate = () => navigate(`/project/${projectId}/database/create`);
-
-  const handleDelete = async (e: React.MouseEvent, connId: string) => {
-    e.stopPropagation();
-    if (!projectId || !project) return;
-    setDeleting(connId);
-    try {
-      await deleteDbConnection(projectId, connId);
-      dispatch(addApiResponse({ message: 'Connection deleted.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        dbConnections: allConnections.filter(c => c.id !== connId),
-      }));
-    } catch (error: any) {
-      dispatch(addApiResponse({ message: error.message || 'Failed to delete connection.', type: 'error' }));
-    } finally {
-      setDeleting(null);
-    }
-  };
 
   return (
     <div className={s.container}>
@@ -64,14 +44,14 @@ export const DbConnectionList = () => {
       ) : (
         <ul>
           {allConnections.map(conn => (
-            <li key={conn.id} onClick={() => navigate(`/project/${projectId}/database/${conn.id}`, { state: { dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name } })}>
+            <li key={conn.id} className={removingIds?.includes(conn.id) ? s.removing : undefined} data-testid={`db-${conn.id}`} onClick={() => { if (!removingIds?.includes(conn.id)) navigate(`/project/${projectId}/database/${conn.id}`, { state: { dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name } }); }}>
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
                   <FontAwesomeIcon icon={faDatabase} />
                 </span>
                 <span className={s.cardInfo}>
                   <h4>{conn.name}</h4>
-                  <small>{conn.isBuiltin ? 'Project built-in database' : (conn.description || conn.dbType)}</small>
+                  <small>{removingIds?.includes(conn.id) ? 'Disconnecting…' : conn.isBuiltin ? 'Project built-in database' : (conn.description || conn.dbType)}</small>
                 </span>
               </span>
               <span className={s.cardRight}>
@@ -83,16 +63,16 @@ export const DbConnectionList = () => {
                 <span className={`${s.badge} ${conn.dbType === 'postgresql' ? s.badgePg : s.badgeMg}`}>
                   {conn.dbType === 'postgresql' ? 'PostgreSQL' : 'MongoDB'}
                 </span>
-                {!conn.isBuiltin && (
-                  <button
-                    className={s.deleteBtn}
-                    disabled={deleting === conn.id}
-                    onClick={e => handleDelete(e, conn.id)}
-                    title="Delete connection"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                )}
+                <button
+                  className={s.deleteBtn}
+                  data-testid={`disconnect-${conn.id}`}
+                  disabled={removingIds?.includes(conn.id)}
+                  onClick={e => { e.stopPropagation(); setToRemove(conn); }}
+                  title="Disconnect"
+                  aria-label={`Disconnect ${conn.name}`}
+                >
+                  <FontAwesomeIcon icon={faLinkSlash} />
+                </button>
               </span>
             </li>
           ))}
@@ -102,6 +82,7 @@ export const DbConnectionList = () => {
           </li>
         </ul>
       )}
+      {toRemove && <RemoveResourceModal kind="db" resource={toRemove} onClose={() => setToRemove(null)} />}
     </div>
   );
 };

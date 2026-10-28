@@ -1,14 +1,15 @@
 import s from './DeleteUserIntegrationModal.module.css';
-import { FormEvent, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { FormEvent, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { deleteUserIntegration } from '../../../services/userIntegrations';
+import { deleteUserIntegration, getUserIntegrationDependents, IntegrationDependent } from '../../../services/userIntegrations';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { removeIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { AppDispatch } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import { ModalShell } from '../Modals/ModalShell';
 
 interface DeleteUserIntegrationModalProps {
@@ -21,14 +22,31 @@ export const DeleteUserIntegrationModal = ({ integrationId, integrationName, onC
   const [loader, setLoader] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const dispatch = useDispatch<AppDispatch>();
+  const currentProject = useSelector((state: RootState) => state.currentProject.data);
+  // The projects' connections that use it: they're disconnected with it.
+  const [dependents, setDependents] = useState<IntegrationDependent[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getUserIntegrationDependents(integrationId)
+      .then(found => { if (!cancelled) setDependents(found); })
+      .catch(() => { if (!cancelled) setDependents([]); });
+    return () => { cancelled = true; };
+  }, [integrationId]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       setLoader(true);
-      await deleteUserIntegration(integrationId);
+      const { affected } = await deleteUserIntegration(integrationId);
       dispatch(addApiResponse({ message: 'Integration deleted.', type: 'success' }));
       dispatch(removeIntegration(integrationId));
+      // The project being seen, if it used it: its connections as the server has them now.
+      const lists = affected.find(a => a.projectId === currentProject?.id);
+      if (lists) {
+        for (const key of ['dbConnections', 'storageConnections', 'integrationConnections'] as const) {
+          dispatch(setProjectResource({ projectId: lists.projectId, key, value: lists[key] as never }));
+        }
+      }
       onClose();
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to delete integration.', type: 'error' }));
@@ -41,6 +59,16 @@ export const DeleteUserIntegrationModal = ({ integrationId, integrationName, onC
     <ModalShell title={`Delete ${integrationName}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className={s.container}>
         <p>Confirm that you want to delete this integration</p>
+        {dependents === null ? (
+          <p className={s.muted}>Checking which projects use it…</p>
+        ) : dependents.length ? (
+          <div className={s.dependents} data-testid="integration-dependents">
+            <p>These project connections use it, and are disconnected with it:</p>
+            <ul>{dependents.map(d => <li key={`${d.projectId}-${d.connectionId}`}>{d.projectName}: {d.name}</li>)}</ul>
+          </div>
+        ) : (
+          <p className={s.muted} data-testid="integration-dependents-none">No project uses it.</p>
+        )}
         <LabeledInput
           type="text"
           onChange={e => setConfirmText(e.target.value)}

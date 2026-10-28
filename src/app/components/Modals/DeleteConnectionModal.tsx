@@ -7,10 +7,11 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { deleteConnection } from '../../../services/connections';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { RootState, AppDispatch } from '../../../store';
 import { ModalShell } from './ModalShell';
+import { ResourceDependents } from './ResourceDependents';
 
 interface DeleteConnectionModalProps {
   projectId: string;
@@ -33,10 +34,7 @@ export const DeleteConnectionModal = ({ projectId, connectionId, connectionName,
       setLoader(true);
       const response = await deleteConnection(projectId, connectionId);
       dispatch(addApiResponse({ message: response.message || 'Connection deleted.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...currentProject,
-        connections: currentProject.connections?.filter(c => c.id !== connectionId) ?? [],
-      }));
+      dispatch(setProjectResource({ projectId, key: 'connections', value: response.connections ?? [] }));
       onClose();
       navigate(`/project/${projectId}/connections`);
     } catch (error: any) {
@@ -49,7 +47,8 @@ export const DeleteConnectionModal = ({ projectId, connectionId, connectionName,
   return (
     <ModalShell title={`Delete ${connectionName}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className={s.container}>
-        <p>Confirm that you want to delete this connection</p>
+        <p>Confirm that you want to delete this connection. The API itself isn't touched: only the project stops calling it.</p>
+        <ResourceDependents projectId={projectId} kind="api" resourceId={connectionId} />
         <LabeledInput
           type="text"
           onChange={e => setConfirmText(e.target.value)}

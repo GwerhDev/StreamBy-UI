@@ -1,11 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IntegrationConnectionList } from './IntegrationConnectionList';
-import * as integrationConnectionsService from '../../../services/integrationConnections';
+import * as resources from '../../../services/projectResources';
 
 const BASE_PROJECT = {
   id: 'p1', name: 'Demo', public: false,
@@ -54,12 +54,15 @@ describe('IntegrationConnectionList', () => {
     expect(screen.getByRole('button', { name: 'Add connection' })).toBeInTheDocument();
   });
 
-  it('deletes a connection and removes it from the list', async () => {
-    vi.spyOn(integrationConnectionsService, 'deleteIntegrationConnection').mockResolvedValue(undefined);
+  it('disconnects a connection by its integration, once confirmed', async () => {
+    const remove = vi.spyOn(resources, 'removeResource').mockResolvedValue({ key: 'integrationConnections', value: [] });
+    vi.spyOn(resources, 'getDependents').mockResolvedValue([]);
     renderList();
     const user = userEvent.setup();
-    await user.click(screen.getByTitle('Delete connection'));
-    expect(integrationConnectionsService.deleteIntegrationConnection).toHaveBeenCalledWith('p1', 'int1');
+    await user.click(screen.getByTitle('Disconnect'));
+    expect(remove).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /^Disconnect$/ }));
+    await waitFor(() => expect(remove).toHaveBeenCalledWith('p1', 'service', expect.objectContaining({ id: 'ic1', integrationId: 'int1' })));
   });
 
   it('navigates to the create route via the dashed "New connection" card', async () => {

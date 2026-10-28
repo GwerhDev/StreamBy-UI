@@ -2,13 +2,12 @@ import s from './StorageConnectionList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloud, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
-import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { fetchStorageConnections, deleteStorageConnection } from '../../../services/storageConnections';
+import { faCloud, faLinkSlash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { RootState } from '../../../store';
+import { fetchStorageConnections } from '../../../services/storageConnections';
+import { RemoveResourceModal } from '../Modals/RemoveResourceModal';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { ActionButton } from '../Buttons/ActionButton';
 import { StorageConnection } from '../../../interfaces';
@@ -31,33 +30,14 @@ const STORAGE_BADGE_CLASS: Record<string, string> = {
 
 export const StorageConnectionList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams<{ id: string }>();
-  const { data: project, loading } = useSelector((state: RootState) => state.currentProject);
+  const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
 
   useProjectResource('storageConnections', fetchStorageConnections);
   const connections: StorageConnection[] = project?.storageConnections ?? [];
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<StorageConnection | null>(null);
 
   const handleCreate = () => navigate(`/project/${projectId}/storage/create`);
-
-  const handleDelete = async (e: React.MouseEvent, connId: string) => {
-    e.stopPropagation();
-    if (!projectId || !project) return;
-    setDeleting(connId);
-    try {
-      await deleteStorageConnection(projectId, connId);
-      dispatch(addApiResponse({ message: 'Storage connection deleted.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        storageConnections: (project.storageConnections ?? []).filter(c => c.id !== connId),
-      }));
-    } catch (error: any) {
-      dispatch(addApiResponse({ message: error.message || 'Failed to delete storage connection.', type: 'error' }));
-    } finally {
-      setDeleting(null);
-    }
-  };
 
   const isLoading = loading;
 
@@ -81,7 +61,9 @@ export const StorageConnectionList = () => {
           {connections.map(conn => (
             <li
               key={conn.id}
-              onClick={() => navigate(`/project/${projectId}/storage/${conn.id}`)}
+              className={removingIds?.includes(conn.id) ? s.removing : undefined}
+              data-testid={`storage-${conn.id}`}
+              onClick={() => { if (!removingIds?.includes(conn.id)) navigate(`/project/${projectId}/storage/${conn.id}`); }}
             >
               <span className={s.cardLeft}>
                 <span className={s.cardIcon}>
@@ -89,7 +71,7 @@ export const StorageConnectionList = () => {
                 </span>
                 <span className={s.cardInfo}>
                   <h4>{conn.name}</h4>
-                  <small>{conn.isBuiltin ? 'Project built-in storage' : (conn.description || STORAGE_LABELS[conn.type] || conn.type)}</small>
+                  <small>{removingIds?.includes(conn.id) ? 'Disconnecting…' : conn.isBuiltin ? 'Project built-in storage' : (conn.description || STORAGE_LABELS[conn.type] || conn.type)}</small>
                 </span>
               </span>
               <span className={s.cardRight}>
@@ -101,16 +83,16 @@ export const StorageConnectionList = () => {
                 <span className={`${s.badge} ${STORAGE_BADGE_CLASS[conn.type] ?? s.badgePg}`}>
                   {STORAGE_LABELS[conn.type] || conn.type}
                 </span>
-                {!conn.isBuiltin && (
-                  <button
-                    className={s.deleteBtn}
-                    disabled={deleting === conn.id}
-                    onClick={e => handleDelete(e, conn.id)}
-                    title="Delete connection"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                )}
+                <button
+                  className={s.deleteBtn}
+                  data-testid={`disconnect-${conn.id}`}
+                  disabled={removingIds?.includes(conn.id)}
+                  onClick={e => { e.stopPropagation(); setToRemove(conn); }}
+                  title="Disconnect"
+                  aria-label={`Disconnect ${conn.name}`}
+                >
+                  <FontAwesomeIcon icon={faLinkSlash} />
+                </button>
               </span>
             </li>
           ))}
@@ -120,6 +102,7 @@ export const StorageConnectionList = () => {
           </li>
         </ul>
       )}
+      {toRemove && <RemoveResourceModal kind="storage" resource={toRemove} onClose={() => setToRemove(null)} />}
     </div>
   );
 };

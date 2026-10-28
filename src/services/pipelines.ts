@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import { Pipeline, PipelinePayload } from "../interfaces";
+import { Pipeline, PipelinePayload, PipelineRef } from "../interfaces";
 
 export async function listPipelines(projectId: string): Promise<Pipeline[]> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/pipelines`, {
@@ -57,7 +57,8 @@ export async function updatePipeline(projectId: string, pipelineId: string, payl
   return pipeline;
 }
 
-export async function deletePipeline(projectId: string, pipelineId: string): Promise<void> {
+/** The project's pipelines (as references) as they are after it's gone. */
+export async function deletePipeline(projectId: string, pipelineId: string): Promise<PipelineRef[]> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/pipelines/${pipelineId}`, {
     method: 'DELETE',
     credentials: 'include',
@@ -66,4 +67,5 @@ export async function deletePipeline(projectId: string, pipelineId: string): Pro
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `HTTP ${res.status}`);
   }
+  return (await res.json()).pipelines ?? [];
 }

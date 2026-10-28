@@ -152,6 +152,8 @@ export interface CurrentProjectState {
   loading: boolean;
   error: string | null;
   membership: MembershipInfo | null;
+  // The resources being removed, until the server answers.
+  removingIds?: string[];
 }
 
 export interface CurrentExportState {

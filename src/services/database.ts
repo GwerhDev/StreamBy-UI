@@ -34,7 +34,8 @@ export async function fetchDbConnections(projectId: string): Promise<DbConnectio
   return data;
 }
 
-export async function createDbConnection(projectId: string, payload: DbConnectionPayload): Promise<DbConnection> {
+/** The connection made, and the project's database connections as they are now. */
+export async function createDbConnection(projectId: string, payload: DbConnectionPayload): Promise<{ data: DbConnection; dbConnections: DbConnection[] }> {
   const res = await fetch(BASE(projectId), {
     method: 'POST',
     credentials: 'include',
@@ -42,8 +43,7 @@ export async function createDbConnection(projectId: string, payload: DbConnectio
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error((await res.json()).message);
-  const { data } = await res.json();
-  return data;
+  return res.json();
 }
 
 export async function deleteDbConnection(projectId: string, connId: string): Promise<void> {

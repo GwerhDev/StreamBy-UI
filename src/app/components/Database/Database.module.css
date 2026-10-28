@@ -560,3 +560,8 @@
   color: var(--color-text-muted);
   font-style: italic;
 }
+/* Being removed: shown so until the server answers. */
+.container ul li.removing {
+  opacity: 0.5;
+  pointer-events: none;
+}

@@ -147,3 +147,8 @@
   border: dashed 0.2rem;
   justify-content: center;
 }
+/* Being removed: shown so until the server answers. */
+.container ul li.removing {
+  opacity: 0.5;
+  pointer-events: none;
+}

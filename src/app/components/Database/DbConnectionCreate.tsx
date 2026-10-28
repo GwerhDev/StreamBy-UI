@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faDatabase, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines, faPlug, faRoute } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createDbConnection, DbConnectionPayload } from '../../../services/database';
 import { LabeledInput } from '../Inputs/LabeledInput';
@@ -70,12 +70,9 @@ export const DbConnectionCreate = () => {
             name, dbType, credential,
             ...(description && { description }),
           };
-      const result = await createDbConnection(projectId, payload);
+      const { dbConnections } = await createDbConnection(projectId, payload);
       dispatch(addApiResponse({ message: 'Database connection created.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        dbConnections: [...(project.dbConnections ?? []), result],
-      }));
+      dispatch(setProjectResource({ projectId, key: 'dbConnections', value: dbConnections }));
       navigate(`/project/${projectId}/database`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));

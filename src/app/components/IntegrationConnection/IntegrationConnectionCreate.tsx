@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faPlug, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createIntegrationConnection } from '../../../services/integrationConnections';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -38,12 +38,9 @@ export const IntegrationConnectionCreate = () => {
     if (!projectId || !project) return;
     setLoading(true);
     try {
-      const connection = await createIntegrationConnection(projectId, integrationId);
+      const integrationConnections = await createIntegrationConnection(projectId, integrationId);
       dispatch(addApiResponse({ message: 'Service connection created.', type: 'success' }));
-      dispatch(setCurrentProject({
-        ...project,
-        integrationConnections: [...(project.integrationConnections ?? []), connection],
-      }));
+      dispatch(setProjectResource({ projectId, key: 'integrationConnections', value: integrationConnections }));
       navigate(`/project/${projectId}/services`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));

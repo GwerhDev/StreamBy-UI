@@ -127,3 +127,9 @@
   max-width: 640px;
   margin: 0 auto;
 }
+
+/* Being removed: shown so until the server answers. */
+.container ul li.removing {
+  opacity: 0.5;
+  pointer-events: none;
+}

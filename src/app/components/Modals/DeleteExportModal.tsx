@@ -7,6 +7,8 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { DeleteExportForm } from '../Forms/DeleteExportForm';
 import { CurrentProjectState, Export } from '../../../interfaces';
 import { ModalShell } from './ModalShell';
+import { ResourceDependents } from './ResourceDependents';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 
 interface DeleteExportModalProps {
   exportId: string | undefined;
@@ -29,6 +31,8 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
       setLoader(true);
       const response = await deleteExport(currentProject?.data?.id, exportId);
       dispatch(addApiResponse({ message: response.message || 'Export deleted.', type: 'success' }));
+      // The project's exports as the server has them now: the workflow draws them from it.
+      if (currentProject?.data?.id) dispatch(setProjectResource({ projectId: currentProject.data.id, key: 'exports', value: response.exports ?? [] }));
       onClose();
       navigate('/project/' + currentProject?.data?.id + '/workflow/exports');
     } catch (error: any) {
@@ -46,6 +50,7 @@ export const DeleteExportModal = (props: DeleteExportModalProps) => {
 
   return (
     <ModalShell title="Delete Export" onClose={onClose}>
+      {currentProject?.data?.id && exportId && <ResourceDependents projectId={currentProject.data.id} kind="export" resourceId={exportId} />}
       <DeleteExportForm
         loader={loader}
         disabled={disabled}

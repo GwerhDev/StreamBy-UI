@@ -14,6 +14,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchDocuments, upsertDocument } from '../../../store/documentsSlice';
 import { createDocument } from '../../../services/documents';
 import { CreditsSheetPanel } from '../Credits/CreditsSheetPanel';
+import { fetchIntegrations } from '../../../store/managementSlice';
 import { folderOptions } from '../Documents/DocumentTree';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
@@ -25,6 +26,8 @@ import ReactFlow, {
   Node,
   useNodesState,
   useEdgesState,
+  NodeChange,
+  EdgeChange,
   useReactFlow,
   ReactFlowProvider,
   addEdge,
@@ -32,7 +35,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection, IntegrationConnection } from '../../../interfaces';
+import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection, IntegrationConnection, IntegrationPoolEntry } from '../../../interfaces';
 import { fetchRecords, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -103,10 +106,58 @@ export interface NodeViewerProps {
   context?: NodeContext;
   onOpenPipeline?: (pipelineId: string) => void;
   onOpenExport?: (exportId: string) => void;
+  // A node drawn from one of the project's resources (a connection, an export, a pipeline)
+  // isn't removed from the canvas alone: it's asked to remove the resource (and, when it's
+  // removed, removeNodes takes the node away).
+  onRemoveResource?: (resource: DrawnResource) => void;
 }
 
 export interface NodeViewerHandle {
   getSchema: () => { nodes: Node[]; edges: Edge[] };
+  removeNodes: (ids: string[]) => void;
+}
+
+export type DrawnResourceKind = 'db' | 'api' | 'storage' | 'service' | 'export' | 'pipeline';
+export interface DrawnResource { nodeId: string; kind: DrawnResourceKind; id: string; name: string }
+
+// A resource's node in the workflow, by its type, bound to the resource by its id in its data
+// (as the server reads them: services/workflowResources).
+const RESOURCE_NODE: Record<string, [DrawnResourceKind, string]> = {
+  dataSourceNode: ['db', 'connectionId'], connectionNode: ['api', 'connectionId'], ingestNode: ['storage', 'storageConnectionId'],
+  integrationConnectionNode: ['service', 'integrationConnectionId'], exportNode: ['export', 'exportId'], pipelineRefNode: ['pipeline', 'pipelineId'],
+};
+
+/** The project's resource a node is, if it's bound to one (a draft, or a data source reading one table, isn't). */
+export const drawnResourceOf = (node: Pick<Node, 'id' | 'data'> & { type?: string }): DrawnResource | null => {
+  const def = node.type ? RESOURCE_NODE[node.type] : undefined;
+  const id = def && node.data?.[def[1]];
+  if (!def || typeof id !== 'string' || !id || pendingIntegrationOf(id)) return null;
+  if (node.type === 'dataSourceNode' && (node.data?.tableName || node.data?.recordId)) return null;
+  return { nodeId: node.id, kind: def[0], id, name: (node.data?.label as string) || node.id };
+};
+
+/**
+ * A canvas change, split: the resources whose nodes it removes (asked to remove instead), whether
+ * it removes the orchestrator (refused), and the changes that go through, without those
+ * removals and without the edges of the nodes kept (being deleted, they're selected).
+ */
+export function guardResourceRemovals(nodes: Node[], edges: Edge[], nodeChanges: NodeChange[], edgeChanges: EdgeChange[] = []) {
+  const guarded = (id: string) => {
+    const node = nodes.find(n => n.id === id);
+    return !!node && (id === 'streamby' || !!drawnResourceOf(node));
+  };
+  const removed = nodeChanges.filter(c => c.type === 'remove').map(c => (c as { id: string }).id);
+  const resources = removed.map(id => nodes.find(n => n.id === id)).filter((n): n is Node => !!n).map(drawnResourceOf).filter((r): r is DrawnResource => !!r);
+  const keptEdge = (id: string) => {
+    const edge = edges.find(e => e.id === id);
+    return !!edge && [edge.source, edge.target].some(end => guarded(end) && !!nodes.find(n => n.id === end)?.selected);
+  };
+  return {
+    resources,
+    orchestrator: removed.includes('streamby'),
+    nodeChanges: nodeChanges.filter(c => c.type !== 'remove' || !guarded(c.id)),
+    edgeChanges: edgeChanges.filter(c => c.type !== 'remove' || !keptEdge(c.id)),
+  };
 }
 
 const CORE_NODE_IDS = ['client', 'request', 'response', 'streamby'];
@@ -121,9 +172,15 @@ const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f })
 const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
 const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'exportNode', 'integrationConnectionNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
+// A connection picked that the project doesn't have yet (one of the user's integrations, a
+// built-in): the node keeps it as this until the workflow is saved, which connects it then.
+export const CONNECT_PREFIX = '__connect__:';
+export const pendingIntegrationOf = (value: unknown) =>
+  typeof value === 'string' && value.startsWith(CONNECT_PREFIX) ? value.slice(CONNECT_PREFIX.length) : null;
+const NO_INTEGRATIONS: IntegrationPoolEntry[] = [];
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
-  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], integrationConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport,
+  exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], integrationConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport, onRemoveResource,
 }, ref) => {
   const { screenToFlowPosition } = useReactFlow();
   const dispatch = useDispatch<AppDispatch>();
@@ -277,7 +334,26 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   onChangeRef.current = onChange;
   useEffect(() => { onChangeRef.current?.({ nodes, edges }); }, [nodes, edges]);
 
-  useImperativeHandle(ref, () => ({ getSchema: () => ({ nodes, edges }) }), [nodes, edges]);
+  useImperativeHandle(ref, () => ({
+    getSchema: () => ({ nodes, edges }),
+    removeNodes: (ids: string[]) => {
+      setNodes(prev => prev.filter(n => !ids.includes(n.id)));
+      setEdges(prev => prev.filter(e => !ids.includes(e.source) && !ids.includes(e.target)));
+    },
+  }), [nodes, edges, setNodes, setEdges]);
+
+  // Deleting a resource's node asks to remove the resource; meanwhile it stays, with its edges.
+  // The orchestrator is drawn from the project too: it can't go.
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    if (!onRemoveResource) { onNodesChange(changes); return; }
+    const split = guardResourceRemovals(nodes, edges, changes);
+    if (split.resources[0]) onRemoveResource(split.resources[0]);
+    if (split.orchestrator) dispatch(addApiResponse({ message: "StreamBy's orchestrator is part of every workflow: it can't be removed.", type: 'error' }));
+    onNodesChange(split.nodeChanges);
+  }, [onNodesChange, onRemoveResource, nodes, edges, dispatch]);
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    onEdgesChange(onRemoveResource ? guardResourceRemovals(nodes, edges, [], changes).edgeChanges : changes);
+  }, [onEdgesChange, onRemoveResource, nodes, edges]);
 
   // ─── Connection validation ─────────────────────────────────────────────
 
@@ -900,7 +976,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   useEffect(() => {
     if (!isDbSourceNode || !projectId) return;
     const connId = (localData.connectionId as string) ?? savedNodeConnId;
-    if (!connId) { setPanelTables([]); return; }
+    // One not connected yet (until the workflow is saved) has no tables to read.
+    if (!connId || pendingIntegrationOf(connId)) { setPanelTables([]); return; }
     let cancelled = false;
     setPanelTablesLoading(true);
     fetchTables(projectId, connId)
@@ -944,6 +1021,36 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   }, [onOpenPipeline, onOpenExport]);
   const handleClosePanel = useCallback(() => { setSelectedNodeId(null); setLocalData({}); setJsonError(null); resetConnFetch(); }, []);
   const handleFieldChange = useCallback((key: string, value: string | boolean) => { setLocalData(prev => ({ ...prev, [key]: value })); if (key === 'jsonString') setJsonError(null); }, []);
+
+  // A node's connection picker also offers what the project isn't connected to yet (a built-in
+  // it was disconnected from, an integration of the user's): picked, it's connected then.
+  const integrationPool = useSelector((state: RootState) => state.management?.integrations ?? NO_INTEGRATIONS);
+  useEffect(() => {
+    if (editMode && context === 'workflow' && !integrationPool.length) dispatch(fetchIntegrations());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, context]);
+  const connectOptions = useCallback((kind: 'database' | 'storage' | 'service') => {
+    if (context !== 'workflow') return [];
+    const connected = new Set([...dbConnections, ...storageConnections, ...integrationConnections].map(c => c.integrationId).filter(Boolean));
+    return integrationPool
+      .filter(entry => entry.kind === kind && entry.available && !connected.has(entry.id))
+      .map(entry => ({ value: `${CONNECT_PREFIX}${entry.id}`, label: `+ Connect ${entry.name}${entry.source === 'builtin' ? ' (built-in)' : ''}` }));
+  }, [context, integrationPool, dbConnections, storageConnections, integrationConnections]);
+  // Connected when the workflow is saved: meanwhile the node keeps it as pending.
+  const pickConnection = useCallback((field: 'connectionId' | 'storageConnectionId' | 'integrationConnectionId', value: string) => {
+    handleFieldChange(field, value);
+  }, [handleFieldChange]);
+  // A node's label and subtitle from the connection it uses: the project's, or one of the pool's
+  // picked to connect on save (its name and type as the pool has them).
+  const nameOf = useCallback(<C extends { name: string }>(value: string, connection: C | undefined, typeOf: (c: C) => string) => {
+    if (connection) return { label: connection.name, subtitle: typeOf(connection) };
+    const pending = pendingIntegrationOf(value);
+    const entry = pending ? integrationPool.find(e => e.id === pending) : undefined;
+    return entry ? { label: entry.name, subtitle: entry.source === 'builtin' ? 'built-in' : entry.provider } : {};
+  }, [integrationPool]);
+  const pendingNote = (value: string) => pendingIntegrationOf(value)
+    ? <p className={s.configHint} data-testid="connect-on-save">Connected to the project when you save the workflow.</p>
+    : null;
 
   const handleOpenJsonModal = useCallback(() => {
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -995,10 +1102,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       const connectionId = (localData.connectionId as string) ?? (node.data.connectionId as string) ?? '';
       const tableName = (localData.tableName as string) ?? (node.data.tableName as string) ?? '';
       const recordId = (localData.recordId as string) ?? (node.data.recordId as string) ?? '';
-      const dbConn = allDbConnections.find(c => c.id === connectionId);
+      // Named after its connection, one picked to connect on save too.
+      const named = nameOf(connectionId, allDbConnections.find(c => c.id === connectionId), c => c.dbType);
       setNodes(prev => prev.map(n => n.id === selectedNodeId ? {
         ...n,
-        data: { ...n.data, connectionId, tableName, recordId, subtitle: tableName, ...(dbConn && { label: dbConn.name }) },
+        data: { ...n.data, connectionId, tableName, recordId, ...named, ...(tableName && { subtitle: tableName }) },
       } : n));
       setLocalData({});
       return;
@@ -1006,17 +1114,18 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node?.type === 'ingestNode') {
       const storageConnectionId = (localData.storageConnectionId as string) ?? (node.data.storageConnectionId as string) ?? '';
-      setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, storageConnectionId } } : n));
+      const named = nameOf(storageConnectionId, storageConnections.find(c => c.id === storageConnectionId), c => c.type);
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, storageConnectionId, ...named } } : n));
       setLocalData({});
       return;
     }
 
     if (node?.type === 'integrationConnectionNode') {
       const integrationConnectionId = (localData.integrationConnectionId as string) ?? (node.data.integrationConnectionId as string) ?? '';
-      const conn = integrationConnections.find(c => c.id === integrationConnectionId);
+      const named = nameOf(integrationConnectionId, integrationConnections.find(c => c.id === integrationConnectionId), c => c.provider);
       setNodes(prev => prev.map(n => n.id === selectedNodeId ? {
         ...n,
-        data: { ...n.data, integrationConnectionId, ...(conn && { label: conn.name, subtitle: conn.provider }) },
+        data: { ...n.data, integrationConnectionId, ...named },
       } : n));
       setLocalData({});
       return;
@@ -1028,7 +1137,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       onSave(localData as Record<string, string | boolean>);
     }
     setLocalData({});
-  }, [selectedNodeId, localData, nodes, connections, allDbConnections, integrationConnections, onSave, setNodes]);
+  }, [selectedNodeId, localData, nodes, connections, allDbConnections, storageConnections, integrationConnections, onSave, setNodes, nameOf]);
 
   const [draftCreating, setDraftCreating] = useState(false);
 
@@ -1222,7 +1331,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
   const handleSaveApiModal = useCallback(async () => {
     const connId = (localData.connectionId as string) ?? '';
-    if (connId === CREATE_NEW_SENTINEL) {
+    if (connId === CREATE_NEW_SENTINEL && context === 'workflow') {
+      // On the workflow, a new API is a draft of its node: made when the workflow is saved.
+      if (!apiCreateName || !apiCreateUrl) return;
+      const connectionDraft = {
+        name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod,
+        ...(apiCreateUsesCredentials && apiCreateToken && { token: apiCreateToken }),
+        ...(apiCreateUsesCredentials && apiCreatePrefix && { prefix: apiCreatePrefix }),
+      };
+      setNodes(prev => prev.map(n => {
+        if (n.id !== selectedNodeId) return n;
+        const { connectionId: _unbound, ...data } = n.data ?? {};
+        return { ...n, data: { ...data, label: apiCreateName, subtitle: apiCreateUrl, connectionDraft } };
+      }));
+    } else if (connId === CREATE_NEW_SENTINEL) {
       if (!apiCreateName || !apiCreateUrl || !projectId || !currentProject) return;
       setApiCreating(true);
       try {
@@ -1250,7 +1372,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setApiCreateToken('');
     setApiCreatePrefix('');
     setShowApiModal(false);
-  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, apiCreateUsesCredentials, apiCreateToken, apiCreatePrefix, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes]);
+  }, [localData, apiCreateName, apiCreateUrl, apiCreateMethod, apiCreateUsesCredentials, apiCreateToken, apiCreatePrefix, projectId, currentProject, selectedNodeId, handleSave, dispatch, setNodes, context]);
 
   const handleOpenNodeLabelModal = useCallback(() => {
     const node = nodes.find(n => n.id === selectedNodeId);
@@ -1316,8 +1438,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                 nodes={visibleNodes} edges={visibleEdges}
                 onNodeClick={handleNodeClick}
                 onNodeDoubleClick={handleNodeDoubleClick}
-                onNodesChange={editMode ? onNodesChange : noop}
-                onEdgesChange={editMode ? onEdgesChange : noop}
+                onNodesChange={editMode ? handleNodesChange : noop}
+                onEdgesChange={editMode ? handleEdgesChange : noop}
                 onConnect={editMode ? onConnect : undefined}
                 isValidConnection={editMode ? isValidConnection : undefined}
                 nodeTypes={NODE_TYPES}
@@ -1967,6 +2089,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         const dbOptionsFull = [
           { value: '', label: 'Select a connection' },
           ...allDbConnections.map(c => ({ value: c.id, label: `${c.name} (${c.dbType})` })),
+          ...connectOptions('database'),
         ];
         const tableOpts = panelTablesLoading
           ? [{ value: '', label: 'Loading…' }]
@@ -1989,9 +2112,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <div className={s.configModalBody}>
                 <div className={s.configRow}>
                   <label className={s.configLabel}>DB Connection</label>
-                  <DropdownInput value={connId} onChange={v => handleFieldChange('connectionId', v)} options={dbOptionsFull} />
+                  <DropdownInput value={connId} onChange={v => pickConnection('connectionId', v)} options={dbOptionsFull} />
+                  {pendingNote(connId)}
                 </div>
-                {connId && (
+                {connId && !pendingIntegrationOf(connId) && (
                   <div className={s.configRow}>
                     <label className={s.configLabel}>Table / Collection</label>
                     <DropdownInput value={table} onChange={v => handleFieldChange('tableName', v)} options={tableOpts} />
@@ -2021,6 +2145,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         const storageOptionsFull = [
           { value: '', label: 'Select a storage connection' },
           ...storageConnections.map(c => ({ value: c.id, label: `${c.name} (${c.type})` })),
+          ...connectOptions('storage'),
         ];
         return (
           <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowIngestModal(false); }}>
@@ -2037,7 +2162,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <div className={s.configModalBody}>
                 <div className={s.configRow}>
                   <label className={s.configLabel}>Storage Connection</label>
-                  <DropdownInput value={storageConnId} onChange={v => handleFieldChange('storageConnectionId', v)} options={storageOptionsFull} />
+                  <DropdownInput value={storageConnId} onChange={v => pickConnection('storageConnectionId', v)} options={storageOptionsFull} />
+                  {pendingNote(storageConnId)}
                 </div>
               </div>
               <div className={s.modalFooter}>
@@ -2057,6 +2183,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         const options = [
           { value: '', label: 'Select a service connection' },
           ...integrationConnections.map(c => ({ value: c.id, label: `${c.name} (${c.provider})` })),
+          ...connectOptions('service'),
         ];
         return (
           <div className={s.modalOverlay} onClick={() => { setLocalData({}); setShowIntegrationConnectionModal(false); }}>
@@ -2073,7 +2200,8 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
               <div className={s.configModalBody}>
                 <div className={s.configRow}>
                   <label className={s.configLabel}>Service Connection</label>
-                  <DropdownInput value={connId} onChange={v => handleFieldChange('integrationConnectionId', v)} options={options} />
+                  <DropdownInput value={connId} onChange={v => pickConnection('integrationConnectionId', v)} options={options} />
+                  {pendingNote(connId)}
                 </div>
               </div>
               <div className={s.modalFooter}>

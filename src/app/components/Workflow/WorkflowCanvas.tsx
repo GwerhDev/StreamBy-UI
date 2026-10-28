@@ -3,176 +3,90 @@ import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faFloppyDisk, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faFloppyDisk, faPencil, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Node, Edge } from 'reactflow';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { updateProjectWorkflow } from '../../../services/workflow';
-import { Connection, DbConnection, Export, IntegrationConnection, PipelineRef, Project, StorageConnection, Workflow } from '../../../interfaces';
-import { NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { ProjectLists, saveWorkflow, WorkflowConflict } from '../../../services/workflow';
+import { Export, Workflow } from '../../../interfaces';
+import { DrawnResource, NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeViewer';
+import { RemoveResourceModal } from '../Modals/RemoveResourceModal';
+import { PROJECT_LIST } from '../../../services/projectResources';
 import { TemplatePicker } from './TemplatePicker';
 
 interface Props {
   workflow: Workflow;
 }
 
-// Orchestrator side semantics (TCORE-64): Left = Pipelines, Top = DB/Storage/API,
-// Bottom = Exports, Right = reserved for future Distribution.
-const X_STREAMBY     = 350;
-const PIPELINE_XOFF  = -350;
-const Y_INPUTS       = -160;
-const Y_EXPORTS      = 220;
-
-const EDGE_PRIMARY    = { stroke: '#38b6ff', strokeWidth: 1.5 };
-
-export function buildSchemaFromProject(
-  project: Project,
-): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-
-  const INPUT_SPACING = 220;
-
-  let globalX     = X_STREAMBY - 550;
-  let inputCount  = 0;
-  let firstInputX = globalX;
-  let lastInputX  = globalX;
-
-  const registerInput = (nodeX: number) => {
-    if (inputCount === 0) firstInputX = nodeX;
-    lastInputX = nodeX;
-    inputCount++;
-  };
-
-  const addSimpleInputNode = (id: string, type: string, label: string, subtitle: string, data?: Record<string, unknown>) => {
-    registerInput(globalX);
-    nodes.push({ id, type, position: { x: globalX, y: Y_INPUTS }, data: { label, subtitle, ...data } });
-    edges.push({ id: `e-${id}`, source: id, sourceHandle: 'out-stream', target: 'streamby', targetHandle: 'in-top', animated: false, style: EDGE_PRIMARY });
-    globalX += INPUT_SPACING;
-  };
-
-  // Builtin database connections already exist as real rows in project.dbConnections
-  // (source: 'builtin', seeded once by backfillBuiltinConnections) — plug-and-play means
-  // the node is born already wired to that row's id, no manual Configure step needed.
-  (project.dbConnections ?? []).forEach((db: DbConnection) => {
-    addSimpleInputNode(`db-${db.id}`, 'dataSourceNode', db.name, db.dbType, { connectionId: db.id });
-  });
-
-  // --- API connections ---
-  (project.connections ?? []).forEach((api: Connection) => {
-    addSimpleInputNode(`api-${api.id}`, 'connectionNode', api.name, api.method);
-  });
-
-  // Builtin storage connections — same plug-and-play rationale as dbConnections above.
-  (project.storageConnections ?? []).forEach((storage: StorageConnection) => {
-    addSimpleInputNode(`storage-${storage.id}`, 'ingestNode', storage.name, storage.type, { storageConnectionId: storage.id });
-  });
-
-  // Service connections (Claude/Jira/Google) — same plug-and-play rationale as db/storage above.
-  (project.integrationConnections ?? []).forEach((svc: IntegrationConnection) => {
-    addSimpleInputNode(`svc-${svc.id}`, 'integrationConnectionNode', svc.name, svc.provider, { integrationConnectionId: svc.id });
-  });
-
-  // --- StreamBy orchestrator (center, horizontally aligned to all inputs) ---
-  const streambyX = inputCount > 0 ? (firstInputX + lastInputX) / 2 : X_STREAMBY;
-  nodes.push({ id: 'streamby', type: 'orchestratorNode', position: { x: streambyX, y: 20 }, data: { label: 'StreamBy', subtitle: 'Orchestrator' } });
-
-  // --- Pipelines (left column) — auto-drawn from project.pipelines[] ---
-  (project.pipelines ?? []).forEach((pipeline: PipelineRef, i: number) => {
-    const pipelineNodeId = `pipeline-${pipeline.id}`;
-    nodes.push({ id: pipelineNodeId, type: 'pipelineRefNode', position: { x: streambyX + PIPELINE_XOFF, y: 20 + i * INPUT_SPACING }, data: { label: pipeline.name, subtitle: 'Pipeline', pipelineId: pipeline.id } });
-    edges.push({ id: `e-streamby-${pipelineNodeId}`, source: 'streamby', sourceHandle: 'out-pipeline', target: pipelineNodeId, targetHandle: 'in-orchestrator', animated: true, style: EDGE_PRIMARY });
-  });
-
-  // --- Exports (bottom row) ---
-  (project.exports ?? []).forEach((exp: Export, i: number) => {
-    const exportNodeId = `export-${exp.id}`;
-    nodes.push({ id: exportNodeId, type: 'exportNode', position: { x: streambyX + i * INPUT_SPACING, y: Y_EXPORTS }, data: { label: exp.name, subtitle: exp.method || 'GET', exportId: exp.id } });
-    edges.push({ id: `e-streamby-${exportNodeId}`, source: 'streamby', sourceHandle: 'out-bottom', target: exportNodeId, targetHandle: 'in-orchestrator-bottom', animated: true, style: EDGE_PRIMARY });
-  });
-
-  return { nodes, edges };
-}
-
-// Nodes drawn from the project's own resources (and the orchestrator, and the sub-nodes of
-// an older layout): rebuilt from the project, never kept from a saved schema.
-const DRAWN_NODE_PREFIXES = ['db-', 'api-', 'storage-', 'svc-', 'export-', 'pipeline-', 'coll-', 'rec-'];
-const isDrawnNode = (id: string) => id === 'streamby' || DRAWN_NODE_PREFIXES.some(prefix => id.startsWith(prefix));
-
-/**
- * The project's schema rebuilt from its resources, keeping every node a user (or an agent)
- * placed -- a Shot, a Review Gate, a Deliverable... -- and their edges between nodes still
- * there. Rebuilding from the resources alone would drop them, and their workflow sections.
- */
-export function rebuildSchemaFromProject(
-  project: Project,
-  saved?: { nodes?: Node[]; edges?: Edge[] } | null,
-): { nodes: Node[]; edges: Edge[] } {
-  const fresh = buildSchemaFromProject(project);
-  const kept = (saved?.nodes ?? []).filter(node => typeof node.id === 'string' && !isDrawnNode(node.id));
-  const keptIds = new Set(kept.map(node => node.id));
-  const ids = new Set([...fresh.nodes.map(node => node.id), ...keptIds]);
-  const freshEdgeIds = new Set(fresh.edges.map(edge => edge.id));
-  const keptEdges = (saved?.edges ?? []).filter(edge =>
-    (keptIds.has(edge.source) || keptIds.has(edge.target))
-    && ids.has(edge.source) && ids.has(edge.target) && !freshEdgeIds.has(edge.id));
-  return { nodes: [...fresh.nodes, ...kept], edges: [...fresh.edges, ...keptEdges] };
-}
-
+// The project's workflow, edited: it defines the project. Saving it is one change on the server,
+// made on the version it was opened at, that makes the project what it defines; until then,
+// nothing in the project changes.
 export function WorkflowCanvas({ workflow }: Props) {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
+  // The workflow as last saved (or read): shown from it again after each save.
+  const [current, setCurrent] = useState<Workflow>(workflow);
   const [localSchema, setLocalSchema] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
+  // A resource's node deleted on the canvas, asked about before it goes (it's removed with the save).
+  const [toRemove, setToRemove] = useState<DrawnResource | null>(null);
 
   const displaySchema = useMemo<{ nodes: Node[]; edges: Edge[] } | null>(() => {
     if (localSchema !== null) return localSchema;
-    if (workflow.nodeSchema) return workflow.nodeSchema as { nodes: Node[]; edges: Edge[] };
-    return null;
-  }, [localSchema, workflow.nodeSchema]);
+    const saved = current.nodeSchema as { nodes: Node[]; edges: Edge[] } | null | undefined;
+    return saved?.nodes?.length ? saved : null;
+  }, [localSchema, current.nodeSchema]);
 
-  const nodeViewerKey = useMemo(() => {
-    if (workflow.nodeSchema) return `saved-${workflow.id}`;
-    if (localSchema) return 'template';
-    return 'empty';
-  }, [workflow.nodeSchema, workflow.id, localSchema]);
+  const nodeViewerKey = localSchema ? 'template' : `saved-${current.id}-${current.updatedAt}`;
 
   const exportAdapter = useMemo<Export>(() => ({
-    id: workflow.id,
-    name: workflow.name,
-    description: workflow.description ?? '',
+    id: current.id,
+    name: current.name,
+    description: current.description ?? '',
     status: 'completed',
     createdAt: '',
     updatedAt: '',
     projectId: projectId ?? '',
     exportedBy: '',
     nodeSchema: displaySchema,
-  }), [workflow, projectId, displaySchema]);
+  }), [current, projectId, displaySchema]);
 
   const handleTemplateSelect = (schema: { nodes: Node[]; edges: Edge[] }) => {
     setLocalSchema(schema);
     setEditMode(true);
   };
 
+  // The workflow and the project's lists as the server answers them.
+  const show = (saved: Workflow, lists: ProjectLists) => {
+    if (!projectId || !currentProject) return;
+    setLocalSchema(null);
+    setCurrent(saved);
+    dispatch(setCurrentProject({ ...currentProject, ...lists, workflow: saved }));
+  };
+
   const handleSave = async () => {
     if (!projectId || !currentProject) return;
     setSaving(true);
-    const nodeSchema = nodeViewerRef.current?.getSchema() ?? null;
     try {
-      const updated: Workflow = await updateProjectWorkflow(projectId, { nodeSchema });
-      dispatch(setCurrentProject({
-        ...currentProject,
-        workflow: updated,
-      }));
+      const nodeSchema = nodeViewerRef.current?.getSchema() ?? null;
+      const { data, project, errors } = await saveWorkflow(projectId, nodeSchema, current.updatedAt);
+      show(data, project);
+      for (const message of errors) dispatch(addApiResponse({ message, type: 'error' }));
+      if (!errors.length) dispatch(addApiResponse({ message: 'Workflow saved.', type: 'success' }));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save.';
-      dispatch(addApiResponse({ message, type: 'error' }));
+      if (err instanceof WorkflowConflict) {
+        dispatch(addApiResponse({ message: err.message, type: 'error' }));
+        if (err.workflow) setCurrent(err.workflow);
+        setLocalSchema(null);
+      } else {
+        dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to save.', type: 'error' }));
+      }
     } finally {
       setSaving(false);
     }
@@ -192,8 +106,9 @@ export function WorkflowCanvas({ workflow }: Props) {
       onClick={handleSave}
       disabled={saving}
       title={saving ? 'Saving…' : 'Save'}
+      data-testid="workflow-save"
     >
-      <FontAwesomeIcon icon={faFloppyDisk} />
+      <FontAwesomeIcon icon={saving ? faSpinner : faFloppyDisk} spin={saving} />
     </button>
   ) : null;
 
@@ -212,7 +127,21 @@ export function WorkflowCanvas({ workflow }: Props) {
         canvasOverlay={saveButton}
         onOpenPipeline={pipelineId => navigate(`/project/${projectId}/workflow/pipelines/${pipelineId}/editor`)}
         onOpenExport={exportId => navigate(`/project/${projectId}/workflow/exports/${exportId}/editor`)}
+        onRemoveResource={setToRemove}
       />
+
+      {toRemove && (() => {
+        const listed = ((currentProject?.[PROJECT_LIST[toRemove.kind]] ?? []) as { id: string; name?: string; integrationId?: string; isBuiltin?: boolean; source?: string }[])
+          .find(r => String(r.id) === toRemove.id);
+        return (
+          <RemoveResourceModal
+            kind={toRemove.kind}
+            resource={{ id: toRemove.id, name: listed?.name ?? toRemove.name, integrationId: listed?.integrationId, isBuiltin: listed?.isBuiltin || listed?.source === 'builtin' }}
+            onClose={() => setToRemove(null)}
+            onConfirm={() => nodeViewerRef.current?.removeNodes([toRemove.nodeId])}
+          />
+        );
+      })()}
 
       {/* Mode toggle — top center */}
       <div className={s.toggleOverlay}>
