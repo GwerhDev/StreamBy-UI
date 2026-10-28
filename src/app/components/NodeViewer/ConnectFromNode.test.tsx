@@ -216,6 +216,25 @@ describe('the workflow, connecting and disconnecting', () => {
     expect(save).not.toHaveBeenCalled();
   }, 20_000);
 
+  it('a Pipeline drafted on the workflow is made when it is saved, not before', async () => {
+    const save = vi.spyOn(workflowService, 'saveWorkflow').mockImplementation(async (_p, nodeSchema) => ({
+      data: { ...workflow, nodeSchema, updatedAt: '2026-10-28T11:00:00.000Z' } as Workflow, project: {}, errors: [],
+    }));
+    const drafted = { ...workflow, nodeSchema: { ...workflow.nodeSchema!, nodes: [...workflow.nodeSchema!.nodes, { id: 'p-draft', type: 'pipelineRefNode', position: { x: -300, y: 20 }, data: { label: 'Shading', subtitle: 'Pipeline' } }] } } as Workflow;
+    renderCanvas(drafted);
+    await editMode();
+    const user = userEvent.setup();
+    fireEvent.click(await screen.findByText('Shading'));
+    await user.click(await screen.findByTestId('pipeline-draft-create'));
+    expect(screen.getByTestId('pipeline-draft-create')).toHaveTextContent('Created when saved');
+    expect(save).not.toHaveBeenCalled();
+
+    await user.click(screen.getByTestId('workflow-save'));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    const sent = save.mock.calls[0][1] as { nodes: { id: string; data: Record<string, unknown> }[] };
+    expect(sent.nodes.find(n => n.id === 'p-draft')?.data).toMatchObject({ label: 'Shading', pipelineDraft: { name: 'Shading' } });
+  }, 20_000);
+
   it('saved over a newer version, tells so and shows the workflow as it is now', async () => {
     const now = { ...workflow, updatedAt: '2026-10-28T12:00:00.000Z' } as Workflow;
     vi.spyOn(workflowService, 'saveWorkflow').mockRejectedValue(new workflowService.WorkflowConflict('The workflow changed since it was opened.', now));

@@ -1,9 +1,9 @@
 import s from './CreatePipelineForm.module.css';
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../../store';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { createPipeline, updatePipeline } from '../../../services/pipelines';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -24,7 +24,6 @@ const TYPE_OPTIONS = [
 
 export function CreatePipelineForm() {
   const dispatch = useDispatch<AppDispatch>();
-  const currentProject = useSelector((state: RootState) => state.currentProject);
   const { id: projectId } = useParams<{ id: string }>();
 
   const [type, setType] = useState(CUSTOM_TYPE);
@@ -50,19 +49,15 @@ export function CreatePipelineForm() {
     if (!projectId) return;
     setLoading(true);
     try {
-      let pipeline = await createPipeline(projectId, { name, description });
+      const created = await createPipeline(projectId, { name, description });
+      let pipeline = created.pipeline;
       if (selectedTemplate) {
         pipeline = await updatePipeline(projectId, pipeline.id, { nodeSchema: selectedTemplate.schema });
       }
       dispatch(addApiResponse({ message: 'Pipeline created successfully.', type: 'success' }));
 
-      const project = currentProject.data;
-      if (project) {
-        dispatch(setCurrentProject({
-          ...project,
-          pipelines: [...(project.pipelines ?? []), { id: pipeline.id, name: pipeline.name, order: pipeline.order }],
-        }));
-      }
+      // The server adds its node to the workflow: the form only shows what it answers.
+      dispatch(setProjectResource({ projectId, key: 'pipelines', value: created.pipelines }));
 
       navigate(`/project/${projectId}/workflow/pipelines/${pipeline.id}/editor`);
     } catch (error: any) {

@@ -3,9 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { createExport } from '../../../services/exports';
-import { updateProjectWorkflow } from '../../../services/workflow';
 import { fetchBuiltinDatabases } from '../../../services/database';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -43,48 +42,10 @@ export function CreateExportForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
+      // The server adds its node to the workflow: the form only shows what it answers.
+      const { data: response, exports } = await createExport(currentProject?.data?.id, { name, description, allowedOrigin: ['*'], storageDbId });
       dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
-
-      const project = currentProject.data;
-      if (project) {
-        const workflow = project.workflow;
-        let updatedWorkflow = workflow;
-
-        if (workflow?.nodeSchema) {
-          const existingNodes = (workflow.nodeSchema.nodes ?? []) as any[];
-          const existingEdges = (workflow.nodeSchema.edges ?? []) as any[];
-          const exportNodes = existingNodes.filter((n: any) => String(n.id).startsWith('export-'));
-          const streambyNode = existingNodes.find((n: any) => n.id === 'streamby');
-          const newNodeId = `export-${response.exportId}`;
-          const newNode = {
-            id: newNodeId,
-            type: 'exportNode',
-            position: {
-              x: (streambyNode?.position?.x ?? 350) + exportNodes.length * 220,
-              y: (streambyNode?.position?.y ?? 20) + 220,
-            },
-            data: { label: name, subtitle: 'export', exportId: response.exportId },
-          };
-          const newEdge = {
-            id: `e-streamby-${newNodeId}`,
-            source: 'streamby', sourceHandle: 'out-bottom',
-            target: newNodeId, targetHandle: 'in-orchestrator-bottom',
-            animated: true, style: { stroke: '#38b6ff', strokeWidth: 1.5 },
-          };
-          const updatedSchema = {
-            nodes: [...existingNodes, newNode],
-            edges: [...existingEdges, newEdge],
-          };
-          try {
-            updatedWorkflow = await updateProjectWorkflow(projectId!, { nodeSchema: updatedSchema });
-          } catch {
-            // Workflow update is best-effort — don't block navigation
-          }
-        }
-
-        dispatch(setCurrentProject({ ...project, workflow: updatedWorkflow }));
-      }
+      if (projectId) dispatch(setProjectResource({ projectId, key: 'exports', value: exports }));
 
       navigate(`/project/${projectId}/workflow/exports/${response.exportId}/editor`);
     } catch (error: any) {

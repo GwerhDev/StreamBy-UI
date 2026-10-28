@@ -78,7 +78,8 @@ describe('CreatePipelineForm', () => {
 
   it('creates a Custom pipeline without touching nodeSchema', async () => {
     vi.spyOn(pipelinesService, 'createPipeline').mockResolvedValue({
-      id: 'pipe1', name: 'My Pipeline', description: '', order: 0, nodeSchema: null,
+      pipeline: { id: 'pipe1', name: 'My Pipeline', description: '', order: 0, nodeSchema: null },
+      pipelines: [{ id: 'pipe1', name: 'My Pipeline', order: 0 }],
     } as any);
     const updateSpy = vi.spyOn(pipelinesService, 'updatePipeline');
     renderForm();
@@ -93,7 +94,8 @@ describe('CreatePipelineForm', () => {
 
   it('creates a predefined pipeline and immediately patches it with the template nodeSchema', async () => {
     vi.spyOn(pipelinesService, 'createPipeline').mockResolvedValue({
-      id: 'pipe1', name: 'Audiovisual Production', description: '', order: 0, nodeSchema: null,
+      pipeline: { id: 'pipe1', name: 'Audiovisual Production', description: '', order: 0, nodeSchema: null },
+      pipelines: [{ id: 'pipe1', name: 'Audiovisual Production', order: 0 }],
     } as any);
     vi.spyOn(pipelinesService, 'updatePipeline').mockResolvedValue({
       id: 'pipe1', name: 'Audiovisual Production', description: '', order: 0, nodeSchema: { nodes: [], edges: [] },

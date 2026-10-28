@@ -27,7 +27,8 @@ export async function getPipeline(projectId: string, pipelineId: string): Promis
   return pipeline;
 }
 
-export async function createPipeline(projectId: string, payload: { name: string; description?: string }): Promise<Pipeline> {
+/** The pipeline made, and the project's pipelines (as references) as they are now. */
+export async function createPipeline(projectId: string, payload: { name: string; description?: string }): Promise<{ pipeline: Pipeline; pipelines: PipelineRef[] }> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/pipelines`, {
     method: 'POST',
     credentials: 'include',
@@ -38,8 +39,7 @@ export async function createPipeline(projectId: string, payload: { name: string;
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `HTTP ${res.status}`);
   }
-  const { pipeline } = await res.json();
-  return pipeline;
+  return res.json();
 }
 
 export async function updatePipeline(projectId: string, pipelineId: string, payload: Partial<PipelinePayload>): Promise<Pipeline> {

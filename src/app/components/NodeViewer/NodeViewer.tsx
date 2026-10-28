@@ -7,9 +7,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { getConnectionResponse, createConnection } from '../../../services/connections';
-import { createPipeline } from '../../../services/pipelines';
-import { createExport } from '../../../services/exports';
-import { updateProjectWorkflow } from '../../../services/workflow';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchDocuments, upsertDocument } from '../../../store/documentsSlice';
 import { createDocument } from '../../../services/documents';
@@ -1139,69 +1136,24 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     setLocalData({});
   }, [selectedNodeId, localData, nodes, connections, allDbConnections, storageConnections, integrationConnections, onSave, setNodes, nameOf]);
 
-  const [draftCreating, setDraftCreating] = useState(false);
 
-  // Persist the current node/edge schema so a newly-created draft survives a reload —
-  // best-effort, mirrors the pattern already used by CreateExportForm/CreatePipelineForm.
-  const persistWorkflowSchema = useCallback(async (nextNodes: Node[]) => {
-    if (!projectId || !currentProject?.workflow) return;
-    try {
-      const updated = await updateProjectWorkflow(projectId, { nodeSchema: { nodes: nextNodes, edges } });
-      dispatch(setCurrentProject({ ...currentProject, workflow: updated }));
-    } catch {
-      // Best-effort — the node still updates locally even if persistence fails.
-    }
-  }, [projectId, currentProject, edges, dispatch]);
-
-  const handleCreatePipelineFromDraft = useCallback(async () => {
-    if (!projectId || !selectedNodeId || !currentProject) return;
-    const name = (localData.label as string) ?? (selectedNode?.data.label as string) ?? '';
+  // A Pipeline or Export node drafted on the workflow: named here, made when the workflow is
+  // saved (with the rest of what it defines), and bound to its node then.
+  const handleCreatePipelineFromDraft = useCallback(() => {
+    if (!selectedNodeId) return;
+    const name = ((localData.label as string) ?? (selectedNode?.data.label as string) ?? '').trim();
     if (!name) return;
-    setDraftCreating(true);
-    try {
-      const pipeline = await createPipeline(projectId, { name });
-      const nextNodes = nodes.map(n => n.id === selectedNodeId
-        ? { ...n, data: { ...n.data, label: pipeline.name, pipelineId: pipeline.id } }
-        : n);
-      setNodes(nextNodes);
-      dispatch(setCurrentProject({
-        ...currentProject,
-        pipelines: [...(currentProject.pipelines ?? []), { id: pipeline.id, name: pipeline.name, order: pipeline.order }],
-      }));
-      await persistWorkflowSchema(nextNodes);
-      setLocalData({});
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create pipeline.';
-      dispatch(addApiResponse({ message, type: 'error' }));
-    } finally {
-      setDraftCreating(false);
-    }
-  }, [projectId, selectedNodeId, selectedNode, currentProject, localData, nodes, setNodes, dispatch, persistWorkflowSchema]);
+    setNodes(prev => prev.map(n => (n.id === selectedNodeId ? { ...n, data: { ...n.data, label: name, pipelineDraft: { name } } } : n)));
+    setLocalData({});
+  }, [selectedNodeId, selectedNode, localData, setNodes]);
 
-  const handleCreateExportFromDraft = useCallback(async () => {
-    if (!projectId || !selectedNodeId || !currentProject) return;
-    const name = (localData.label as string) ?? (selectedNode?.data.label as string) ?? '';
+  const handleCreateExportFromDraft = useCallback(() => {
+    if (!selectedNodeId) return;
+    const name = ((localData.label as string) ?? (selectedNode?.data.label as string) ?? '').trim();
     if (!name) return;
-    setDraftCreating(true);
-    try {
-      const created = await createExport(projectId, { name, allowedOrigin: ['*'] });
-      const nextNodes = nodes.map(n => n.id === selectedNodeId
-        ? { ...n, data: { ...n.data, label: name, exportId: created.exportId } }
-        : n);
-      setNodes(nextNodes);
-      dispatch(setCurrentProject({
-        ...currentProject,
-        exports: [...(currentProject.exports ?? []), created],
-      }));
-      await persistWorkflowSchema(nextNodes);
-      setLocalData({});
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create export.';
-      dispatch(addApiResponse({ message, type: 'error' }));
-    } finally {
-      setDraftCreating(false);
-    }
-  }, [projectId, selectedNodeId, selectedNode, currentProject, localData, nodes, setNodes, dispatch, persistWorkflowSchema]);
+    setNodes(prev => prev.map(n => (n.id === selectedNodeId ? { ...n, data: { ...n.data, label: name, exportDraft: { name } } } : n)));
+    setLocalData({});
+  }, [selectedNodeId, selectedNode, localData, setNodes]);
 
   const handleOpenApiPreview = useCallback(async () => {
     if (!projectId || !selectedNodeId) return;
@@ -1341,19 +1293,20 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       };
       setNodes(prev => prev.map(n => {
         if (n.id !== selectedNodeId) return n;
-        const { connectionId: _unbound, ...data } = n.data ?? {};
+        // Unbound from any API it had: the one drafted is its own.
+        const data = Object.fromEntries(Object.entries(n.data ?? {}).filter(([key]) => key !== 'connectionId'));
         return { ...n, data: { ...data, label: apiCreateName, subtitle: apiCreateUrl, connectionDraft } };
       }));
     } else if (connId === CREATE_NEW_SENTINEL) {
       if (!apiCreateName || !apiCreateUrl || !projectId || !currentProject) return;
       setApiCreating(true);
       try {
-        const newConn = await createConnection(projectId, {
+        const { data: newConn, connections: answered } = await createConnection(projectId, {
           name: apiCreateName, apiUrl: apiCreateUrl, method: apiCreateMethod as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
           ...(apiCreateUsesCredentials && apiCreateToken && { token: apiCreateToken }),
           ...(apiCreateUsesCredentials && apiCreatePrefix && { prefix: apiCreatePrefix }),
         });
-        dispatch(setCurrentProject({ ...currentProject, connections: [...(currentProject.connections ?? []), newConn] }));
+        dispatch(setCurrentProject({ ...currentProject, connections: answered }));
         setNodes(prev => prev.map(n => n.id === selectedNodeId
           ? { ...n, data: { ...n.data, label: newConn.name, subtitle: newConn.apiUrl, connectionId: newConn.id } }
           : n
@@ -1579,11 +1532,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         if (pipelineId) onOpenPipeline?.(pipelineId);
                       }}
                       disabled={isPipelineDraft
-                        ? (draftCreating || !((localData.label as string) ?? (selectedNode.data.label as string)))
+                        ? (!!selectedNode.data.pipelineDraft || !((localData.label as string) ?? (selectedNode.data.label as string)))
                         : (!onOpenPipeline || !(selectedNode.data.pipelineId as string))}
+                      data-testid="pipeline-draft-create"
                     >
                       <FontAwesomeIcon icon={faArrowsRotate} />
-                      {isPipelineDraft ? (draftCreating ? 'Creating…' : 'Create') : 'Open editor'}
+                      {isPipelineDraft ? (selectedNode.data.pipelineDraft ? 'Created when saved' : 'Create') : 'Open editor'}
                     </button>
                   </div>
                 )}
@@ -1599,11 +1553,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                         if (exportId) onOpenExport?.(exportId);
                       }}
                       disabled={isExportDraft
-                        ? (draftCreating || !((localData.label as string) ?? (selectedNode.data.label as string)))
+                        ? (!!selectedNode.data.exportDraft || !((localData.label as string) ?? (selectedNode.data.label as string)))
                         : (!onOpenExport || !(selectedNode.data.exportId as string))}
+                      data-testid="export-draft-create"
                     >
                       <FontAwesomeIcon icon={faArrowsRotate} />
-                      {isExportDraft ? (draftCreating ? 'Creating…' : 'Create') : 'Open editor'}
+                      {isExportDraft ? (selectedNode.data.exportDraft ? 'Created when saved' : 'Create') : 'Open editor'}
                     </button>
                   </div>
                 )}

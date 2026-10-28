@@ -51,13 +51,14 @@ describe('pipelines service', () => {
     expect(optsOf().method).toBe('GET');
   });
 
-  it('createPipeline POSTs the payload and unwraps { pipeline }', async () => {
+  it('createPipeline POSTs the payload, and answers the pipeline and the project\'s pipelines', async () => {
     const pipeline = { id: 'p9', name: 'New' };
-    fetchMock.mockReturnValueOnce(okJson({ pipeline }));
+    const pipelines = [{ id: 'p9', name: 'New', order: 0 }];
+    fetchMock.mockReturnValueOnce(okJson({ pipeline, pipelines }));
 
     const result = await createPipeline('proj1', { name: 'New' });
 
-    expect(result).toEqual(pipeline);
+    expect(result).toEqual({ pipeline, pipelines });
     expect(urlOf()).toContain('/streamby/projects/proj1/pipelines');
     expect(optsOf().method).toBe('POST');
     expect(JSON.parse(optsOf().body as string)).toEqual({ name: 'New' });

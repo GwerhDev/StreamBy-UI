@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import { ConnectionPayload } from '../interfaces';
+import { Connection, ConnectionPayload } from '../interfaces';
 
 export async function getConnections(projectId: string) {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections`, {
@@ -14,7 +14,8 @@ export async function getConnections(projectId: string) {
   return data;
 }
 
-export async function createConnection(projectId: string, payload: ConnectionPayload) {
+/** The connection made, and the project's API connections as they are now. */
+export async function createConnection(projectId: string, payload: ConnectionPayload): Promise<{ data: Connection; connections: Connection[] }> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/connections`, {
     method: 'POST',
     credentials: 'include',
@@ -25,8 +26,7 @@ export async function createConnection(projectId: string, payload: ConnectionPay
     const { error, details } = await res.json();
     throw new Error(`Failed to create connection: ${error} - ${details}`);
   }
-  const { data } = await res.json();
-  return data;
+  return res.json();
 }
 
 export async function getConnection(projectId: string, connectionId: string) {

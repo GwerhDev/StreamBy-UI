@@ -1,3 +1,4 @@
+import { Export } from '../interfaces';
 import { API_BASE } from "../config/api";
 
 export async function getExport(projectId: string, exportId: string) {
@@ -13,7 +14,8 @@ export async function getExport(projectId: string, exportId: string) {
   return data;
 }
 
-export async function createExport(projectId: string | undefined, payload: Record<string, any>) {
+/** The export made ({ exportId }), and the project's exports as they are now. */
+export async function createExport(projectId: string | undefined, payload: Record<string, any>): Promise<{ data: { exportId: string; message?: string }; exports: Export[] }> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/exports/`, {
     method: 'POST',
     credentials: 'include',
@@ -24,8 +26,7 @@ export async function createExport(projectId: string | undefined, payload: Recor
     const { error, details } = await res.json();
     throw new Error(`Failed to create export: ${error} - ${details}`);
   }
-  const { data } = await res.json() || {};
-  return data;
+  return res.json();
 }
 
 export async function updateExport(projectId: string, exportId: string, payload: Record<string, any>) {

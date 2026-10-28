@@ -4,8 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { createConnection } from '../../../services/connections';
-import { updateProjectWorkflow } from '../../../services/workflow';
-import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -53,35 +52,10 @@ export const CreateConnectionForm = () => {
         ...(usesCredentials && token && { token }),
         ...(usesCredentials && prefix && { prefix }),
       };
-      const response = await createConnection(projectId, payload);
-      if (response) {
-        const existing = currentProject.connections ?? [];
-        const workflow = currentProject.workflow;
-        let updatedWorkflow = workflow;
-
-        if (workflow?.nodeSchema) {
-          const existingNodes = (workflow.nodeSchema.nodes ?? []) as object[];
-          const inputNodes = existingNodes.filter((n: any) => String(n.id).startsWith('api-') || String(n.id).startsWith('db-') || String(n.id).startsWith('storage-'));
-          const newNode = {
-            id: `api-${response.id}`,
-            type: 'connectionNode',
-            position: { x: 80, y: inputNodes.length * 140 + 20 },
-            data: { label: response.name, subtitle: response.method ?? 'GET' },
-          };
-          const updatedSchema = {
-            nodes: [...existingNodes, newNode],
-            edges: workflow.nodeSchema.edges ?? [],
-          };
-          try {
-            updatedWorkflow = await updateProjectWorkflow(projectId, { nodeSchema: updatedSchema });
-          } catch {
-            // best-effort
-          }
-        }
-
-        dispatch(setCurrentProject({ ...currentProject, connections: [...existing, response], workflow: updatedWorkflow }));
-        dispatch(addApiResponse({ message: 'Connection created successfully.', type: 'success' }));
-      }
+      // The server adds its node to the workflow: the form only shows what it answers.
+      const { connections } = await createConnection(projectId, payload);
+      dispatch(setProjectResource({ projectId, key: 'connections', value: connections }));
+      dispatch(addApiResponse({ message: 'Connection created successfully.', type: 'success' }));
       navigate(`/project/${projectId}/connections`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
