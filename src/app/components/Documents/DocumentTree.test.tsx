@@ -16,6 +16,18 @@ beforeEach(() => {
 });
 
 describe('DocumentTree', () => {
+  // The page and the list it shares ask for the documents at once on a first load: the second
+  // is skipped, which isn't a failure.
+  it("tells nothing when a load already under way skips its own, and tells a real failure", async () => {
+    const store = renderAt(PATH, ROUTE, <DocumentTree />);
+    await screen.findByTestId('document-d1');
+    expect(store.getState().apiResponses.responses).toEqual([]);
+
+    vi.spyOn(service, 'getDocuments').mockRejectedValue(new Error('StreamBy is down'));
+    const failing = renderAt('/project/p2/dashboard/documents', ROUTE, <DocumentTree />);
+    await waitFor(() => expect(failing.getState().apiResponses.responses).toEqual([expect.objectContaining({ message: 'StreamBy is down', type: 'error' })]));
+  });
+
   it("shows one folder at a time, folders first, with each document's version and whether one is published", async () => {
     renderAt(PATH, ROUTE, <DocumentTree />);
     const items = await screen.findAllByTestId(/^document-/);

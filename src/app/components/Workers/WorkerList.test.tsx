@@ -9,6 +9,18 @@ const ROUTE = '/project/:id/workers';
 beforeEach(() => vi.restoreAllMocks());
 
 describe('WorkerList', () => {
+  // The menu and the page ask for the workers at once: the second is skipped, which isn't a failure.
+  it('tells nothing when a load already under way skips its own, and tells a real failure', async () => {
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([worker()]);
+    const store = renderAt('/project/p1/workers', ROUTE, <><WorkerList /><WorkerList /></>);
+    await screen.findAllByTestId('worker-gltf');
+    expect(store.getState().apiResponses.responses).toEqual([]);
+
+    vi.spyOn(workers, 'getWorkers').mockRejectedValue(new Error('StreamBy is down'));
+    const failing = renderAt('/project/p2/workers', ROUTE, <WorkerList />);
+    await waitFor(() => expect(failing.getState().apiResponses.responses).toEqual([expect.objectContaining({ message: 'StreamBy is down', type: 'error' })]));
+  });
+
   it("lists the host's workers and the project's, with what they do", async () => {
     vi.spyOn(workers, 'getWorkers').mockResolvedValue([
       worker(), worker({ source: 'project', id: 'w2', name: 'Own LOD', kinds: ['lod'], autoKind: 'lod' }),

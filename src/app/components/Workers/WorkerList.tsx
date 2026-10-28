@@ -7,7 +7,7 @@ import { faGears, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { deleteWorker } from '../../../services/workers';
-import { fetchWorkers, removeWorker } from '../../../store/workersSlice';
+import { clearWorkersError, fetchWorkers, removeWorker } from '../../../store/workersSlice';
 import { Worker } from '../../../interfaces';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { ModalShell } from '../Modals/ModalShell';
@@ -25,9 +25,15 @@ export const WorkerList = () => {
 
   // Fresh each time the page is opened (the menu may have loaded them a while ago).
   useEffect(() => {
-    dispatch(fetchWorkers(projectId)).unwrap().catch(err =>
-      dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to load workers.', type: 'error' })));
+    dispatch(fetchWorkers(projectId));
   }, [dispatch, projectId]);
+
+  // A failed load is told here, whoever asked for it (the menu may have, at once).
+  const loadError = useSelector((state: RootState) => (state.workers.projectId === projectId ? state.workers.error : null));
+  useEffect(() => {
+    if (loadError) dispatch(addApiResponse({ message: loadError, type: 'error' }));
+  }, [dispatch, loadError]);
+  useEffect(() => () => { dispatch(clearWorkersError()); }, [dispatch]);
 
   const handleRemove = async () => {
     if (!toRemove) return;

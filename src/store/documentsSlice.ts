@@ -10,10 +10,12 @@ interface DocumentsState {
   // null until loaded.
   list: DocumentSummary[] | null;
   loading: boolean;
+  // Why the latest load failed, for the page showing them to tell (whoever asked for it).
+  error: string | null;
   lastEvent: DocumentEvent | null;
 }
 
-const initialState: DocumentsState = { projectId: null, list: null, loading: false, lastEvent: null };
+const initialState: DocumentsState = { projectId: null, list: null, loading: false, error: null, lastEvent: null };
 
 export const fetchDocuments = createAsyncThunk(
   'documents/fetch',
@@ -37,6 +39,10 @@ const documentsSlice = createSlice({
   name: 'documents',
   initialState,
   reducers: {
+    // Told already: not again when the page is opened next.
+    clearDocumentsError(state) {
+      state.error = null;
+    },
     // A document as saved, created or moved here: into the tree, in its place.
     upsertDocument(state, action: PayloadAction<ProjectDocument | DocumentSummary>) {
       if (!state.list || action.payload.projectId !== state.projectId) return;
@@ -61,6 +67,7 @@ const documentsSlice = createSlice({
         if (state.projectId !== action.meta.arg) state.list = null;
         state.projectId = action.meta.arg;
         state.loading = true;
+        state.error = null;
       })
       // An answer for a project no longer being seen is dropped.
       .addCase(fetchDocuments.fulfilled, (state, action) => {
@@ -72,11 +79,12 @@ const documentsSlice = createSlice({
         if (action.meta.arg !== state.projectId) return;
         state.list = state.list ?? [];
         state.loading = false;
+        state.error = action.error.message || 'Failed to load the documents.';
       });
   },
 });
 
-export const { upsertDocument, removeDocuments, documentEventReceived } = documentsSlice.actions;
+export const { upsertDocument, removeDocuments, documentEventReceived, clearDocumentsError } = documentsSlice.actions;
 export default documentsSlice.reducer;
 
 /** A folder's documents (the top's, for null), in their order. */

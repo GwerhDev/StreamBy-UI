@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { vi } from 'vitest';
-import workers, { addWorker, fetchWorkers, removeWorker } from './workersSlice';
+import workers, { addWorker, clearWorkersError, fetchWorkers, removeWorker } from './workersSlice';
 import * as service from '../services/workers';
 import { worker } from '../test/workers';
 
@@ -37,11 +37,20 @@ describe('workersSlice', () => {
     expect(store.getState().workers.list?.map(w => w.id)).toEqual(['p2-own']);
   });
 
-  it('shows none when they can\'t be loaded', async () => {
+  it("shows none when they can't be loaded, and keeps why for the page to tell", async () => {
     vi.spyOn(service, 'getWorkers').mockRejectedValue(new Error('down'));
     const store = makeStore();
     await store.dispatch(fetchWorkers('p1'));
-    expect(store.getState().workers).toMatchObject({ list: [], loading: false });
+    expect(store.getState().workers).toMatchObject({ list: [], loading: false, error: 'down' });
+    store.dispatch(clearWorkersError());
+    expect(store.getState().workers.error).toBeNull();
+  });
+
+  it("doesn't take a load skipped for one under way for a failure", async () => {
+    vi.spyOn(service, 'getWorkers').mockResolvedValue([]);
+    const store = makeStore();
+    await Promise.all([store.dispatch(fetchWorkers('p1')), store.dispatch(fetchWorkers('p1'))]);
+    expect(store.getState().workers.error).toBeNull();
   });
 
   it("adds one connected, and removes only the project's own by its id", async () => {

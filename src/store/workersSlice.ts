@@ -9,9 +9,11 @@ interface WorkersState {
   // null until loaded.
   list: Worker[] | null;
   loading: boolean;
+  // Why the latest load failed, for the page showing them to tell (whoever asked for it).
+  error: string | null;
 }
 
-const initialState: WorkersState = { projectId: null, list: null, loading: false };
+const initialState: WorkersState = { projectId: null, list: null, loading: false, error: null };
 
 export const fetchWorkers = createAsyncThunk(
   'workers/fetch',
@@ -29,6 +31,10 @@ const workersSlice = createSlice({
   name: 'workers',
   initialState,
   reducers: {
+    // Told already: not again when the page is opened next.
+    clearWorkersError(state) {
+      state.error = null;
+    },
     addWorker(state, action: PayloadAction<Worker>) {
       state.list?.push(action.payload);
     },
@@ -42,6 +48,7 @@ const workersSlice = createSlice({
         if (state.projectId !== action.meta.arg) state.list = null;
         state.projectId = action.meta.arg;
         state.loading = true;
+        state.error = null;
       })
       // An answer for a project no longer being seen is dropped.
       .addCase(fetchWorkers.fulfilled, (state, action) => {
@@ -53,9 +60,10 @@ const workersSlice = createSlice({
         if (action.meta.arg !== state.projectId) return;
         state.list = state.list ?? [];
         state.loading = false;
+        state.error = action.error.message || 'Failed to load workers.';
       });
   },
 });
 
-export const { addWorker, removeWorker } = workersSlice.actions;
+export const { addWorker, removeWorker, clearWorkersError } = workersSlice.actions;
 export default workersSlice.reducer;

@@ -2,15 +2,15 @@ import s from '../Storage/StorageDrive.module.css';
 import d from './Documents.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines, faFolder, faFolderOpen, faFolderPlus, faList, faMagnifyingGlass, faPencil, faPlus, faTableCells, faTrash, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
-import { AppDispatch } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { childrenOf, fetchDocuments, removeDocuments, upsertDocument } from '../../../store/documentsSlice';
+import { childrenOf, clearDocumentsError, fetchDocuments, removeDocuments, upsertDocument } from '../../../store/documentsSlice';
 import { createDocument, deleteDocument, saveDocument, updateDocument } from '../../../services/documents';
 import { DocumentSummary } from '../../../interfaces';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
@@ -67,9 +67,16 @@ export const DocumentTree = ({ folder }: { folder?: DocumentSummary } = {}) => {
 
   // Fresh each time it's opened (someone may have changed them).
   useEffect(() => {
-    dispatch(fetchDocuments(projectId)).unwrap().catch(err => fail(err, 'Failed to load the documents.'));
+    dispatch(fetchDocuments(projectId));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, projectId]);
+
+  // A failed load is told here, whoever asked for it (the list this page shares may have, at once).
+  const loadError = useSelector((state: RootState) => (state.documents.projectId === projectId ? state.documents.error : null));
+  useEffect(() => {
+    if (loadError) dispatch(addApiResponse({ message: loadError, type: 'error' }));
+  }, [dispatch, loadError]);
+  useEffect(() => () => { dispatch(clearDocumentsError()); }, [dispatch]);
 
   useEffect(() => { localStorage.setItem('streamby-documents-view', viewMode); }, [viewMode]);
   useEffect(() => { if (renaming) { renameRef.current?.focus(); renameRef.current?.select(); } }, [renaming?.id]); // eslint-disable-line react-hooks/exhaustive-deps

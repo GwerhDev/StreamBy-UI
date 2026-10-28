@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { vi } from 'vitest';
-import documents, { childrenOf, documentEventReceived, fetchDocuments, removeDocuments, upsertDocument, withDescendants } from './documentsSlice';
+import documents, { childrenOf, clearDocumentsError, documentEventReceived, fetchDocuments, removeDocuments, upsertDocument, withDescendants } from './documentsSlice';
 import * as service from '../services/documents';
 import { ADA, doc } from '../test/documents';
 
@@ -34,6 +34,19 @@ describe('documentsSlice', () => {
     expect(store.getState().documents.list!.map(d => d.id)).toEqual(['d1']);
     store.dispatch(removeDocuments(['d1']));
     expect(store.getState().documents.list).toEqual([]);
+  });
+
+  it("keeps why a load failed for the page to tell, never for a load skipped for one under way", async () => {
+    vi.spyOn(service, 'getDocuments').mockResolvedValue(tree);
+    const store = makeStore();
+    await Promise.all([store.dispatch(fetchDocuments('p1')), store.dispatch(fetchDocuments('p1'))]);
+    expect(store.getState().documents.error).toBeNull();
+
+    vi.spyOn(service, 'getDocuments').mockRejectedValue(new Error('down'));
+    await store.dispatch(fetchDocuments('p1'));
+    expect(store.getState().documents.error).toBe('down');
+    store.dispatch(clearDocumentsError());
+    expect(store.getState().documents.error).toBeNull();
   });
 
   it("orders a folder's documents, and finds everything inside one", () => {
