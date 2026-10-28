@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 'react-router-dom';
+import { act } from '@testing-library/react';
+import { Where } from '../../../test/Where';
 import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as resources from '../../../services/projectResources';
@@ -113,11 +115,14 @@ describe('the workflow, connecting and disconnecting', () => {
     await editMode();
     const user = userEvent.setup();
     await screen.findByText('MongoDB');
+    // Opened, and selected: nothing to save yet.
+    expect(screen.queryByTestId('workflow-unsaved')).not.toBeInTheDocument();
     fireEvent.keyDown(document.body, { key: 'Delete', code: 'Delete' });
     expect(await screen.findByTestId('remove-resource')).toHaveTextContent('Disconnect the built-in database connection MongoDB');
     await user.click(screen.getByRole('button', { name: /^Disconnect$/ }));
     expect(screen.queryByText('MongoDB')).not.toBeInTheDocument();
     expect(save).not.toHaveBeenCalled();
+    expect(screen.getByTestId('workflow-unsaved')).toBeInTheDocument();
 
     await user.click(screen.getByTestId('workflow-save'));
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
@@ -125,14 +130,106 @@ describe('the workflow, connecting and disconnecting', () => {
     expect(sent.nodes.map(n => n.id)).not.toContain('mongo-node');
     expect(remove).not.toHaveBeenCalled();
     await waitFor(() => expect(store.getState().currentProject.data?.dbConnections).toEqual([]));
+    await waitFor(() => expect(screen.queryByTestId('workflow-unsaved')).not.toBeInTheDocument());
+  }, 20_000);
+
+  describe('leaving edit mode with changes', () => {
+    const deleteMongo = async () => {
+      const selected = { ...workflow, nodeSchema: { ...workflow.nodeSchema!, nodes: workflow.nodeSchema!.nodes.map(n => ((n as { id: string }).id === 'mongo-node' ? { ...n, selected: true } : n)) } } as Workflow;
+      renderCanvas(selected);
+      await editMode();
+      await screen.findByText('MongoDB');
+      fireEvent.keyDown(document.body, { key: 'Delete', code: 'Delete' });
+      await userEvent.setup().click(await screen.findByRole('button', { name: /^Disconnect$/ }));
+      expect(screen.queryByText('MongoDB')).not.toBeInTheDocument();
+    };
+
+    it('asks first; discarded, the canvas is as saved and it goes to view mode', async () => {
+      const save = vi.spyOn(workflowService, 'saveWorkflow');
+      await deleteMongo();
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('switch'));
+      expect(screen.getByTestId('workflow-leave')).toBeInTheDocument();
+      expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+
+      await user.click(screen.getByRole('button', { name: /Keep editing/ }));
+      expect(screen.queryByTestId('workflow-leave')).not.toBeInTheDocument();
+      expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+
+      await user.click(screen.getByRole('switch'));
+      await user.click(screen.getByRole('button', { name: /^Discard$/ }));
+      expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
+      expect(await screen.findByText('MongoDB')).toBeInTheDocument();
+      expect(save).not.toHaveBeenCalled();
+    }, 20_000);
+
+    it('saved, it goes to view mode', async () => {
+      const save = vi.spyOn(workflowService, 'saveWorkflow').mockImplementation(async (_p, nodeSchema) => ({
+        data: { ...workflow, nodeSchema, updatedAt: '2026-10-28T11:00:00.000Z' } as Workflow, project: { dbConnections: [] }, errors: [],
+      }));
+      await deleteMongo();
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('switch'));
+      await user.click(within(screen.getByTestId('workflow-leave').closest('[class*="container"]') as HTMLElement).getByRole('button', { name: /^Save$/ }));
+      await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false'));
+    }, 20_000);
+
+    it('without changes, it goes to view mode at once', async () => {
+      renderCanvas();
+      await editMode();
+      await userEvent.setup().click(screen.getByRole('switch'));
+      expect(screen.queryByTestId('workflow-leave')).not.toBeInTheDocument();
+      expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
+    }, 20_000);
+  });
+
+  it('navigating away with changes asks first; discarded, it goes', async () => {
+    const save = vi.spyOn(workflowService, 'saveWorkflow');
+    const store = renderCanvas();
+    // The same store, now under a data router (as the app is), with somewhere to go.
+    const selected = { ...workflow, nodeSchema: { ...workflow.nodeSchema!, nodes: workflow.nodeSchema!.nodes.map(n => ((n as { id: string }).id === 'mongo-node' ? { ...n, selected: true } : n)) } } as Workflow;
+    const router = createMemoryRouter([{ path: '*', element: (
+      <Routes>
+        <Route path="/project/:id/workflow" element={<WorkflowCanvas workflow={selected} />} />
+        <Route path="*" element={<Where />} />
+      </Routes>
+    ) }], { initialEntries: ['/project/p1/workflow'] });
+    document.body.innerHTML = '';
+    render(<Provider store={store}><RouterProvider router={router} /></Provider>);
+    await editMode();
+    const user = userEvent.setup();
+    await screen.findByText('MongoDB');
+    // Without changes, nothing holds it.
+    expect(screen.queryByTestId('workflow-unsaved')).not.toBeInTheDocument();
+    fireEvent.keyDown(document.body, { key: 'Delete', code: 'Delete' });
+    await user.click(await screen.findByRole('button', { name: /^Disconnect$/ }));
+
+    await act(async () => { await router.navigate('/project/p1/storage'); });
+    expect(screen.getByTestId('workflow-leave')).toHaveTextContent('before leaving the page');
+    await user.click(screen.getByRole('button', { name: /Keep editing/ }));
+    expect(router.state.location.pathname).toBe('/project/p1/workflow');
+
+    await act(async () => { await router.navigate('/project/p1/storage'); });
+    await user.click(screen.getByRole('button', { name: /^Discard$/ }));
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/project/p1/storage'));
+    expect(save).not.toHaveBeenCalled();
   }, 20_000);
 
   it('saved over a newer version, tells so and shows the workflow as it is now', async () => {
     const now = { ...workflow, updatedAt: '2026-10-28T12:00:00.000Z' } as Workflow;
     vi.spyOn(workflowService, 'saveWorkflow').mockRejectedValue(new workflowService.WorkflowConflict('The workflow changed since it was opened.', now));
-    const store = renderCanvas();
+    const selected = { ...workflow, nodeSchema: { ...workflow.nodeSchema!, nodes: workflow.nodeSchema!.nodes.map(n => ((n as { id: string }).id === 'mongo-node' ? { ...n, selected: true } : n)) } } as Workflow;
+    const store = renderCanvas(selected);
     await editMode();
-    await userEvent.setup().click(screen.getByTestId('workflow-save'));
+    const user = userEvent.setup();
+    // Nothing changed: nothing to save.
+    expect(screen.getByTestId('workflow-save')).toBeDisabled();
+    await screen.findByText('MongoDB');
+    fireEvent.keyDown(document.body, { key: 'Delete', code: 'Delete' });
+    await user.click(await screen.findByRole('button', { name: /^Disconnect$/ }));
+    expect(screen.getByTestId('workflow-save')).toBeEnabled();
+    await user.click(screen.getByTestId('workflow-save'));
     await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([expect.objectContaining({ message: 'The workflow changed since it was opened.', type: 'error' })]));
   }, 20_000);
 });

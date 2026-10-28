@@ -140,3 +140,15 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* Changes on the canvas the workflow saved doesn't have yet. */
+.saveDot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-danger, #ef4444);
+  box-shadow: 0 0 0 2px var(--color-bg-base);
+}

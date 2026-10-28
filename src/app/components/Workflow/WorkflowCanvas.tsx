@@ -14,10 +14,18 @@ import { DrawnResource, NodeViewer, NodeViewerHandle } from '../NodeViewer/NodeV
 import { RemoveResourceModal } from '../Modals/RemoveResourceModal';
 import { PROJECT_LIST } from '../../../services/projectResources';
 import { TemplatePicker } from './TemplatePicker';
+import { UnsavedChangesGuard, UnsavedChangesModal } from './UnsavedChanges';
 
 interface Props {
   workflow: Workflow;
 }
+
+// What a schema is, for telling it changed: its nodes (where they are, what they hold) and its
+// edges, not what the canvas adds to them (selection, measures).
+export const schemaFingerprint = (schema: { nodes?: object[]; edges?: object[] } | null | undefined) => JSON.stringify({
+  nodes: ((schema?.nodes ?? []) as Node[]).map(n => [n.id, n.type, n.position?.x, n.position?.y, n.data]),
+  edges: ((schema?.edges ?? []) as Edge[]).map(e => [e.id, e.source, e.sourceHandle ?? null, e.target, e.targetHandle ?? null]),
+});
 
 // The project's workflow, edited: it defines the project. Saving it is one change on the server,
 // made on the version it was opened at, that makes the project what it defines; until then,
@@ -36,6 +44,13 @@ export function WorkflowCanvas({ workflow }: Props) {
   const nodeViewerRef = useRef<NodeViewerHandle>(null);
   // A resource's node deleted on the canvas, asked about before it goes (it's removed with the save).
   const [toRemove, setToRemove] = useState<DrawnResource | null>(null);
+  // Whether the canvas has changes the workflow saved doesn't: the save button says so.
+  const [dirty, setDirty] = useState(false);
+  // Leaving edit mode with changes asks what to do with them; discarding them shows the canvas
+  // as saved again (drawn anew).
+  const [leaving, setLeaving] = useState(false);
+  const [discards, setDiscards] = useState(0);
+  const savedFingerprint = useMemo(() => schemaFingerprint(current.nodeSchema), [current.nodeSchema]);
 
   const displaySchema = useMemo<{ nodes: Node[]; edges: Edge[] } | null>(() => {
     if (localSchema !== null) return localSchema;
@@ -43,7 +58,7 @@ export function WorkflowCanvas({ workflow }: Props) {
     return saved?.nodes?.length ? saved : null;
   }, [localSchema, current.nodeSchema]);
 
-  const nodeViewerKey = localSchema ? 'template' : `saved-${current.id}-${current.updatedAt}`;
+  const nodeViewerKey = localSchema ? 'template' : `saved-${current.id}-${current.updatedAt}-${discards}`;
 
   const exportAdapter = useMemo<Export>(() => ({
     id: current.id,
@@ -65,13 +80,15 @@ export function WorkflowCanvas({ workflow }: Props) {
   // The workflow and the project's lists as the server answers them.
   const show = (saved: Workflow, lists: ProjectLists) => {
     if (!projectId || !currentProject) return;
+    setDirty(false);
     setLocalSchema(null);
     setCurrent(saved);
     dispatch(setCurrentProject({ ...currentProject, ...lists, workflow: saved }));
   };
 
-  const handleSave = async () => {
-    if (!projectId || !currentProject) return;
+  // Whether it was saved.
+  const handleSave = async (): Promise<boolean> => {
+    if (!projectId || !currentProject) return false;
     setSaving(true);
     try {
       const nodeSchema = nodeViewerRef.current?.getSchema() ?? null;
@@ -79,17 +96,35 @@ export function WorkflowCanvas({ workflow }: Props) {
       show(data, project);
       for (const message of errors) dispatch(addApiResponse({ message, type: 'error' }));
       if (!errors.length) dispatch(addApiResponse({ message: 'Workflow saved.', type: 'success' }));
+      return true;
     } catch (err: unknown) {
       if (err instanceof WorkflowConflict) {
         dispatch(addApiResponse({ message: err.message, type: 'error' }));
         if (err.workflow) setCurrent(err.workflow);
         setLocalSchema(null);
+        setDirty(false);
       } else {
         dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to save.', type: 'error' }));
       }
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleMode = () => {
+    if (editMode && dirty) { setLeaving(true); return; }
+    setEditMode(e => !e);
+  };
+  const saveAndLeave = async () => {
+    if (await handleSave()) { setLeaving(false); setEditMode(false); }
+  };
+  const discardAndLeave = () => {
+    setLocalSchema(null);
+    setDirty(false);
+    setDiscards(n => n + 1);
+    setLeaving(false);
+    setEditMode(false);
   };
 
   if (displaySchema === null) {
@@ -103,12 +138,13 @@ export function WorkflowCanvas({ workflow }: Props) {
   const saveButton = editMode ? (
     <button
       className={s.saveBtn}
-      onClick={handleSave}
-      disabled={saving}
-      title={saving ? 'Saving…' : 'Save'}
+      onClick={() => { handleSave(); }}
+      disabled={saving || !dirty}
+      title={saving ? 'Saving…' : dirty ? 'Save (unsaved changes)' : 'No changes to save'}
       data-testid="workflow-save"
     >
       <FontAwesomeIcon icon={saving ? faSpinner : faFloppyDisk} spin={saving} />
+      {dirty && !saving && <span className={s.saveDot} data-testid="workflow-unsaved" />}
     </button>
   ) : null;
 
@@ -128,6 +164,7 @@ export function WorkflowCanvas({ workflow }: Props) {
         onOpenPipeline={pipelineId => navigate(`/project/${projectId}/workflow/pipelines/${pipelineId}/editor`)}
         onOpenExport={exportId => navigate(`/project/${projectId}/workflow/exports/${exportId}/editor`)}
         onRemoveResource={setToRemove}
+        onChange={schema => setDirty(!!localSchema || schemaFingerprint(schema) !== savedFingerprint)}
       />
 
       {toRemove && (() => {
@@ -143,6 +180,11 @@ export function WorkflowCanvas({ workflow }: Props) {
         );
       })()}
 
+      {leaving && (
+        <UnsavedChangesModal saving={saving} leaving="going to view mode" onKeep={() => setLeaving(false)} onDiscard={discardAndLeave} onSave={saveAndLeave} />
+      )}
+      <UnsavedChangesGuard when={dirty} saving={saving} onSave={handleSave} onDiscard={() => setDirty(false)} />
+
       {/* Mode toggle — top center */}
       <div className={s.toggleOverlay}>
         <div
@@ -150,8 +192,8 @@ export function WorkflowCanvas({ workflow }: Props) {
           role="switch"
           aria-checked={editMode}
           tabIndex={0}
-          onClick={() => setEditMode(e => !e)}
-          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setEditMode(e => !e)}
+          onClick={toggleMode}
+          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggleMode()}
           title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
         >
           <span className={`${s.thumb} ${editMode ? s.thumbRight : ''}`} />
