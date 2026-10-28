@@ -714,28 +714,65 @@ export interface ProductionTask {
 
 // ── Asset Rights ──────────────────────────────────────────────────────────────
 
-export type LicenseType =
-  | 'all_rights'
-  | 'cc_by'
-  | 'cc_by_sa'
-  | 'cc_by_nc'
-  | 'royalty_free'
-  | 'licensed'
-  | 'public_domain'
-  | 'unknown'
+// An asset's license metadata (the only place it lives: a credits sheet reads and writes it).
+export const LICENSE_TYPES = [
+  'CC BY', 'CC BY-SA', 'CC BY-ND', 'CC BY-NC', 'CC BY-NC-SA', 'CC BY-NC-ND', 'CC0', 'Free Standard', 'Standard', 'Editorial',
+] as const;
+export type LicenseType = typeof LICENSE_TYPES[number];
 
-export interface AssetRights {
+export interface LicenseMetadata {
+  sourceUrl: string | null;
+  creatorName: string | null;
+  creatorUrl: string | null;
+  licenseType: LicenseType | null;
+  comments: string | null;
+}
+
+export interface AssetRights extends LicenseMetadata {
   assetId: string;
   projectId: string;
-  rightsHolder?: string;
-  licenseType: LicenseType;
-  licenseUrl?: string;
-  territory?: string;
-  expiresAt?: string | null;
-  usageRestrictions?: string;
-  notes?: string;
-  updatedBy: string;
-  updatedAt: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface AssetRightsEvent {
+  projectId: string;
+  action: 'saved' | 'deleted';
+  assetIds: string[];
+  rights?: AssetRights;
+}
+
+// What crediting an asset needs: a sheet's row is marked while any is missing.
+export type CreditField = 'creatorName' | 'sourceUrl' | 'licenseType';
+
+export interface CreditsSheetRow extends LicenseMetadata {
+  assetId: string;
+  name: string;
+  category: StorageCategory | null;
+  missing: CreditField[];
+  from: ('asset' | 'folder' | 'ingest')[];
+}
+
+export type CreditsSheetStatus = 'complete' | 'incomplete';
+
+export interface CreditsSheetSources {
+  assetIds: string[];
+  folderIds: string[];
+}
+
+export interface CreditsSheet {
+  document: ProjectDocument;
+  sources: CreditsSheetSources;
+  rows: CreditsSheetRow[];
+  status: CreditsSheetStatus;
+}
+
+export interface CreditsSheetSummary {
+  id: string;
+  title: string;
+  status: CreditsSheetStatus;
+  rows: number;
+  incomplete: number;
 }
 
 export type AnnotationType = 'timecoded' | 'spatial' | 'region';
@@ -768,7 +805,8 @@ export interface DocumentAuthor {
   clientName?: string;
 }
 
-export type DocumentKind = 'document' | 'folder';
+// A credits sheet keeps its sources as its content: its rows are read from its assets.
+export type DocumentKind = 'document' | 'folder' | 'credits';
 
 /** A document as the tree lists it (no content). */
 export interface DocumentSummary {

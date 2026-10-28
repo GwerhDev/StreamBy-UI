@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import documents from '../store/documentsSlice';
+import creditsSheets from '../store/creditsSheetsSlice';
 import { DocumentAuthor, ProjectDocument } from '../interfaces';
 import { Where } from './Where';
 
@@ -17,13 +18,14 @@ export const doc = (over: Partial<ProjectDocument> = {}): ProjectDocument => ({
 });
 
 // A component at one of the project p1's routes, the signed-in member (u1) with `role`, with
-// the documents' store and the toasts.
+// the documents' and credits sheets' stores and the toasts.
 export const renderAt = (path: string, route: string, element: ReactNode, { role = 'editor' }: { role?: string } = {}) => {
   const store = configureStore({
     reducer: {
       documents,
+      creditsSheets,
       session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
-      currentProject: () => ({ data: { id: 'p1', name: 'Spellcast', members: [{ userId: 'u1', role, status: 'active' }] }, loading: false, error: null, membership: null }),
+      currentProject: () => ({ data: { id: 'p1', name: 'Spellcast', members: [{ userId: 'u1', role, status: 'active' }], storageConnections: [{ id: 'builtin', name: 'Storage', type: 's3', projectId: 'p1' }] }, loading: false, error: null, membership: null }),
       apiResponses: (state = { responses: [] as { message: string; type: string }[] }, action: { type: string; payload?: { message: string; type: string } }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -6,7 +6,8 @@ import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FileDetailPanel } from './FileDetailPanel';
 import * as storage from '../../../services/storage';
-import { StorageFile } from '../../../interfaces';
+import { AssetRights, StorageFile } from '../../../interfaces';
+import creditsSheets, { assetRightsEventReceived } from '../../../store/creditsSheetsSlice';
 
 const FILE: StorageFile = {
   id: 'f1', key: 'p1/images/f1.png', name: 'f1.png', displayName: 'poster.png', storageKey: 'p1/images/f1.png', size: 2048,
@@ -14,7 +15,7 @@ const FILE: StorageFile = {
 };
 
 const renderPanel = () => {
-  const store = configureStore({ reducer: { currentJob: () => ({ jobs: {} }) } });
+  const store = configureStore({ reducer: { currentJob: () => ({ jobs: {} }), creditsSheets } });
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={['/project/p1/storage']}>
@@ -26,6 +27,7 @@ const renderPanel = () => {
       </MemoryRouter>
     </Provider>,
   );
+  return store;
 };
 
 beforeEach(() => vi.restoreAllMocks());
@@ -50,3 +52,63 @@ describe('FileDetailPanel', () => {
     expect(screen.queryByTestId('custom-tags')).not.toBeInTheDocument();
   });
 });
+
+const RIGHTS: AssetRights = {
+  assetId: 'f1', projectId: 'p1', sourceUrl: 'https://sketchfab.com/poster', creatorName: null, creatorUrl: null, licenseType: 'CC BY', comments: null,
+};
+
+describe('FileDetailPanel — Rights', () => {
+  const openRights = async () => {
+    const store = renderPanel();
+    await userEvent.setup().click(screen.getByRole('button', { name: /Rights/ }));
+    return store;
+  };
+
+  it('shows its license metadata, and what crediting it still lacks', async () => {
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(RIGHTS);
+    await openRights();
+    expect(await screen.findByTestId('rights-missing')).toHaveTextContent('Missing its creator: its credits are incomplete');
+    expect(screen.getByText('CC BY')).toBeInTheDocument();
+    expect(screen.getByText('https://sketchfab.com/poster')).toBeInTheDocument();
+  });
+
+  it('saves every field (an emptied one cleared), with the license picked from the list', async () => {
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(RIGHTS);
+    const put = vi.spyOn(storage, 'putAssetRights').mockImplementation(async (_p, _a, payload) => ({ ...RIGHTS, ...payload } as AssetRights));
+    await openRights();
+    const user = userEvent.setup();
+    await user.click(await screen.findByTestId('rights-edit'));
+    await user.type(screen.getByTestId('rights-creatorName'), 'Jane Doe');
+    await user.selectOptions(screen.getByTestId('rights-licenseType'), 'CC BY-SA');
+    await user.clear(screen.getByTestId('rights-sourceUrl'));
+    await user.click(screen.getByTestId('rights-save'));
+    await waitFor(() => expect(put).toHaveBeenCalledWith('p1', 'f1', {
+      sourceUrl: '', creatorName: 'Jane Doe', creatorUrl: '', licenseType: 'CC BY-SA', comments: '',
+    }));
+  });
+
+  it("won't send a link that isn't one, and shows what the server refused", async () => {
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(null);
+    const put = vi.spyOn(storage, 'putAssetRights').mockRejectedValue(new Error('licenseType is one of: CC BY, CC BY-SA'));
+    await openRights();
+    const user = userEvent.setup();
+    await user.click(await screen.findByTestId('rights-edit'));
+    await user.type(screen.getByTestId('rights-creatorUrl'), 'jane');
+    await user.click(screen.getByTestId('rights-save'));
+    expect(screen.getByTestId('rights-error')).toHaveTextContent('Creator link must be an http(s) URL.');
+    expect(put).not.toHaveBeenCalled();
+    await user.clear(screen.getByTestId('rights-creatorUrl'));
+    await user.click(screen.getByTestId('rights-save'));
+    expect(await screen.findByTestId('rights-error')).toHaveTextContent('licenseType is one of');
+  });
+
+  it('shows a change made elsewhere (a credits sheet) at once', async () => {
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(RIGHTS);
+    const store = await openRights();
+    await screen.findByTestId('rights-missing');
+    act(() => { store.dispatch(assetRightsEventReceived({ projectId: 'p1', action: 'saved', assetIds: ['f1'], rights: { ...RIGHTS, creatorName: 'Jane Doe' } })); });
+    expect(await screen.findByText('Jane Doe')).toBeInTheDocument();
+    expect(screen.queryByTestId('rights-missing')).not.toBeInTheDocument();
+  });
+});
+

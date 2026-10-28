@@ -14,6 +14,7 @@ import currentWorkflowReducer from './currentWorkflowSlice';
 import currentPipelineReducer from './currentPipelineSlice';
 import workersReducer from './workersSlice';
 import documentsReducer from './documentsSlice';
+import creditsSheetsReducer from './creditsSheetsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     currentPipeline: currentPipelineReducer,
     workers: workersReducer,
     documents: documentsReducer,
+    creditsSheets: creditsSheetsReducer,
   },
 });
 

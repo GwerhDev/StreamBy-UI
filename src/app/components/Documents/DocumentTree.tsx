@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faFileLines, faFolder, faFolderOpen, faFolderPlus, faList, faMagnifyingGlass, faPencil, faPlus, faTableCells, faTrash, faXmark,
+  faFileLines, faFolder, faFolderOpen, faFolderPlus, faList, faMagnifyingGlass, faPencil, faPlus, faTableCells, faTableList, faTrash, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -36,6 +36,8 @@ export const folderOptions = (list: DocumentSummary[], except?: string) => {
 };
 
 const DRAG_TYPE = 'application/streamby-document';
+
+const KIND_LABEL = { folder: 'Folder', document: 'Document', credits: 'Credits sheet' } as const;
 type Menu = { doc: DocumentSummary | null; x: number; y: number };
 
 // A project's documents, as Storage shows files: one folder at a time (the top, or the one
@@ -188,6 +190,8 @@ export const DocumentTree = ({ folder }: { folder?: DocumentSummary } = {}) => {
     />
   ) : <span className={nameClass}>{doc.title}</span>);
 
+  const iconOf = (doc: DocumentSummary) => (doc.kind === 'folder' ? faFolder : doc.kind === 'credits' ? faTableList : faFileLines);
+
   const versionOf = (doc: DocumentSummary) =>
     doc.kind === 'folder' ? '—' : `v${doc.version}${doc.publishedVersion !== null ? ` · published v${doc.publishedVersion}` : ''}`;
 
@@ -243,9 +247,9 @@ export const DocumentTree = ({ folder }: { folder?: DocumentSummary } = {}) => {
                   className={`${s.folderCard} ${selected === doc.id ? s.folderCardSelected : ''} ${dragOver === doc.id ? s.folderCardDragOver : ''}`}
                   {...itemProps(doc)}
                 >
-                  <FontAwesomeIcon icon={doc.kind === 'folder' ? faFolder : faFileLines} className={s.folderCardIcon} />
+                  <FontAwesomeIcon icon={iconOf(doc)} className={s.folderCardIcon} />
                   {nameOf(doc, s.folderCardRenameInput, s.folderCardName)}
-                  {doc.kind === 'document' && <small className={d.muted}>{versionOf(doc)}</small>}
+                  {doc.kind !== 'folder' && <small className={d.muted}>{versionOf(doc)}</small>}
                 </div>
               ))}
             </div>
@@ -265,9 +269,9 @@ export const DocumentTree = ({ folder }: { folder?: DocumentSummary } = {}) => {
                   className={`${s.listRow} ${selected === doc.id ? s.listRowSelected : ''} ${dragOver === doc.id ? s.folderCardDragOver : ''}`}
                   {...itemProps(doc)}
                 >
-                  <FontAwesomeIcon icon={doc.kind === 'folder' ? faFolder : faFileLines} className={`${s.listIcon} ${doc.kind === 'folder' ? s.folderIcon : ''}`} />
+                  <FontAwesomeIcon icon={iconOf(doc)} className={`${s.listIcon} ${doc.kind === 'folder' ? s.folderIcon : ''}`} />
                   {nameOf(doc, s.folderListRenameInput, s.listName)}
-                  <span className={s.listBadge}>{doc.kind === 'folder' ? 'Folder' : 'Document'}</span>
+                  <span className={s.listBadge}>{KIND_LABEL[doc.kind]}</span>
                   <span className={s.listSize}>{versionOf(doc)}</span>
                   <span className={s.listDate}>{new Date(doc.updatedAt).toLocaleDateString()}</span>
                 </div>

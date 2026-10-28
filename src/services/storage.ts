@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import { AssetMetadata, AssetRights, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
+import { AssetMetadata, AssetRights, LicenseMetadata, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
   `${API_BASE}/streamby/projects/${projectId}/connections/storage/${connId}`;
@@ -35,8 +35,13 @@ export async function getStorageCategoryStats(
   return Object.fromEntries(results.map(r => [r.cat, { count: r.count, size: r.size }]));
 }
 
-export async function getStorageUploadUrl(projectId: string, connId: string, category: StorageCategory, fileName: string, contentType: string) {
-  const params = new URLSearchParams({ fileName, contentType, category });
+// With license metadata, the new asset is saved with it (the fields given, empty ones left out).
+export async function getStorageUploadUrl(
+  projectId: string, connId: string, category: StorageCategory, fileName: string, contentType: string,
+  license?: Partial<LicenseMetadata>,
+) {
+  const given = Object.entries(license ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && !!entry[1].trim());
+  const params = new URLSearchParams({ fileName, contentType, category, ...Object.fromEntries(given) });
   const res = await fetch(`${CONN_BASE(projectId, connId)}/upload-url?${params}`, {
     method: 'GET',
     credentials: 'include',
@@ -235,7 +240,7 @@ export async function getAssetRights(projectId: string, assetId: string): Promis
 export async function putAssetRights(
   projectId: string,
   assetId: string,
-  payload: Partial<Omit<AssetRights, 'assetId' | 'projectId' | 'updatedBy' | 'updatedAt'>>,
+  payload: Partial<LicenseMetadata>,
 ): Promise<AssetRights> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/assets/${assetId}/rights`, {
     method: 'PUT',

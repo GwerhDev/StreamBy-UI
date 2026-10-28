@@ -20,6 +20,7 @@ import { DocumentTree, folderOptions } from './DocumentTree';
 import { authorLabel, dateLabel, useDocumentsRole } from './documentText';
 import { useDocumentEvents } from './useDocumentEvents';
 import { useDocumentList } from './useDocumentList';
+import { CreditsSheetView } from '../Credits/CreditsSheetView';
 
 // A document, read: it follows the changes others make while it's open, and says who made them.
 export const DocumentView = () => {
@@ -86,6 +87,8 @@ export const DocumentView = () => {
 
   // A folder is entered: what's in it.
   if (doc.kind === 'folder') return <DocumentTree folder={doc} />;
+  // A credits sheet is read as its table, from its assets.
+  if (doc.kind === 'credits') return <CreditsSheetView />;
 
   return (
     <div className={s.container} data-testid="document-view">

@@ -1,0 +1,200 @@
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-warning-text, #fbbf24);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  text-align: start;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+/* ── Sources ── */
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: start;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 260px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+}
+
+.chipLabel {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chipRemove {
+  display: flex;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.chipRemove:hover {
+  color: var(--color-danger-text);
+  background: transparent;
+}
+
+.sourceActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sourceButton,
+.sourceSelect {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-subtle-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  cursor: pointer;
+}
+
+.sourceButton {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ── Table ── */
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: start;
+}
+
+.table th,
+.table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--color-surface-sunken);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.table th {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.assetName {
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-text-bright);
+}
+
+.rowIncomplete .assetName {
+  border-left: 3px solid var(--color-warning-text, #fbbf24);
+}
+
+.table .cellMissing {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.cellInput {
+  width: 100%;
+  min-width: 120px;
+  box-sizing: border-box;
+  font-size: 0.8rem;
+  color: var(--color-text-bright);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.25rem 0.4rem;
+  outline: none;
+}
+
+.cellInput:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cellInput:focus {
+  border-color: var(--color-accent);
+  background: var(--color-surface-base);
+}
+
+select.cellInput {
+  background: var(--color-surface-sunken);
+  cursor: pointer;
+}
+
+/* ── Its node's panel ── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1rem 0.75rem;
+  text-align: start;
+}
+
+.status {
+  align-self: flex-start;
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statusComplete {
+  color: var(--color-success-text, #4ade80);
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.statusIncomplete {
+  color: var(--color-warning-text, #fbbf24);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}

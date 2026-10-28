@@ -11,7 +11,9 @@ import { createPipeline } from '../../../services/pipelines';
 import { createExport } from '../../../services/exports';
 import { updateProjectWorkflow } from '../../../services/workflow';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { fetchDocuments } from '../../../store/documentsSlice';
+import { fetchDocuments, upsertDocument } from '../../../store/documentsSlice';
+import { createDocument } from '../../../services/documents';
+import { CreditsSheetPanel } from '../Credits/CreditsSheetPanel';
 import { folderOptions } from '../Documents/DocumentTree';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
@@ -315,6 +317,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'filterNode' && tt === 'filterNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'filterNode' && tt === 'responseNode') return sh === 'out-filter' && th === 'in-left';
 
+    // Credits sheet: Ingest nodes feed it their asset; its status goes on to a review.
+    if (st === 'ingestNode' && tt === 'creditsSheetNode') return sh === 'out-stream' && th === 'in-assets';
+    if (st === 'creditsSheetNode' && tt === 'reviewGateNode') return sh === 'out-status' && th === 'in-process';
+
     // IngestNode: receives file ref from left, outputs to streamby bottom data lane
     if (st === 'streambyNode' && tt === 'ingestNode') return sh === 'out-bottom';
     if (st === 'ingestNode' && tt === 'streambyNode') return th === 'in-bottom';
@@ -409,11 +415,21 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         : config.group === 'output' ? { x: 520 + Math.random() * 60, y: 100 + Math.random() * 40 }
           : { x: 240 + Math.random() * 60, y: 300 + Math.random() * 40 }
     );
-    setNodes(prev => [...prev, {
-      id, type: config.type, position: pos,
-      data: { label: config.label, subtitle: config.subtitle, icon: config.icon, bgColor: config.bgColor, iconColor: config.iconColor, ...(config.type === 'jsonInputNode' ? { jsonString: '{}' } : {}) },
-    }]);
-  }, [setNodes]);
+    const data = { label: config.label, subtitle: config.subtitle, icon: config.icon, bgColor: config.bgColor, iconColor: config.iconColor, ...(config.type === 'jsonInputNode' ? { jsonString: '{}' } : {}) };
+    // A Credits sheet node makes its sheet, a project document, first: it's the sheet's place
+    // in the workflow (deleting the node leaves the sheet).
+    if (config.type === 'creditsSheetNode') {
+      if (!projectId) return;
+      createDocument(projectId, { title: 'Credits sheet', kind: 'credits' })
+        .then(doc => {
+          dispatch(upsertDocument(doc));
+          setNodes(prev => [...prev, { id, type: config.type, position: pos, data: { ...data, documentId: doc.id } }]);
+        })
+        .catch(err => dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to make its credits sheet.', type: 'error' })));
+      return;
+    }
+    setNodes(prev => [...prev, { id, type: config.type, position: pos, data }]);
+  }, [setNodes, projectId, dispatch]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     if (e.dataTransfer.types.includes('application/streamby-node')) e.preventDefault();
@@ -654,6 +670,12 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     // ─── Phase 3 — Collaboration & Review ─────────────────────────────────────
+
+    if (node.type === 'creditsSheetNode') return {
+      title: 'Credits sheet',
+      description: "A table of the credits of the assets fed to it (picked here, in a folder picked, or imported by an Ingest node connected on its left), from each asset's license metadata. Complete when each has its creator, link and license: connect its right side to a Review Gate.",
+      fields: [{ key: 'label', label: 'Name', value: (node.data.label as string) || '' }],
+    };
 
     if (node.type === 'reviewGateNode') return {
       title: 'Review Gate',
@@ -1392,6 +1414,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                     </div>
                   );
                 })()}
+
+                {selectedNode?.type === 'creditsSheetNode' && projectId && (selectedNode.data?.documentId as string) && (
+                  <CreditsSheetPanel projectId={projectId} documentId={selectedNode.data.documentId as string} editMode={editMode} />
+                )}
 
                 {isIngestNode && editMode && (
                   <div className={s.nodeActions}>

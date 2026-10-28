@@ -1,6 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-  faDatabase, faBook, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
+  faDatabase, faBook, faTableList, faCode, faGlobe, faArrowsRotate, faKey, faWrench, faFilter, faArrowRight,
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
@@ -51,6 +51,7 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'formatConvertNode',  label: 'Convert',       subtitle: '3D format convert',   icon: faArrowsRotate,   bgColor: '#0b1e35', iconColor: H_LEFT,   group: 'process' },
   { type: 'lodNode',            label: 'LOD',           subtitle: 'Generate LOD levels', icon: faLayerGroup,     bgColor: '#0d2216', iconColor: '#2dd4bf', group: 'process' },
   { type: 'assetDependencyNode', label: 'Dependencies',  subtitle: 'Resolve asset tree',  icon: faDiagramProject, bgColor: '#0d2a1e', iconColor: H_BOTTOM,  group: 'data' },
+  { type: 'creditsSheetNode',  label: 'Credits sheet', subtitle: 'Assets credits table', icon: faTableList,  bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
   { type: 'reviewGateNode',    label: 'Review Gate',   subtitle: 'Require approvals',    icon: faCircleCheck,  bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
   { type: 'annotationNode',    label: 'Annotations',   subtitle: 'Frame annotations',    icon: faCommentDots,  bgColor: '#1a0a2e', iconColor: H_REVIEW, group: 'review' },
   { type: 'qcCheckNode',          label: 'QC Check',       subtitle: 'Quality checks',       icon: faShieldHalved,     bgColor: '#0d2016', iconColor: H_BOTTOM, group: 'delivery' },
@@ -95,15 +96,15 @@ export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
   'ingestNode', 'dataSourceNode', 'connectionNode', 'integrationConnectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
-  'reviewGateNode', 'annotationNode',
+  'reviewGateNode', 'annotationNode', 'creditsSheetNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
   'proceduralAssetNode', 'pipelineSuggestNode',
 ]);
 
-// Designer mode — production essentials only (shot, assembly, pipeline ref, review, master, deliverable).
+// Designer mode — production essentials only (shot, assembly, pipeline ref, review, credits sheet, master, deliverable).
 export const WORKFLOW_DESIGNER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
-  'reviewGateNode',
+  'reviewGateNode', 'creditsSheetNode',
   'deliverableNode',
 ]);
 
@@ -128,7 +129,7 @@ export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
   shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
   ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest', integrationConnectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
-  reviewGateNode: 'review', annotationNode: 'review',
+  reviewGateNode: 'review', annotationNode: 'review', creditsSheetNode: 'review',
   exportFormatNode: 'delivery', deliverableNode: 'delivery', distributionNode: 'delivery',
   proceduralAssetNode: 'ai', pipelineSuggestNode: 'ai',
 };
@@ -193,6 +194,7 @@ export const edgeColorForSource = (sourceHandle: string | null | undefined, srcT
   if (sourceHandle === 'out-thumb') return H_RIGHT;
   if (sourceHandle === 'out-lod') return H_BOTTOM;
   if (sourceHandle === 'out-review') return H_REVIEW;
+  if (sourceHandle === 'out-status') return H_REVIEW;
   if (sourceHandle === 'out-transcript') return H_REVIEW;
   return H_LEFT;
 };

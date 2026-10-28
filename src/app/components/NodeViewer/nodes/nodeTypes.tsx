@@ -1,6 +1,9 @@
 import React, { memo, useContext, useEffect, useRef, useState } from 'react';
 import { NodeProps, Handle as RFHandle, Position, useNodeId } from 'reactflow';
 import { NodeEditContext } from '../NodeContext';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../../../store';
+import { fetchCreditsSheets } from '../../../../store/creditsSheetsSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -13,7 +16,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faTriangleExclamation, faPlug, faBook,
+  faTriangleExclamation, faPlug, faBook, faTableList,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -302,6 +305,36 @@ export const IngestNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => 
   </div>
 ));
 IngestNode.displayName = 'IngestNode';
+
+// Its credits sheet's status, read with the project's sheets (again on each change to its
+// assets' license metadata): Ingest nodes feed it from the left, and its status goes out on
+// the right, to a review.
+export const CreditsSheetNode = memo(({ data, selected }: NodeProps<BaseNodeData & { documentId?: string }>) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const projectId = useSelector((state: RootState) => state.currentProject.data?.id);
+  const sheet = useSelector((state: RootState) =>
+    state.creditsSheets.projectId === projectId ? state.creditsSheets.list?.find(x => x.id === data.documentId) : undefined);
+  const eventSeq = useSelector((state: RootState) => state.creditsSheets.eventSeq);
+  useEffect(() => {
+    if (projectId) dispatch(fetchCreditsSheets(projectId));
+  }, [dispatch, projectId, eventSeq]);
+  const status = sheet && (sheet.status === 'complete' ? 'Complete'
+    : sheet.rows ? `Incomplete · ${sheet.incomplete} of ${sheet.rows}` : 'Incomplete · no assets');
+  return (
+    <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`} data-testid="credits-sheet-node">
+      <Handle type="target" position={Position.Left}  id="in-assets"  className={s.handle} style={hIn(H_JOB)} />
+      <Handle type="source" position={Position.Right} id="out-status" className={s.handle} style={hOut(H_REVIEW)} />
+      <div className={s.nodeIconBar} style={{ backgroundColor: '#1a0a2e' }}>
+        <div className={s.nodeIcon} style={{ color: sheet?.status === 'complete' ? '#4ade80' : H_REVIEW }}><FontAwesomeIcon icon={faTableList} /></div>
+      </div>
+      <div className={s.nodeBody}>
+        <div className={s.nodeLabel}>{data.label}</div>
+        <div className={s.nodeSubtitle} data-testid="credits-sheet-node-status">{status ?? data.subtitle}</div>
+      </div>
+    </div>
+  );
+});
+CreditsSheetNode.displayName = 'CreditsSheetNode';
 
 // Transcodes audio/video — sits above streambyNode in the process lane
 export const TranscodeNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
@@ -765,6 +798,7 @@ export const nodeTypes = {
   exportNode: ExportNode,
   orchestratorNode: OrchestratorNode,
   ingestNode: IngestNode,
+  creditsSheetNode: CreditsSheetNode,
   transcodeNode: TranscodeNode,
   captionNode: CaptionNode,
   thumbnailNode: ThumbnailNode,

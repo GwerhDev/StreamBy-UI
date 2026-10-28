@@ -7,7 +7,11 @@ import {
   faHeadphones, faVideo, faCubes, faImage, faArrowsRotate, faPencil,
   faFileLines, faDatabase, faBolt, faShield, faTriangleExclamation, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { StorageFile, StorageCategory, AssetRights, LicenseType } from '../../../interfaces';
+import { StorageFile, StorageCategory, AssetRights, LicenseMetadata } from '../../../interfaces';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
+import { LicenseFields } from './LicenseFields';
+import { EMPTY_LICENSE, licenseError } from '../../../utils/licenses';
 import { AssetJobs } from '../Jobs/AssetJobs';
 import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
 
@@ -89,54 +93,59 @@ function MetadataTab({ file, projectId }: { file: StorageFile; projectId: string
   );
 }
 
-const LICENSE_LABELS: Record<LicenseType, string> = {
-  all_rights: 'All Rights Reserved',
-  cc_by: 'CC BY',
-  cc_by_sa: 'CC BY-SA',
-  cc_by_nc: 'CC BY-NC',
-  royalty_free: 'Royalty Free',
-  licensed: 'Licensed',
-  public_domain: 'Public Domain',
-  unknown: 'Unknown',
-};
+const CREDIT_FIELDS: { key: keyof LicenseMetadata; label: string }[] = [
+  { key: 'creatorName', label: 'creator' }, { key: 'sourceUrl', label: 'source link' }, { key: 'licenseType', label: 'license' },
+];
 
-function isExpiringSoon(expiresAt?: string | null): boolean {
-  if (!expiresAt) return false;
-  const diff = new Date(expiresAt).getTime() - Date.now();
-  return diff < 30 * 24 * 60 * 60 * 1000;
-}
+const metadataOf = (rights: AssetRights | null): LicenseMetadata => ({
+  sourceUrl: rights?.sourceUrl ?? null, creatorName: rights?.creatorName ?? null, creatorUrl: rights?.creatorUrl ?? null,
+  licenseType: rights?.licenseType ?? null, comments: rights?.comments ?? null,
+});
 
 function RightsTab({ fileId, projectId }: { fileId: string; projectId: string }) {
   const [rights, setRights]     = useState<AssetRights | null>(null);
   const [loading, setLoading]   = useState(true);
   const [editing, setEditing]   = useState(false);
   const [saving, setSaving]     = useState(false);
-  const [form, setForm]         = useState<Partial<AssetRights>>({});
+  const [form, setForm]         = useState<LicenseMetadata>(EMPTY_LICENSE);
+  const [error, setError]       = useState<string | null>(null);
+  // A change made elsewhere (a credits sheet, an agent) shows here at once.
+  const lastEvent = useSelector((state: RootState) => state.creditsSheets.lastEvent);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     getAssetRights(projectId, fileId)
-      .then(r => { if (!cancelled) { setRights(r); setForm(r ?? {}); } })
+      .then(r => { if (!cancelled) { setRights(r); setForm(metadataOf(r)); } })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [fileId, projectId]);
 
+  useEffect(() => {
+    if (!lastEvent || lastEvent.projectId !== projectId || lastEvent.action !== 'saved' || !lastEvent.assetIds.includes(fileId) || !lastEvent.rights) return;
+    setRights(lastEvent.rights);
+    if (!editing) setForm(metadataOf(lastEvent.rights));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastEvent]);
+
   const handleSave = async () => {
+    const invalid = licenseError(form);
+    if (invalid) { setError(invalid); return; }
     setSaving(true);
+    setError(null);
     try {
-      const saved = await putAssetRights(projectId, fileId, form);
+      // Every field, so one emptied is cleared.
+      const saved = await putAssetRights(projectId, fileId, Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v ?? ''])));
       setRights(saved);
-      setForm(saved);
+      setForm(metadataOf(saved));
       setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save the license metadata.');
     } finally {
       setSaving(false);
     }
   };
-
-  const set = (key: keyof AssetRights, value: string) =>
-    setForm(prev => ({ ...prev, [key]: value }));
 
   if (loading) {
     return (
@@ -147,32 +156,30 @@ function RightsTab({ fileId, projectId }: { fileId: string; projectId: string })
   }
 
   if (!editing) {
-    const expired = isExpiringSoon(rights?.expiresAt);
+    const missing = CREDIT_FIELDS.filter(f => !rights?.[f.key]).map(f => f.label);
+    const field = (label: string, value?: string | null) =>
+      value ? <div className={s.field}><p className={s.fieldLabel}>{label}</p><p className={s.fieldValue}>{value}</p></div> : null;
     return (
       <div className={s.tabContent}>
-        {expired && (
-          <div className={s.rightsAlert}>
+        {missing.length > 0 && (
+          <div className={s.rightsAlert} data-testid="rights-missing">
             <FontAwesomeIcon icon={faTriangleExclamation} />
-            {new Date(rights!.expiresAt!).getTime() < Date.now()
-              ? 'License expired'
-              : 'Expires in less than 30 days'}
+            Missing its {missing.join(', ')}: its credits are incomplete
           </div>
         )}
         {rights ? (
           <>
-            {rights.rightsHolder && <div className={s.field}><p className={s.fieldLabel}>Rights holder</p><p className={s.fieldValue}>{rights.rightsHolder}</p></div>}
-            <div className={s.field}><p className={s.fieldLabel}>License</p><p className={s.fieldValue}>{LICENSE_LABELS[rights.licenseType] ?? rights.licenseType}</p></div>
-            {rights.licenseUrl && <div className={s.field}><p className={s.fieldLabel}>License URL</p><p className={s.fieldValue}>{rights.licenseUrl}</p></div>}
-            {rights.territory && <div className={s.field}><p className={s.fieldLabel}>Territory</p><p className={s.fieldValue}>{rights.territory}</p></div>}
-            {rights.expiresAt && <div className={s.field}><p className={s.fieldLabel}>Expires</p><p className={`${s.fieldValue} ${expired ? s.rightsExpired : ''}`}>{new Date(rights.expiresAt).toLocaleDateString()}</p></div>}
-            {rights.usageRestrictions && <div className={s.field}><p className={s.fieldLabel}>Restrictions</p><p className={s.fieldValue}>{rights.usageRestrictions}</p></div>}
-            {rights.notes && <div className={s.field}><p className={s.fieldLabel}>Notes</p><p className={s.fieldValue}>{rights.notes}</p></div>}
+            {field('Source link', rights.sourceUrl)}
+            {field('Creator', rights.creatorName)}
+            {field('Creator link', rights.creatorUrl)}
+            {field('License', rights.licenseType)}
+            {field('Comments', rights.comments)}
           </>
         ) : (
-          <p className={s.rightsEmpty}>No rights info recorded.</p>
+          <p className={s.rightsEmpty}>No license metadata recorded.</p>
         )}
-        <button className={s.rightsEditBtn} type="button" onClick={() => setEditing(true)}>
-          Edit rights
+        <button className={s.rightsEditBtn} type="button" data-testid="rights-edit" onClick={() => { setError(null); setEditing(true); }}>
+          Edit license
         </button>
       </div>
     );
@@ -180,43 +187,20 @@ function RightsTab({ fileId, projectId }: { fileId: string; projectId: string })
 
   return (
     <div className={s.tabContent}>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>Rights holder</label>
-        <input className={s.rightsInput} value={form.rightsHolder ?? ''} onChange={e => set('rightsHolder', e.target.value)} placeholder="Owner or licensor name" />
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>License type</label>
-        <select className={s.rightsSelect} value={form.licenseType ?? 'unknown'} onChange={e => set('licenseType', e.target.value as LicenseType)}>
-          {(Object.keys(LICENSE_LABELS) as LicenseType[]).map(k => (
-            <option key={k} value={k}>{LICENSE_LABELS[k]}</option>
-          ))}
-        </select>
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>License URL</label>
-        <input className={s.rightsInput} type="url" value={form.licenseUrl ?? ''} onChange={e => set('licenseUrl', e.target.value)} placeholder="https://…" />
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>Territory</label>
-        <input className={s.rightsInput} value={form.territory ?? ''} onChange={e => set('territory', e.target.value)} placeholder="Worldwide, US, EU…" />
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>Expires</label>
-        <input className={s.rightsInput} type="date" value={form.expiresAt ? form.expiresAt.slice(0, 10) : ''} onChange={e => set('expiresAt', e.target.value)} />
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>Usage restrictions</label>
-        <textarea className={s.rightsTextarea} value={form.usageRestrictions ?? ''} onChange={e => set('usageRestrictions', e.target.value)} placeholder="No commercial use, no derivatives…" rows={2} />
-      </div>
-      <div className={s.rightsField}>
-        <label className={s.rightsLabel}>Notes</label>
-        <textarea className={s.rightsTextarea} value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} placeholder="Additional context…" rows={2} />
+      {error && (
+        <div className={s.rightsAlert} data-testid="rights-error">
+          <FontAwesomeIcon icon={faTriangleExclamation} />
+          {error}
+        </div>
+      )}
+      <div className={s.rightsForm}>
+        <LicenseFields values={form} onChange={setForm} disabled={saving} idPrefix="rights" />
       </div>
       <div className={s.rightsActions}>
-        <button className={s.rightsEditBtn} type="button" onClick={handleSave} disabled={saving}>
+        <button className={s.rightsEditBtn} type="button" data-testid="rights-save" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving…' : 'Save'}
         </button>
-        <button className={s.rightsCancelBtn} type="button" onClick={() => { setEditing(false); setForm(rights ?? {}); }}>
+        <button className={s.rightsCancelBtn} type="button" onClick={() => { setEditing(false); setError(null); setForm(metadataOf(rights)); }}>
           Cancel
         </button>
       </div>

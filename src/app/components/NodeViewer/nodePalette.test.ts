@@ -63,10 +63,10 @@ describe('getPaletteForContext', () => {
   describe('workflow context — designer mode', () => {
     const types = typesOf('workflow', 'designer');
 
-    it('exposes only the production essentials (shot, assembly, pipeline ref, review, master, deliverable)', () => {
+    it('exposes only the production essentials (shot, assembly, pipeline ref, review, credits sheet, master, deliverable)', () => {
       expect(types).toEqual(new Set([
         'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
-        'reviewGateNode',
+        'reviewGateNode', 'creditsSheetNode',
         'deliverableNode',
       ]));
     });

@@ -41,7 +41,12 @@ export const DocumentEditor = () => {
   useEffect(() => {
     let cancelled = false;
     getDocument(projectId, docId)
-      .then(doc => { if (!cancelled) { setBase(doc); setTitle(doc.title); setContent(doc.content); } })
+      .then(doc => {
+        if (cancelled) return;
+        // A credits sheet isn't written: it's edited in its table.
+        if (doc.kind === 'credits') { navigate(`/project/${projectId}/dashboard/documents/${encodeURIComponent(doc.id)}`, { replace: true }); return; }
+        setBase(doc); setTitle(doc.title); setContent(doc.content);
+      })
       .catch(err => {
         if (cancelled) return;
         dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to load the document.', type: 'error' }));

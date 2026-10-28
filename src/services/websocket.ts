@@ -4,6 +4,7 @@ import { addNotification, fetchNotifications } from '../store/notificationsSlice
 import { upsertJob } from '../store/currentJobSlice';
 import { handleReviewEvent } from '../store/currentReviewSlice';
 import { documentEventReceived } from '../store/documentsSlice';
+import { assetRightsEventReceived } from '../store/creditsSheetsSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 
@@ -41,6 +42,8 @@ function handleMessage(event: MessageEvent) {
       store.dispatch(handleReviewEvent(msg.data));
     } else if (msg.type === 'documentEvent') {
       store.dispatch(documentEventReceived(msg.data));
+    } else if (msg.type === 'assetRightsEvent') {
+      store.dispatch(assetRightsEventReceived(msg.data));
     }
   } catch {
     // Ignore malformed messages

@@ -2,10 +2,12 @@ import s from './UploadModal.module.css';
 import { useState, useRef, DragEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudArrowUp, faXmark, faFile } from '@fortawesome/free-solid-svg-icons';
+import { faCloudArrowUp, faXmark, faFile, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { StorageCategory } from '../../../interfaces';
+import { LicenseMetadata, StorageCategory } from '../../../interfaces';
+import { LicenseFields } from '../Storage/LicenseFields';
+import { EMPTY_LICENSE, licenseError } from '../../../utils/licenses';
 import { getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -62,6 +64,9 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // The license metadata the files go up with (all of them): optional, editable later.
+  const [licenseOpen, setLicenseOpen] = useState(false);
+  const [license, setLicense] = useState<LicenseMetadata>(EMPTY_LICENSE);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = (incoming: FileList | null) => {
@@ -92,11 +97,13 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
 
   const handleUpload = async () => {
     if (files.length === 0) return;
+    const invalid = licenseError(license);
+    if (invalid) { dispatch(addApiResponse({ message: invalid, type: 'error' })); return; }
     setUploading(true);
     try {
       await Promise.all(files.map(async (file) => {
         const contentType = resolveContentType(file);
-        const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
+        const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType, license);
         await uploadToPresignedUrl(url, file, contentType);
       }));
       dispatch(addApiResponse({ message: `${files.length} file${files.length > 1 ? 's' : ''} uploaded.`, type: 'success' }));
@@ -148,6 +155,14 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
           className={s.hiddenInput}
           onChange={e => addFiles(e.target.files)}
         />
+      </div>
+
+      <div className={s.licenseSection}>
+        <button type="button" className={s.licenseToggle} data-testid="upload-license-toggle" onClick={() => setLicenseOpen(v => !v)}>
+          <FontAwesomeIcon icon={licenseOpen ? faChevronDown : faChevronRight} />
+          License metadata (optional)
+        </button>
+        {licenseOpen && <LicenseFields values={license} onChange={setLicense} disabled={uploading} idPrefix="upload-license" />}
       </div>
 
       {files.length > 0 && (
