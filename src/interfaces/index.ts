@@ -181,7 +181,7 @@ export type ProjectPermission =
   | 'exports:read' | 'exports:write'
   | 'rights:read' | 'rights:write'
   | 'jobs:read' | 'jobs:run'
-  | 'docs:read' | 'docs:write' | 'docs:delete';
+  | 'docs:read' | 'docs:write' | 'docs:publish' | 'docs:delete';
 export type AccountPermission = 'projects:create';
 export type ApiTokenPermission = ProjectPermission | AccountPermission;
 

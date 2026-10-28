@@ -27,7 +27,11 @@ export const fetchDocuments = createAsyncThunk(
   },
 );
 
-const summaryOf = ({ content: _content, ...summary }: ProjectDocument | DocumentSummary & { content?: string }): DocumentSummary => summary;
+const summaryOf = (doc: ProjectDocument | DocumentSummary): DocumentSummary => {
+  const summary: DocumentSummary & { content?: string } = { ...doc };
+  delete summary.content;
+  return summary;
+};
 
 const documentsSlice = createSlice({
   name: 'documents',

@@ -77,7 +77,7 @@ describe("making a user's token", () => {
     expect(screen.queryByTestId('api-token-warnings')).not.toBeInTheDocument();
     await choose(/^Read:/, /^Admin:/);
     const warnings = screen.getByTestId('api-token-warnings');
-    expect(warnings).toHaveTextContent('It can delete the project, manage its members, delete assets, delete sequences, shots and tasks and delete documents.');
+    expect(warnings).toHaveTextContent('It can delete the project, manage its members, delete assets, delete sequences, shots and tasks, publish documents to its exports and delete documents.');
     await choose('30 days', 'No expiration');
     expect(screen.getByTestId('api-token-warnings')).toHaveTextContent('without expiration');
   });

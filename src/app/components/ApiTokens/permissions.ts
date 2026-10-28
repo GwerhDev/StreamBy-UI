@@ -74,6 +74,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     actions: [
       { permission: 'docs:read', label: 'Read' },
       { permission: 'docs:write', label: 'Write' },
+      { permission: 'docs:publish', label: 'Publish' },
       { permission: 'docs:delete', label: 'Delete' },
     ],
   },
@@ -87,11 +88,13 @@ export const groupsFor = (kind: ApiTokenKind) => PERMISSION_GROUPS.filter(g => k
 
 const projectPermissions = PERMISSION_GROUPS.filter(g => !g.account).flatMap(g => g.actions.map(a => a.permission));
 const reads = projectPermissions.filter(p => p.endsWith(':read'));
-const edits = projectPermissions.filter(p => !p.endsWith(':delete') && p !== 'members:manage');
+// Publishing a document (what its exports deliver) isn't editing it: like deleting, admin only.
+const edits = projectPermissions.filter(p => !p.endsWith(':delete') && p !== 'members:manage' && p !== 'docs:publish');
 
 export type PermissionLevel = 'read' | 'edit' | 'admin' | 'custom';
 
-// The levels a token starts from; deleting and managing members come only with admin, or one by one.
+// The levels a token starts from; deleting, managing members and publishing documents come only
+// with admin, or one by one.
 export const levelPermissions = (level: Exclude<PermissionLevel, 'custom'>, kind: ApiTokenKind): ApiTokenPermission[] => {
   if (level === 'read') return reads;
   if (level === 'edit') return edits;
@@ -119,6 +122,7 @@ export const RISKY_ACTIONS: Partial<Record<ApiTokenPermission, string>> = {
   'members:manage': 'manage its members',
   'assets:delete': 'delete assets',
   'production:delete': 'delete sequences, shots and tasks',
+  'docs:publish': 'publish documents to its exports',
   'docs:delete': 'delete documents',
 };
 export const RISKY_PERMISSIONS = Object.keys(RISKY_ACTIONS) as ApiTokenPermission[];

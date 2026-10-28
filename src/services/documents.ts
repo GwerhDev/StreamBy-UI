@@ -7,7 +7,7 @@ const one = (projectId: string, documentId: string, path = '') => base(projectId
 
 /** StreamBy's answer to a request it refused: its status, and what it said. */
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public body: Record<string, any>) {
+  constructor(message: string, public status: number, public body: Record<string, unknown>) {
     super(message);
     this.name = 'ApiError';
   }
@@ -20,8 +20,9 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
     headers: init.body ? { 'Content-Type': 'application/json' } : undefined,
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new ApiError(body.message || body.error || `HTTP ${res.status}`, res.status, body);
+    const body: Record<string, unknown> = await res.json().catch(() => ({}));
+    const said = [body.message, body.error].find((m): m is string => typeof m === 'string' && !!m);
+    throw new ApiError(said ?? `HTTP ${res.status}`, res.status, body);
   }
   return res.json();
 }

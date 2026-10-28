@@ -24,7 +24,7 @@ export const renderAt = (path: string, route: string, element: ReactNode, { role
       documents,
       session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
       currentProject: () => ({ data: { id: 'p1', name: 'Spellcast', members: [{ userId: 'u1', role, status: 'active' }] }, loading: false, error: null, membership: null }),
-      apiResponses: (state = { responses: [] as { message: string; type: string }[] }, action: { type: string; payload?: any }) =>
+      apiResponses: (state = { responses: [] as { message: string; type: string }[] }, action: { type: string; payload?: { message: string; type: string } }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
   });

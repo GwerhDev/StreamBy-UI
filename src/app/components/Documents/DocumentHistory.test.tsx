@@ -13,7 +13,7 @@ const v2 = { ...v1, version: 2, content: 'First line.\nAdded by Claude.\n', auth
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(service, 'getDocument').mockResolvedValue(doc({ version: 2, content: v2.content, updatedBy: CLAUDE, exportable: true }));
-  vi.spyOn(service, 'getDocumentVersions').mockResolvedValue([v2, v1].map(({ content: _c, ...summary }) => summary));
+  vi.spyOn(service, 'getDocumentVersions').mockResolvedValue([v2, v1].map(({ documentId, projectId, version, title, author, createdAt }) => ({ documentId, projectId, version, title, author, createdAt })));
   vi.spyOn(service, 'getDocumentVersion').mockImplementation(async (_p, _d, version) => (version === 1 ? v1 : v2));
 });
 
