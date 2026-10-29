@@ -694,9 +694,17 @@ export interface ProductionShot {
   assetId?: string | null;
   exportId?: string | null;
   dueDate?: string | null;
+  // How its tasks go (listed with the sequence's shots): done of total, the top open priority.
+  taskSummary?: TaskSummary;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TaskSummary {
+  done: number;
+  total: number;
+  priority: TaskPriority | null;
 }
 
 export interface ProductionTask {

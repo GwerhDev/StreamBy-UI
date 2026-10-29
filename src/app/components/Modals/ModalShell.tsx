@@ -11,12 +11,13 @@ interface ModalShellProps {
   children: ReactNode;
   footer?: ReactNode;
   overlayClassName?: string;
+  className?: string;
 }
 
-export function ModalShell({ title, icon, onClose, children, footer, overlayClassName }: ModalShellProps) {
+export function ModalShell({ title, icon, onClose, children, footer, overlayClassName, className }: ModalShellProps) {
   return (
     <div className={`${s.overlay} ${overlayClassName ?? ''}`} onClick={onClose}>
-      <div className={s.container} onClick={e => e.stopPropagation()}>
+      <div className={`${s.container} ${className ?? ''}`} onClick={e => e.stopPropagation()}>
         <div className={s.header}>
           <span className={s.title}>
             {icon && <FontAwesomeIcon icon={icon} />}

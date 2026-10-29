@@ -30,8 +30,15 @@
   gap: 0.5rem;
 }
 
+/* The action button fills what it's given: here, its label's width. */
+.toolbarActions > button:last-child {
+  width: auto;
+  padding: 0 1rem;
+}
+
 .viewToggle {
   display: flex;
+  flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   overflow: hidden;
@@ -50,29 +57,14 @@
   cursor: pointer;
 }
 
-.viewBtn:hover { color: var(--color-text-primary); }
+.viewBtn:hover { color: var(--color-text-primary); background: none; }
 
 .viewBtnActive {
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-text-bright);
 }
 
-.primaryBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.32rem 0.75rem;
-  border-radius: 8px;
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
 
-.primaryBtn:hover { opacity: 0.88; }
 
 /* ── Loading / empty ──────────────────────────────────────────────────────── */
 .center {
@@ -117,31 +109,37 @@
 
 /* ── Board ────────────────────────────────────────────────────────────────── */
 .board {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  overflow-x: auto;
-  overflow-y: hidden;
   flex: 1;
-  align-items: flex-start;
-}
-
-.column {
-  flex: 0 0 230px;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  min-height: 0;
-  max-height: 100%;
+  gap: 0.75rem;
+}
+
+.boardHead,
+.laneCells {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(230px, 1fr));
+  gap: 0.75rem;
+  min-width: calc(4 * 230px + 3 * 0.75rem);
+}
+
+/* The columns' heads stay as the board scrolls down. */
+.boardHead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--color-surface-sunken);
 }
 
 .colHead {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  padding-bottom: 0.5rem;
+  padding: 0.5rem 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  flex-shrink: 0;
 }
 
 .colLabel {
@@ -162,41 +160,55 @@
   font-weight: 600;
 }
 
-.colBody {
-  flex: 1;
-  overflow-y: auto;
+/* ── Lanes (one per sequence) ─────────────────────────────────────────────── */
+.lane {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding-right: 2px;
+  gap: 0.4rem;
 }
 
-/* ── Sequence block (board) ───────────────────────────────────────────────── */
-.seqBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.seqRow {
+/* A lane's head stays in view as the board scrolls sideways. */
+.laneHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.3rem;
+  gap: 0.4rem;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: max-content;
+  padding: 0.15rem 0.5rem 0.15rem 0;
+  background: var(--color-surface-sunken);
 }
 
-.seqName {
-  font-size: 0.62rem;
+.laneName {
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--color-text-muted);
-  flex: 1;
+  color: var(--color-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  min-height: 7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.cellOver {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent-subtle-border);
+}
+
+/* ── Sequence actions ─────────────────────────────────────────────────────── */
 .seqEditBtn,
 .seqDeleteBtn {
   background: none;
@@ -210,14 +222,16 @@
   flex-shrink: 0;
 }
 
-.seqBlock:hover .seqEditBtn,
+.laneHead:hover .seqEditBtn,
 .listSeqRow:hover .seqEditBtn,
-.seqBlock:hover .seqDeleteBtn,
-.listSeqRow:hover .seqDeleteBtn {
+.laneHead:hover .seqDeleteBtn,
+.listSeqRow:hover .seqDeleteBtn,
+.seqEditBtn:focus-visible,
+.seqDeleteBtn:focus-visible {
   color: var(--color-text-muted);
 }
 
-.seqBlock:hover .seqEditBtn:hover,
+.laneHead:hover .seqEditBtn:hover,
 .listSeqRow:hover .seqEditBtn:hover,
 .seqEditBtn:hover,
 .seqEditBtn:focus-visible {
@@ -225,7 +239,7 @@
   background: var(--color-accent-subtle);
 }
 
-.seqBlock:hover .seqDeleteBtn:hover,
+.laneHead:hover .seqDeleteBtn:hover,
 .listSeqRow:hover .seqDeleteBtn:hover,
 .seqDeleteBtn:hover {
   color: #f87171;
@@ -234,16 +248,18 @@
 
 /* ── Shot card (board) ────────────────────────────────────────────────────── */
 .card {
-  background: var(--color-surface-sunken);
+  background: var(--color-surface);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  padding: 0.65rem 0.75rem;
-  cursor: pointer;
+  padding: 0.85rem 1rem;
+  min-height: 6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+  touch-action: none;
+  outline: none;
 }
 
 .card:hover {
@@ -251,80 +267,93 @@
   background: var(--color-surface-hover);
 }
 
-.cardSelected {
-  border-color: rgba(56, 182, 255, 0.35);
-  box-shadow: 0 0 0 1px rgba(56, 182, 255, 0.15);
+.card:focus-visible {
+  border-color: var(--color-accent);
 }
 
-.cardTop {
+.cardDragging {
+  opacity: 0.35;
+}
+
+.cardBody {
+  flex: 1;
   display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* The card as it's dragged (in DragOverlay, outside .card). */
+.cardBody:not(.card .cardBody) {
+  min-height: 6rem;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-accent-subtle-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  cursor: grabbing;
+}
+
+.cardThumb {
+  border-radius: 6px;
 }
 
 .cardName {
-  flex: 1;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--color-text-bright);
   line-height: 1.3;
   word-break: break-word;
 }
 
-.cardMenuBtn {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.25rem;
-  border-radius: 4px;
-  opacity: 0;
-  transition: opacity 0.12s, color 0.12s;
-  flex-shrink: 0;
-}
-
-.card:hover .cardMenuBtn { opacity: 1; }
-.cardMenuBtn:hover { color: var(--color-text-bright); }
-
-.cardDue {
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-}
-
-/* Card context menu */
-.cardMenu {
-  position: absolute;
-  top: 2rem;
-  right: 0.4rem;
-  background: var(--color-surface-deep);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.3rem;
-  z-index: 20;
-  min-width: 130px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.cardMenuDelete {
+.cardMeta {
+  margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  width: 100%;
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  border: none;
-  background: none;
-  color: #f87171;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.12s;
+  gap: 0.5rem;
+  min-height: 24px;
 }
 
-.cardMenuDelete:hover { background: rgba(248, 113, 113, 0.1); }
+.priority {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 5px;
+  padding: 1px 6px;
+  letter-spacing: 0.03em;
+}
 
-/* Add shot button */
+.priorityLow    { background: rgba(255,255,255,0.06); color: var(--color-text-muted); }
+.priorityMedium { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+.priorityHigh   { background: rgba(248,113,113,0.12); color: #f87171; }
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.progressDone { color: #4ade80; }
+
+.cardDue {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.cardAvatars {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.moreAvatars {
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+}
+
+/* "+ Create" at the foot of a cell */
 .addShotBtn {
   display: flex;
   align-items: center;
@@ -333,15 +362,56 @@
   font-weight: 600;
   color: var(--color-text-muted);
   background: none;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px solid transparent;
   border-radius: 8px;
-  padding: 0.4rem 0.65rem;
+  padding: 0.35rem 0.5rem;
   cursor: pointer;
   width: 100%;
   transition: color 0.15s, border-color 0.15s;
 }
 
+.inlineCreate {
+  display: flex;
+}
+
+.inlineInput {
+  width: 100%;
+  font-size: 0.78rem;
+  color: var(--color-text-bright);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-accent);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  outline: none;
+}
+
+.listStatus {
+  width: 8.5rem;
+  font-size: 0.72rem;
+}
+
+.listStatus button {
+  height: 26px;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Tinted by its status: its dropdown, not the cell around it. */
+.listStatus.chipTodo,
+.listStatus.chipProgress,
+.listStatus.chipReview,
+.listStatus.chipDone { background: none; }
+
+.listStatus.chipTodo button     { color: var(--color-text-muted); }
+.listStatus.chipProgress button { color: var(--color-accent); }
+.listStatus.chipReview button   { color: #fbbf24; }
+.listStatus.chipDone button     { color: #4ade80; }
+
+.listCreate {
+  padding: 0.25rem 0.75rem;
+}
+
 .addShotBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
   color: var(--color-accent);
   border-color: rgba(56, 182, 255, 0.3);
 }
@@ -406,8 +476,6 @@
 
 .listRow:hover { background: rgba(255, 255, 255, 0.04); }
 
-.listRowActive { background: rgba(56, 182, 255, 0.06); }
-
 .listShotName {
   font-size: 0.8rem;
   color: var(--color-text-bright);
@@ -441,39 +509,6 @@
   color: #f87171;
   background: rgba(248, 113, 113, 0.1);
 }
-
-.listAddShot {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
-  padding: 0.35rem 0.6rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.15s;
-  margin-left: 0.1rem;
-}
-
-.listAddShot:hover { color: var(--color-accent); }
-
-/* ── Shot panel slot ──────────────────────────────────────────────────────── */
-.panelSlot {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 280px;
-  transform: translateX(100%);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-  background: var(--color-surface);
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.panelSlotOpen { transform: translateX(0); }
 
 /* ── Modal form ───────────────────────────────────────────────────────────── */
 .form {
@@ -513,48 +548,11 @@
   padding-top: 0.25rem;
 }
 
-.submitBtn {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.4rem 1rem;
-  border-radius: 8px;
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
 
-.submitBtn:disabled { opacity: 0.45; cursor: default; }
 
-.cancelBtn {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: background 0.15s;
-}
 
-.cancelBtn:hover { background: rgba(255, 255, 255, 0.05); }
 
-.dangerBtn {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.4rem 1rem;
-  border-radius: 8px;
-  border: none;
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
-  cursor: pointer;
-  border: 1px solid rgba(248, 113, 113, 0.25);
-  transition: background 0.15s;
-}
 
-.dangerBtn:hover { background: rgba(248, 113, 113, 0.25); }
 
 /* ── Confirm dialog ───────────────────────────────────────────────────────── */
 .confirmBody {

@@ -3,6 +3,7 @@ import { Member } from '../../../interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { DropdownInput } from '../Inputs/DropdownInput';
+import { MemberAvatar } from './MemberAvatar';
 
 type MemberRole = 'viewer' | 'editor' | 'admin';
 
@@ -21,7 +22,7 @@ export const MemberCard = ({ member, isAdmin, isSelf, onRoleChange, onRemove }: 
 
   return (
     <div className={s.card}>
-      <span className={s.avatar}>{member.username[0].toUpperCase()}</span>
+      <MemberAvatar username={member.username} profilePic={member.profilePic} />
       <div className={s.info}>
         <span className={s.username}>{member.username}</span>
         {isSelf && <span className={s.selfBadge}>you</span>}

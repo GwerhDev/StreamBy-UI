@@ -1,36 +1,38 @@
 import s from './ProductionBoard.module.css';
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback, FormEvent } from 'react';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faClipboardList, faPlus, faSpinner, faTableColumns, faList,
-  faTrash, faEllipsisVertical, faPen,
+  faCheck, faClipboardList, faPlus, faSpinner, faTableColumns, faList, faTrash, faPen, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
+import {
+  DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor,
+  useDraggable, useDroppable, useSensor, useSensors,
+} from '@dnd-kit/core';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
+import { useProjectMembers } from '../../../hooks/useProjectMembers';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ModalShell } from '../Modals/ModalShell';
+import { MemberAvatar } from '../Cards/MemberAvatar';
+import { DropdownInput } from '../Inputs/DropdownInput';
+import { ActionButton } from '../Buttons/ActionButton';
+import { PrimaryButton } from '../Buttons/PrimaryButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
 } from '../../../services/production';
-import { ProductionSequence, ProductionShot, ShotStatus } from '../../../interfaces';
-import { ShotPanel } from './ShotPanel';
+import { Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority } from '../../../interfaces';
+import { ShotModal } from './ShotModal';
+import { AssetThumbnail } from './AssetThumbnail';
 import { formatDueDate } from './dueDate';
 import { EditSequenceModal } from './ProductionEditModals';
+import { PRIORITY_LABEL, STATUSES, STATUS_LABEL } from './shots';
 
 type ViewMode = 'board' | 'list';
-
-const STATUSES: ShotStatus[] = ['todo', 'in_progress', 'review', 'done'];
-
-const STATUS_LABEL: Record<ShotStatus, string> = {
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  review: 'Review',
-  done: 'Done',
-};
 
 const STATUS_COLOR: Record<ShotStatus, string> = {
   todo:        s.dotTodo,
@@ -46,23 +48,45 @@ const STATUS_CHIP: Record<ShotStatus, string> = {
   done:        s.chipDone,
 };
 
+const PRIORITY_CHIP: Record<TaskPriority, string> = {
+  low:    s.priorityLow,
+  medium: s.priorityMedium,
+  high:   s.priorityHigh,
+};
+
+// A cell of the board: a sequence's lane, in a status's column.
+const cellId = (seqId: string, status: ShotStatus) => `${seqId}::${status}`;
+const cellOf = (id: string) => {
+  const [seqId, status] = id.split('::');
+  return { seqId, status: status as ShotStatus };
+};
+
 export function ProductionBoard() {
   const { id: projectId = '' } = useParams<{ id: string }>();
   const [viewMode, setViewMode]     = useState<ViewMode>('board');
   const [sequences, setSequences]   = useState<ProductionSequence[]>([]);
   const [shots, setShots]           = useState<ProductionShot[]>([]);
   const [loading, setLoading]       = useState(true);
-  const [selectedShot, setSelectedShot] = useState<ProductionShot | null>(null);
+  const { members } = useProjectMembers(projectId);
+
+  // The shot open is in the URL (?shot=<id>): a link to it opens it, Back closes it.
+  const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const openShotId = params.get('shot');
+  const selectedShot = shots.find(sh => sh.id === openShotId) ?? null;
+  const openShot = (shot: ProductionShot) =>
+    setParams(p => { p.set('shot', shot.id); return p; }, { state: { shotOpened: true } });
+  const closeShot = useCallback(() => {
+    // Opened from the board, closing it is going back; from a link, there's nothing to go back to.
+    if ((location.state as { shotOpened?: boolean } | null)?.shotOpened) navigate(-1);
+    else setParams(p => { p.delete('shot'); return p; }, { replace: true });
+  }, [location.state, navigate, setParams]);
 
   // create sequence
   const [showCreateSeq, setShowCreateSeq] = useState(false);
   const [newSeqName, setNewSeqName]       = useState('');
   const [seqSaving, setSeqSaving]         = useState(false);
-
-  // create shot
-  const [createShotSeqId, setCreateShotSeqId] = useState<string | null>(null);
-  const [newShotName, setNewShotName]          = useState('');
-  const [shotSaving, setShotSaving]            = useState(false);
 
   // edit sequence
   const [editSeqId, setEditSeqId]   = useState<string | null>(null);
@@ -95,7 +119,7 @@ export function ProductionBoard() {
 
   // ── handlers ───────────────────────────────────────────────────────────────
 
-  const handleCreateSequence = async (e: React.FormEvent) => {
+  const handleCreateSequence = async (e: FormEvent) => {
     e.preventDefault();
     if (!newSeqName.trim()) return;
     setSeqSaving(true);
@@ -127,28 +151,24 @@ export function ProductionBoard() {
       await deleteSequence(projectId, seqId);
       setSequences(prev => prev.filter(s => s.id !== seqId));
       setShots(prev => prev.filter(sh => sh.sequenceId !== seqId));
-      if (selectedShot?.sequenceId === seqId) setSelectedShot(null);
+      if (selectedShot?.sequenceId === seqId) closeShot();
       setDeleteSeqId(null);
     } catch (err) {
       failed(err, 'Failed to delete the sequence.');
     } finally { setDeleting(false); }
   };
 
-  const handleCreateShot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newShotName.trim() || !createShotSeqId) return;
-    setShotSaving(true);
+  // A shot made in place, at the foot of its lane's cell: in that sequence, with that status.
+  const handleCreateShot = async (seqId: string, status: ShotStatus, name: string) => {
     try {
-      const seqShots = shots.filter(sh => sh.sequenceId === createShotSeqId);
-      const shot = await createShot(projectId, createShotSeqId, {
-        name: newShotName.trim(), order: seqShots.length,
-      });
-      setShots(prev => [...prev, shot]);
-      setNewShotName('');
-      setCreateShotSeqId(null);
+      const order = shots.filter(sh => sh.sequenceId === seqId).length;
+      const shot = await createShot(projectId, seqId, { name, status, order });
+      setShots(prev => [...prev, { ...shot, taskSummary: { done: 0, total: 0, priority: null } }]);
+      return true;
     } catch (err) {
       failed(err, 'Failed to create the shot.');
-    } finally { setShotSaving(false); }
+      return false;
+    }
   };
 
   const handleDeleteShot = async (shotId: string) => {
@@ -157,27 +177,28 @@ export function ProductionBoard() {
     setDeleting(true);
     try {
       await deleteShot(projectId, shotId);
+      if (selectedShot?.id === shotId) closeShot();
       setShots(prev => prev.filter(sh => sh.id !== shotId));
-      if (selectedShot?.id === shotId) setSelectedShot(null);
       setDeleteShotId(null);
     } catch (err) {
       failed(err, 'Failed to delete the shot.');
     } finally { setDeleting(false); }
   };
 
+  // Moved at once; put back, told, if it can't be saved.
   const handleStatusChange = async (shot: ProductionShot, status: ShotStatus) => {
+    if (shot.status === status) return;
     setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, status } : sh));
     try {
       await updateShot(projectId, shot.id, { status });
     } catch (err) {
-      setShots(prev => prev.map(sh => sh.id === shot.id ? shot : sh));
+      setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, status: shot.status } : sh));
       failed(err, "Failed to change the shot's status.");
     }
   };
 
   const handleShotUpdate = (updated: ProductionShot) => {
     setShots(prev => prev.map(sh => sh.id === updated.id ? updated : sh));
-    setSelectedShot(updated);
   };
 
   // ── render ─────────────────────────────────────────────────────────────────
@@ -193,6 +214,15 @@ export function ProductionBoard() {
   const seqToDelete = sequences.find(s => s.id === deleteSeqId);
   const seqToEdit = sequences.find(s => s.id === editSeqId);
   const shotToDelete = shots.find(sh => sh.id === deleteShotId);
+
+  const viewProps = {
+    sequences, shots, members, projectId,
+    onSelectShot: openShot,
+    onStatusChange: handleStatusChange,
+    onCreateShot: handleCreateShot,
+    onDeleteSeq: (id: string) => setDeleteSeqId(id),
+    onEditSeq: (id: string) => setEditSeqId(id),
+  };
 
   return (
     <div className={s.container}>
@@ -221,14 +251,7 @@ export function ProductionBoard() {
                   List
                 </button>
               </div>
-              <button
-                type="button"
-                className={s.primaryBtn}
-                onClick={() => { setShowCreateSeq(true); setNewSeqName(''); }}
-              >
-                <FontAwesomeIcon icon={faPlus} />
-                New sequence
-              </button>
+              <ActionButton icon={faPlus} text="New sequence" onClick={() => { setShowCreateSeq(true); setNewSeqName(''); }} />
             </div>
           }
         />
@@ -239,46 +262,26 @@ export function ProductionBoard() {
         {sequences.length === 0 ? (
           <div className={s.emptyWrap}><EmptyBackground /></div>
         ) : viewMode === 'board' ? (
-          <BoardView
-            sequences={sequences}
-            shots={shots}
-            onSelectShot={setSelectedShot}
-            onStatusChange={handleStatusChange}
-            onAddShot={seqId => { setCreateShotSeqId(seqId); setNewShotName(''); }}
-            onDeleteSeq={id => setDeleteSeqId(id)}
-            onEditSeq={id => setEditSeqId(id)}
-            onDeleteShot={id => setDeleteShotId(id)}
-            selectedShotId={selectedShot?.id}
-          />
+          <BoardView {...viewProps} />
         ) : (
-          <ListView
-            sequences={sequences}
-            shots={shots}
-            onSelectShot={setSelectedShot}
-            onStatusChange={handleStatusChange}
-            onAddShot={seqId => { setCreateShotSeqId(seqId); setNewShotName(''); }}
-            onDeleteSeq={id => setDeleteSeqId(id)}
-            onEditSeq={id => setEditSeqId(id)}
-            onDeleteShot={id => setDeleteShotId(id)}
-            selectedShotId={selectedShot?.id}
-            statusChip={STATUS_CHIP}
-            statusLabel={STATUS_LABEL}
-          />
+          <ListView {...viewProps} onDeleteShot={id => setDeleteShotId(id)} />
         )}
       </div>
 
-      {/* Shot panel */}
-      <div className={`${s.panelSlot} ${selectedShot ? s.panelSlotOpen : ''}`}>
-        {selectedShot && (
-          <ShotPanel
-            shot={selectedShot}
-            projectId={projectId}
-            onClose={() => setSelectedShot(null)}
-            onUpdate={handleShotUpdate}
-            onDelete={id => setDeleteShotId(id)}
-          />
-        )}
-      </div>
+      {/* The shot open */}
+      {selectedShot && (
+        <ShotModal
+          key={selectedShot.id}
+          shot={selectedShot}
+          sequence={sequences.find(seq => seq.id === selectedShot.sequenceId)}
+          projectId={projectId}
+          members={members}
+          onClose={closeShot}
+          onUpdate={handleShotUpdate}
+          onDelete={id => setDeleteShotId(id)}
+          closeOnEscape={!deleteShotId}
+        />
+      )}
 
       {/* Create sequence modal */}
       {showCreateSeq && (
@@ -293,36 +296,8 @@ export function ProductionBoard() {
               placeholder="e.g. Act 1 — Intro"
             />
             <div className={s.formActions}>
-              <button type="submit" className={s.submitBtn} disabled={seqSaving || !newSeqName.trim()}>
-                {seqSaving ? 'Creating…' : 'Create sequence'}
-              </button>
-              <button type="button" className={s.cancelBtn} onClick={() => setShowCreateSeq(false)}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        </ModalShell>
-      )}
-
-      {/* Create shot modal */}
-      {createShotSeqId && (
-        <ModalShell title="New shot" icon={faClipboardList} onClose={() => setCreateShotSeqId(null)}>
-          <form onSubmit={handleCreateShot} className={s.form}>
-            <label className={s.formLabel}>Name</label>
-            <input
-              autoFocus
-              className={s.formInput}
-              value={newShotName}
-              onChange={e => setNewShotName(e.target.value)}
-              placeholder="e.g. SH_010"
-            />
-            <div className={s.formActions}>
-              <button type="submit" className={s.submitBtn} disabled={shotSaving || !newShotName.trim()}>
-                {shotSaving ? 'Creating…' : 'Create shot'}
-              </button>
-              <button type="button" className={s.cancelBtn} onClick={() => setCreateShotSeqId(null)}>
-                Cancel
-              </button>
+              <ActionButton type="submit" icon={faPlus} text={seqSaving ? 'Creating…' : 'Create sequence'} disabled={seqSaving || !newSeqName.trim()} />
+              <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setShowCreateSeq(false)} />
             </div>
           </form>
         </ModalShell>
@@ -341,18 +316,14 @@ export function ProductionBoard() {
               Delete <strong>{seqToDelete.name}</strong>? All shots in this sequence, and their tasks, will also be deleted.
             </p>
             <div className={s.formActions}>
-              <button type="button" className={s.dangerBtn} disabled={deleting} onClick={() => handleDeleteSequence(deleteSeqId)}>
-                {deleting ? 'Deleting…' : 'Delete sequence'}
-              </button>
-              <button type="button" className={s.cancelBtn} onClick={() => setDeleteSeqId(null)}>
-                Cancel
-              </button>
+              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : 'Delete sequence'} disabled={deleting} onClick={() => handleDeleteSequence(deleteSeqId)} />
+              <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setDeleteSeqId(null)} />
             </div>
           </div>
         </ModalShell>
       )}
 
-      {/* Delete shot confirm */}
+      {/* Delete shot confirm (over the shot's modal) */}
       {deleteShotId && shotToDelete && (
         <ModalShell title="Delete shot" icon={faTrash} onClose={() => setDeleteShotId(null)}>
           <div className={s.confirmBody}>
@@ -360,12 +331,8 @@ export function ProductionBoard() {
               Delete <strong>{shotToDelete.name}</strong>? All tasks in this shot will also be deleted.
             </p>
             <div className={s.formActions}>
-              <button type="button" className={s.dangerBtn} disabled={deleting} onClick={() => handleDeleteShot(deleteShotId)}>
-                {deleting ? 'Deleting…' : 'Delete shot'}
-              </button>
-              <button type="button" className={s.cancelBtn} onClick={() => setDeleteShotId(null)}>
-                Cancel
-              </button>
+              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : 'Delete shot'} disabled={deleting} onClick={() => handleDeleteShot(deleteShotId)} />
+              <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setDeleteShotId(null)} />
             </div>
           </div>
         </ModalShell>
@@ -374,94 +341,195 @@ export function ProductionBoard() {
   );
 }
 
-// ── Board view ─────────────────────────────────────────────────────────────────
-
-interface BoardProps {
+interface ViewProps {
   sequences: ProductionSequence[];
   shots: ProductionShot[];
-  selectedShotId?: string;
+  members: Member[];
+  projectId: string;
   onSelectShot: (shot: ProductionShot) => void;
   onStatusChange: (shot: ProductionShot, status: ShotStatus) => void;
-  onAddShot: (seqId: string) => void;
+  onCreateShot: (seqId: string, status: ShotStatus, name: string) => Promise<boolean>;
   onDeleteSeq: (id: string) => void;
   onEditSeq: (id: string) => void;
-  onDeleteShot: (id: string) => void;
 }
 
-function BoardView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onEditSeq, onDeleteShot }: BoardProps) {
+// ── Board view ─────────────────────────────────────────────────────────────────
+// A column per status, a lane per sequence; a card dragged to another column takes its status.
+
+function BoardView({ sequences, shots, members, projectId, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq }: ViewProps) {
+  const [dragging, setDragging] = useState<ProductionShot | null>(null);
+  // A press that moves is a drag; one that doesn't, a click (opens the card). From the keyboard,
+  // Space picks a card up and Enter opens it.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Enter'] } }),
+  );
+
+  const onDragStart = ({ active }: DragStartEvent) => setDragging(shots.find(sh => sh.id === active.id) ?? null);
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setDragging(null);
+    const shot = shots.find(sh => sh.id === active.id);
+    if (!shot || !over) return;
+    const { seqId, status } = cellOf(String(over.id));
+    // Across columns only: its sequence is its lane, not something a drag changes.
+    if (seqId === shot.sequenceId) onStatusChange(shot, status);
+  };
+
   return (
-    <div className={s.board}>
-      {STATUSES.map(status => (
-        <div key={status} className={s.column}>
-          <div className={s.colHead}>
-            <span className={`${s.colDot} ${STATUS_COLOR[status]}`} />
-            <span className={s.colLabel}>{STATUS_LABEL[status]}</span>
-            <span className={s.colCount}>{shots.filter(sh => sh.status === status).length}</span>
-          </div>
-          <div className={s.colBody}>
-            {sequences.map(seq => {
-              const seqShots = shots.filter(sh => sh.sequenceId === seq.id && sh.status === status);
-              if (seqShots.length === 0 && status !== 'todo') return null;
-              return (
-                <div key={seq.id} className={s.seqBlock}>
-                  <div className={s.seqRow}>
-                    <span className={s.seqName}>{seq.name}</span>
-                    {status === 'todo' && (
-                      <>
-                        <button
-                          type="button"
-                          className={s.seqEditBtn}
-                          onClick={() => onEditSeq(seq.id)}
-                          title="Edit sequence"
-                        >
-                          <FontAwesomeIcon icon={faPen} />
-                        </button>
-                        <button
-                          type="button"
-                          className={s.seqDeleteBtn}
-                          onClick={() => onDeleteSeq(seq.id)}
-                          title="Delete sequence"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                  {seqShots.map(shot => (
-                    <ShotCard
-                      key={shot.id}
-                      shot={shot}
-                      selected={shot.id === selectedShotId}
-                      onSelect={onSelectShot}
-                      onStatusChange={onStatusChange}
-                      onDelete={onDeleteShot}
-                    />
-                  ))}
-                  {status === 'todo' && (
-                    <button type="button" className={s.addShotBtn} onClick={() => onAddShot(seq.id)}>
-                      <FontAwesomeIcon icon={faPlus} />
-                      Add shot
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+    <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
+      <div className={s.board}>
+        <div className={s.boardHead}>
+          {STATUSES.map(status => (
+            <div key={status} className={s.colHead}>
+              <span className={`${s.colDot} ${STATUS_COLOR[status]}`} />
+              <span className={s.colLabel}>{STATUS_LABEL[status]}</span>
+              <span className={s.colCount}>{shots.filter(sh => sh.status === status).length}</span>
+            </div>
+          ))}
         </div>
-      ))}
+
+        {sequences.map(seq => {
+          const seqShots = shots.filter(sh => sh.sequenceId === seq.id);
+          return (
+            <section key={seq.id} className={s.lane} aria-label={seq.name}>
+              <div className={s.laneHead}>
+                <span className={s.laneName}>{seq.name}</span>
+                <span className={s.colCount}>{seqShots.length}</span>
+                <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title="Edit sequence">
+                  <FontAwesomeIcon icon={faPen} />
+                </button>
+                <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title="Delete sequence">
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+              <div className={s.laneCells}>
+                {STATUSES.map(status => (
+                  <BoardCell key={status} id={cellId(seq.id, status)} label={`${seq.name}, ${STATUS_LABEL[status]}`} accepts={!dragging || dragging.sequenceId === seq.id}>
+                    {seqShots.filter(sh => sh.status === status).map(shot => (
+                      <ShotCard key={shot.id} shot={shot} members={members} projectId={projectId} onSelect={onSelectShot} />
+                    ))}
+                    <InlineCreate label={`Create a shot in ${seq.name}, ${STATUS_LABEL[status]}`} onCreate={name => onCreateShot(seq.id, status, name)} />
+                  </BoardCell>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+      <DragOverlay dropAnimation={null}>
+        {dragging && <CardBody shot={dragging} members={members} projectId={projectId} />}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+function BoardCell({ id, label, accepts, children }: { id: string; label: string; accepts: boolean; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id, disabled: !accepts });
+  return (
+    <div ref={setNodeRef} className={`${s.cell} ${isOver ? s.cellOver : ''}`} data-testid={`cell-${id}`} aria-label={label}>
+      {children}
     </div>
+  );
+}
+
+// ── Shot card (board) ──────────────────────────────────────────────────────────
+
+function ShotCard({ shot, members, projectId, onSelect }: {
+  shot: ProductionShot;
+  members: Member[];
+  projectId: string;
+  onSelect: (shot: ProductionShot) => void;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: shot.id });
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`${s.card} ${isDragging ? s.cardDragging : ''}`}
+      aria-label={shot.name}
+      onClick={() => onSelect(shot)}
+      onKeyDown={e => {
+        if (e.key === 'Enter') onSelect(shot);
+        else listeners?.onKeyDown?.(e);
+      }}
+    >
+      <CardBody shot={shot} members={members} projectId={projectId} />
+    </div>
+  );
+}
+
+// What a card shows: its name, its asset, its tasks' top priority and how they go, its due
+// date, and who it's assigned to.
+function CardBody({ shot, members, projectId }: { shot: ProductionShot; members: Member[]; projectId: string }) {
+  const summary = shot.taskSummary;
+  const assignees = members.filter(m => shot.assignedTo.includes(m.userId));
+  return (
+    <div className={s.cardBody}>
+      {shot.assetId && <AssetThumbnail projectId={projectId} assetId={shot.assetId} className={s.cardThumb} />}
+      <span className={s.cardName}>{shot.name}</span>
+      <div className={s.cardMeta}>
+        {summary?.priority && (
+          <span className={`${s.priority} ${PRIORITY_CHIP[summary.priority]}`} title="Top priority of its open tasks">
+            {PRIORITY_LABEL[summary.priority]}
+          </span>
+        )}
+        {!!summary?.total && (
+          <span className={`${s.progress} ${summary.done === summary.total ? s.progressDone : ''}`} title="Tasks done">
+            <FontAwesomeIcon icon={faCheck} /> {summary.done}/{summary.total}
+          </span>
+        )}
+        {shot.dueDate && <span className={s.cardDue}>{formatDueDate(shot.dueDate)}</span>}
+        <span className={s.cardAvatars}>
+          {assignees.slice(0, 3).map(m => <MemberAvatar key={m.userId} username={m.username} profilePic={m.profilePic} size="small" />)}
+          {assignees.length > 3 && <span className={s.moreAvatars}>+{assignees.length - 3}</span>}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// "+ Create" at the foot of a cell: a name typed in place makes a shot, and another can follow.
+function InlineCreate({ label, onCreate }: { label: string; onCreate: (name: string) => Promise<boolean> }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || saving) return;
+    setSaving(true);
+    if (await onCreate(name.trim())) setName('');
+    setSaving(false);
+  };
+
+  if (!open) {
+    return (
+      <button type="button" className={s.addShotBtn} onClick={() => setOpen(true)} aria-label={label}>
+        <FontAwesomeIcon icon={faPlus} /> Create
+      </button>
+    );
+  }
+  return (
+    <form onSubmit={submit} className={s.inlineCreate}>
+      <input
+        autoFocus
+        aria-label="New shot name"
+        className={s.inlineInput}
+        value={name}
+        disabled={saving}
+        placeholder="e.g. SH_010"
+        onChange={e => setName(e.target.value)}
+        onBlur={() => { if (!name.trim()) setOpen(false); }}
+        onKeyDown={e => { if (e.key === 'Escape') { setName(''); setOpen(false); } }}
+      />
+    </form>
   );
 }
 
 // ── List view ──────────────────────────────────────────────────────────────────
 
-interface ListProps extends Omit<BoardProps, 'selectedShotId'> {
-  selectedShotId?: string;
-  statusChip: Record<ShotStatus, string>;
-  statusLabel: Record<ShotStatus, string>;
-}
-
-function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChange, onAddShot, onDeleteSeq, onEditSeq, onDeleteShot, statusChip, statusLabel }: ListProps) {
+function ListView({ sequences, shots, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot }: ViewProps & { onDeleteShot: (id: string) => void }) {
   return (
     <div className={s.list}>
       <div className={s.listHead}>
@@ -476,113 +544,39 @@ function ListView({ sequences, shots, selectedShotId, onSelectShot, onStatusChan
           <div key={seq.id} className={s.listGroup}>
             <div className={s.listSeqRow}>
               <span className={s.listSeqName}>{seq.name}</span>
-              <button
-                type="button"
-                className={s.seqEditBtn}
-                onClick={() => onEditSeq(seq.id)}
-                title="Edit sequence"
-              >
+              <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title="Edit sequence">
                 <FontAwesomeIcon icon={faPen} />
               </button>
-              <button
-                type="button"
-                className={s.seqDeleteBtn}
-                onClick={() => onDeleteSeq(seq.id)}
-                title="Delete sequence"
-              >
+              <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title="Delete sequence">
                 <FontAwesomeIcon icon={faTrash} />
               </button>
             </div>
             {seqShots.map(shot => (
-              <div
-                key={shot.id}
-                className={`${s.listRow} ${shot.id === selectedShotId ? s.listRowActive : ''}`}
-                onClick={() => onSelectShot(shot)}
-              >
+              <div key={shot.id} className={s.listRow} onClick={() => onSelectShot(shot)}>
                 <span className={s.listShotName}>{shot.name}</span>
-                <span onClick={e => e.stopPropagation()}>
-                  <select
-                    className={`${s.chip} ${statusChip[shot.status]}`}
+                <span className={`${s.listStatus} ${STATUS_CHIP[shot.status]}`} onClick={e => e.stopPropagation()} aria-label={`Status of ${shot.name}`}>
+                  <DropdownInput
                     value={shot.status}
-                    onChange={e => onStatusChange(shot, e.target.value as ShotStatus)}
-                  >
-                    {STATUSES.map(st => <option key={st} value={st}>{statusLabel[st]}</option>)}
-                  </select>
+                    options={STATUSES.map(st => ({ value: st, label: STATUS_LABEL[st] }))}
+                    onChange={v => onStatusChange(shot, v as ShotStatus)}
+                  />
                 </span>
                 <span className={s.listDue}>
                   {shot.dueDate ? formatDueDate(shot.dueDate) : '—'}
                 </span>
                 <span onClick={e => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    className={s.rowDeleteBtn}
-                    onClick={() => onDeleteShot(shot.id)}
-                    title="Delete shot"
-                  >
+                  <button type="button" className={s.rowDeleteBtn} onClick={() => onDeleteShot(shot.id)} title="Delete shot">
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </span>
               </div>
             ))}
-            <button type="button" className={s.listAddShot} onClick={() => onAddShot(seq.id)}>
-              <FontAwesomeIcon icon={faPlus} /> Add shot
-            </button>
+            <div className={s.listCreate}>
+              <InlineCreate label={`Create a shot in ${seq.name}`} onCreate={name => onCreateShot(seq.id, 'todo', name)} />
+            </div>
           </div>
         );
       })}
-    </div>
-  );
-}
-
-// ── Shot card (board) ──────────────────────────────────────────────────────────
-
-function ShotCard({ shot, selected, onSelect, onStatusChange, onDelete }: {
-  shot: ProductionShot;
-  selected: boolean;
-  onSelect: (s: ProductionShot) => void;
-  onStatusChange: (s: ProductionShot, status: ShotStatus) => void;
-  onDelete: (id: string) => void;
-}) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  return (
-    <div
-      className={`${s.card} ${selected ? s.cardSelected : ''}`}
-      onClick={() => onSelect(shot)}
-    >
-      <div className={s.cardTop}>
-        <span className={s.cardName}>{shot.name}</span>
-        <button
-          type="button"
-          className={s.cardMenuBtn}
-          onClick={e => { e.stopPropagation(); setMenuOpen(v => !v); }}
-        >
-          <FontAwesomeIcon icon={faEllipsisVertical} />
-        </button>
-        {menuOpen && (
-          <div className={s.cardMenu} onClick={e => e.stopPropagation()}>
-            <button
-              type="button"
-              className={s.cardMenuDelete}
-              onClick={() => { setMenuOpen(false); onDelete(shot.id); }}
-            >
-              <FontAwesomeIcon icon={faTrash} /> Delete shot
-            </button>
-          </div>
-        )}
-      </div>
-      {shot.dueDate && (
-        <span className={s.cardDue}>{formatDueDate(shot.dueDate)}</span>
-      )}
-      <div onClick={e => e.stopPropagation()}>
-        <select
-          className={`${s.chip} ${STATUS_CHIP[shot.status]}`}
-          value={shot.status}
-          onChange={e => { onStatusChange(shot, e.target.value as ShotStatus); }}
-        >
-          {STATUSES.map(st => <option key={st} value={st}>{STATUS_LABEL[st]}</option>)}
-        </select>
-      </div>
     </div>
   );
 }

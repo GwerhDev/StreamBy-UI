@@ -1,10 +1,11 @@
 import s from './ProductionEditModals.module.css';
 import { FormEvent, ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { faFloppyDisk, faPen, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { ModalShell } from '../Modals/ModalShell';
-import { CustomCheckbox } from '../Inputs/CustomCheckbox';
-import { Member, ProductionSequence, ProductionShot, ProductionTask } from '../../../interfaces';
+import { ActionButton } from '../Buttons/ActionButton';
+import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { Member, ProductionSequence, ProductionTask } from '../../../interfaces';
 
 // The date part of an ISO date, for a date input ('' when there's none).
 const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
@@ -20,16 +21,14 @@ interface EditModalProps {
 
 function EditModal({ title, saving, canSave, onSubmit, onClose, children }: EditModalProps) {
   const submit = (e: FormEvent) => { e.preventDefault(); if (canSave && !saving) onSubmit(); };
-  // In the page's body: opened from the shot panel, it would be confined to that panel.
+  // In the page's body, over the shot's modal it's opened from.
   return createPortal(
     <ModalShell title={title} icon={faPen} onClose={onClose}>
       <form onSubmit={submit} className={s.form}>
         {children}
         <div className={s.formActions}>
-          <button type="submit" className={s.submitBtn} disabled={saving || !canSave}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-          <button type="button" className={s.cancelBtn} onClick={onClose}>Cancel</button>
+          <ActionButton type="submit" icon={faFloppyDisk} text={saving ? 'Saving…' : 'Save'} disabled={saving || !canSave} />
+          <SecondaryButton icon={faXmark} text="Cancel" onClick={onClose} />
         </div>
       </form>
     </ModalShell>,
@@ -66,42 +65,6 @@ export function EditSequenceModal({ sequence, saving, onSave, onClose }: SavePro
       <Field id="sequence-description" label="Description">
         <textarea id="sequence-description" className={s.formTextarea} rows={3} value={description} onChange={e => setDescription(e.target.value)} />
       </Field>
-    </EditModal>
-  );
-}
-
-export function EditShotModal({ shot, members, saving, onSave, onClose }: SaveProps<ProductionShot> & { shot: ProductionShot; members: Member[] }) {
-  const [name, setName] = useState(shot.name);
-  const [description, setDescription] = useState(shot.description ?? '');
-  const [dueDate, setDueDate] = useState(dateInput(shot.dueDate));
-  const [assignees, setAssignees] = useState<string[]>(shot.assignedTo ?? []);
-  const toggle = (userId: string, on: boolean) =>
-    setAssignees(list => (on ? [...list, userId] : list.filter(id => id !== userId)));
-
-  return (
-    <EditModal
-      title="Edit shot" saving={saving} canSave={!!name.trim()} onClose={onClose}
-      onSubmit={() => onSave({ name: name.trim(), description, dueDate: dueDate || null, assignedTo: assignees })}
-    >
-      <Field id="shot-name" label="Name">
-        <input id="shot-name" autoFocus className={s.formInput} value={name} onChange={e => setName(e.target.value)} />
-      </Field>
-      <Field id="shot-description" label="Description">
-        <textarea id="shot-description" className={s.formTextarea} rows={3} value={description} onChange={e => setDescription(e.target.value)} />
-      </Field>
-      <Field id="shot-due" label="Due date">
-        <input id="shot-due" type="date" className={s.formInput} value={dueDate} onChange={e => setDueDate(e.target.value)} />
-      </Field>
-      <fieldset className={s.assignees}>
-        <legend className={s.formLabel}>Assigned to</legend>
-        {members.length === 0 && <p className={s.hint}>No members to assign.</p>}
-        {members.map(m => (
-          <CustomCheckbox
-            key={m.userId} id={`shot-assignee-${m.userId}`} name="shot-assignee" value={m.userId}
-            label={m.username} checked={assignees.includes(m.userId)} onChange={e => toggle(m.userId, e.target.checked)}
-          />
-        ))}
-      </fieldset>
     </EditModal>
   );
 }
