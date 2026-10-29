@@ -203,10 +203,13 @@ export function ProductionBoard() {
 
   // ── render ─────────────────────────────────────────────────────────────────
 
+  // Centered in the board's container, as the board fills it.
   if (loading) {
     return (
-      <div className={s.center}>
-        <FontAwesomeIcon icon={faSpinner} spin className={s.spinner} />
+      <div className={s.container}>
+        <div className={s.center}>
+          <FontAwesomeIcon icon={faSpinner} spin className={s.spinner} />
+        </div>
       </div>
     );
   }
