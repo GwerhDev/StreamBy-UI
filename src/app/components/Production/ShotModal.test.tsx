@@ -21,6 +21,7 @@ const TASK: ProductionTask = {
 const MEMBERS: Member[] = [
   { userId: 'u1', username: 'ada', role: 'admin', status: 'active' },
   { userId: 'u2', username: 'eli', role: 'editor', status: 'active' },
+  { userId: 'u3', username: 'pat', role: 'editor', status: 'active' },
 ];
 
 const renderModal = (shot: ProductionShot = SHOT) => {
@@ -91,6 +92,35 @@ describe('ShotModal', () => {
     await user.click(screen.getByLabelText('ada', { selector: 'input' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { description: 'Wide establishing, at dawn' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { assignedTo: ['u2', 'u1'] }));
+  });
+
+  it('two ticks before the first is saved end with both assigned, saved in order', async () => {
+    let answer!: () => void;
+    const first = new Promise<void>(resolve => { answer = resolve; });
+    const update = vi.spyOn(production, 'updateShot')
+      .mockImplementationOnce(async (_p, _id, changes) => { await first; return { ...SHOT, ...changes } as ProductionShot; })
+      .mockImplementation(async (_p, _id, changes) => ({ ...SHOT, ...changes } as ProductionShot));
+    const { onUpdate } = renderModal();
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText('ada', { selector: 'input' }));
+    await user.click(screen.getByLabelText('pat', { selector: 'input' }));
+    expect(screen.getByLabelText('ada', { selector: 'input' })).toBeChecked();
+    expect(screen.getByLabelText('pat', { selector: 'input' })).toBeChecked();
+    expect(update).toHaveBeenCalledTimes(1);
+
+    answer();
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
+    expect(update.mock.calls.map(c => c[2])).toEqual([{ assignedTo: ['u2', 'u1'] }, { assignedTo: ['u2', 'u1', 'u3'] }]);
+    await waitFor(() => expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ assignedTo: ['u2', 'u1', 'u3'] })));
+  });
+
+  it("puts the assignees back to what was saved when a tick can't be", async () => {
+    vi.spyOn(production, 'updateShot').mockRejectedValue(new Error('Database not available'));
+    const { store } = renderModal();
+    await userEvent.click(screen.getByLabelText('ada', { selector: 'input' }));
+    await waitFor(() => expect(store.getState().apiResponses.responses).toHaveLength(1));
+    await waitFor(() => expect(screen.getByLabelText('ada', { selector: 'input' })).not.toBeChecked());
+    expect(screen.getByLabelText('eli', { selector: 'input' })).toBeChecked();
   });
 
   it("checks tasks off and sets their priority, its card's summary following", async () => {

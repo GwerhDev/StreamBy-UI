@@ -127,9 +127,24 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
     if (!(await save({ description }, 'Failed to save the description.'))) setDescription(shot.description ?? '');
   };
 
+  // Who it's assigned to, as ticked: shown at once, each tick from the one before (not from what
+  // the server has answered so far), saved in order, put back to what was saved last if it fails.
+  const [assignedTo, setAssignedTo] = useState(shot.assignedTo);
+  const ticked = useRef(shot.assignedTo);
+  const savedAssignees = useRef(shot.assignedTo);
+  const assigning = useRef<Promise<unknown>>(Promise.resolve());
   const toggleAssignee = (userId: string, on: boolean) => {
-    const assignedTo = on ? [...shot.assignedTo, userId] : shot.assignedTo.filter(id => id !== userId);
-    save({ assignedTo }, 'Failed to change who the shot is assigned to.');
+    const next = on ? [...ticked.current.filter(id => id !== userId), userId] : ticked.current.filter(id => id !== userId);
+    ticked.current = next;
+    setAssignedTo(next);
+    assigning.current = assigning.current.then(async () => {
+      if (await save({ assignedTo: next }, 'Failed to change who the shot is assigned to.')) {
+        savedAssignees.current = next;
+      } else {
+        ticked.current = savedAssignees.current;
+        setAssignedTo(savedAssignees.current);
+      }
+    });
   };
 
   // An edited field takes Esc (put back as it was), not the modal.
@@ -187,7 +202,7 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
   };
 
   const doneCount = tasks.filter(t => t.status === 'done').length;
-  const assignees = members.filter(m => shot.assignedTo.includes(m.userId));
+  const assignees = members.filter(m => assignedTo.includes(m.userId));
 
   return (
     <ModalShell title={sequence?.name ?? 'Shot'} icon={faClipboardList} onClose={onClose} className={s.modal}>
@@ -315,7 +330,7 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
             {members.map(m => (
               <CustomCheckbox
                 key={m.userId} id={`shot-assignee-${m.userId}`} name="shot-assignee" value={m.userId}
-                label={m.username} checked={shot.assignedTo.includes(m.userId)} onChange={e => toggleAssignee(m.userId, e.target.checked)}
+                label={m.username} checked={assignedTo.includes(m.userId)} onChange={e => toggleAssignee(m.userId, e.target.checked)}
               />
             ))}
           </fieldset>
