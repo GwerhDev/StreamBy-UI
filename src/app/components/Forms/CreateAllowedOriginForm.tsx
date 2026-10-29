@@ -1,8 +1,9 @@
 import s from './CreateAllowedOriginForm.module.css';
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { updateProjectOrigins } from '../../../services/projects';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -15,7 +16,7 @@ import { CustomForm } from './CustomForm';
 
 export const CreateAllowedOriginForm = () => {
   const { id: projectId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
@@ -33,7 +34,7 @@ export const CreateAllowedOriginForm = () => {
       const updated = await updateProjectOrigins(projectId, [...existing, trimmed]);
       dispatch(addApiResponse({ message: 'Allowed origin added.', type: 'success' }));
       dispatch(setCurrentProject(updated));
-      navigate(`/project/${projectId}/settings/allowed-origins`);
+      done(`/project/${projectId}/settings/allowed-origins`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to add allowed origin.', type: 'error' }));
     } finally {
@@ -69,7 +70,7 @@ export const CreateAllowedOriginForm = () => {
           actions={
             <>
               <ActionButton disabled={loading || !origin.trim()} icon={faGlobe} text="Add" type="submit" />
-              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/settings/allowed-origins`)} text="Cancel" />
             </>
           }
         />

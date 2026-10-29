@@ -1,8 +1,9 @@
 import s from './CreateConnectionForm.module.css';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { createConnection } from '../../../services/connections';
 import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -23,7 +24,7 @@ const HTTP_METHODS = [
 
 export const CreateConnectionForm = () => {
   const { id: projectId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
 
@@ -56,7 +57,7 @@ export const CreateConnectionForm = () => {
       const { connections } = await createConnection(projectId, payload);
       dispatch(setProjectResource({ projectId, key: 'connections', value: connections }));
       dispatch(addApiResponse({ message: 'Connection created successfully.', type: 'success' }));
-      navigate(`/project/${projectId}/connections`);
+      done(`/project/${projectId}/connections`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
     } finally {
@@ -168,7 +169,7 @@ export const CreateConnectionForm = () => {
             actions={
               <>
                 <ActionButton disabled={disabled} icon={faTowerBroadcast} text="Create" type="submit" />
-                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/connections`)} text="Cancel" />
               </>
             }
           />

@@ -13,10 +13,12 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ExternalDbType } from '../../../interfaces';
+import { useFormSaved, useOpenForm } from '../../../hooks/useFormRoute';
 
 export const DbConnectionDetail = () => {
   const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
   const navigate = useNavigate();
+  const openForm = useOpenForm();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const locationState = (location.state ?? {}) as { dbType?: string; isBuiltin?: boolean; name?: string };
@@ -48,10 +50,11 @@ export const DbConnectionDetail = () => {
     }
   }, [projectId, connId]);
 
-  useEffect(() => { load(); }, [load]);
+  const saved = useFormSaved();
+  useEffect(() => { load(); }, [load, saved]);
 
   const connState = { dbType: conn.dbType, isBuiltin: conn.isBuiltin, name: conn.name };
-  const handleCreate = () => navigate(`/project/${projectId}/database/${connId}/create`, { state: connState });
+  const handleCreate = () => openForm(`/project/${projectId}/database/${connId}/create`, connState);
   const handleTable = (tableName: string) => navigate(`/project/${projectId}/database/${connId}/${encodeURIComponent(tableName)}`, { state: connState });
 
   const openDeleteModal = (e: React.MouseEvent, tableName: string) => {

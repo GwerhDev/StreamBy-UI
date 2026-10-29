@@ -1,8 +1,9 @@
 import s from './CreateConnectionForm.module.css';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { updateConnection } from '../../../services/connections';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -23,7 +24,7 @@ const HTTP_METHODS = [
 
 export const UpdateConnectionForm = () => {
   const { id: projectId, connectionId } = useParams<{ id: string; connectionId: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
   const connection = currentProject?.connections?.find(c => c.id === connectionId);
@@ -69,7 +70,7 @@ export const UpdateConnectionForm = () => {
         }));
         dispatch(addApiResponse({ message: 'Connection updated successfully.', type: 'success' }));
       }
-      navigate(`/project/${projectId}/connections/${connectionId}`);
+      done(`/project/${projectId}/connections/${connectionId}`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to update connection.', type: 'error' }));
     } finally {
@@ -184,7 +185,7 @@ export const UpdateConnectionForm = () => {
             actions={
               <>
                 <ActionButton disabled={!name || !apiUrl || loading} icon={faPenToSquare} text="Save changes" type="submit" />
-                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+                <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/connections/${connectionId}`)} text="Cancel" />
               </>
             }
           />

@@ -13,6 +13,7 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { StorageConnection } from '../../../interfaces';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 import { useProjectResource } from '../../../hooks/useProjectResource';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 const STORAGE_LABELS: Record<string, string> = {
   s3:    'AWS S3',
@@ -30,6 +31,7 @@ const STORAGE_BADGE_CLASS: Record<string, string> = {
 
 export const StorageConnectionList = () => {
   const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
 
@@ -37,7 +39,7 @@ export const StorageConnectionList = () => {
   const connections: StorageConnection[] = project?.storageConnections ?? [];
   const [toRemove, setToRemove] = useState<StorageConnection | null>(null);
 
-  const handleCreate = () => navigate(`/project/${projectId}/storage/create`);
+  const handleCreate = () => openForm(`/project/${projectId}/storage/create`);
 
   const isLoading = loading;
 

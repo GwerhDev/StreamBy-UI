@@ -1,9 +1,10 @@
 import s from './StorageConnectionCreate.module.css';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faCloud, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines, faPlug, faRoute } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createStorageConnection, StorageConnectionPayload } from '../../../services/storageConnections';
@@ -30,7 +31,7 @@ const SOURCE_MODES = [
 
 export const StorageConnectionCreate = () => {
   const { id: projectId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const project = useSelector((state: RootState) => state.currentProject.data);
   const { integrations } = useSelector((state: RootState) => state.management);
@@ -77,7 +78,7 @@ export const StorageConnectionCreate = () => {
       const { storageConnections } = await createStorageConnection(projectId, payload);
       dispatch(addApiResponse({ message: 'Storage connection created.', type: 'success' }));
       dispatch(setProjectResource({ projectId, key: 'storageConnections', value: storageConnections }));
-      navigate(`/project/${projectId}/storage`);
+      done(`/project/${projectId}/storage`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create storage connection.', type: 'error' }));
     } finally {
@@ -177,7 +178,7 @@ export const StorageConnectionCreate = () => {
           actions={
             <>
               <ActionButton disabled={disabled} icon={faCloud} text="Create" type="submit" />
-              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/storage`)} text="Cancel" />
             </>
           }
         />

@@ -17,16 +17,16 @@ import {
 } from '../../../services/projects';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { useNavigate } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
 import { IntegrationPicker } from '../Integrations/IntegrationPicker';
 
 export const UpdateProjectForm = () => {
   const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
   const { integrations } = useSelector((state: RootState) => state.management);
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState<string>(currentProjectData?.name || "");
   const [loader, setLoader] = useState<boolean>(false);
@@ -90,7 +90,7 @@ export const UpdateProjectForm = () => {
         await uploadToPresignedUrl(url, imageFile, contentType);
         await updateProjectImage(projectId, publicUrl);
       }
-      navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
+      done('/project/' + currentProjectData?.id + '/dashboard/overview');
       setLoader(false);
 
     } catch (err) {
@@ -99,7 +99,7 @@ export const UpdateProjectForm = () => {
     }
   };
 
-  const handleCancel = () => navigate('/project/' + currentProjectData?.id + '/dashboard/overview');
+  const handleCancel = () => close('/project/' + currentProjectData?.id + '/dashboard/overview');
 
   const handleImageClick = () => fileInputRef.current?.click();
 

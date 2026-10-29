@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store';
 import { fetchProject } from '../services/projects';
 import { setCurrentProject, setProjectLoading } from '../store/currentProjectSlice';
+import { useFormSaved } from './useFormRoute';
 
 export function useProjectInit(projectId: string | undefined) {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,6 +50,7 @@ export function useProjectRefresh() {
   const dispatch = useDispatch<AppDispatch>();
   const { id: projectId } = useParams();
   const loaded = useSelector((state: RootState) => !state.currentProject.loading && state.currentProject.data?.id === projectId);
+  const saved = useFormSaved();
 
   useEffect(() => {
     if (!projectId || !loaded) return;
@@ -57,7 +59,8 @@ export function useProjectRefresh() {
       .then(data => { if (!cancelled) dispatch(setCurrentProject(data)); })
       .catch(() => { /* the project as last loaded stays */ });
     return () => { cancelled = true; };
-  // Once per visit: not again when this refresh itself sets the project.
+  // Once per visit, and after a form opened over it is saved: not again when this refresh itself
+  // sets the project.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, dispatch]);
+  }, [projectId, dispatch, saved]);
 }

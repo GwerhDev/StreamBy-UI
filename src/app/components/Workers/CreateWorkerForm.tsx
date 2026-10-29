@@ -1,11 +1,12 @@
 import s from './CreateWorkerForm.module.css';
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   faArrowLeft, faBolt, faFileLines, faFolder, faGears, faKey, faLink, faListCheck, faTag, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createWorker } from '../../../services/workers';
 import { addWorker } from '../../../store/workersSlice';
@@ -30,7 +31,7 @@ const kindsOf = (text: string) => [...new Set(text.split(',').map(k => k.trim())
 // Connects the project's own worker: where it is, its credential, and what it does.
 export const CreateWorkerForm = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const { id: projectId = '' } = useParams<{ id: string }>();
   const listPath = `/project/${projectId}/workers`;
 
@@ -62,7 +63,7 @@ export const CreateWorkerForm = () => {
       });
       dispatch(addWorker(created));
       dispatch(addApiResponse({ message: 'Worker connected.', type: 'success' }));
-      navigate(listPath);
+      done(listPath);
     } catch (err) {
       dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to connect the worker.', type: 'error' }));
     } finally {
@@ -78,7 +79,7 @@ export const CreateWorkerForm = () => {
           isLoading={saving}
           header={
             <SectionHeader
-              icon={faArrowLeft} title="Connect a worker" onIconClick={() => navigate(listPath)}
+              icon={faArrowLeft} title="Connect a worker" onIconClick={() => close(listPath)}
               subtitle="A service of yours that processes the project's assets. Jobs are sent to its endpoint; it uploads the result and calls back."
             />
           }
@@ -129,7 +130,7 @@ export const CreateWorkerForm = () => {
           actions={
             <>
               <ActionButton type="submit" icon={faGears} text="Connect" disabled={!canSave} />
-              <SecondaryButton icon={faXmark} text="Cancel" disabled={saving} onClick={() => navigate(listPath)} />
+              <SecondaryButton icon={faXmark} text="Cancel" disabled={saving} onClick={() => close(listPath)} />
             </>
           }
         />

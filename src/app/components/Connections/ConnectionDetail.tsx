@@ -1,6 +1,6 @@
 import s from './ConnectionDetail.module.css';
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { faCode, faPencil, faTrash, faFingerprint, faLink, faFileLines, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,10 +13,11 @@ import { CustomForm } from '../Forms/CustomForm';
 import CopyButton from '../Buttons/CopyButton';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 export const ConnectionDetail = () => {
   const { id: projectId, connectionId } = useParams<{ id: string; connectionId: string }>();
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const currentProject = useSelector((state: RootState) => state.currentProject.data);
   const connection = currentProject?.connections?.find(c => c.id === connectionId);
 
@@ -106,7 +107,7 @@ export const ConnectionDetail = () => {
       </PanelGroup>
 
       <div className={s.footer}>
-        <ActionButton icon={faPencil} text="Edit" onClick={() => navigate(`/project/${projectId}/connections/${connectionId}/edit`)} />
+        <ActionButton icon={faPencil} text="Edit" onClick={() => openForm(`/project/${projectId}/connections/${connectionId}/edit`)} />
         <SecondaryButton icon={faTrash} text="Delete" onClick={() => setShowDeleteModal(true)} />
       </div>
 

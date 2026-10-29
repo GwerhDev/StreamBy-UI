@@ -17,6 +17,7 @@ import { setCurrentProject } from "../../../store/currentProjectSlice";
 import { addApiResponse } from "../../../store/apiResponsesSlice";
 import { useProjectResource } from "../../../hooks/useProjectResource";
 import { fetchProjectExports } from "../../../services/exports";
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 const LOCALHOST_RE = /^https?:\/\/localhost:(\d+)$/;
 
@@ -32,6 +33,7 @@ export function ExportList() {
   useProjectResource('exports', fetchProjectExports);
   const { exports, id, allowedOrigin } = currentProjectData || {};
   const navigate = useNavigate();
+  const openForm = useOpenForm();
 
   const devModeActive = (allowedOrigin ?? []).some(o => LOCALHOST_RE.test(o));
   const activePorts = extractLocalhostPorts(allowedOrigin);
@@ -40,7 +42,7 @@ export function ExportList() {
   const [devLoading, setDevLoading] = useState(false);
 
   const handleCreateExport = () => {
-    navigate(`/project/${id}/workflow/exports/create`);
+    openForm(`/project/${id}/workflow/exports/create`);
   };
 
   const applyDevMode = async (active: boolean, ports: number[]) => {

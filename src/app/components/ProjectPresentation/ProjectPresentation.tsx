@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProjectStats } from '../ProjectStats/ProjectStats';
 import { ProjectCharts } from '../ProjectCharts/ProjectCharts';
 import { WorkflowPreview } from '../WorkflowPreview/WorkflowPreview';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 interface ProjectPresentationProps {
   preview?: boolean;
@@ -19,9 +20,10 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
   const { data: currentProject, loading } = useSelector((state: RootState) => state.currentProject);
   const { image, name, description } = currentProject || {};
   const navigate = useNavigate();
+  const openForm = useOpenForm();
 
   const handleEdit = () => {
-    navigate('/project/' + currentProject?.id + '/dashboard/overview/edit');
+    openForm('/project/' + currentProject?.id + '/dashboard/overview/edit');
   };
 
   return (

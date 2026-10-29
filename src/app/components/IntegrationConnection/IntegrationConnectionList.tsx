@@ -1,7 +1,7 @@
 import s from './IntegrationConnection.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkSlash, faPlug, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -15,9 +15,10 @@ import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
 
 import { IntegrationConnection, ServiceProviderType } from '../../../interfaces';
 import { useProjectResource } from '../../../hooks/useProjectResource';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 export const IntegrationConnectionList = () => {
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('integrationConnections', fetchIntegrationConnections);
@@ -25,7 +26,7 @@ export const IntegrationConnectionList = () => {
 
   const [toRemove, setToRemove] = useState<IntegrationConnection | null>(null);
 
-  const handleCreate = () => navigate(`/project/${projectId}/services/create`);
+  const handleCreate = () => openForm(`/project/${projectId}/services/create`);
 
   return (
     <div className={s.container}>

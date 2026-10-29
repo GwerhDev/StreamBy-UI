@@ -2,6 +2,7 @@ import s from './CreatePipelineForm.module.css';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setProjectResource } from '../../../store/currentProjectSlice';
 import { createPipeline, updatePipeline } from '../../../services/pipelines';
@@ -10,7 +11,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { faDiagramProject, faFileLines, faLayerGroup, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 import { WORKFLOW_TEMPLATES } from '../NodeViewer/workflowTemplates';
@@ -31,7 +32,7 @@ export function CreatePipelineForm() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
-  const navigate = useNavigate();
+  const { close, goTo } = useFormRoute();
 
   const selectedTemplate = PIPELINE_TEMPLATES.find(t => t.id === type);
 
@@ -59,7 +60,7 @@ export function CreatePipelineForm() {
       // The server adds its node to the workflow: the form only shows what it answers.
       dispatch(setProjectResource({ projectId, key: 'pipelines', value: created.pipelines }));
 
-      navigate(`/project/${projectId}/workflow/pipelines/${pipeline.id}/editor`);
+      goTo(`/project/${projectId}/workflow/pipelines/${pipeline.id}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create pipeline.', type: 'error' }));
     } finally {
@@ -69,7 +70,7 @@ export function CreatePipelineForm() {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/project/${projectId}/workflow/pipelines`);
+    close(`/project/${projectId}/workflow/pipelines`);
   };
 
   return (

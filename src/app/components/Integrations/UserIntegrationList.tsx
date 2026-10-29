@@ -1,7 +1,7 @@
 import s from './UserIntegrationList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faPlug, faPlus, faTrash, faDatabase, faCloud } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +15,7 @@ import { DeleteUserIntegrationModal } from './DeleteUserIntegrationModal';
 import { IntegrationKind, IntegrationPoolEntry, ServiceProviderType } from '../../../interfaces';
 import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
 import streambyIcon from '../../../assets/streamby-icon.svg';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 const KIND_ICON: Record<IntegrationKind, typeof faDatabase> = {
   database: faDatabase,
@@ -23,7 +24,7 @@ const KIND_ICON: Record<IntegrationKind, typeof faDatabase> = {
 };
 
 export const UserIntegrationList = () => {
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { integrations, loading } = useSelector((state: RootState) => state.management);
@@ -49,7 +50,7 @@ export const UserIntegrationList = () => {
     // eslint-disable-next-line
   }, []);
 
-  const handleCreate = () => navigate('/user/integrations/create');
+  const handleCreate = () => openForm('/user/integrations/create');
 
   return (
     <div className={s.container}>

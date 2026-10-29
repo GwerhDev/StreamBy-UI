@@ -1,10 +1,11 @@
 import { Suspense, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { RootState } from './store';
 import { useSelector } from 'react-redux';
 
 import { useInitSession } from './hooks/useInitSession';
 import { useWebSocket } from './hooks/useWebSocket';
+import { FormRouteProvider, useBackgroundLocation } from './hooks/useFormRoute';
 import { lazyPage, preloadPages } from './utils/lazyPage';
 
 import DefaultLayout from './app/layouts/DefaultLayout';
@@ -16,6 +17,7 @@ import UserLayout from './app/layouts/UserLayout';
 import { Loader } from './app/components/Loader';
 import { ToastNotification } from './app/components/Notifications/ToastNotification';
 import { RootBackground } from './app/components/Backgrounds/RootBackground';
+import { FormModalRoutes, FormRoute } from './app/components/Modals/FormModalRoutes';
 
 import { UserNotification } from './app/pages/UserNotification';
 import { UserNotificationDetail } from './app/pages/UserNotificationDetail';
@@ -79,6 +81,30 @@ const PipelineCreate           = lazyPage(() => import('./app/pages/PipelineCrea
 const PipelineDetails          = lazyPage(() => import('./app/pages/PipelineDetails'), 'PipelineDetails');
 const PipelineEditorPage       = lazyPage(() => import('./app/pages/PipelineEditorPage'), 'PipelineEditorPage');
 
+// The forms with a route of their own, declared once: each is a page of its layout, and, opened
+// from inside the app (useOpenForm), a modal over the screen it was opened from.
+const USER_FORMS: FormRoute[] = [
+  { path: '/user/settings/api-tokens/create', element: <UserApiTokenCreate /> },
+  { path: '/user/integrations/create', element: <UserIntegrationCreate /> },
+];
+
+const PROJECT_FORMS: FormRoute[] = [
+  { path: '/project/:id/dashboard/overview/edit', element: <OverviewEdit /> },
+  { path: '/project/:id/storage/create', element: <StorageConnectionCreate /> },
+  { path: '/project/:id/database/create', element: <DatabaseConnectionCreate /> },
+  { path: '/project/:id/database/:connId/create', element: <DatabaseTableCreate /> },
+  { path: '/project/:id/services/create', element: <IntegrationConnectionCreate /> },
+  { path: '/project/:id/workers/create', element: <WorkerCreate /> },
+  { path: '/project/:id/connections/create', element: <ConnectionsCreate /> },
+  { path: '/project/:id/connections/:connectionId/edit', element: <ConnectionEdit /> },
+  { path: '/project/:id/workflow/pipelines/create', element: <PipelineCreate /> },
+  { path: '/project/:id/workflow/exports/create', element: <ExportsCreate /> },
+  { path: '/project/:id/settings/api-tokens/create', element: <ApiTokenCreate /> },
+  { path: '/project/:id/settings/allowed-origins/create', element: <AllowedOriginsCreate /> },
+];
+
+const asPages = (forms: FormRoute[]) => forms.map(form => <Route key={form.path} path={form.path} element={form.element} />);
+
 function App() {
   const session = useSelector((state: RootState) => state.session);
   const { loader } = session;
@@ -87,15 +113,18 @@ function App() {
 
   useEffect(() => { if (!loader) preloadPages(); }, [loader]);
 
+  const location = useLocation();
+  const background = useBackgroundLocation();
+
   return (
-    <>
+    <FormRouteProvider>
       {
         loader
           ?
           <Loader />
           :
           <Suspense fallback={<Loader />}>
-            <Routes>
+            <Routes location={background ?? location}>
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route element={<DefaultLayout />}>
                 <Route path="/" element={<Home />} />
@@ -107,9 +136,8 @@ function App() {
                   <Route path="/user/archive" element={<UserArchive />} />
                   <Route path="/user/settings" element={<UserSettings />} />
                   <Route path="/user/settings/api-tokens" element={<UserApiTokens />} />
-                  <Route path="/user/settings/api-tokens/create" element={<UserApiTokenCreate />} />
                   <Route path="/user/integrations" element={<UserIntegrations />} />
-                  <Route path="/user/integrations/create" element={<UserIntegrationCreate />} />
+                  {asPages(USER_FORMS)}
                 </Route>
                 <Route element={<NotificationLayout />}>
                   <Route path="/user/notification" element={<UserNotification />} />
@@ -122,25 +150,19 @@ function App() {
                   <Route path="/project/:id" element={<RootBackground />} />
                   <Route path="/project/:id/dashboard" element={<Dashboard />} />
                   <Route path="/project/:id/dashboard/overview" element={<Overview />} />
-                  <Route path="/project/:id/dashboard/overview/edit" element={<OverviewEdit />} />
                   <Route path="/project/:id/dashboard/members" element={<Members />} />
 
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
-                  <Route path="/project/:id/storage/create" element={<StorageConnectionCreate />} />
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
                   <Route path="/project/:id/storage/:connId/:segment" element={<StorageDrive />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
-                  <Route path="/project/:id/database/create" element={<DatabaseConnectionCreate />} />
-                  <Route path="/project/:id/database/:connId/create" element={<DatabaseTableCreate />} />
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
                   <Route path="/project/:id/database/:connId" element={<DatabaseConnectionDetail />} />
 
                   <Route path="/project/:id/services" element={<IntegrationConnections />} />
-                  <Route path="/project/:id/services/create" element={<IntegrationConnectionCreate />} />
 
                   <Route path="/project/:id/workers" element={<Workers />} />
-                  <Route path="/project/:id/workers/create" element={<WorkerCreate />} />
 
                   <Route path="/project/:id/dashboard/documents" element={<Documents />} />
                   <Route path="/project/:id/dashboard/documents/:docId" element={<DocumentDetails />} />
@@ -148,17 +170,13 @@ function App() {
                   <Route path="/project/:id/dashboard/documents/:docId/versions" element={<DocumentVersions />} />
 
                   <Route path="/project/:id/connections" element={<ConnectionsList />} />
-                  <Route path="/project/:id/connections/create" element={<ConnectionsCreate />} />
                   <Route path="/project/:id/connections/:connectionId" element={<ConnectionDetail />} />
-                  <Route path="/project/:id/connections/:connectionId/edit" element={<ConnectionEdit />} />
 
                   <Route path="/project/:id/workflow" element={<WorkflowPage />} />
                   <Route path="/project/:id/workflow/pipelines" element={<Pipelines />} />
-                  <Route path="/project/:id/workflow/pipelines/create" element={<PipelineCreate />} />
                   <Route path="/project/:id/workflow/pipelines/:pipelineId" element={<PipelineDetails />} />
                   <Route path="/project/:id/workflow/pipelines/:pipelineId/editor" element={<PipelineEditorPage />} />
                   <Route path="/project/:id/workflow/exports" element={<Exports />} />
-                  <Route path="/project/:id/workflow/exports/create" element={<ExportsCreate />} />
                   <Route path="/project/:id/workflow/exports/:exportId" element={<ExportsDetails />} />
                   <Route path="/project/:id/workflow/exports/:exportId/editor" element={<ExportEditorPage />} />
                   <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
@@ -169,10 +187,9 @@ function App() {
 
                   <Route path="/project/:id/settings" element={<Settings />} />
                   <Route path="/project/:id/settings/api-tokens" element={<ApiTokens />} />
-                  <Route path="/project/:id/settings/api-tokens/create" element={<ApiTokenCreate />} />
                   <Route path="/project/:id/settings/allowed-origins" element={<AllowedOrigins />} />
-                  <Route path="/project/:id/settings/allowed-origins/create" element={<AllowedOriginsCreate />} />
                   <Route path="/project/:id/settings/permissions" element={<Permissions />} />
+                  {asPages(PROJECT_FORMS)}
 
                   <Route path="/project/:id/not-found" element={<NotFound />} />
                   <Route path="/project/:id/*" element={<NotFound />} />
@@ -185,10 +202,11 @@ function App() {
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            {background && <FormModalRoutes forms={[...USER_FORMS, ...PROJECT_FORMS]} />}
           </Suspense>
       }
       <ToastNotification />
-    </>
+    </FormRouteProvider>
   );
 }
 

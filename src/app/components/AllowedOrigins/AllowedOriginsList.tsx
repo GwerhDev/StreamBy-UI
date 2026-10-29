@@ -8,12 +8,13 @@ import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { updateProjectOrigins, fetchProjectOrigins } from '../../../services/projects';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useProjectResource } from '../../../hooks/useProjectResource';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 export const AllowedOriginsList = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('allowedOrigin', fetchProjectOrigins);
@@ -65,7 +66,7 @@ export const AllowedOriginsList = () => {
       items={items}
       loading={loading}
       layout="grid"
-      onAdd={() => navigate(`/project/${projectId}/settings/allowed-origins/create`)}
+      onAdd={() => openForm(`/project/${projectId}/settings/allowed-origins/create`)}
       addLabel="Add a new origin"
     />
   );

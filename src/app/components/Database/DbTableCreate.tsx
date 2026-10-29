@@ -1,10 +1,11 @@
 import s from './Database.module.css';
 import { useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableColumns, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTable } from '../../../services/database';
 import { DbColumnDefinition, ExternalDbType } from '../../../interfaces';
@@ -19,7 +20,7 @@ const emptyCol = (): DbColumnDefinition => ({ name: '', type: 'TEXT', nullable: 
 
 export const DbTableCreate = () => {
   const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const locationState = (location.state ?? {}) as { dbType?: string; isBuiltin?: boolean; name?: string };
@@ -54,7 +55,7 @@ export const DbTableCreate = () => {
         columns: isMongo ? [] : columns,
       });
       dispatch(addApiResponse({ message: `${entity.charAt(0).toUpperCase() + entity.slice(1)} created.`, type: 'success' }));
-      navigate(`/project/${projectId}/database/${connId}`);
+      done(`/project/${projectId}/database/${connId}`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || `Failed to create ${entity}.`, type: 'error' }));
     } finally {
@@ -89,54 +90,54 @@ export const DbTableCreate = () => {
               ),
             },
           ]}
-          actions={null}
-        />
+          actions={
+            <>
+              <ActionButton disabled={isDisabled} icon={faTableColumns} text={`Create ${entity}`} type="submit" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/database/${connId}`)} text="Cancel" />
+            </>
+          }
+        >
+          {!isMongo && (
+            <div className={s.columnSection}>
+              <p className={s.sectionLabel}>Columns</p>
 
-        {!isMongo && (
-          <div className={s.columnSection}>
-            <p className={s.sectionLabel}>Columns</p>
-
-            <div className={s.columnBuilder}>
-              <div className={s.columnRow}>
-                <span className={s.columnRowLabel}>Name</span>
-                <span className={s.columnRowLabel}>Type</span>
-                <span className={s.columnRowLabel}>Nullable</span>
-                <span className={s.columnRowLabel}>PK</span>
-                <span />
-              </div>
-
-              {columns.map((col, i) => (
-                <div key={i} className={s.columnRow}>
-                  <input
-                    type="text" placeholder="column_name" value={col.name}
-                    onChange={e => updateColumn(i, 'name', e.target.value)}
-                  />
-                  <select value={col.type} onChange={e => updateColumn(i, 'type', e.target.value)}>
-                    {SQL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <span className={s.checkCell}>
-                    <input type="checkbox" checked={col.nullable !== false} onChange={e => updateColumn(i, 'nullable', e.target.checked)} />
-                  </span>
-                  <span className={s.checkCell}>
-                    <input type="checkbox" checked={!!col.primaryKey} onChange={e => updateColumn(i, 'primaryKey', e.target.checked)} />
-                  </span>
-                  <button type="button" className={s.removeColBtn} onClick={() => removeColumn(i)} disabled={columns.length === 1}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
+              <div className={s.columnBuilder}>
+                <div className={s.columnRow}>
+                  <span className={s.columnRowLabel}>Name</span>
+                  <span className={s.columnRowLabel}>Type</span>
+                  <span className={s.columnRowLabel}>Nullable</span>
+                  <span className={s.columnRowLabel}>PK</span>
+                  <span />
                 </div>
-              ))}
 
-              <button type="button" className={s.addColBtn} onClick={addColumn}>
-                <FontAwesomeIcon icon={faPlus} /> Add column
-              </button>
+                {columns.map((col, i) => (
+                  <div key={i} className={s.columnRow}>
+                    <input
+                      type="text" placeholder="column_name" value={col.name}
+                      onChange={e => updateColumn(i, 'name', e.target.value)}
+                    />
+                    <select value={col.type} onChange={e => updateColumn(i, 'type', e.target.value)}>
+                      {SQL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <span className={s.checkCell}>
+                      <input type="checkbox" checked={col.nullable !== false} onChange={e => updateColumn(i, 'nullable', e.target.checked)} />
+                    </span>
+                    <span className={s.checkCell}>
+                      <input type="checkbox" checked={!!col.primaryKey} onChange={e => updateColumn(i, 'primaryKey', e.target.checked)} />
+                    </span>
+                    <button type="button" className={s.removeColBtn} onClick={() => removeColumn(i)} disabled={columns.length === 1}>
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </div>
+                ))}
+
+                <button type="button" className={s.addColBtn} onClick={addColumn}>
+                  <FontAwesomeIcon icon={faPlus} /> Add column
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-
-        <div className={s.formActions}>
-          <ActionButton disabled={isDisabled} icon={faTableColumns} text={`Create ${entity}`} type="submit" />
-          <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
-        </div>
+          )}
+        </CustomForm>
       </form>
     </div>
   );

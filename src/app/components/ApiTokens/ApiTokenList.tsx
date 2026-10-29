@@ -1,7 +1,6 @@
 import s from './ApiTokenList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faKey, faLock, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +15,7 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { ApiTokenCard } from '../Cards/ApiTokenCard';
 import { RevokeApiTokenModal } from './RevokeApiTokenModal';
 import { apiTokensPath } from './paths';
+import { useFormSaved, useOpenForm } from '../../../hooks/useFormRoute';
 
 const messageOf = (err: unknown, fallback: string) => (err instanceof Error && err.message ? err.message : fallback);
 
@@ -25,7 +25,7 @@ interface ApiTokenListProps {
 }
 
 export const ApiTokenList = ({ projectId }: ApiTokenListProps) => {
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const dispatch = useDispatch<AppDispatch>();
   const { projectList } = useProjects();
   const session = useSelector((state: RootState) => state.session);
@@ -46,10 +46,11 @@ export const ApiTokenList = ({ projectId }: ApiTokenListProps) => {
     }
   }, [dispatch, projectId]);
 
-  useEffect(() => { if (allowed) load(); }, [allowed, load]);
+  const saved = useFormSaved();
+  useEffect(() => { if (allowed) load(); }, [allowed, load, saved]);
 
   const projectName = (id: string) => projectList.list.find(p => p.id === id)?.name ?? id;
-  const handleCreate = () => navigate(`${apiTokensPath(projectId)}/create`);
+  const handleCreate = () => openForm(`${apiTokensPath(projectId)}/create`);
 
   const handleRevoke = async () => {
     if (!toRevoke) return;

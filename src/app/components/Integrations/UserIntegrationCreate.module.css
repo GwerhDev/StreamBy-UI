@@ -16,28 +16,12 @@
   margin: 0 auto;
 }
 
-.gridWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem;
-}
-
-.gridTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
 .grid {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-  max-width: 720px;
+  padding: 1.5rem 1.1rem;
 }
 
 .card {

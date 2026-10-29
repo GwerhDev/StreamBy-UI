@@ -1,6 +1,5 @@
 import s from './UserIntegrationCreate.module.css';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench, faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -9,6 +8,7 @@ import { upsertIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createUserIntegration } from '../../../services/userIntegrations';
 import { API_BASE } from '../../../config/api';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -29,7 +29,7 @@ const TILES: { id: Choice; label: string; description: string; icon: typeof faWr
 ];
 
 export const UserIntegrationCreate = () => {
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
 
   const [choice, setChoice] = useState<Choice>(null);
@@ -78,7 +78,7 @@ export const UserIntegrationCreate = () => {
       });
       dispatch(addApiResponse({ message: 'Integration created.', type: 'success' }));
       dispatch(upsertIntegration(integration));
-      navigate('/user/integrations');
+      done('/user/integrations');
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create integration.', type: 'error' }));
     } finally {
@@ -89,31 +89,30 @@ export const UserIntegrationCreate = () => {
   if (!choice) {
     return (
       <div className={s.container}>
-        <SectionHeader
-          icon={faArrowLeft}
-          title="New Integration"
-          onIconClick={() => navigate(-1)}
-        />
-        <div className={s.gridWrapper}>
-          <h3 className={s.gridTitle}>Add an integration</h3>
-          <div className={s.grid}>
-            {TILES.map(tile => (
-              <button
-                key={tile.id}
-                type="button"
-                className={`${s.card} ${tile.soon ? s.cardDisabled : ''}`}
-                disabled={tile.soon}
-                onClick={() => handleSelectTile(tile.id)}
-              >
-                <span className={s.cardIcon}><FontAwesomeIcon icon={tile.icon} /></span>
-                <span className={s.cardLabelRow}>
-                  <span className={s.cardLabel}>{tile.label}</span>
-                  {tile.soon && <span className={s.soon}>Soon</span>}
-                </span>
-                <span className={s.cardDesc}>{tile.description}</span>
-              </button>
-            ))}
-          </div>
+        <div className={s.formWrapper}>
+          <CustomForm
+            header={<SectionHeader icon={faArrowLeft} title="New Integration" subtitle="Add an integration" onIconClick={() => close('/user/integrations')} />}
+            fields={[]}
+          >
+            <div className={s.grid}>
+              {TILES.map(tile => (
+                <button
+                  key={tile.id}
+                  type="button"
+                  className={`${s.card} ${tile.soon ? s.cardDisabled : ''}`}
+                  disabled={tile.soon}
+                  onClick={() => handleSelectTile(tile.id)}
+                >
+                  <span className={s.cardIcon}><FontAwesomeIcon icon={tile.icon} /></span>
+                  <span className={s.cardLabelRow}>
+                    <span className={s.cardLabel}>{tile.label}</span>
+                    {tile.soon && <span className={s.soon}>Soon</span>}
+                  </span>
+                  <span className={s.cardDesc}>{tile.description}</span>
+                </button>
+              ))}
+            </div>
+          </CustomForm>
         </div>
       </div>
     );
@@ -185,7 +184,7 @@ export const UserIntegrationCreate = () => {
           actions={
             <>
               <ActionButton disabled={disabled} icon={faPlug} text="Create" type="submit" />
-              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate('/user/integrations')} text="Cancel" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close('/user/integrations')} text="Cancel" />
             </>
           }
         />

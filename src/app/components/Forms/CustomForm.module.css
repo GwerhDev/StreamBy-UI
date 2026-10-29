@@ -1,20 +1,58 @@
 /* ── Container ───────────────────────────── */
 .container {
   width: 100%;
-  gap: 1.5rem;
   display: flex;
   flex-direction: column;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-surface-raised);
+  background-color: var(--color-surface-600);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 1.1rem;
+  border-bottom: 1px solid var(--color-surface-raised);
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  color: var(--color-text-bright);
+  background: var(--color-surface-sunken);
 }
 
 
 /* ── Form list ─────────────────────────── */
 .fields {
   position: relative;
-  border-radius: 0.75rem;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-surface-raised);
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.fields:empty {
+  display: none;
 }
 
 .field {
@@ -125,4 +163,7 @@
 .actions {
   display: flex;
   gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-top: 1px solid var(--color-surface-raised);
+  flex-shrink: 0;
 }

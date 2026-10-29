@@ -12,6 +12,7 @@ import { SectionHeader } from "../SectionHeader/SectionHeader";
 import { EmptyBackground } from "../Backgrounds/EmptyBackground";
 import { useProjectResource } from "../../../hooks/useProjectResource";
 import { listPipelines } from "../../../services/pipelines";
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 // The project keeps its pipelines as references (what the menu and this list show).
 const fetchPipelineRefs = (projectId: string) =>
@@ -23,9 +24,10 @@ export function PipelineList() {
   useProjectResource('pipelines', fetchPipelineRefs);
   const { pipelines, id } = currentProjectData || {};
   const navigate = useNavigate();
+  const openForm = useOpenForm();
 
   const handleCreatePipeline = () => {
-    navigate(`/project/${id}/workflow/pipelines/create`);
+    openForm(`/project/${id}/workflow/pipelines/create`);
   };
 
   return (

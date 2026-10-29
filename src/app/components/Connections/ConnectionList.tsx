@@ -11,15 +11,17 @@ import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { useProjectResource } from '../../../hooks/useProjectResource';
 import { getConnections } from '../../../services/connections';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 export const ConnectionList = () => {
   const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: currentProjectData, loading } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('connections', getConnections);
   const connections = currentProjectData?.connections ?? [];
 
-  const handleCreate = () => navigate(`/project/${projectId}/connections/create`);
+  const handleCreate = () => openForm(`/project/${projectId}/connections/create`);
 
   return (
     <div className={s.container}>

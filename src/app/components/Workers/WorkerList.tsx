@@ -1,7 +1,7 @@
 import s from './WorkerList.module.css';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGears, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
@@ -13,11 +13,12 @@ import { ResourceList } from '../ResourceList/ResourceList';
 import { ModalShell } from '../Modals/ModalShell';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 // The processing workers the project can use: the host's (read-only here) and its own.
 export const WorkerList = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId = '' } = useParams<{ id: string }>();
   const workers = useSelector((state: RootState) => (state.workers.projectId === projectId ? state.workers.list : null));
   const [toRemove, setToRemove] = useState<Worker | null>(null);
@@ -87,7 +88,7 @@ export const WorkerList = () => {
         items={items}
         loading={workers === null}
         layout="grid"
-        onAdd={() => navigate(`/project/${projectId}/workers/create`)}
+        onAdd={() => openForm(`/project/${projectId}/workers/create`)}
         addLabel="Connect a worker"
       />
       {toRemove && (

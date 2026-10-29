@@ -1,6 +1,5 @@
 import s from './ApiTokenCreate.module.css';
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,6 +8,7 @@ import {
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useProjects } from '../../../hooks/useProjects';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { createApiToken } from '../../../services/apiTokens';
 import { ApiTokenKind, ApiTokenPermission } from '../../../interfaces';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
@@ -37,7 +37,7 @@ interface ApiTokenCreateProps {
 }
 
 export const ApiTokenCreate = ({ projectId }: ApiTokenCreateProps) => {
-  const navigate = useNavigate();
+  const { inModal, close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const { projectList } = useProjects();
   const projects = projectList.list;
@@ -85,18 +85,22 @@ export const ApiTokenCreate = ({ projectId }: ApiTokenCreateProps) => {
     return (
       <div className={s.container}>
         <div className={s.created} data-testid="api-token-created">
-          <SectionHeader icon={faKey} title="Token created" subtitle={name.trim()} />
-          <p className={s.warning}>
-            <FontAwesomeIcon icon={faTriangleExclamation} />
-            Copy your token now. It won't be shown again.
-          </p>
-          <div className={s.tokenRow}>
-            <code className={s.token} data-testid="api-token-value">{created}</code>
-            <CopyButton title="Copy token" textToCopy={created} copiedMessage="Token copied to clipboard." />
-          </div>
-          <div className={s.actions}>
-            <ActionButton icon={faCheck} text="Done" onClick={() => navigate(listPath)} />
-          </div>
+          <CustomForm
+            header={<SectionHeader icon={faKey} title="Token created" subtitle={name.trim()} />}
+            fields={[]}
+            actions={<ActionButton icon={faCheck} text="Done" onClick={() => done(listPath)} />}
+          >
+            <div className={s.createdBody}>
+              <p className={s.warning}>
+                <FontAwesomeIcon icon={faTriangleExclamation} />
+                Copy your token now. It won't be shown again.
+              </p>
+              <div className={s.tokenRow}>
+                <code className={s.token} data-testid="api-token-value">{created}</code>
+                <CopyButton title="Copy token" textToCopy={created} copiedMessage="Token copied to clipboard." />
+              </div>
+            </div>
+          </CustomForm>
         </div>
       </div>
     );
@@ -119,13 +123,13 @@ export const ApiTokenCreate = ({ projectId }: ApiTokenCreateProps) => {
           isLoading={busy}
           header={
             <SectionHeader
-              icon={faArrowLeft}
+              icon={inModal ? faKey : faArrowLeft}
               title={kind === 'project' ? 'New project token' : 'New API token'}
               subtitle={kind === 'project'
                 ? `A token of ${projectName}, for integrations that work on it: CI, services, agents.`
                 : 'Lets an agent or a service work with StreamBy as you.'}
               badge={LEVEL_LABEL[levelOf(permissions, kind)]}
-              onIconClick={() => navigate(listPath)}
+              onIconClick={inModal ? undefined : () => close(listPath)}
             />
           }
           fields={[
@@ -204,7 +208,7 @@ export const ApiTokenCreate = ({ projectId }: ApiTokenCreateProps) => {
           actions={
             <>
               <ActionButton type="submit" icon={faKey} text="Create token" disabled={!canCreate} />
-              <SecondaryButton icon={faXmark} text="Cancel" disabled={busy} onClick={() => navigate(listPath)} />
+              <SecondaryButton icon={faXmark} text="Cancel" disabled={busy} onClick={() => close(listPath)} />
             </>
           }
         />

@@ -14,9 +14,11 @@ import streambyIcon from '../../../assets/streamby-icon.svg';
 
 import { DbConnection } from '../../../interfaces';
 import { useProjectResource } from '../../../hooks/useProjectResource';
+import { useOpenForm } from '../../../hooks/useFormRoute';
 
 export const DbConnectionList = () => {
   const navigate = useNavigate();
+  const openForm = useOpenForm();
   const { id: projectId } = useParams<{ id: string }>();
   const { data: project, loading, removingIds } = useSelector((state: RootState) => state.currentProject);
   useProjectResource('dbConnections', fetchDbConnections);
@@ -24,7 +26,7 @@ export const DbConnectionList = () => {
 
   const [toRemove, setToRemove] = useState<DbConnection | null>(null);
 
-  const handleCreate = () => navigate(`/project/${projectId}/database/create`);
+  const handleCreate = () => openForm(`/project/${projectId}/database/create`);
 
   return (
     <div className={s.container}>

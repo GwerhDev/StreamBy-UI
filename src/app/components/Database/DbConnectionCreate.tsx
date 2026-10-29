@@ -1,9 +1,10 @@
 import s from './Database.module.css';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { faDatabase, faXmark, faTag, faLayerGroup, faFingerprint, faFileLines, faPlug, faRoute } from '@fortawesome/free-solid-svg-icons';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { setProjectResource } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createDbConnection, DbConnectionPayload } from '../../../services/database';
@@ -26,7 +27,7 @@ const SOURCE_MODES = [
 
 export const DbConnectionCreate = () => {
   const { id: projectId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const project = useSelector((state: RootState) => state.currentProject.data);
   const { integrations } = useSelector((state: RootState) => state.management);
@@ -73,7 +74,7 @@ export const DbConnectionCreate = () => {
       const { dbConnections } = await createDbConnection(projectId, payload);
       dispatch(addApiResponse({ message: 'Database connection created.', type: 'success' }));
       dispatch(setProjectResource({ projectId, key: 'dbConnections', value: dbConnections }));
-      navigate(`/project/${projectId}/database`);
+      done(`/project/${projectId}/database`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create connection.', type: 'error' }));
     } finally {
@@ -173,7 +174,7 @@ export const DbConnectionCreate = () => {
           actions={
             <>
               <ActionButton disabled={disabled} icon={faDatabase} text="Create" type="submit" />
-              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => navigate(-1)} text="Cancel" />
+              <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/database`)} text="Cancel" />
             </>
           }
         />

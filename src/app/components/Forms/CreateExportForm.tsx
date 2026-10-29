@@ -2,6 +2,7 @@ import s from './CreateExportForm.module.css';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
+import { useFormRoute } from '../../../hooks/useFormRoute';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setProjectResource } from '../../../store/currentProjectSlice';
 import { createExport } from '../../../services/exports';
@@ -11,7 +12,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { faDiagramProject, faDatabase, faFileLines, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { CustomForm } from './CustomForm';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 
@@ -26,7 +27,7 @@ export function CreateExportForm() {
   const [description, setDescription] = useState('');
   const [storageDbId, setStorageDbId] = useState('');
   const [builtinDbs, setBuiltinDbs] = useState<{ value: string; label: string }[]>([]);
-  const navigate = useNavigate();
+  const { close, goTo } = useFormRoute();
 
   useEffect(() => {
     fetchBuiltinDatabases().then(dbs => {
@@ -47,7 +48,7 @@ export function CreateExportForm() {
       dispatch(addApiResponse({ message: 'Export created successfully.', type: 'success' }));
       if (projectId) dispatch(setProjectResource({ projectId, key: 'exports', value: exports }));
 
-      navigate(`/project/${projectId}/workflow/exports/${response.exportId}/editor`);
+      goTo(`/project/${projectId}/workflow/exports/${response.exportId}/editor`);
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to create export.', type: 'error' }));
     } finally {
@@ -57,7 +58,7 @@ export function CreateExportForm() {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/project/${projectId}/workflow/exports`);
+    close(`/project/${projectId}/workflow/exports`);
   };
 
   return (
