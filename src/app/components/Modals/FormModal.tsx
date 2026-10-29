@@ -1,6 +1,6 @@
-import { MouseEvent, ReactNode, useCallback, useEffect } from 'react';
+import { MouseEvent, ReactNode, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FormCloseContext, InModalContext } from '../../../hooks/useFormRoute';
+import { FormDialogContext, InModalContext } from '../../../hooks/useFormRoute';
 import s from './FormModal.module.css';
 
 // A form opened as a modal over the screen it was opened from: the form is the modal (its own
@@ -14,26 +14,49 @@ export function FormModal({ children }: { children: ReactNode }) {
   );
 }
 
+const FOCUSABLE = 'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not([aria-label="Close"]), [href], [tabindex]:not([tabindex="-1"])';
+
 function FormModalOverlay({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const close = useCallback(() => navigate(-1), [navigate]);
+  const titleId = useId();
+  const dialog = useMemo(() => ({ close, titleId }), [close, titleId]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const pressedOutside = useRef(false);
 
+  // Esc closes the form, unless something open in it took it first (a dropdown's list).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [close]);
 
-  // The form's page wrapper fills the overlay: outside the form is outside its container.
+  // Focus goes into the form as it opens, and back to what opened it as it closes.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const node = dialogRef.current;
+    const first = node?.querySelector<HTMLElement>(`[data-form-card] :is(${FOCUSABLE})`);
+    (first ?? node)?.focus();
+    return () => { if (opener?.isConnected) opener.focus(); };
+  }, []);
+
+  // Closed by a click outside it only when the press started outside it too: a text selection
+  // dragged out of a field, or an option picked from a list over the overlay (its press is
+  // inside, through the portal), is not one. What wraps the form lets the pointer through
+  // (FormModal.module.css), so outside the form is the overlay itself.
+  const onMouseDown = (e: MouseEvent) => { pressedOutside.current = e.target === e.currentTarget; };
   const onClick = (e: MouseEvent) => {
-    if (!(e.target as Element).closest('[data-form-card]')) close();
+    if (pressedOutside.current && e.target === e.currentTarget) close();
+    pressedOutside.current = false;
   };
 
   return (
-    <div className={s.overlay} onClick={onClick} data-testid="form-modal">
-      <FormCloseContext.Provider value={close}>
-        <div className={s.form}>{children}</div>
-      </FormCloseContext.Provider>
+    <div className={s.overlay} onMouseDown={onMouseDown} onClick={onClick} data-testid="form-modal">
+      <FormDialogContext.Provider value={dialog}>
+        <div ref={dialogRef} className={s.form} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+          {children}
+        </div>
+      </FormDialogContext.Provider>
     </div>
   );
 }

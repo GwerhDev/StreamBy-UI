@@ -36,9 +36,11 @@ export function useBackgroundLocation(): Location | undefined {
 const SavedContext = createContext({ saved: 0, markSaved: () => {} });
 
 // Whether a form is shown as a modal (inside FormModal), or as a page; and, as a modal, how it's
-// closed (from its header's ×).
+// closed (from its header's ×) and the id its header's title takes, the dialog's label.
 export const InModalContext = createContext(false);
-export const FormCloseContext = createContext<(() => void) | null>(null);
+export const FormDialogContext = createContext<{ close: () => void; titleId: string } | null>(null);
+// The id a section header's title takes: a form's, as a modal's label.
+export const HeaderTitleIdContext = createContext<string | undefined>(undefined);
 
 export function FormRouteProvider({ children }: { children: ReactNode }) {
   const [saved, setSaved] = useState(0);

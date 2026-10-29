@@ -27,3 +27,13 @@
   flex-direction: column;
   min-height: 0;
 }
+
+/* Outside the form is the overlay: what wraps the form doesn't take the pointer, the form does. */
+.form {
+  pointer-events: none;
+  outline: none;
+}
+
+.form [data-form-card] {
+  pointer-events: auto;
+}

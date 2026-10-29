@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { ReactNode, useContext } from 'react';
-import { FormCloseContext } from '../../../hooks/useFormRoute';
+import { FormDialogContext, HeaderTitleIdContext } from '../../../hooks/useFormRoute';
 import { Spinner } from '../Spinner';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 
@@ -40,18 +40,21 @@ function isHeaderConfig(h: unknown): h is CustomFormHeader {
 // it's the modal, closed from its header.
 export function CustomForm({ header, fields, actions, children, readOnly = true, isLoading = false }: CustomFormProps) {
   const visibleFields = fields.filter(f => !f.hidden);
-  const close = useContext(FormCloseContext);
+  const dialog = useContext(FormDialogContext);
+  const close = dialog?.close;
 
   return (
     <div className={s.container} data-form-card>
       {(header || close) && (
         <div className={s.header}>
           <div className={s.headerContent}>
-            {header && (
-              isHeaderConfig(header)
-                ? <SectionHeader icon={header.icon} title={header.title} subtitle={header.subtitle} badge={header.badge} />
-                : header as ReactNode
-            )}
+            <HeaderTitleIdContext.Provider value={dialog?.titleId}>
+              {header && (
+                isHeaderConfig(header)
+                  ? <SectionHeader icon={header.icon} title={header.title} subtitle={header.subtitle} badge={header.badge} />
+                  : header as ReactNode
+              )}
+            </HeaderTitleIdContext.Provider>
           </div>
           {close && (
             <button className={s.closeBtn} type="button" aria-label="Close" onClick={close}>

@@ -49,8 +49,18 @@ export function DropdownInput({ value, onChange, options, disabled, placeholder,
         setOpen(false);
       }
     };
+    // Esc closes the list, and only it: not a modal it's in (which listens on window, after).
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [open]);
 
   const handleSelect = (optValue: string) => {
