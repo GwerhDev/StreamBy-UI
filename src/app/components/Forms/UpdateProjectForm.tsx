@@ -22,11 +22,14 @@ import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { CustomForm } from './CustomForm';
 import { IntegrationPicker } from '../Integrations/IntegrationPicker';
+import { useParams } from 'react-router-dom';
 
 export const UpdateProjectForm = () => {
   const { data: currentProjectData } = useSelector((state: RootState) => state.currentProject);
   const { integrations } = useSelector((state: RootState) => state.management);
   const { close, done } = useFormRoute();
+  const { id: routeId } = useParams<{ id: string }>();
+  const overviewPath = `/project/${routeId ?? currentProjectData?.id}/dashboard/overview`;
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState<string>(currentProjectData?.name || "");
   const [loader, setLoader] = useState<boolean>(false);
@@ -90,7 +93,7 @@ export const UpdateProjectForm = () => {
         await uploadToPresignedUrl(url, imageFile, contentType);
         await updateProjectImage(projectId, publicUrl);
       }
-      done('/project/' + currentProjectData?.id + '/dashboard/overview');
+      done(overviewPath);
       setLoader(false);
 
     } catch (err) {
@@ -99,7 +102,7 @@ export const UpdateProjectForm = () => {
     }
   };
 
-  const handleCancel = () => close('/project/' + currentProjectData?.id + '/dashboard/overview');
+  const handleCancel = () => close(overviewPath);
 
   const handleImageClick = () => fileInputRef.current?.click();
 

@@ -16,10 +16,10 @@ import { Project, WorkspaceMode } from '../../../interfaces';
 import { worker } from '../../../test/workers';
 import { Where } from '../../../test/Where';
 
-const renderMenu = (mode: WorkspaceMode, path = '/project/p1/storage', project: Partial<Project> = {}) => {
+const renderMenu = (mode: WorkspaceMode, path = '/project/p1/storage', project: Partial<Project> | null = {}) => {
   const store = configureStore({ reducer: { session, currentProject, projects, apiResponses, workers, documents } });
   store.dispatch(setMode(mode));
-  store.dispatch(setCurrentProject({ id: 'p1', name: 'Demo', public: false, ...project } as Project));
+  if (project) store.dispatch(setCurrentProject({ id: 'p1', name: 'Demo', public: false, ...project } as Project));
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[path]}>
@@ -100,5 +100,39 @@ describe('LateralMenu — Production', () => {
   it('shows as active, with the Dashboard, on its page', () => {
     renderMenu('developer', '/project/p1/dashboard/production?shot=s1');
     expect(screen.getByRole('link', { name: 'Production' }).className).toMatch(/activeLink/);
+  });
+});
+
+describe('LateralMenu — its links are the URL\'s project', () => {
+  const hrefs = () => screen.getAllByRole('link').map(a => a.getAttribute('href') ?? '').filter(h => h.startsWith('/project/'));
+
+  beforeEach(() => { vi.spyOn(workersService, 'getWorkers').mockResolvedValue([]); });
+
+  it('before its data loads, every link has its id', () => {
+    renderMenu('developer', '/project/p1/storage', null);
+    expect(hrefs().length).toBeGreaterThan(3);
+    for (const href of hrefs()) expect(href).toMatch(/^\/project\/p1\//);
+  });
+
+  it('asks for its workers only once it has loaded', () => {
+    renderMenu('developer', '/project/p1/storage', null);
+    expect(workersService.getWorkers).not.toHaveBeenCalled();
+  });
+
+  it("while another project's data is still there, shows none of it, and links to this one", () => {
+    renderMenu('developer', '/project/p2/storage', {
+      id: 'p1', name: 'Other', pipelines: [{ id: 'old-pipeline', name: 'Old pipeline' }],
+      storageConnections: [{ id: 'old-storage', name: 'Old storage' }],
+    } as unknown as Partial<Project>);
+    expect(hrefs().length).toBeGreaterThan(3);
+    for (const href of hrefs()) expect(href).toMatch(/^\/project\/p2\//);
+    expect(screen.queryByText('Other')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old storage')).not.toBeInTheDocument();
+  });
+
+  it('once loaded, shows its data', () => {
+    renderMenu('developer', '/project/p1/storage', { name: 'Mine', storageConnections: [{ id: 's', name: 'My storage' }] } as unknown as Partial<Project>);
+    expect(screen.getByText('Mine')).toBeInTheDocument();
+    expect(screen.getByText('My storage')).toBeInTheDocument();
   });
 });

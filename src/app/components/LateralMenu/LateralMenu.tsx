@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faBox, faChevronDown, faChevronLeft, faChevronRight, faCloud, faCode, faDatabase, faDiagramProject, faDoorOpen, faFileExport, faGear, faGears, faPlug, faSitemap, faTableColumns, faTowerBroadcast, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SERVICE_PROVIDER_ICON } from '../Integrations/serviceProviderIcons';
@@ -35,7 +35,12 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   const mode = session.mode ?? 'developer';
   const currentProject = useSelector((state: RootState) => state.currentProject);
   const workers = useSelector((state: RootState) => state.workers);
-  const { name, id, members } = currentProject.data || {};
+  // The project is the URL's: it's known before its data loads, and what's in the store until
+  // then may be the one left (none, or another project's), so it's only read if it's this one.
+  const { id: routeId } = useParams<{ id: string }>();
+  const id = routeId ?? currentProject.data?.id;
+  const project = currentProject.data?.id === id ? currentProject.data : undefined;
+  const { name, members } = project ?? {};
   const selfMember = members?.find(m => m.userId === session.userId);
   const isPending = selfMember?.status === 'pending';
   const [showCanvas, setShowCanvas] = useState(false);
@@ -90,8 +95,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   }, [isDashboardSection, isWorkflowsSection, isPipelinesSection, isExportsSection, isStorageSection, isDatabaseSection, isConnectionsSection, isServicesSection, isWorkersSection, isSettingsSection]);
 
   useEffect(() => {
-    if (id && !isPending && workers.projectId !== id) dispatch(fetchWorkers(id));
-  }, [dispatch, id, isPending, workers.projectId]);
+    if (project?.id && !isPending && workers.projectId !== project.id) dispatch(fetchWorkers(project.id));
+  }, [dispatch, project?.id, isPending, workers.projectId]);
 
   const toggleSection = (key: keyof typeof sectionOpen) => {
     setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
@@ -99,7 +104,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
 
   // Workflow sub-sections are derived from the node types instantiated in the canvas —
   // a section only shows up once its group has at least one node on the schema.
-  const workflowNodeTypes = currentProject.data?.workflow?.nodeSchema?.nodes as { type?: string }[] | undefined;
+  const workflowNodeTypes = project?.workflow?.nodeSchema?.nodes as { type?: string }[] | undefined;
   const activeWorkflowGroups = useMemo(() => activeWorkflowGroupsOf(workflowNodeTypes), [workflowNodeTypes]);
 
   const activeWorkflowSections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[])
@@ -121,7 +126,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
     setDbTablesLoading(new Set());
   }, [id]);
 
-  const allDbConns: DbConnection[] = currentProject.data?.dbConnections ?? [];
+  const allDbConns: DbConnection[] = project?.dbConnections ?? [];
 
   const toggleDb = async (connId: string) => {
     const willExpand = !expandedDbs.has(connId);
@@ -192,7 +197,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
       const response = await unarchiveProject(id || '');
       dispatch(addApiResponse({ message: response.message || 'Project unarchived.', type: 'success' }));
       if (response.projects) dispatch(setProjects(response.projects));
-      const current = currentProject.data;
+      const current = project;
       if (current && current.id && current.id === id) {
         dispatch(setCurrentProject({
           ...current,
@@ -437,8 +442,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                       <span className={s.serviceName}>Pipelines</span>
                     </Link>
                     {workflowPipelinesExpanded && (
-                      (currentProject.data?.pipelines ?? []).length
-                        ? currentProject.data!.pipelines!.map(pipeline => {
+                      (project?.pipelines ?? []).length
+                        ? project!.pipelines!.map(pipeline => {
                             const linkPath = `/project/${id}/workflow/pipelines/${pipeline.id}`;
                             const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                             return (
@@ -466,8 +471,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                         <span className={s.serviceName}>Exports</span>
                       </Link>
                       {workflowExportsExpanded && (
-                        (currentProject.data?.exports ?? []).length
-                          ? currentProject.data!.exports!.map(exp => {
+                        (project?.exports ?? []).length
+                          ? project!.exports!.map(exp => {
                               const linkPath = `/project/${id}/workflow/exports/${exp.id}`;
                               const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                               return (
@@ -497,7 +502,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.storage && (
                   <div className={s.sectionBody}>
-                    {(currentProject.data?.storageConnections ?? []).map(conn => {
+                    {(project?.storageConnections ?? []).map(conn => {
                       const isExpanded = expandedStorages.has(conn.id);
                       const linkPath = `/project/${id}/storage/${conn.id}`;
                       const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
@@ -542,8 +547,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.services && (
                   <div className={s.sectionBody}>
-                    {(currentProject.data?.integrationConnections ?? []).length
-                      ? currentProject.data!.integrationConnections!.map(conn => {
+                    {(project?.integrationConnections ?? []).length
+                      ? project!.integrationConnections!.map(conn => {
                           const linkPath = `/project/${id}/services`;
                           const isActive = location.pathname === linkPath;
                           return (
@@ -656,8 +661,8 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
                 </div>
                 {sectionOpen.connections && (
                   <div className={s.sectionBody}>
-                    {(currentProject.data?.connections ?? []).length
-                      ? currentProject.data!.connections!.map(conn => {
+                    {(project?.connections ?? []).length
+                      ? project!.connections!.map(conn => {
                           const linkPath = `/project/${id}/connections/${conn.id}`;
                           const isActive = location.pathname === linkPath || location.pathname.startsWith(`${linkPath}/`);
                           return (
