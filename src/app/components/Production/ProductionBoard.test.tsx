@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductionBoard } from './ProductionBoard';
+import { OldProductionRedirect } from '../../pages/ProductionBoardPage';
 import * as production from '../../../services/production';
 import * as projects from '../../../services/projects';
 import * as deliverables from '../../../services/deliverables';
@@ -25,7 +26,7 @@ const MEMBERS = [
 
 const Where = () => { const l = useLocation(); return <p data-testid="location">{l.pathname + l.search}</p>; };
 
-const renderBoard = (path = '/project/p1/workflow/production') => {
+const renderBoard = (path = '/project/p1/dashboard/production') => {
   const store = configureStore({
     reducer: {
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
@@ -35,7 +36,10 @@ const renderBoard = (path = '/project/p1/workflow/production') => {
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[path]}>
-        <Routes><Route path="/project/:id/workflow/production" element={<><ProductionBoard /><Where /></>} /></Routes>
+        <Routes>
+          <Route path="/project/:id/dashboard/production" element={<><ProductionBoard /><Where /></>} />
+          <Route path="/project/:id/workflow/production" element={<OldProductionRedirect />} />
+        </Routes>
       </MemoryRouter>
     </Provider>,
   );
@@ -82,20 +86,26 @@ describe('ProductionBoard', () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'SH010' }));
     expect(screen.getByTestId('shot-modal')).toBeInTheDocument();
-    expect(where()).toBe('/project/p1/workflow/production?shot=s1');
+    expect(where()).toBe('/project/p1/dashboard/production?shot=s1');
 
     fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => expect(screen.queryByTestId('shot-modal')).not.toBeInTheDocument());
-    expect(where()).toBe('/project/p1/workflow/production');
+    expect(where()).toBe('/project/p1/dashboard/production');
   });
 
   it('a link with ?shot=<id> opens that card; closed, the link is the board', async () => {
-    renderBoard('/project/p1/workflow/production?shot=s2');
+    renderBoard('/project/p1/dashboard/production?shot=s2');
     const modal = await screen.findByTestId('shot-modal');
     expect(within(modal).getByText('SH200')).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => expect(screen.queryByTestId('shot-modal')).not.toBeInTheDocument());
-    expect(where()).toBe('/project/p1/workflow/production');
+    expect(where()).toBe('/project/p1/dashboard/production');
+  });
+
+  it('its old URL goes to the dashboard, with the card it linked to still open', async () => {
+    renderBoard('/project/p1/workflow/production?shot=s2');
+    expect(within(await screen.findByTestId('shot-modal')).getByText('SH200')).toBeInTheDocument();
+    expect(where()).toBe('/project/p1/dashboard/production?shot=s2');
   });
 
   it('creates a card in place, at the foot of a cell: in that sequence, with that status', async () => {

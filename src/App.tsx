@@ -75,6 +75,7 @@ const ReviewListPage           = lazyPage(() => import('./app/pages/ReviewListPa
 const ReviewPlayerPage         = lazyPage(() => import('./app/pages/ReviewPlayerPage'), 'ReviewPlayerPage');
 const DeliverableListPage      = lazyPage(() => import('./app/pages/DeliverableListPage'), 'DeliverableListPage');
 const ProductionBoardPage      = lazyPage(() => import('./app/pages/ProductionBoardPage'), 'ProductionBoardPage');
+const OldProductionRedirect    = lazyPage(() => import('./app/pages/ProductionBoardPage'), 'OldProductionRedirect');
 const WorkflowPage             = lazyPage(() => import('./app/pages/WorkflowPage'), 'WorkflowPage');
 const Pipelines                = lazyPage(() => import('./app/pages/Pipelines'), 'Pipelines');
 const PipelineCreate           = lazyPage(() => import('./app/pages/PipelineCreate'), 'PipelineCreate');
@@ -151,6 +152,7 @@ function App() {
                   <Route path="/project/:id/dashboard" element={<Dashboard />} />
                   <Route path="/project/:id/dashboard/overview" element={<Overview />} />
                   <Route path="/project/:id/dashboard/members" element={<Members />} />
+                  <Route path="/project/:id/dashboard/production" element={<ProductionBoardPage />} />
 
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
@@ -179,7 +181,7 @@ function App() {
                   <Route path="/project/:id/workflow/exports" element={<Exports />} />
                   <Route path="/project/:id/workflow/exports/:exportId" element={<ExportsDetails />} />
                   <Route path="/project/:id/workflow/exports/:exportId/editor" element={<ExportEditorPage />} />
-                  <Route path="/project/:id/workflow/production" element={<ProductionBoardPage />} />
+                  <Route path="/project/:id/workflow/production" element={<OldProductionRedirect />} />
                   <Route path="/project/:id/workflow/jobs" element={<JobMonitorPage />} />
                   <Route path="/project/:id/workflow/reviews" element={<ReviewListPage />} />
                   <Route path="/project/:id/workflow/review/:sessionId" element={<ReviewPlayerPage />} />

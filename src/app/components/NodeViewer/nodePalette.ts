@@ -15,8 +15,8 @@ import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeT
 
 // Export-context groups (request → process → response model)
 export type ExportGroup = 'input' | 'data' | 'process' | 'output';
-// Workflow-context groups (production pipeline model)
-export type WorkflowGroup = 'production' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai';
+// Workflow-context groups
+export type WorkflowGroup = 'audiovisual' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai';
 
 export type PaletteItem = {
   type: string;
@@ -89,11 +89,12 @@ export const EXPORT_PALETTE_GROUPS: { key: ExportGroup; label: string; color: st
 export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filterNode', 'streambyNode', 'jsonInputNode', 'documentsNode']);
 
 // Full workflow palette (developer mode). Order defines display order within groups.
-// The audiovisual production nodes (TCORE-56) supersede the generic StreamBy media nodes
-// (transcode, caption, thumbnail, renderJob, formatConvert, lod, qcCheck), which are no longer
-// offered here — their components remain registered so saved schemas keep rendering.
+// The generic StreamBy media nodes (transcode, caption, thumbnail, renderJob, formatConvert, lod,
+// qcCheck) are no longer offered here, nor are Shot, Assembly and Master, which are steps of an
+// audiovisual pipeline (see the pipeline palettes). All their components remain registered, so
+// saved schemas keep rendering.
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
-  'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
+  'pipelineRefNode',
   'ingestNode', 'dataSourceNode', 'connectionNode', 'integrationConnectionNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode', 'creditsSheetNode',
@@ -101,15 +102,15 @@ export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'proceduralAssetNode', 'pipelineSuggestNode',
 ]);
 
-// Designer mode — production essentials only (shot, assembly, pipeline ref, review, credits sheet, master, deliverable).
+// Designer mode — essentials only (pipeline ref, review, credits sheet, deliverable).
 export const WORKFLOW_DESIGNER_TYPES = new Set([
-  'shotNode', 'assemblyNode', 'masterNode', 'pipelineRefNode',
+  'pipelineRefNode',
   'reviewGateNode', 'creditsSheetNode',
   'deliverableNode',
 ]);
 
-// Pipeline context (TCORE-62) — a Pipeline is a scoped sub-process. Its palette is the
-// production/process/review/delivery core, WITHOUT pipelineRefNode (no nesting) or the
+// Pipeline context — a Pipeline is a scoped sub-process. Its palette is the
+// audiovisual/process/review/delivery core, WITHOUT pipelineRefNode (no nesting) or the
 // orchestration/infra nodes (api/dataSource/ingest/AI) that live in workflow.
 export const PIPELINE_DEVELOPER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode',
@@ -118,7 +119,7 @@ export const PIPELINE_DEVELOPER_TYPES = new Set([
   'exportFormatNode', 'deliverableNode', 'distributionNode',
 ]);
 
-// Pipeline designer mode — production essentials + review.
+// Pipeline designer mode — audiovisual essentials + review.
 export const PIPELINE_DESIGNER_TYPES = new Set([
   'shotNode', 'assemblyNode', 'masterNode',
   'reviewGateNode',
@@ -126,7 +127,8 @@ export const PIPELINE_DESIGNER_TYPES = new Set([
 
 // Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
 export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
-  shotNode: 'production', assemblyNode: 'production', masterNode: 'production', pipelineRefNode: 'production',
+  shotNode: 'audiovisual', assemblyNode: 'audiovisual', masterNode: 'audiovisual',
+  pipelineRefNode: 'process',
   ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest', integrationConnectionNode: 'ingest',
   colorGradeNode: 'process', audioMixNode: 'process', subtitleNode: 'process', vfxNode: 'process', upscaleNode: 'process', transcriptionNode: 'process',
   reviewGateNode: 'review', annotationNode: 'review', creditsSheetNode: 'review',
@@ -135,7 +137,7 @@ export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
 };
 
 export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon: IconDefinition; color: string }[] = [
-  { key: 'production', label: 'Production', icon: faClapperboard,        color: H_LEFT },
+  { key: 'audiovisual', label: 'Audiovisual', icon: faClapperboard,      color: H_LEFT },
   { key: 'ingest',   label: 'Ingest',   icon: faFileImport,          color: H_JOB },
   { key: 'process',  label: 'Process',  icon: faGears,               color: H_TOP },
   { key: 'render',   label: 'Render',   icon: faClapperboard,        color: H_JOB },

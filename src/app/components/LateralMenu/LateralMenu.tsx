@@ -100,11 +100,7 @@ export const LateralMenu = ({ children, title, railItems }: { children?: React.R
   // Workflow sub-sections are derived from the node types instantiated in the canvas —
   // a section only shows up once its group has at least one node on the schema.
   const workflowNodeTypes = currentProject.data?.workflow?.nodeSchema?.nodes as { type?: string }[] | undefined;
-  const hasProductionData = !!currentProject.data?.hasProductionData;
-  const activeWorkflowGroups = useMemo(
-    () => activeWorkflowGroupsOf(workflowNodeTypes, hasProductionData),
-    [workflowNodeTypes, hasProductionData],
-  );
+  const activeWorkflowGroups = useMemo(() => activeWorkflowGroupsOf(workflowNodeTypes), [workflowNodeTypes]);
 
   const activeWorkflowSections = (Object.keys(WORKFLOW_SECTION_BY_GROUP) as WorkflowGroup[])
     .filter(group => activeWorkflowGroups.has(group))

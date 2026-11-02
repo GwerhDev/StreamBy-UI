@@ -65,7 +65,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     id: 'audiovisual-production',
     label: 'Audiovisual Production',
     description: 'Full audiovisual pipeline: shot → assembly → grade → mix → review → master → export → deliverable.',
-    contexts: ['pipeline', 'workflow'],
+    contexts: ['pipeline'],
     schema: {
       nodes: [
         { id: 'shot-1',      type: 'shotNode',       position: { x: 0,    y: 100 }, data: { label: 'Shot',         subtitle: 'Raw video clip',        fps: '24', resolution: '1920x1080' } },

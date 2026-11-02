@@ -5,14 +5,15 @@ export const dashboardDirectoryList = [
   { name: "Overview", icon: faDiagramProject, path: "dashboard/overview" },
   { name: "Members", icon: faUsers, path: "dashboard/members" },
   { name: "Documents", icon: faBook, path: "dashboard/documents" },
+  { name: "Production", icon: faClipboardList, path: "dashboard/production" },
 ];
 
 // Workflow sidebar sections, keyed by the same WorkflowGroup taxonomy nodePalette.ts uses.
 // A section is shown only when the Workflow canvas has an instantiated node of that group
 // (see LateralMenu's derivation from workflow.nodeSchema.nodes) — this map only carries
-// display metadata (label/icon/path), not visibility.
+// display metadata (label/icon/path), not visibility. Production isn't one of them: it's a
+// section of the dashboard, always there, whatever the workflow has.
 export const WORKFLOW_SECTION_BY_GROUP: Partial<Record<WorkflowGroup, { name: string; icon: typeof faClipboardList; path: string }>> = {
-  production: { name: "Production", icon: faClipboardList, path: "production" },
   process: { name: "Jobs", icon: faBriefcase, path: "jobs" },
   review: { name: "Reviews", icon: faComments, path: "reviews" },
   delivery: { name: "Deliverables", icon: faBoxArchive, path: "deliverables" },

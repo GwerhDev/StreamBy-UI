@@ -16,10 +16,10 @@ import { Project, WorkspaceMode } from '../../../interfaces';
 import { worker } from '../../../test/workers';
 import { Where } from '../../../test/Where';
 
-const renderMenu = (mode: WorkspaceMode, path = '/project/p1/storage') => {
+const renderMenu = (mode: WorkspaceMode, path = '/project/p1/storage', project: Partial<Project> = {}) => {
   const store = configureStore({ reducer: { session, currentProject, projects, apiResponses, workers, documents } });
   store.dispatch(setMode(mode));
-  store.dispatch(setCurrentProject({ id: 'p1', name: 'Demo', public: false } as Project));
+  store.dispatch(setCurrentProject({ id: 'p1', name: 'Demo', public: false, ...project } as Project));
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[path]}>
@@ -74,5 +74,31 @@ describe('LateralMenu — Documents', () => {
     expect(links.slice(links.indexOf('/project/p1/dashboard/overview'), links.indexOf('/project/p1/dashboard/overview') + 3))
       .toEqual(['/project/p1/dashboard/overview', '/project/p1/dashboard/members', '/project/p1/dashboard/documents']);
     expect(screen.queryByTestId('documents-section')).not.toBeInTheDocument();
+  });
+});
+
+describe('LateralMenu — Production', () => {
+  const productionLinks = () => screen.getAllByRole('link', { name: 'Production' }).map(a => a.getAttribute('href'));
+
+  beforeEach(() => { vi.spyOn(workersService, 'getWorkers').mockResolvedValue([]); });
+
+  it.each<WorkspaceMode>(['developer', 'designer'])('is in the Dashboard, after Documents, with no nodes and no data (%s mode)', mode => {
+    renderMenu(mode);
+    const links = screen.getAllByRole('link').map(a => a.getAttribute('href'));
+    expect(links[links.indexOf('/project/p1/dashboard/documents') + 1]).toBe('/project/p1/dashboard/production');
+    expect(productionLinks()).toEqual(['/project/p1/dashboard/production']);
+  });
+
+  it('is never under Workflow, even with a Shot node saved on the canvas', () => {
+    renderMenu('developer', '/project/p1/storage', {
+      workflow: { id: 'w1', name: 'Workflow', nodeSchema: { nodes: [{ id: 's', type: 'shotNode' }, { id: 'a', type: 'assemblyNode' }, { id: 'm', type: 'masterNode' }], edges: [] } },
+    } as Partial<Project>);
+    expect(productionLinks()).toEqual(['/project/p1/dashboard/production']);
+    expect(screen.getAllByRole('link').map(a => a.getAttribute('href'))).not.toContain('/project/p1/workflow/production');
+  });
+
+  it('shows as active, with the Dashboard, on its page', () => {
+    renderMenu('developer', '/project/p1/dashboard/production?shot=s1');
+    expect(screen.getByRole('link', { name: 'Production' }).className).toMatch(/activeLink/);
   });
 });
