@@ -1,0 +1,11 @@
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  font-size: 0.72rem;
+}
+
+.high   { color: #f87171; }
+.medium { color: #fbbf24; }
+.low    { color: var(--color-accent); }

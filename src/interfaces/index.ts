@@ -693,6 +693,8 @@ export interface ProductionShot {
   id: string;
   sequenceId: string;
   projectId: string;
+  // Its key: the project's key and its number in the project (e.g. WOG-12).
+  key?: string | null;
   name: string;
   description?: string;
   order: number;

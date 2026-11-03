@@ -1,10 +1,38 @@
 /* ── A column's head ──────────────────────────────────────────────────────── */
+/* Dragged to put its column elsewhere. */
 .head {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   padding: 0.5rem 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px 6px 0 0;
+  background: var(--color-surface-sunken);
+  cursor: grab;
+}
+
+.headDragging {
+  opacity: 0.35;
+}
+
+/* Where a dragged column goes: dropped here, it takes this one's place. */
+.headOver {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.headGhost {
+  cursor: grabbing;
+  border: 1px solid var(--color-accent-subtle-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+.ghostName {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-bright);
 }
 
 .dot {

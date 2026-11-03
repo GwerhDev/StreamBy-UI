@@ -4,12 +4,14 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCheck, faClipboardList, faPlus, faSpinner, faTableColumns, faList, faTrash, faPen, faXmark,
+  faCheck, faClipboardList, faMagnifyingGlass, faPlus, faTableColumns, faList, faTrash, faPen, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,
 } from '@dnd-kit/core';
+import { SortableContext, arrayMove, horizontalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useProjectMembers } from '../../../hooks/useProjectMembers';
@@ -25,15 +27,17 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
-  getBoardColumns, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
+  getBoard, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
 } from '../../../services/production';
-import { BoardColumn, Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionSequence, ProductionShot, ShotStatus, Team } from '../../../interfaces';
 import { ShotModal } from './ShotModal';
 import { AssetThumbnail } from './AssetThumbnail';
 import { formatDueDate } from './dueDate';
 import { EditSequenceModal } from './ProductionEditModals';
-import { PRIORITY_LABEL, columnOfShot } from './shots';
-import { AddColumnModal, ColumnHead, DeleteColumnModal } from './BoardColumns';
+import { columnOfShot, matchesSearch } from './shots';
+import { AddColumnModal, ColumnHead, ColumnHeadGhost, DeleteColumnModal } from './BoardColumns';
+import { PriorityIcon } from './PriorityIcon';
+import { BoardSkeleton } from './BoardSkeleton';
 import { isAssignedTo, isAssignedToTeam } from './assignees';
 
 type ViewMode = 'board' | 'list';
@@ -50,12 +54,6 @@ const STATUS_CHIP: Record<ShotStatus, string> = {
   in_progress: s.chipProgress,
   review:      s.chipReview,
   done:        s.chipDone,
-};
-
-const PRIORITY_CHIP: Record<TaskPriority, string> = {
-  low:    s.priorityLow,
-  medium: s.priorityMedium,
-  high:   s.priorityHigh,
 };
 
 // A cell of the board: a sequence's lane, in one of its columns.
@@ -90,16 +88,17 @@ export function ProductionBoard() {
     else setParams(p => { p.delete('shot'); return p; }, { replace: true });
   }, [location.state, navigate, setParams]);
 
-  // The board filtered by who its cards are assigned to (?person=me, or a member's id) and by a
-  // team (?team=<id>), in the URL as the open card is.
+  // The board filtered by a search of its cards' keys and names (?q=), by who they're assigned to
+  // (?person=me, or a member's id) and by a team (?team=<id>), in the URL as the open card is.
+  const query = params.get('q') ?? '';
   const person = params.get('person') ?? '';
   const team = params.get('team') ?? '';
-  const setFilter = (key: 'person' | 'team', value: string) =>
+  const setFilter = (key: 'q' | 'person' | 'team', value: string) =>
     setParams(p => { if (value) p.set(key, value); else p.delete(key); return p; }, { replace: true });
   const personId = person === 'me' ? userId ?? '' : person;
   const visibleShots = shots.filter(shot =>
-    (!personId || isAssignedTo(shot, personId, teams)) && (!team || isAssignedToTeam(shot, team)));
-  const filtering = !!person || !!team;
+    matchesSearch(shot, query) && (!personId || isAssignedTo(shot, personId, teams)) && (!team || isAssignedToTeam(shot, team)));
+  const filtering = !!query.trim() || !!person || !!team;
 
   // create sequence
   const [showCreateSeq, setShowCreateSeq] = useState(false);
@@ -129,9 +128,9 @@ export function ProductionBoard() {
     if (!projectId) return;
     setLoading(true);
     try {
-      const [seqs, cols] = await Promise.all([getSequences(projectId), getBoardColumns(projectId)]);
+      const [seqs, board] = await Promise.all([getSequences(projectId), getBoard(projectId)]);
       setSequences(seqs);
-      setColumns(cols);
+      setColumns(board.columns);
       const allShots = (await Promise.all(seqs.map(seq => getShots(projectId, seq.id)))).flat();
       setShots(allShots);
     } finally {
@@ -238,14 +237,17 @@ export function ProductionBoard() {
   };
   const handleRenameColumn = (columnId: string, name: string) =>
     changeColumns(() => updateBoardColumn(projectId, columnId, { name }), 'Failed to rename the column.');
-  const handleMoveColumn = (columnId: string, by: -1 | 1) => {
+  // A column put at another place: dragged there, or moved one place from its menu.
+  const handleOrderColumns = (order: string[]) => {
     if (columnSaving) return;
+    return changeColumns(() => orderBoardColumns(projectId, order), 'Failed to move the column.');
+  };
+  const handleMoveColumn = (columnId: string, by: -1 | 1) => {
     const order = columns.map(c => c.id);
     const from = order.indexOf(columnId);
     const to = from + by;
     if (from < 0 || to < 0 || to >= order.length) return;
-    [order[from], order[to]] = [order[to], order[from]];
-    return changeColumns(() => orderBoardColumns(projectId, order), 'Failed to move the column.');
+    return handleOrderColumns(arrayMove(order, from, to));
   };
   // Its cards, moved to another column, take that column's status: shown as the server has them.
   const handleDeleteColumn = async (columnId: string, moveTo?: string) => {
@@ -269,13 +271,11 @@ export function ProductionBoard() {
 
   // ── render ─────────────────────────────────────────────────────────────────
 
-  // Centered in the board's container, as the board fills it.
+  // In the board's container, as the board fills it.
   if (loading) {
     return (
       <div className={s.container}>
-        <div className={s.center}>
-          <FontAwesomeIcon icon={faSpinner} spin className={s.spinner} />
-        </div>
+        <BoardSkeleton />
       </div>
     );
   }
@@ -304,24 +304,6 @@ export function ProductionBoard() {
           subtitle={`${sequences.length} sequences · ${shots.length} shots${filtering ? ` · ${visibleShots.length} shown` : ''}`}
           action={
             <div className={s.toolbarActions}>
-              <div className={s.filter} aria-label="Filter by person">
-                <DropdownInput
-                  value={person}
-                  onChange={v => setFilter('person', v)}
-                  options={[
-                    { value: '', label: 'Everyone' },
-                    { value: 'me', label: 'Assigned to me' },
-                    ...members.map(m => ({ value: m.userId, label: m.username })),
-                  ]}
-                />
-              </div>
-              <div className={s.filter} aria-label="Filter by team">
-                <DropdownInput
-                  value={team}
-                  onChange={v => setFilter('team', v)}
-                  options={[{ value: '', label: 'All teams' }, ...teams.map(t => ({ value: t.id, label: t.name }))]}
-                />
-              </div>
               <div className={s.viewToggle}>
                 <button
                   type="button"
@@ -346,6 +328,38 @@ export function ProductionBoard() {
         />
       </div>
 
+      {/* Filters */}
+      <div className={s.filterBar} role="search">
+        <label className={s.search}>
+          <FontAwesomeIcon icon={faMagnifyingGlass} className={s.searchIcon} />
+          <input
+            type="search"
+            aria-label="Search cards"
+            placeholder="Search by name or key"
+            value={query}
+            onChange={e => setFilter('q', e.target.value)}
+          />
+        </label>
+        <div className={s.filter} aria-label="Filter by person">
+          <DropdownInput
+            value={person}
+            onChange={v => setFilter('person', v)}
+            options={[
+              { value: '', label: 'Everyone' },
+              { value: 'me', label: 'Assigned to me' },
+              ...members.map(m => ({ value: m.userId, label: m.username })),
+            ]}
+          />
+        </div>
+        <div className={s.filter} aria-label="Filter by team">
+          <DropdownInput
+            value={team}
+            onChange={v => setFilter('team', v)}
+            options={[{ value: '', label: 'All teams' }, ...teams.map(t => ({ value: t.id, label: t.name }))]}
+          />
+        </div>
+      </div>
+
       {/* Content */}
       <div className={s.content}>
         {sequences.length === 0 ? (
@@ -354,6 +368,7 @@ export function ProductionBoard() {
           <BoardView
             {...viewProps}
             columnSaving={columnSaving}
+            onOrderColumns={handleOrderColumns}
             onAddColumn={() => setAddingColumn(true)}
             onRenameColumn={handleRenameColumn}
             onMoveColumn={handleMoveColumn}
@@ -472,6 +487,7 @@ interface ViewProps {
 
 interface ColumnActions {
   columnSaving: boolean;
+  onOrderColumns: (order: string[]) => void;
   onAddColumn: () => void;
   onRenameColumn: (columnId: string, name: string) => void;
   onMoveColumn: (columnId: string, by: -1 | 1) => void;
@@ -480,8 +496,9 @@ interface ColumnActions {
 
 function BoardView({
   sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq,
-  columnSaving, onAddColumn, onRenameColumn, onMoveColumn, onDeleteColumn,
+  columnSaving, onOrderColumns, onAddColumn, onRenameColumn, onMoveColumn, onDeleteColumn,
 }: ViewProps & ColumnActions) {
+  const sequenceName = (id: string) => sequences.find(seq => seq.id === id)?.name;
   const [dragging, setDragging] = useState<ProductionShot | null>(null);
   // A press that moves is a drag; one that doesn't, a click (opens the card). From the keyboard,
   // Space picks a card up and Enter opens it.
@@ -503,7 +520,7 @@ function BoardView({
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
       <div className={s.board}>
-        <div className={s.boardHead}>
+        <ColumnsHead columns={columns} disabled={columnSaving} onOrder={onOrderColumns}>
           {columns.map((column, i) => (
             <div key={column.id} className={s.column}>
               <ColumnHead
@@ -522,7 +539,7 @@ function BoardView({
           <button type="button" className={s.addColumn} onClick={onAddColumn} aria-label="Add a column" title="Add a column">
             <FontAwesomeIcon icon={faPlus} />
           </button>
-        </div>
+        </ColumnsHead>
 
         {sequences.map(seq => {
           const seqShots = shots.filter(sh => sh.sequenceId === seq.id);
@@ -542,7 +559,7 @@ function BoardView({
                 {columns.map(column => (
                   <BoardCell key={column.id} id={cellId(seq.id, column.id)} label={`${seq.name}, ${column.name}`} accepts={!dragging || dragging.sequenceId === seq.id}>
                     {seqShots.filter(sh => columnOfShot(columns, sh)?.id === column.id).map(shot => (
-                      <ShotCard key={shot.id} shot={shot} members={members} teams={teams} projectId={projectId} onSelect={onSelectShot} />
+                      <ShotCard key={shot.id} shot={shot} sequenceName={seq.name} members={members} teams={teams} projectId={projectId} onSelect={onSelectShot} />
                     ))}
                     <InlineCreate label={`Create a shot in ${seq.name}, ${column.name}`} onCreate={name => onCreateShot(seq.id, column.id, name)} />
                   </BoardCell>
@@ -554,7 +571,45 @@ function BoardView({
         })}
       </div>
       <DragOverlay dropAnimation={null}>
-        {dragging && <CardBody shot={dragging} members={members} teams={teams} projectId={projectId} />}
+        {dragging && <CardBody shot={dragging} sequenceName={sequenceName(dragging.sequenceId)} members={members} teams={teams} projectId={projectId} />}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+// The columns' heads, dragged sideways to put a column elsewhere (from the keyboard: Space picks
+// one up, the arrows move it, Space puts it down). Its own drag, apart from the cards'.
+function ColumnsHead({ columns, disabled, onOrder, children }: {
+  columns: BoardColumn[];
+  disabled: boolean;
+  onOrder: (order: string[]) => void;
+  children: React.ReactNode;
+}) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const dragging = columns.find(c => c.id === draggingId);
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setDraggingId(null);
+    if (!over || active.id === over.id) return;
+    const order = columns.map(c => c.id);
+    onOrder(arrayMove(order, order.indexOf(String(active.id)), order.indexOf(String(over.id))));
+  };
+  return (
+    <DndContext
+      sensors={sensors}
+      modifiers={[restrictToHorizontalAxis]}
+      onDragStart={({ active }) => setDraggingId(String(active.id))}
+      onDragEnd={onDragEnd}
+      onDragCancel={() => setDraggingId(null)}
+    >
+      <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy} disabled={disabled}>
+        <div className={s.boardHead}>{children}</div>
+      </SortableContext>
+      <DragOverlay dropAnimation={null}>
+        {dragging && <ColumnHeadGhost column={dragging} dotClassName={STATUS_COLOR[dragging.status]} />}
       </DragOverlay>
     </DndContext>
   );
@@ -571,8 +626,9 @@ function BoardCell({ id, label, accepts, children }: { id: string; label: string
 
 // ── Shot card (board) ──────────────────────────────────────────────────────────
 
-function ShotCard({ shot, members, teams, projectId, onSelect }: {
+function ShotCard({ shot, sequenceName, members, teams, projectId, onSelect }: {
   shot: ProductionShot;
+  sequenceName?: string;
   members: Member[];
   teams: Team[];
   projectId: string;
@@ -586,20 +642,27 @@ function ShotCard({ shot, members, teams, projectId, onSelect }: {
       {...listeners}
       className={`${s.card} ${isDragging ? s.cardDragging : ''}`}
       aria-label={shot.name}
+      data-key={shot.key ?? undefined}
       onClick={() => onSelect(shot)}
       onKeyDown={e => {
         if (e.key === 'Enter') onSelect(shot);
         else listeners?.onKeyDown?.(e);
       }}
     >
-      <CardBody shot={shot} members={members} teams={teams} projectId={projectId} />
+      <CardBody shot={shot} sequenceName={sequenceName} members={members} teams={teams} projectId={projectId} />
     </div>
   );
 }
 
-// What a card shows: its name, its asset, its tasks' top priority and how they go, its due
-// date, and who it's assigned to: people and teams.
-function CardBody({ shot, members, teams, projectId }: { shot: ProductionShot; members: Member[]; teams: Team[]; projectId: string }) {
+// What a card shows: its asset, its name, the teams it's assigned to, its sequence, and at its
+// foot its tasks' top priority, its key, how its tasks go, its due date and its people.
+function CardBody({ shot, sequenceName, members, teams, projectId }: {
+  shot: ProductionShot;
+  sequenceName?: string;
+  members: Member[];
+  teams: Team[];
+  projectId: string;
+}) {
   const summary = shot.taskSummary;
   const assignees = members.filter(m => shot.assignedTo.includes(m.userId));
   const assignedTeams = teams.filter(t => (shot.teamIds ?? []).includes(t.id));
@@ -607,12 +670,15 @@ function CardBody({ shot, members, teams, projectId }: { shot: ProductionShot; m
     <div className={s.cardBody}>
       {shot.assetId && <AssetThumbnail projectId={projectId} assetId={shot.assetId} className={s.cardThumb} />}
       <span className={s.cardName}>{shot.name}</span>
+      {(assignedTeams.length > 0 || sequenceName) && (
+        <div className={s.cardTeams}>
+          {assignedTeams.map(t => <span key={t.id} className={s.teamChip}>{t.name}</span>)}
+          {sequenceName && <span className={s.cardSequence}>{sequenceName}</span>}
+        </div>
+      )}
       <div className={s.cardMeta}>
-        {summary?.priority && (
-          <span className={`${s.priority} ${PRIORITY_CHIP[summary.priority]}`} title="Top priority of its open tasks">
-            {PRIORITY_LABEL[summary.priority]}
-          </span>
-        )}
+        {summary?.priority && <PriorityIcon priority={summary.priority} title="Top priority of its open tasks" />}
+        {shot.key && <span className={s.cardKey}>{shot.key}</span>}
         {!!summary?.total && (
           <span className={`${s.progress} ${summary.done === summary.total ? s.progressDone : ''}`} title="Tasks done">
             <FontAwesomeIcon icon={faCheck} /> {summary.done}/{summary.total}
@@ -624,11 +690,6 @@ function CardBody({ shot, members, teams, projectId }: { shot: ProductionShot; m
           {assignees.length > 3 && <span className={s.moreAvatars}>+{assignees.length - 3}</span>}
         </span>
       </div>
-      {assignedTeams.length > 0 && (
-        <div className={s.cardTeams}>
-          {assignedTeams.map(t => <span key={t.id} className={s.teamChip}>{t.name}</span>)}
-        </div>
-      )}
     </div>
   );
 }
@@ -697,7 +758,9 @@ function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateSho
             </div>
             {seqShots.map(shot => (
               <div key={shot.id} className={s.listRow} onClick={() => onSelectShot(shot)}>
-                <span className={s.listShotName}>{shot.name}</span>
+                <span className={s.listShotName}>
+                  {shot.key && <span className={s.cardKey}>{shot.key}</span>} {shot.name}
+                </span>
                 <span className={`${s.listStatus} ${STATUS_CHIP[shot.status]}`} onClick={e => e.stopPropagation()} aria-label={`Column of ${shot.name}`}>
                   <DropdownInput
                     value={columnOfShot(columns, shot)?.id ?? ''}

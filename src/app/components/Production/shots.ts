@@ -30,3 +30,15 @@ export function summaryOf(tasks: Pick<ProductionTask, 'status' | 'priority' | 'a
 /** The column a card is in: its own, or (answered without one) the first of its status. */
 export const columnOfShot = (columns: BoardColumn[], shot: Pick<ProductionShot, 'columnId' | 'status'>): BoardColumn | undefined =>
   columns.find(c => c.id === shot.columnId) ?? columns.find(c => c.status === shot.status);
+
+/** Whether a card is found by a search: its key or its name holds it, case aside. */
+export function matchesSearch(shot: Pick<ProductionShot, 'name' | 'key'>, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return !q || !!shot.key?.toLowerCase().includes(q) || shot.name.toLowerCase().includes(q);
+}
+
+/** A column as it's offered to pick: its name, and its status when the name doesn't say it. */
+export const columnLabel = (column: BoardColumn): string =>
+  (column.name.trim().toLowerCase() === STATUS_LABEL[column.status].toLowerCase()
+    ? column.name
+    : `${column.name} · ${STATUS_LABEL[column.status]}`);

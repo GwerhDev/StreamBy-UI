@@ -68,7 +68,7 @@ describe('ShotModal', () => {
     expect(screen.getByText('Opening')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /SH010/ })).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toHaveValue('Wide establishing');
-    expect(screen.getByRole('button', { name: 'To Do · To Do' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'To Do' })).toBeInTheDocument();
     expect(within(screen.getByTestId('shot-assignees')).getByLabelText('eli')).toBeInTheDocument();
     expect(screen.getByLabelText('Animation', { selector: 'input' })).not.toBeChecked();
     expect(screen.getByLabelText('eli', { selector: 'input' })).toBeChecked();
@@ -79,9 +79,20 @@ describe('ShotModal', () => {
     const update = vi.spyOn(production, 'updateShot').mockResolvedValue({ ...SHOT, columnId: 'qa', status: 'in_progress' });
     renderModal();
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'To Do · To Do' }));
+    await user.click(screen.getByRole('button', { name: 'To Do' }));
     fireEvent.mouseDown(screen.getByText('QA · In Progress'));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { columnId: 'qa' }));
+  });
+
+  it('says where it is, sequence / key; its top open priority, and its dates', async () => {
+    vi.spyOn(production, 'getTasks').mockResolvedValue([
+      { ...TASK, priority: 'high', status: 'done' }, { ...TASK, id: 't2', priority: 'low' },
+    ]);
+    renderModal({ ...SHOT, key: 'WOG-4', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-05T00:00:00.000Z' });
+    expect(screen.getByText('Opening / WOG-4')).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Low priority' })).toBeInTheDocument();
+    expect(screen.getByText('Created').nextElementSibling).toHaveTextContent(new Date('2026-10-01T00:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC' }));
+    expect(screen.getByText('Updated')).toBeInTheDocument();
   });
 
   it('renames it in place: Enter saves, Esc puts it back (and leaves the modal open)', async () => {

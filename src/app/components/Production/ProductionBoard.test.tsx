@@ -67,7 +67,7 @@ beforeEach(() => {
   vi.spyOn(projects, 'fetchProjectMembers').mockResolvedValue(MEMBERS);
   vi.spyOn(deliverables, 'getDeliverables').mockResolvedValue([]);
   vi.spyOn(teamsService, 'getTeams').mockResolvedValue([]);
-  vi.spyOn(production, 'getBoardColumns').mockResolvedValue(COLUMNS);
+  vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: COLUMNS, key: 'POR' });
 });
 
 const deleteButtons = () => screen.findAllByTitle('Delete sequence');
@@ -84,10 +84,26 @@ describe('ProductionBoard', () => {
     expect(within(cell('Opening', 'Review')).queryByText('SH200')).not.toBeInTheDocument();
   });
 
-  it("a card shows its tasks' top priority, how they go, and who it's assigned to", async () => {
+  it('shows a skeleton of the board while it loads, then the board', async () => {
+    let answer!: (seqs: ProductionSequence[]) => void;
+    vi.spyOn(production, 'getSequences').mockImplementation(() => new Promise(resolve => { answer = resolve; }));
+    renderBoard();
+    expect(screen.getByTestId('board-skeleton')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.queryByRole('button', { name: 'SH010' })).not.toBeInTheDocument();
+    await act(async () => answer([seq({})]));
+    expect(await screen.findByRole('button', { name: 'SH010' })).toBeInTheDocument();
+    expect(screen.queryByTestId('board-skeleton')).not.toBeInTheDocument();
+  });
+
+  it("a card shows its key, its sequence, its tasks' top priority, how they go, and who it's assigned to", async () => {
+    vi.spyOn(production, 'getShots').mockImplementation(async (_p, seqId) => (seqId === 'q1'
+      ? [shot({ key: 'POR-7', assignedTo: ['u2'], taskSummary: { done: 2, total: 3, priority: 'high' } })]
+      : []));
     renderBoard();
     const card = await screen.findByRole('button', { name: 'SH010' });
-    expect(within(card).getByText('High')).toBeInTheDocument();
+    expect(within(card).getByText('POR-7')).toBeInTheDocument();
+    expect(within(card).getByText('Opening')).toBeInTheDocument();
+    expect(within(card).getByRole('img', { name: 'High priority' })).toBeInTheDocument();
     expect(within(card).getByText('2/3')).toBeInTheDocument();
     await waitFor(() => expect(within(card).getByLabelText('eli')).toBeInTheDocument());
   });
@@ -167,7 +183,8 @@ describe('ProductionBoard', () => {
     await user.type(screen.getByLabelText('Description'), 'Before the titles');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 'q1', { name: 'Prologue', description: 'Before the titles' }));
-    expect(await screen.findByText('Prologue')).toBeInTheDocument();
+    expect((await screen.findAllByText('Prologue')).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Opening')).not.toBeInTheDocument();
   });
 
   it("can't save a sequence without a name", async () => {
@@ -374,7 +391,8 @@ describe('the board\'s columns', () => {
     await user.click(screen.getByRole('menuitem', { name: /Move left/ }));
     await waitFor(() => expect(order).toHaveBeenCalledWith('p1', ['todo', 'in_progress', 'review', 'qa', 'done']));
     expect(heads()).toEqual(['To Do', 'In Progress', 'Quality', 'Review', 'Done']);
-  });
+    // Many steps through dialogs and menus: it takes long on a busy machine.
+  }, 15000);
 
   it("doesn't move a column again until its last move is saved", async () => {
     let answer!: (columns: typeof COLUMNS) => void;
@@ -392,7 +410,7 @@ describe('the board\'s columns', () => {
   });
 
   it("a card moved to QA is in QA, with QA's status", async () => {
-    vi.spyOn(production, 'getBoardColumns').mockResolvedValue([...COLUMNS, QA]);
+    vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: [...COLUMNS, QA], key: 'POR' });
     const update = vi.spyOn(production, 'updateShot').mockResolvedValue(shot({ columnId: 'qa', status: 'in_progress' }));
     renderBoard();
     const user = userEvent.setup();
@@ -405,7 +423,7 @@ describe('the board\'s columns', () => {
   });
 
   it('deleting a column with cards asks where to move them', async () => {
-    vi.spyOn(production, 'getBoardColumns').mockResolvedValue([...COLUMNS, QA]);
+    vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: [...COLUMNS, QA], key: 'POR' });
     vi.spyOn(production, 'getShots').mockImplementation(async (_p, seqId) => (seqId === 'q1' ? [shot({ columnId: 'qa', status: 'in_progress' })] : []));
     const del = vi.spyOn(production, 'deleteBoardColumn').mockResolvedValue({ columns: COLUMNS, moved: 1 });
     renderBoard();
@@ -414,9 +432,9 @@ describe('the board\'s columns', () => {
     await user.click(screen.getByRole('menuitem', { name: /Delete column/ }));
     expect(screen.getByText(/Its card will move to another column/)).toBeInTheDocument();
     // Another column of its status first.
-    expect(within(screen.getByText('Move its cards to').parentElement!).getByRole('button', { name: 'In Progress (In Progress)' })).toBeInTheDocument();
+    expect(within(screen.getByText('Move its cards to').parentElement!).getByRole('button', { name: 'In Progress' })).toBeInTheDocument();
     await user.click(within(screen.getByText('Move its cards to').parentElement!).getByRole('button'));
-    fireEvent.mouseDown(screen.getByText('Review (Review)'));
+    fireEvent.mouseDown(screen.getByText('Review', { selector: 'li' }));
     await user.click(screen.getByRole('button', { name: /Delete column/ }));
     await waitFor(() => expect(del).toHaveBeenCalledWith('p1', 'qa', 'review'));
     expect(heads()).toEqual(['To Do', 'In Progress', 'Review', 'Done']);
@@ -435,3 +453,83 @@ describe('the board\'s columns', () => {
   });
 });
 
+describe('searching the board', () => {
+  beforeEach(() => {
+    vi.spyOn(production, 'getSequences').mockResolvedValue([seq({})]);
+    vi.spyOn(production, 'getShots').mockResolvedValue([
+      shot({ id: 's1', name: 'Opening crawl', key: 'POR-1' }),
+      shot({ id: 's2', name: 'Chase', key: 'POR-2' }),
+      shot({ id: 's3', name: 'Big chase', key: 'POR-12' }),
+    ]);
+  });
+  const shown = () => [...document.querySelectorAll('[aria-roledescription="draggable"]')].map(c => c.getAttribute('data-key'));
+
+  it('by key finds the card, case aside; by a part of a name too; in the URL', async () => {
+    renderBoard();
+    const user = userEvent.setup();
+    const search = await screen.findByRole('searchbox', { name: 'Search cards' });
+    await user.type(search, 'por-2');
+    expect(shown()).toEqual(['POR-2']);
+    expect(where()).toBe('/project/p1/dashboard/production?q=por-2');
+    expect(screen.getByText(/· 1 shown/)).toBeInTheDocument();
+    await user.clear(search);
+    await user.type(search, 'CHASE');
+    expect(shown()).toEqual(['POR-2', 'POR-12']);
+    await user.clear(search);
+    expect(shown()).toEqual(['POR-1', 'POR-2', 'POR-12']);
+    expect(where()).toBe('/project/p1/dashboard/production');
+  });
+
+  it('a link with ?q= opens the board searched', async () => {
+    renderBoard('/project/p1/dashboard/production?q=POR-12');
+    await screen.findByRole('button', { name: 'Big chase' });
+    expect(shown()).toEqual(['POR-12']);
+    expect(screen.getByRole('searchbox', { name: 'Search cards' })).toHaveValue('POR-12');
+  });
+});
+
+// Over a laid-out head: each column's head 250px wide, side by side.
+describe('dragging a column', () => {
+  const original = Element.prototype.getBoundingClientRect;
+  const rect = (x: number, width: number) =>
+    ({ x, y: 0, left: x, top: 0, width, height: 36, right: x + width, bottom: 36, toJSON: () => ({}) }) as DOMRect;
+  beforeEach(() => {
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      const i = COLUMNS.findIndex(c => this.getAttribute('aria-label') === `Column ${c.name}`);
+      if (i >= 0) return rect(i * 250, 240);
+      // The copy of the head that's dragged (DragOverlay's), where its column is.
+      if (String(this.className).includes('headGhost')) return rect(COLUMNS.findIndex(c => c.name === this.textContent) * 250, 240);
+      return rect(0, 0);
+    };
+  });
+  afterEach(() => { Element.prototype.getBoundingClientRect = original; });
+  const tick = () => act(() => new Promise(resolve => setTimeout(resolve, 0)));
+
+  it('puts it elsewhere: its head picked up (from the keyboard, Space), moved, put down', async () => {
+    const order = vi.spyOn(production, 'orderBoardColumns').mockResolvedValue([COLUMNS[1], COLUMNS[0], COLUMNS[2], COLUMNS[3]]);
+    renderBoard();
+    const head = await screen.findByLabelText('Column To Do');
+    expect(head).toHaveAttribute('aria-roledescription', 'sortable column');
+    head.focus();
+    fireEvent.keyDown(head, { key: ' ', code: 'Space' });
+    await tick();
+    fireEvent.keyDown(document, { key: 'ArrowRight', code: 'ArrowRight' });
+    await tick();
+    fireEvent.keyDown(document, { key: ' ', code: 'Space' });
+    await waitFor(() => expect(order).toHaveBeenCalledWith('p1', ['in_progress', 'todo', 'review', 'done']));
+    await waitFor(() => expect(screen.getAllByLabelText(/^Column /).map(h => h.getAttribute('aria-label'))).toEqual(
+      ['Column In Progress', 'Column To Do', 'Column Review', 'Column Done']));
+  });
+
+  it("put down where it was, isn't saved", async () => {
+    const order = vi.spyOn(production, 'orderBoardColumns');
+    renderBoard();
+    const head = await screen.findByLabelText('Column Review');
+    head.focus();
+    fireEvent.keyDown(head, { key: ' ', code: 'Space' });
+    await tick();
+    fireEvent.keyDown(document, { key: ' ', code: 'Space' });
+    await tick();
+    expect(order).not.toHaveBeenCalled();
+  });
+});

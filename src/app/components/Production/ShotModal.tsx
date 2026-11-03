@@ -15,12 +15,14 @@ import { AssetPickerModal } from '../Modals/AssetPickerModal';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { AssigneePicker } from './AssigneePicker';
+import { PriorityIcon } from './PriorityIcon';
+import { formatDueDate } from './dueDate';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import { DeliverableItems } from '../Deliverables/DeliverableItems';
 import { EditTaskModal } from './ProductionEditModals';
 import { AssetThumbnail } from './AssetThumbnail';
-import { PRIORITY_LABEL, STATUS_LABEL, columnOfShot, summaryOf } from './shots';
+import { PRIORITY_LABEL, columnLabel, columnOfShot, summaryOf } from './shots';
 
 type ShotChanges = Parameters<typeof updateShot>[2];
 
@@ -192,9 +194,12 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
   };
 
   const doneCount = tasks.filter(t => t.status === 'done').length;
+  const topPriority = summaryOf(tasks).priority;
+  // Its place, as a path: its sequence, then its key.
+  const path = [sequence?.name, shot.key].filter(Boolean).join(' / ') || 'Shot';
 
   return (
-    <ModalShell title={sequence?.name ?? 'Shot'} icon={faClipboardList} onClose={onClose} className={s.modal}>
+    <ModalShell title={path} icon={faClipboardList} onClose={onClose} className={s.modal}>
       <div className={s.layout} data-testid="shot-modal">
         <div className={s.main}>
           {editingName ? (
@@ -311,9 +316,9 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
 
         <aside className={s.side}>
           <LabeledSelect
-            label="Column" htmlFor="shot-column" id="shot-column" value={columnOfShot(columns, shot)?.id ?? ''}
+            label="Status" htmlFor="shot-column" id="shot-column" value={columnOfShot(columns, shot)?.id ?? ''}
             onChange={e => save({ columnId: e.target.value }, 'Failed to move the shot.')}
-            options={columns.map(c => ({ value: c.id, label: `${c.name} · ${STATUS_LABEL[c.status]}` }))}
+            options={columns.map(c => ({ value: c.id, label: columnLabel(c) }))}
           />
 
           <div className={s.sideField}>
@@ -325,11 +330,29 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
           </div>
 
           <div className={s.sideField}>
+            <span className={s.sectionLabel}>Priority</span>
+            {topPriority ? (
+              <span className={s.priorityValue} data-testid="shot-priority">
+                <PriorityIcon priority={topPriority} /> {PRIORITY_LABEL[topPriority]}
+                <small className={s.hint}>its open tasks' top</small>
+              </span>
+            ) : (
+              <span className={s.hint}>No open tasks</span>
+            )}
+          </div>
+
+          <div className={s.sideField}>
             <label className={s.sectionLabel} htmlFor="shot-due">Due date</label>
             <input
               id="shot-due" type="date" className={s.dateInput} value={dateInput(shot.dueDate)}
               onChange={e => save({ dueDate: e.target.value || null }, 'Failed to change the due date.')}
             />
+            {shot.createdAt && (
+              <dl className={s.dates}>
+                <dt>Created</dt><dd>{formatDueDate(shot.createdAt)}</dd>
+                {shot.updatedAt && <><dt>Updated</dt><dd>{formatDueDate(shot.updatedAt)}</dd></>}
+              </dl>
+            )}
           </div>
 
           <div className={s.sideField}>

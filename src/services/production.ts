@@ -53,9 +53,15 @@ export async function deleteSequence(projectId: string, seqId: string): Promise<
 // ── Board ──────────────────────────────────────────────────────────────────
 // Each change answers the board's columns as they are then.
 
-export async function getBoardColumns(projectId: string): Promise<BoardColumn[]> {
-  const { columns } = await request<{ columns: BoardColumn[] }>(`${base(projectId)}/board`, { method: 'GET' });
-  return columns;
+/** The board's columns, and the key its cards' keys start with. */
+export async function getBoard(projectId: string): Promise<{ columns: BoardColumn[]; key: string }> {
+  return request<{ columns: BoardColumn[]; key: string }>(`${base(projectId)}/board`, { method: 'GET' });
+}
+
+/** The project's card key (its admins only); cards keep their numbers. */
+export async function setCardKey(projectId: string, key: string): Promise<string> {
+  const { key: saved } = await request<{ key: string }>(`${base(projectId)}/board/key`, json('PUT', { key }));
+  return saved;
 }
 
 export async function addBoardColumn(projectId: string, payload: { name: string; status: string; position?: number }): Promise<BoardColumn[]> {

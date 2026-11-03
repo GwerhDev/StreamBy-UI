@@ -1,5 +1,6 @@
 import s from './BoardColumns.module.css';
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faEllipsisVertical, faPlus, faTableColumns, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { BoardColumn, ShotStatus } from '../../../interfaces';
@@ -9,7 +10,7 @@ import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
-import { STATUSES, STATUS_LABEL } from './shots';
+import { STATUSES, STATUS_LABEL, columnLabel } from './shots';
 
 interface HeadProps {
   column: BoardColumn;
@@ -25,8 +26,9 @@ interface HeadProps {
 }
 
 // A column's head: its status's dot, its name (renamed in place), how many cards it has, and a
-// menu to move it or delete it.
+// menu to move it or delete it. The head is dragged to put the column elsewhere (see BoardView).
 export function ColumnHead({ column, count, dotClassName, canMoveLeft, canMoveRight, busy, onRename, onMove, onDelete }: HeadProps) {
+  const { attributes, listeners, setNodeRef, isDragging, isOver } = useSortable({ id: column.id, disabled: busy });
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(column.name);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,7 +50,14 @@ export function ColumnHead({ column, count, dotClassName, canMoveLeft, canMoveRi
   };
 
   return (
-    <div className={s.head} aria-label={`Column ${column.name}`}>
+    <div
+      ref={setNodeRef}
+      className={`${s.head} ${isDragging ? s.headDragging : ''} ${isOver && !isDragging ? s.headOver : ''}`}
+      {...attributes}
+      {...listeners}
+      aria-roledescription="sortable column"
+      aria-label={`Column ${column.name}`}
+    >
       <span className={`${s.dot} ${dotClassName}`} title={STATUS_LABEL[column.status]} />
       {editing ? (
         <input
@@ -87,6 +96,16 @@ export function ColumnHead({ column, count, dotClassName, canMoveLeft, canMoveRi
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// A column's head as it's dragged (in the board's drag overlay).
+export function ColumnHeadGhost({ column, dotClassName }: { column: BoardColumn; dotClassName: string }) {
+  return (
+    <div className={`${s.head} ${s.headGhost}`}>
+      <span className={`${s.dot} ${dotClassName}`} />
+      <span className={s.ghostName}>{column.name}</span>
     </div>
   );
 }
@@ -143,7 +162,7 @@ export function DeleteColumnModal({ column, columns, count, saving, onDelete, on
               <LabeledSelect
                 label="Move its cards to" id="column-move-to" htmlFor="column-move-to" value={moveTo}
                 onChange={e => setMoveTo(e.target.value)}
-                options={others.map(c => ({ value: c.id, label: `${c.name} (${STATUS_LABEL[c.status]})` }))}
+                options={others.map(c => ({ value: c.id, label: columnLabel(c) }))}
               />
             )}
           </>

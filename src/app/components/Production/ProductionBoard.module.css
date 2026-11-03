@@ -2,7 +2,7 @@
 .container {
   width: 100%;
   flex-grow: 1;
-  /* As tall as the section it's in (a row): its loader is centered in it, its board scrolls in it. */
+  /* As tall as the section it's in (a row): its skeleton fills it as it loads, its board scrolls in it. */
   align-self: stretch;
   min-height: 0;
   display: flex;
@@ -32,8 +32,51 @@
 }
 
 /* A filter of the board: a compact dropdown. */
+/* ── Filters, over the board ─────────────────────────────────────────────── */
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 240px;
+  height: 28px;
+  padding: 0 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-surface-raised);
+  background-color: var(--color-surface-deep);
+  transition: border-color 0.15s ease;
+}
+
+.search:focus-within {
+  border-color: var(--color-accent);
+}
+
+.searchIcon {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 0.78rem;
+  color: var(--color-text-bright);
+}
+
 .filter {
-  width: 9.5rem;
   font-size: 0.75rem;
 }
 
@@ -79,15 +122,6 @@
 
 
 /* ── Loading / empty ──────────────────────────────────────────────────────── */
-.center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.spinner { font-size: 1.5rem; color: var(--color-text-muted); }
-
 .emptyWrap {
   flex: 1;
   display: flex;
@@ -129,17 +163,41 @@
   flex-direction: column;
 }
 
+/* The head and each lane (see .lane) are as wide as their columns, the board scrolling sideways
+   to them, and never narrower than the board. */
 .boardHead,
 .laneCells {
   display: flex;
   gap: 0.75rem;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* The global scrollbar is vertical only: the board's horizontal one is given a height. */
+.board::-webkit-scrollbar {
+  width: 7px;
+  height: 9px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.board::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  background-color: var(--color-surface-raised);
+}
+
+.board {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-raised) transparent;
 }
 
 /* A column, in the head and in each lane: as wide as there's room for, never narrower. */
 .boardHead > .column,
 .laneCells > .cell {
   flex: 1 0 230px;
-  min-width: 0;
+  width: 230px;
 }
 
 /* "+" after the last column, and its room in each lane. */
@@ -187,6 +245,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  width: max-content;
+  min-width: 100%;
 }
 
 /* A lane's head stays in view as the board scrolls sideways. */
@@ -335,18 +395,6 @@
   min-height: 24px;
 }
 
-.priority {
-  font-size: 0.68rem;
-  font-weight: 700;
-  border-radius: 5px;
-  padding: 1px 6px;
-  letter-spacing: 0.03em;
-}
-
-.priorityLow    { background: rgba(255,255,255,0.06); color: var(--color-text-muted); }
-.priorityMedium { background: rgba(251,191,36,0.12);  color: #fbbf24; }
-.priorityHigh   { background: rgba(248,113,113,0.12); color: #f87171; }
-
 .progress {
   display: inline-flex;
   align-items: center;
@@ -370,9 +418,25 @@
   gap: 2px;
 }
 
+.cardKey {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.cardSequence {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cardTeams {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.25rem;
 }
 

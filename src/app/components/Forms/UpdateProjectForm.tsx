@@ -2,7 +2,7 @@ import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faLayerGroup, faLock, faFloppyDisk, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faHashtag, faLayerGroup, faLock, faFloppyDisk, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -15,6 +15,7 @@ import {
   addProjectIntegration,
   removeProjectIntegration,
 } from '../../../services/projects';
+import { getBoard, setCardKey } from '../../../services/production';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { useFormRoute } from '../../../hooks/useFormRoute';
@@ -43,6 +44,19 @@ export const UpdateProjectForm = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const session = useSelector((state: RootState) => state.session);
   const isFreemium = session.plan === 'freemium';
+  const isAdmin = currentProjectData?.members?.find(m => m.userId === session.userId)?.role === 'admin';
+
+  // The key its Production cards' keys start with (e.g. WOG-12): its admins change it.
+  const [cardKey, setCardKeyValue] = useState('');
+  const savedCardKey = useRef('');
+  useEffect(() => {
+    if (!currentProjectData?.id || !isAdmin) return;
+    let cancelled = false;
+    getBoard(currentProjectData.id)
+      .then(({ key }) => { if (!cancelled) { savedCardKey.current = key; setCardKeyValue(key); } })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [currentProjectData?.id, isAdmin]);
 
   const connectedIntegrationIds = [
     ...(currentProjectData?.dbConnections ?? []),
@@ -86,6 +100,9 @@ export const UpdateProjectForm = () => {
       setLoader(true);
       const payload = { name, description, public: isPublic, category: category || null };
       const { projectId } = await updateProject(currentProjectData?.id || '', payload);
+      if (isAdmin && projectId && cardKey.trim() && cardKey.trim().toUpperCase() !== savedCardKey.current) {
+        savedCardKey.current = await setCardKey(projectId, cardKey.trim());
+      }
 
       if (imageFile && projectId) {
         const contentType = imageFile.type;
@@ -180,6 +197,18 @@ export const UpdateProjectForm = () => {
                 />
               ),
             },
+            ...(isAdmin ? [{
+              icon: faHashtag,
+              label: 'Card key',
+              value: cardKey || '—',
+              editComponent: (
+                <LabeledInput
+                  label="Card key (its Production cards are KEY-1, KEY-2…)" type="text" placeholder="e.g. WOG"
+                  id="card-key-input" name="card-key-input" htmlFor="card-key-input"
+                  value={cardKey} onChange={e => setCardKeyValue(e.target.value.toUpperCase())}
+                />
+              ),
+            }] : []),
             {
               icon: faLock,
               label: 'Visibility',
