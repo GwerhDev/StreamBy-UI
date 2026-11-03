@@ -9,6 +9,7 @@ import { OldProductionRedirect } from '../../pages/ProductionBoardPage';
 import * as production from '../../../services/production';
 import * as projects from '../../../services/projects';
 import * as deliverables from '../../../services/deliverables';
+import * as teamsService from '../../../services/teams';
 import { ProductionSequence, ProductionShot } from '../../../interfaces';
 import { STATUSES } from './shots';
 
@@ -29,6 +30,7 @@ const Where = () => { const l = useLocation(); return <p data-testid="location">
 const renderBoard = (path = '/project/p1/dashboard/production') => {
   const store = configureStore({
     reducer: {
+      session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
@@ -57,6 +59,7 @@ beforeEach(() => {
   vi.spyOn(production, 'getTasks').mockResolvedValue([]);
   vi.spyOn(projects, 'fetchProjectMembers').mockResolvedValue(MEMBERS);
   vi.spyOn(deliverables, 'getDeliverables').mockResolvedValue([]);
+  vi.spyOn(teamsService, 'getTeams').mockResolvedValue([]);
 });
 
 const deleteButtons = () => screen.findAllByTitle('Delete sequence');
@@ -232,3 +235,65 @@ describe('dragging a card', () => {
     expect(within(cell('Opening', 'To Do')).getByText('SH010')).toBeInTheDocument();
   });
 });
+
+describe('filtering the board', () => {
+  // Ada (u1, the one signed in) is in Animation now; Eli (u2) isn't.
+  const TEAMS = [
+    { id: 'tm1', name: 'Animation', members: [{ userId: 'u1', username: 'ada' }], createdAt: '', updatedAt: '' },
+    { id: 'tm2', name: 'Sound', members: [{ userId: 'u2', username: 'eli' }], createdAt: '', updatedAt: '' },
+  ];
+  beforeEach(() => {
+    vi.spyOn(teamsService, 'getTeams').mockResolvedValue(TEAMS);
+    vi.spyOn(production, 'getSequences').mockResolvedValue([seq({})]);
+    vi.spyOn(production, 'getShots').mockResolvedValue([
+      shot({ id: 's1', name: 'To Eli', assignedTo: ['u2'] }),
+      shot({ id: 's2', name: 'To Animation', teamIds: ['tm1'] }),
+      shot({ id: 's3', name: 'A task to Ada', taskSummary: { done: 0, total: 1, priority: 'low', assignedTo: ['u1'], teamIds: [] } }),
+      shot({ id: 's4', name: 'A task to Sound', taskSummary: { done: 0, total: 1, priority: 'low', assignedTo: [], teamIds: ['tm2'] } }),
+    ]);
+  });
+  const shown = () => ['To Eli', 'To Animation', 'A task to Ada', 'A task to Sound'].filter(n => screen.queryByRole('button', { name: n }));
+
+  it("a card shows the teams it's assigned to", async () => {
+    renderBoard();
+    const card = await screen.findByRole('button', { name: 'To Animation' });
+    expect(await within(card).findByText('Animation')).toBeInTheDocument();
+  });
+
+  it('"Assigned to me" shows what is assigned to me, or to a team I am in now, the card or one of its tasks', async () => {
+    renderBoard();
+    const user = userEvent.setup();
+    await screen.findByRole('button', { name: 'To Eli' });
+    await user.click(within(screen.getByLabelText('Filter by person')).getByRole('button'));
+    fireEvent.mouseDown(screen.getByText('Assigned to me'));
+    await waitFor(() => expect(shown()).toEqual(['To Animation', 'A task to Ada']));
+    expect(where()).toBe('/project/p1/dashboard/production?person=me');
+    expect(screen.getByText(/· 2 shown/)).toBeInTheDocument();
+  });
+
+  it("by a person, counts the teams they're in", async () => {
+    renderBoard('/project/p1/dashboard/production?person=u2');
+    await screen.findByRole('button', { name: 'To Eli' });
+    expect(shown()).toEqual(['To Eli', 'A task to Sound']);
+  });
+
+  it("by a team, shows only its cards: the ones it's assigned, or one of their tasks", async () => {
+    renderBoard('/project/p1/dashboard/production?team=tm1');
+    await screen.findByRole('button', { name: 'To Animation' });
+    expect(shown()).toEqual(['To Animation']);
+  });
+
+  it('both filters together, and none', async () => {
+    renderBoard('/project/p1/dashboard/production?person=u2&team=tm2');
+    await screen.findByRole('button', { name: 'A task to Sound' });
+    expect(shown()).toEqual(['A task to Sound']);
+    const user = userEvent.setup();
+    await user.click(within(screen.getByLabelText('Filter by team')).getByRole('button'));
+    fireEvent.mouseDown(screen.getByText('All teams'));
+    await user.click(within(screen.getByLabelText('Filter by person')).getByRole('button'));
+    fireEvent.mouseDown(screen.getByText('Everyone'));
+    await waitFor(() => expect(shown()).toEqual(['To Eli', 'To Animation', 'A task to Ada', 'A task to Sound']));
+    expect(where()).toBe('/project/p1/dashboard/production');
+  });
+});
+

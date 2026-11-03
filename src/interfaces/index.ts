@@ -697,7 +697,9 @@ export interface ProductionShot {
   description?: string;
   order: number;
   status: ShotStatus;
+  // The people (user ids) and the teams it's assigned to.
   assignedTo: string[];
+  teamIds?: string[];
   assetId?: string | null;
   exportId?: string | null;
   dueDate?: string | null;
@@ -712,6 +714,9 @@ export interface TaskSummary {
   done: number;
   total: number;
   priority: TaskPriority | null;
+  // Who its tasks are assigned to: people and teams.
+  assignedTo?: string[];
+  teamIds?: string[];
 }
 
 export interface ProductionTask {
@@ -720,7 +725,8 @@ export interface ProductionTask {
   projectId: string;
   name: string;
   status: ShotStatus;
-  assignedTo?: string | null;
+  assignedTo: string[];
+  teamIds?: string[];
   priority: TaskPriority;
   dueDate?: string | null;
   notes?: string | null;

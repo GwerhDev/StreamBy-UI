@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShotModal } from './ShotModal';
 import * as production from '../../../services/production';
 import * as deliverables from '../../../services/deliverables';
-import { Member, ProductionShot, ProductionTask } from '../../../interfaces';
+import { Member, ProductionShot, ProductionTask, Team } from '../../../interfaces';
 
 const SHOT: ProductionShot = {
   id: 's1', sequenceId: 'q1', projectId: 'p1', name: 'SH010', description: 'Wide establishing', order: 0, status: 'todo',
@@ -15,9 +15,13 @@ const SHOT: ProductionShot = {
   taskSummary: { done: 0, total: 1, priority: 'medium' },
 };
 const TASK: ProductionTask = {
-  id: 't1', shotId: 's1', projectId: 'p1', name: 'Layout', status: 'todo', priority: 'medium', assignedTo: null,
+  id: 't1', shotId: 's1', projectId: 'p1', name: 'Layout', status: 'todo', priority: 'medium', assignedTo: [], teamIds: [],
   dueDate: null, notes: null, createdBy: 'u1', createdAt: '', updatedAt: '',
 };
+const TEAMS: Team[] = [
+  { id: 'tm1', name: 'Animation', members: [{ userId: 'u3', username: 'pat' }], createdAt: '', updatedAt: '' },
+  { id: 'tm2', name: 'Sound', members: [], createdAt: '', updatedAt: '' },
+];
 const MEMBERS: Member[] = [
   { userId: 'u1', username: 'ada', role: 'admin', status: 'active' },
   { userId: 'u2', username: 'eli', role: 'editor', status: 'active' },
@@ -39,7 +43,7 @@ const renderModal = (shot: ProductionShot = SHOT) => {
       <MemoryRouter>
         <ShotModal
           shot={shot} sequence={{ id: 'q1', projectId: 'p1', name: 'Opening', order: 0, createdBy: 'u1', createdAt: '', updatedAt: '' }}
-          projectId="p1" members={MEMBERS} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete}
+          projectId="p1" members={MEMBERS} teams={TEAMS} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete}
         />
       </MemoryRouter>
     </Provider>,
@@ -61,6 +65,7 @@ describe('ShotModal', () => {
     expect(screen.getByLabelText('Description')).toHaveValue('Wide establishing');
     expect(screen.getByRole('button', { name: 'To Do' })).toBeInTheDocument();
     expect(within(screen.getByTestId('shot-assignees')).getByLabelText('eli')).toBeInTheDocument();
+    expect(screen.getByLabelText('Animation', { selector: 'input' })).not.toBeChecked();
     expect(screen.getByLabelText('eli', { selector: 'input' })).toBeChecked();
     expect(await screen.findByText('Layout')).toBeInTheDocument();
   });
@@ -92,6 +97,26 @@ describe('ShotModal', () => {
     await user.click(screen.getByLabelText('ada', { selector: 'input' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { description: 'Wide establishing, at dawn' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { assignedTo: ['u2', 'u1'] }));
+  });
+
+  it('assigns the shot to teams, as to people, each tick saved in order with the others', async () => {
+    let answer!: () => void;
+    const first = new Promise<void>(resolve => { answer = resolve; });
+    const update = vi.spyOn(production, 'updateShot')
+      .mockImplementationOnce(async (_p, _id, changes) => { await first; return { ...SHOT, ...changes } as ProductionShot; })
+      .mockImplementation(async (_p, _id, changes) => ({ ...SHOT, ...changes } as ProductionShot));
+    renderModal();
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText('ada', { selector: 'input' }));
+    await user.click(screen.getByLabelText('Animation', { selector: 'input' }));
+    await user.click(screen.getByLabelText('Sound', { selector: 'input' }));
+    expect(within(screen.getByTestId('shot-assignees')).getByText('Animation')).toBeInTheDocument();
+    expect(update).toHaveBeenCalledTimes(1);
+    answer();
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(3));
+    expect(update.mock.calls.map(c => c[2])).toEqual([
+      { assignedTo: ['u2', 'u1'] }, { teamIds: ['tm1'] }, { teamIds: ['tm1', 'tm2'] },
+    ]);
   });
 
   it('two ticks before the first is saved end with both assigned, saved in order', async () => {
@@ -150,8 +175,8 @@ describe('ShotModal', () => {
     expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: { done: 0, total: 2, priority: 'high' } }));
   });
 
-  it('edits a task: name, notes and assignee', async () => {
-    const update = vi.spyOn(production, 'updateTask').mockResolvedValue({ ...TASK, name: 'Blocking', assignedTo: 'u2' });
+  it('edits a task: name, notes, and the people and teams it is assigned to', async () => {
+    const update = vi.spyOn(production, 'updateTask').mockResolvedValue({ ...TASK, name: 'Blocking', assignedTo: ['u2'], teamIds: ['tm1'] });
     renderModal();
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Edit task Layout' }));
@@ -159,12 +184,17 @@ describe('ShotModal', () => {
     await user.clear(name);
     await user.type(name, 'Blocking');
     await user.type(screen.getByLabelText('Notes'), 'Old rig');
-    await user.selectOptions(screen.getByLabelText('Assigned to'), 'u2');
+    // The task's picker (the shot's has the same names).
+    await user.click(screen.getByLabelText('eli', { selector: '#task-t1-person-u2' }));
+    await user.click(screen.getByLabelText('ada', { selector: '#task-t1-person-u1' }));
+    await user.click(screen.getByLabelText('Animation', { selector: '#task-t1-team-tm1' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', 't1', {
-      name: 'Blocking', notes: 'Old rig', dueDate: null, assignedTo: 'u2',
+      name: 'Blocking', notes: 'Old rig', dueDate: null, assignedTo: ['u2', 'u1'], teamIds: ['tm1'],
     }));
     expect(await screen.findByText('Blocking')).toBeInTheDocument();
+    // The task says who it's assigned to.
+    expect(screen.getByTestId('task-t1-assignees')).toHaveTextContent('eli, Animation');
   });
 
   it("puts a task back, told, when its change can't be saved", async () => {

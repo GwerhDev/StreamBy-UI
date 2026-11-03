@@ -1,5 +1,5 @@
 import s from './ShotModal.module.css';
-import { FormEvent, KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, MutableRefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,14 +9,14 @@ import {
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTask, deleteTask, getTasks, updateShot, updateTask } from '../../../services/production';
-import { Member, ProductionSequence, ProductionShot, ProductionTask, ShotStatus, TaskPriority } from '../../../interfaces';
+import { Member, ProductionSequence, ProductionShot, ProductionTask, ShotStatus, TaskPriority, Team } from '../../../interfaces';
 import { ModalShell } from '../Modals/ModalShell';
 import { AssetPickerModal } from '../Modals/AssetPickerModal';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
+import { AssigneePicker } from './AssigneePicker';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { DropdownInput } from '../Inputs/DropdownInput';
-import { MemberAvatar } from '../Cards/MemberAvatar';
 import { DeliverableItems } from '../Deliverables/DeliverableItems';
 import { EditTaskModal } from './ProductionEditModals';
 import { AssetThumbnail } from './AssetThumbnail';
@@ -29,6 +29,7 @@ interface Props {
   sequence?: ProductionSequence;
   projectId: string;
   members: Member[];
+  teams: Team[];
   onClose: () => void;
   onUpdate: (shot: ProductionShot) => void;
   onDelete: (id: string) => void;
@@ -48,7 +49,7 @@ const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
 
 // A shot's card opened: everything of it seen and changed in place, each change saved as it's
 // made (and put back, told, if it fails).
-export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdate, onDelete, closeOnEscape = true }: Props) {
+export function ShotModal({ shot, sequence, projectId, members, teams, onClose, onUpdate, onDelete, closeOnEscape = true }: Props) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [tasks, setTasks] = useState<ProductionTask[]>([]);
@@ -127,25 +128,12 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
     if (!(await save({ description }, 'Failed to save the description.'))) setDescription(shot.description ?? '');
   };
 
-  // Who it's assigned to, as ticked: shown at once, each tick from the one before (not from what
-  // the server has answered so far), saved in order, put back to what was saved last if it fails.
-  const [assignedTo, setAssignedTo] = useState(shot.assignedTo);
-  const ticked = useRef(shot.assignedTo);
-  const savedAssignees = useRef(shot.assignedTo);
+  // Who it's assigned to, people and teams, saved one change after the other.
   const assigning = useRef<Promise<unknown>>(Promise.resolve());
-  const toggleAssignee = (userId: string, on: boolean) => {
-    const next = on ? [...ticked.current.filter(id => id !== userId), userId] : ticked.current.filter(id => id !== userId);
-    ticked.current = next;
-    setAssignedTo(next);
-    assigning.current = assigning.current.then(async () => {
-      if (await save({ assignedTo: next }, 'Failed to change who the shot is assigned to.')) {
-        savedAssignees.current = next;
-      } else {
-        ticked.current = savedAssignees.current;
-        setAssignedTo(savedAssignees.current);
-      }
-    });
-  };
+  const [assignedTo, togglePerson] = useTickedList(shot.assignedTo, assigning,
+    next => save({ assignedTo: next }, 'Failed to change who the shot is assigned to.'));
+  const [teamIds, toggleTeam] = useTickedList(shot.teamIds ?? [], assigning,
+    next => save({ teamIds: next }, 'Failed to change the teams the shot is assigned to.'));
 
   // An edited field takes Esc (put back as it was), not the modal.
   const editKeys = (e: KeyboardEvent, cancel: () => void) => {
@@ -202,7 +190,6 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
   };
 
   const doneCount = tasks.filter(t => t.status === 'done').length;
-  const assignees = members.filter(m => assignedTo.includes(m.userId));
 
   return (
     <ModalShell title={sequence?.name ?? 'Shot'} icon={faClipboardList} onClose={onClose} className={s.modal}>
@@ -266,6 +253,14 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
                         id={`task-${task.id}`} name="task-done" label={task.name} checked={task.status === 'done'}
                         onChange={e => changeTask(task, { status: e.target.checked ? 'done' : 'todo' })}
                       />
+                      {(task.assignedTo.length > 0 || (task.teamIds ?? []).length > 0) && (
+                        <small className={s.taskMeta} data-testid={`task-${task.id}-assignees`}>
+                          {[
+                            ...members.filter(m => task.assignedTo.includes(m.userId)).map(m => m.username),
+                            ...teams.filter(t => (task.teamIds ?? []).includes(t.id)).map(t => t.name),
+                          ].join(', ')}
+                        </small>
+                      )}
                     </div>
                     <div className={`${s.taskPriority} ${PRIORITY_TINT[task.priority]}`} aria-label={`Priority of ${task.name}`}>
                       <DropdownInput
@@ -319,21 +314,13 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
             options={STATUSES.map(st => ({ value: st, label: STATUS_LABEL[st] }))}
           />
 
-          <fieldset className={s.assignees}>
-            <legend className={s.sectionLabel}>Assigned to</legend>
-            {assignees.length > 0 && (
-              <div className={s.avatars} data-testid="shot-assignees">
-                {assignees.map(m => <MemberAvatar key={m.userId} username={m.username} profilePic={m.profilePic} size="small" />)}
-              </div>
-            )}
-            {members.length === 0 && <p className={s.hint}>No members to assign.</p>}
-            {members.map(m => (
-              <CustomCheckbox
-                key={m.userId} id={`shot-assignee-${m.userId}`} name="shot-assignee" value={m.userId}
-                label={m.username} checked={assignedTo.includes(m.userId)} onChange={e => toggleAssignee(m.userId, e.target.checked)}
-              />
-            ))}
-          </fieldset>
+          <div className={s.sideField}>
+            <span className={s.sectionLabel}>Assigned to</span>
+            <AssigneePicker
+              idPrefix="shot" members={members} teams={teams} assignedTo={assignedTo} teamIds={teamIds}
+              onTogglePerson={togglePerson} onToggleTeam={toggleTeam}
+            />
+          </div>
 
           <div className={s.sideField}>
             <label className={s.sectionLabel} htmlFor="shot-due">Due date</label>
@@ -380,7 +367,7 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
       </div>
 
       {editTask && (
-        <EditTaskModal task={editTask} members={members} saving={saving} onSave={handleSaveTask} onClose={() => setEditTask(null)} />
+        <EditTaskModal task={editTask} members={members} teams={teams} saving={saving} onSave={handleSaveTask} onClose={() => setEditTask(null)} />
       )}
       {pickingAsset && (
         <AssetPickerModal
@@ -394,4 +381,31 @@ export function ShotModal({ shot, sequence, projectId, members, onClose, onUpdat
       )}
     </ModalShell>
   );
+}
+
+/**
+ * A list (who something is assigned to, or its teams) as it's ticked: shown at once, each tick
+ * made on the one before (not on what the server has answered so far), saved after the saves
+ * already in `queue`, and put back to what was saved last if it fails.
+ */
+function useTickedList(initial: string[], queue: MutableRefObject<Promise<unknown>>, persist: (next: string[]) => Promise<boolean>) {
+  const [list, setList] = useState(initial);
+  const ticked = useRef(initial);
+  const saved = useRef(initial);
+  const persistRef = useRef(persist);
+  persistRef.current = persist;
+  const toggle = (id: string, on: boolean) => {
+    const next = on ? [...ticked.current.filter(x => x !== id), id] : ticked.current.filter(x => x !== id);
+    ticked.current = next;
+    setList(next);
+    queue.current = queue.current.then(async () => {
+      if (await persistRef.current(next)) {
+        saved.current = next;
+      } else {
+        ticked.current = saved.current;
+        setList(saved.current);
+      }
+    });
+  };
+  return [list, toggle] as const;
 }

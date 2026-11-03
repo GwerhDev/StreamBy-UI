@@ -67,6 +67,7 @@ export async function createShot(
     description?: string;
     status?: string;
     assignedTo?: string[];
+    teamIds?: string[];
     assetId?: string;
     exportId?: string;
     dueDate?: string;
@@ -87,6 +88,7 @@ export async function updateShot(
     description: string;
     status: string;
     assignedTo: string[];
+    teamIds: string[];
     assetId: string | null;
     exportId: string | null;
     dueDate: string | null;
@@ -119,7 +121,8 @@ export async function createTask(
     name: string;
     status?: string;
     priority?: string;
-    assignedTo?: string;
+    assignedTo?: string[];
+    teamIds?: string[];
     dueDate?: string;
     notes?: string;
   },
@@ -138,7 +141,8 @@ export async function updateTask(
     name: string;
     status: string;
     priority: string;
-    assignedTo: string | null;
+    assignedTo: string[];
+    teamIds: string[];
     dueDate: string | null;
     notes: string;
   }>,

@@ -113,29 +113,6 @@ div.modal {
   gap: 0.4rem;
 }
 
-.assignees {
-  margin: 0;
-  padding: 0;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.assignees legend { margin-bottom: 0.35rem; }
-
-.avatars {
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-}
-
-.hint {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
 .dateInput {
   font: inherit;
   font-size: 0.78rem;
@@ -269,6 +246,13 @@ div.modal {
   flex: 1;
   min-width: 0;
   font-size: 0.8rem;
+}
+
+.taskMeta {
+  display: block;
+  margin-left: 1.6rem;
+  font-size: 0.66rem;
+  color: var(--color-text-muted);
 }
 
 .taskRowDone .taskCheck {

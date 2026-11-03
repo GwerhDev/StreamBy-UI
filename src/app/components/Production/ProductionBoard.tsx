@@ -1,7 +1,7 @@
 import s from './ProductionBoard.module.css';
 import { useEffect, useState, useCallback, FormEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCheck, faClipboardList, faPlus, faSpinner, faTableColumns, faList, faTrash, faPen, faXmark,
@@ -10,9 +10,10 @@ import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,
 } from '@dnd-kit/core';
-import { AppDispatch } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useProjectMembers } from '../../../hooks/useProjectMembers';
+import { useProjectTeams } from '../../../hooks/useProjectTeams';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { ModalShell } from '../Modals/ModalShell';
@@ -25,12 +26,13 @@ import {
   getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
 } from '../../../services/production';
-import { Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority } from '../../../interfaces';
+import { Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority, Team } from '../../../interfaces';
 import { ShotModal } from './ShotModal';
 import { AssetThumbnail } from './AssetThumbnail';
 import { formatDueDate } from './dueDate';
 import { EditSequenceModal } from './ProductionEditModals';
 import { PRIORITY_LABEL, STATUSES, STATUS_LABEL } from './shots';
+import { isAssignedTo, isAssignedToTeam } from './assignees';
 
 type ViewMode = 'board' | 'list';
 
@@ -68,6 +70,8 @@ export function ProductionBoard() {
   const [shots, setShots]           = useState<ProductionShot[]>([]);
   const [loading, setLoading]       = useState(true);
   const { members } = useProjectMembers(projectId);
+  const { teams } = useProjectTeams(projectId);
+  const userId = useSelector((state: RootState) => state.session.userId);
 
   // The shot open is in the URL (?shot=<id>): a link to it opens it, Back closes it.
   const [params, setParams] = useSearchParams();
@@ -82,6 +86,17 @@ export function ProductionBoard() {
     if ((location.state as { shotOpened?: boolean } | null)?.shotOpened) navigate(-1);
     else setParams(p => { p.delete('shot'); return p; }, { replace: true });
   }, [location.state, navigate, setParams]);
+
+  // The board filtered by who its cards are assigned to (?person=me, or a member's id) and by a
+  // team (?team=<id>), in the URL as the open card is.
+  const person = params.get('person') ?? '';
+  const team = params.get('team') ?? '';
+  const setFilter = (key: 'person' | 'team', value: string) =>
+    setParams(p => { if (value) p.set(key, value); else p.delete(key); return p; }, { replace: true });
+  const personId = person === 'me' ? userId ?? '' : person;
+  const visibleShots = shots.filter(shot =>
+    (!personId || isAssignedTo(shot, personId, teams)) && (!team || isAssignedToTeam(shot, team)));
+  const filtering = !!person || !!team;
 
   // create sequence
   const [showCreateSeq, setShowCreateSeq] = useState(false);
@@ -219,7 +234,7 @@ export function ProductionBoard() {
   const shotToDelete = shots.find(sh => sh.id === deleteShotId);
 
   const viewProps = {
-    sequences, shots, members, projectId,
+    sequences, shots: visibleShots, members, teams, projectId,
     onSelectShot: openShot,
     onStatusChange: handleStatusChange,
     onCreateShot: handleCreateShot,
@@ -233,9 +248,27 @@ export function ProductionBoard() {
         <SectionHeader
           icon={faClipboardList}
           title="Production"
-          subtitle={`${sequences.length} sequences · ${shots.length} shots`}
+          subtitle={`${sequences.length} sequences · ${shots.length} shots${filtering ? ` · ${visibleShots.length} shown` : ''}`}
           action={
             <div className={s.toolbarActions}>
+              <div className={s.filter} aria-label="Filter by person">
+                <DropdownInput
+                  value={person}
+                  onChange={v => setFilter('person', v)}
+                  options={[
+                    { value: '', label: 'Everyone' },
+                    { value: 'me', label: 'Assigned to me' },
+                    ...members.map(m => ({ value: m.userId, label: m.username })),
+                  ]}
+                />
+              </div>
+              <div className={s.filter} aria-label="Filter by team">
+                <DropdownInput
+                  value={team}
+                  onChange={v => setFilter('team', v)}
+                  options={[{ value: '', label: 'All teams' }, ...teams.map(t => ({ value: t.id, label: t.name }))]}
+                />
+              </div>
               <div className={s.viewToggle}>
                 <button
                   type="button"
@@ -279,6 +312,7 @@ export function ProductionBoard() {
           sequence={sequences.find(seq => seq.id === selectedShot.sequenceId)}
           projectId={projectId}
           members={members}
+          teams={teams}
           onClose={closeShot}
           onUpdate={handleShotUpdate}
           onDelete={id => setDeleteShotId(id)}
@@ -348,6 +382,7 @@ interface ViewProps {
   sequences: ProductionSequence[];
   shots: ProductionShot[];
   members: Member[];
+  teams: Team[];
   projectId: string;
   onSelectShot: (shot: ProductionShot) => void;
   onStatusChange: (shot: ProductionShot, status: ShotStatus) => void;
@@ -359,7 +394,7 @@ interface ViewProps {
 // ── Board view ─────────────────────────────────────────────────────────────────
 // A column per status, a lane per sequence; a card dragged to another column takes its status.
 
-function BoardView({ sequences, shots, members, projectId, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq }: ViewProps) {
+function BoardView({ sequences, shots, members, teams, projectId, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq }: ViewProps) {
   const [dragging, setDragging] = useState<ProductionShot | null>(null);
   // A press that moves is a drag; one that doesn't, a click (opens the card). From the keyboard,
   // Space picks a card up and Enter opens it.
@@ -409,7 +444,7 @@ function BoardView({ sequences, shots, members, projectId, onSelectShot, onStatu
                 {STATUSES.map(status => (
                   <BoardCell key={status} id={cellId(seq.id, status)} label={`${seq.name}, ${STATUS_LABEL[status]}`} accepts={!dragging || dragging.sequenceId === seq.id}>
                     {seqShots.filter(sh => sh.status === status).map(shot => (
-                      <ShotCard key={shot.id} shot={shot} members={members} projectId={projectId} onSelect={onSelectShot} />
+                      <ShotCard key={shot.id} shot={shot} members={members} teams={teams} projectId={projectId} onSelect={onSelectShot} />
                     ))}
                     <InlineCreate label={`Create a shot in ${seq.name}, ${STATUS_LABEL[status]}`} onCreate={name => onCreateShot(seq.id, status, name)} />
                   </BoardCell>
@@ -420,7 +455,7 @@ function BoardView({ sequences, shots, members, projectId, onSelectShot, onStatu
         })}
       </div>
       <DragOverlay dropAnimation={null}>
-        {dragging && <CardBody shot={dragging} members={members} projectId={projectId} />}
+        {dragging && <CardBody shot={dragging} members={members} teams={teams} projectId={projectId} />}
       </DragOverlay>
     </DndContext>
   );
@@ -437,9 +472,10 @@ function BoardCell({ id, label, accepts, children }: { id: string; label: string
 
 // ── Shot card (board) ──────────────────────────────────────────────────────────
 
-function ShotCard({ shot, members, projectId, onSelect }: {
+function ShotCard({ shot, members, teams, projectId, onSelect }: {
   shot: ProductionShot;
   members: Member[];
+  teams: Team[];
   projectId: string;
   onSelect: (shot: ProductionShot) => void;
 }) {
@@ -457,16 +493,17 @@ function ShotCard({ shot, members, projectId, onSelect }: {
         else listeners?.onKeyDown?.(e);
       }}
     >
-      <CardBody shot={shot} members={members} projectId={projectId} />
+      <CardBody shot={shot} members={members} teams={teams} projectId={projectId} />
     </div>
   );
 }
 
 // What a card shows: its name, its asset, its tasks' top priority and how they go, its due
-// date, and who it's assigned to.
-function CardBody({ shot, members, projectId }: { shot: ProductionShot; members: Member[]; projectId: string }) {
+// date, and who it's assigned to: people and teams.
+function CardBody({ shot, members, teams, projectId }: { shot: ProductionShot; members: Member[]; teams: Team[]; projectId: string }) {
   const summary = shot.taskSummary;
   const assignees = members.filter(m => shot.assignedTo.includes(m.userId));
+  const assignedTeams = teams.filter(t => (shot.teamIds ?? []).includes(t.id));
   return (
     <div className={s.cardBody}>
       {shot.assetId && <AssetThumbnail projectId={projectId} assetId={shot.assetId} className={s.cardThumb} />}
@@ -488,6 +525,11 @@ function CardBody({ shot, members, projectId }: { shot: ProductionShot; members:
           {assignees.length > 3 && <span className={s.moreAvatars}>+{assignees.length - 3}</span>}
         </span>
       </div>
+      {assignedTeams.length > 0 && (
+        <div className={s.cardTeams}>
+          {assignedTeams.map(t => <span key={t.id} className={s.teamChip}>{t.name}</span>)}
+        </div>
+      )}
     </div>
   );
 }

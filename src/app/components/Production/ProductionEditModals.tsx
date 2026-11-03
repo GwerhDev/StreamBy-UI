@@ -5,7 +5,8 @@ import { faFloppyDisk, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { ModalShell } from '../Modals/ModalShell';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Member, ProductionSequence, ProductionTask } from '../../../interfaces';
+import { Member, ProductionSequence, ProductionTask, Team } from '../../../interfaces';
+import { AssigneePicker } from './AssigneePicker';
 
 // The date part of an ISO date, for a date input ('' when there's none).
 const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
@@ -69,16 +70,19 @@ export function EditSequenceModal({ sequence, saving, onSave, onClose }: SavePro
   );
 }
 
-export function EditTaskModal({ task, members, saving, onSave, onClose }: SaveProps<ProductionTask> & { task: ProductionTask; members: Member[] }) {
+export function EditTaskModal({ task, members, teams, saving, onSave, onClose }: SaveProps<ProductionTask> & { task: ProductionTask; members: Member[]; teams: Team[] }) {
   const [name, setName] = useState(task.name);
   const [notes, setNotes] = useState(task.notes ?? '');
   const [dueDate, setDueDate] = useState(dateInput(task.dueDate));
-  const [assignee, setAssignee] = useState(task.assignedTo ?? '');
+  const [assignedTo, setAssignedTo] = useState<string[]>(task.assignedTo ?? []);
+  const [teamIds, setTeamIds] = useState<string[]>(task.teamIds ?? []);
+  const toggle = (set: typeof setAssignedTo) => (id: string, on: boolean) =>
+    set(list => (on ? [...list.filter(x => x !== id), id] : list.filter(x => x !== id)));
 
   return (
     <EditModal
       title="Edit task" saving={saving} canSave={!!name.trim()} onClose={onClose}
-      onSubmit={() => onSave({ name: name.trim(), notes, dueDate: dueDate || null, assignedTo: assignee || null })}
+      onSubmit={() => onSave({ name: name.trim(), notes, dueDate: dueDate || null, assignedTo, teamIds })}
     >
       <Field id="task-name" label="Name">
         <input id="task-name" autoFocus className={s.formInput} value={name} onChange={e => setName(e.target.value)} />
@@ -89,12 +93,13 @@ export function EditTaskModal({ task, members, saving, onSave, onClose }: SavePr
       <Field id="task-due" label="Due date">
         <input id="task-due" type="date" className={s.formInput} value={dueDate} onChange={e => setDueDate(e.target.value)} />
       </Field>
-      <Field id="task-assignee" label="Assigned to">
-        <select id="task-assignee" className={s.formInput} value={assignee} onChange={e => setAssignee(e.target.value)}>
-          <option value="">Nobody</option>
-          {members.map(m => <option key={m.userId} value={m.userId}>{m.username}</option>)}
-        </select>
-      </Field>
+      <div className={s.field}>
+        <span className={s.formLabel}>Assigned to</span>
+        <AssigneePicker
+          idPrefix={`task-${task.id}`} members={members} teams={teams} assignedTo={assignedTo} teamIds={teamIds}
+          onTogglePerson={toggle(setAssignedTo)} onToggleTeam={toggle(setTeamIds)}
+        />
+      </div>
     </EditModal>
   );
 }
