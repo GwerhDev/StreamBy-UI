@@ -697,6 +697,8 @@ export interface ProductionShot {
   description?: string;
   order: number;
   status: ShotStatus;
+  // The board column it's in: its status is the column's.
+  columnId?: string;
   // The people (user ids) and the teams it's assigned to.
   assignedTo: string[];
   teamIds?: string[];
@@ -708,6 +710,13 @@ export interface ProductionShot {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// A column of a project's Production board, in one of the fixed statuses.
+export interface BoardColumn {
+  id: string;
+  name: string;
+  status: ShotStatus;
 }
 
 export interface TaskSummary {

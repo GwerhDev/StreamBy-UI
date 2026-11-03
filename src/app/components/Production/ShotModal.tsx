@@ -9,7 +9,7 @@ import {
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTask, deleteTask, getTasks, updateShot, updateTask } from '../../../services/production';
-import { Member, ProductionSequence, ProductionShot, ProductionTask, ShotStatus, TaskPriority, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionSequence, ProductionShot, ProductionTask, TaskPriority, Team } from '../../../interfaces';
 import { ModalShell } from '../Modals/ModalShell';
 import { AssetPickerModal } from '../Modals/AssetPickerModal';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -20,7 +20,7 @@ import { DropdownInput } from '../Inputs/DropdownInput';
 import { DeliverableItems } from '../Deliverables/DeliverableItems';
 import { EditTaskModal } from './ProductionEditModals';
 import { AssetThumbnail } from './AssetThumbnail';
-import { PRIORITY_LABEL, STATUSES, STATUS_LABEL, summaryOf } from './shots';
+import { PRIORITY_LABEL, STATUS_LABEL, columnOfShot, summaryOf } from './shots';
 
 type ShotChanges = Parameters<typeof updateShot>[2];
 
@@ -30,6 +30,8 @@ interface Props {
   projectId: string;
   members: Member[];
   teams: Team[];
+  // The board's columns: the shot is in one, and has its status.
+  columns: BoardColumn[];
   onClose: () => void;
   onUpdate: (shot: ProductionShot) => void;
   onDelete: (id: string) => void;
@@ -49,7 +51,7 @@ const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
 
 // A shot's card opened: everything of it seen and changed in place, each change saved as it's
 // made (and put back, told, if it fails).
-export function ShotModal({ shot, sequence, projectId, members, teams, onClose, onUpdate, onDelete, closeOnEscape = true }: Props) {
+export function ShotModal({ shot, sequence, projectId, members, teams, columns, onClose, onUpdate, onDelete, closeOnEscape = true }: Props) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [tasks, setTasks] = useState<ProductionTask[]>([]);
@@ -309,9 +311,9 @@ export function ShotModal({ shot, sequence, projectId, members, teams, onClose, 
 
         <aside className={s.side}>
           <LabeledSelect
-            label="Status" htmlFor="shot-status" id="shot-status" value={shot.status}
-            onChange={e => save({ status: e.target.value as ShotStatus }, "Failed to change the shot's status.")}
-            options={STATUSES.map(st => ({ value: st, label: STATUS_LABEL[st] }))}
+            label="Column" htmlFor="shot-column" id="shot-column" value={columnOfShot(columns, shot)?.id ?? ''}
+            onChange={e => save({ columnId: e.target.value }, 'Failed to move the shot.')}
+            options={columns.map(c => ({ value: c.id, label: `${c.name} · ${STATUS_LABEL[c.status]}` }))}
           />
 
           <div className={s.sideField}>

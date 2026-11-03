@@ -1,4 +1,4 @@
-import { ProductionTask, ShotStatus, TaskPriority, TaskSummary } from '../../../interfaces';
+import { BoardColumn, ProductionShot, ProductionTask, ShotStatus, TaskPriority, TaskSummary } from '../../../interfaces';
 
 export const STATUSES: ShotStatus[] = ['todo', 'in_progress', 'review', 'done'];
 
@@ -26,3 +26,7 @@ export function summaryOf(tasks: Pick<ProductionTask, 'status' | 'priority' | 'a
     teamIds: [...new Set(tasks.flatMap(t => t.teamIds ?? []))],
   };
 }
+
+/** The column a card is in: its own, or (answered without one) the first of its status. */
+export const columnOfShot = (columns: BoardColumn[], shot: Pick<ProductionShot, 'columnId' | 'status'>): BoardColumn | undefined =>
+  columns.find(c => c.id === shot.columnId) ?? columns.find(c => c.status === shot.status);

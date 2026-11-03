@@ -25,13 +25,15 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
+  getBoardColumns, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
 } from '../../../services/production';
-import { Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionSequence, ProductionShot, ShotStatus, TaskPriority, Team } from '../../../interfaces';
 import { ShotModal } from './ShotModal';
 import { AssetThumbnail } from './AssetThumbnail';
 import { formatDueDate } from './dueDate';
 import { EditSequenceModal } from './ProductionEditModals';
-import { PRIORITY_LABEL, STATUSES, STATUS_LABEL } from './shots';
+import { PRIORITY_LABEL, columnOfShot } from './shots';
+import { AddColumnModal, ColumnHead, DeleteColumnModal } from './BoardColumns';
 import { isAssignedTo, isAssignedToTeam } from './assignees';
 
 type ViewMode = 'board' | 'list';
@@ -56,11 +58,11 @@ const PRIORITY_CHIP: Record<TaskPriority, string> = {
   high:   s.priorityHigh,
 };
 
-// A cell of the board: a sequence's lane, in a status's column.
-const cellId = (seqId: string, status: ShotStatus) => `${seqId}::${status}`;
+// A cell of the board: a sequence's lane, in one of its columns.
+const cellId = (seqId: string, columnId: string) => `${seqId}::${columnId}`;
 const cellOf = (id: string) => {
-  const [seqId, status] = id.split('::');
-  return { seqId, status: status as ShotStatus };
+  const [seqId, columnId] = id.split('::');
+  return { seqId, columnId };
 };
 
 export function ProductionBoard() {
@@ -68,6 +70,7 @@ export function ProductionBoard() {
   const [viewMode, setViewMode]     = useState<ViewMode>('board');
   const [sequences, setSequences]   = useState<ProductionSequence[]>([]);
   const [shots, setShots]           = useState<ProductionShot[]>([]);
+  const [columns, setColumns]       = useState<BoardColumn[]>([]);
   const [loading, setLoading]       = useState(true);
   const { members } = useProjectMembers(projectId);
   const { teams } = useProjectTeams(projectId);
@@ -107,6 +110,11 @@ export function ProductionBoard() {
   const [editSeqId, setEditSeqId]   = useState<string | null>(null);
   const [editSaving, setEditSaving] = useState(false);
 
+  // columns: being added, being deleted, a change on its way
+  const [addingColumn, setAddingColumn]   = useState(false);
+  const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
+  const [columnSaving, setColumnSaving]   = useState(false);
+
   // delete confirms
   const [deleteSeqId, setDeleteSeqId]   = useState<string | null>(null);
   const [deleteShotId, setDeleteShotId] = useState<string | null>(null);
@@ -121,8 +129,9 @@ export function ProductionBoard() {
     if (!projectId) return;
     setLoading(true);
     try {
-      const seqs = await getSequences(projectId);
+      const [seqs, cols] = await Promise.all([getSequences(projectId), getBoardColumns(projectId)]);
       setSequences(seqs);
+      setColumns(cols);
       const allShots = (await Promise.all(seqs.map(seq => getShots(projectId, seq.id)))).flat();
       setShots(allShots);
     } finally {
@@ -173,11 +182,11 @@ export function ProductionBoard() {
     } finally { setDeleting(false); }
   };
 
-  // A shot made in place, at the foot of its lane's cell: in that sequence, with that status.
-  const handleCreateShot = async (seqId: string, status: ShotStatus, name: string) => {
+  // A shot made in place, at the foot of its lane's cell: in that sequence, in that column.
+  const handleCreateShot = async (seqId: string, columnId: string, name: string) => {
     try {
       const order = shots.filter(sh => sh.sequenceId === seqId).length;
-      const shot = await createShot(projectId, seqId, { name, status, order });
+      const shot = await createShot(projectId, seqId, { name, columnId, order });
       setShots(prev => [...prev, { ...shot, taskSummary: { done: 0, total: 0, priority: null } }]);
       return true;
     } catch (err) {
@@ -200,16 +209,58 @@ export function ProductionBoard() {
     } finally { setDeleting(false); }
   };
 
-  // Moved at once; put back, told, if it can't be saved.
-  const handleStatusChange = async (shot: ProductionShot, status: ShotStatus) => {
-    if (shot.status === status) return;
-    setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, status } : sh));
+  // A card moved to a column, taking its status: at once; put back, told, if it can't be saved.
+  const handleMove = async (shot: ProductionShot, columnId: string) => {
+    const column = columns.find(c => c.id === columnId);
+    if (!column || columnOfShot(columns, shot)?.id === columnId) return;
+    setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, columnId, status: column.status } : sh));
     try {
-      await updateShot(projectId, shot.id, { status });
+      await updateShot(projectId, shot.id, { columnId });
     } catch (err) {
-      setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, status: shot.status } : sh));
-      failed(err, "Failed to change the shot's status.");
+      setShots(prev => prev.map(sh => sh.id === shot.id ? { ...sh, columnId: shot.columnId, status: shot.status } : sh));
+      failed(err, 'Failed to move the shot.');
     }
+  };
+
+  // The board's columns: each change answers them as they are then.
+  const changeColumns = async (change: () => Promise<BoardColumn[]>, fallback: string) => {
+    setColumnSaving(true);
+    try {
+      setColumns(await change());
+      return true;
+    } catch (err) {
+      failed(err, fallback);
+      return false;
+    } finally { setColumnSaving(false); }
+  };
+  const handleAddColumn = async (name: string, status: ShotStatus) => {
+    if (await changeColumns(() => addBoardColumn(projectId, { name, status }), 'Failed to add the column.')) setAddingColumn(false);
+  };
+  const handleRenameColumn = (columnId: string, name: string) =>
+    changeColumns(() => updateBoardColumn(projectId, columnId, { name }), 'Failed to rename the column.');
+  const handleMoveColumn = (columnId: string, by: -1 | 1) => {
+    if (columnSaving) return;
+    const order = columns.map(c => c.id);
+    const from = order.indexOf(columnId);
+    const to = from + by;
+    if (from < 0 || to < 0 || to >= order.length) return;
+    [order[from], order[to]] = [order[to], order[from]];
+    return changeColumns(() => orderBoardColumns(projectId, order), 'Failed to move the column.');
+  };
+  // Its cards, moved to another column, take that column's status: shown as the server has them.
+  const handleDeleteColumn = async (columnId: string, moveTo?: string) => {
+    setColumnSaving(true);
+    try {
+      const { columns: left, moved } = await deleteBoardColumn(projectId, columnId, moveTo);
+      setColumns(left);
+      if (moved && moveTo) {
+        const target = left.find(c => c.id === moveTo);
+        setShots(prev => prev.map(sh => (columnOfShot(columns, sh)?.id === columnId && target ? { ...sh, columnId: target.id, status: target.status } : sh)));
+      }
+      setDeleteColumnId(null);
+    } catch (err) {
+      failed(err, 'Failed to delete the column.');
+    } finally { setColumnSaving(false); }
   };
 
   const handleShotUpdate = (updated: ProductionShot) => {
@@ -233,10 +284,12 @@ export function ProductionBoard() {
   const seqToEdit = sequences.find(s => s.id === editSeqId);
   const shotToDelete = shots.find(sh => sh.id === deleteShotId);
 
+  const columnToDelete = columns.find(c => c.id === deleteColumnId);
+
   const viewProps = {
-    sequences, shots: visibleShots, members, teams, projectId,
+    sequences, shots: visibleShots, columns, members, teams, projectId,
     onSelectShot: openShot,
-    onStatusChange: handleStatusChange,
+    onMove: handleMove,
     onCreateShot: handleCreateShot,
     onDeleteSeq: (id: string) => setDeleteSeqId(id),
     onEditSeq: (id: string) => setEditSeqId(id),
@@ -298,7 +351,14 @@ export function ProductionBoard() {
         {sequences.length === 0 ? (
           <div className={s.emptyWrap}><EmptyBackground /></div>
         ) : viewMode === 'board' ? (
-          <BoardView {...viewProps} />
+          <BoardView
+            {...viewProps}
+            columnSaving={columnSaving}
+            onAddColumn={() => setAddingColumn(true)}
+            onRenameColumn={handleRenameColumn}
+            onMoveColumn={handleMoveColumn}
+            onDeleteColumn={id => setDeleteColumnId(id)}
+          />
         ) : (
           <ListView {...viewProps} onDeleteShot={id => setDeleteShotId(id)} />
         )}
@@ -313,10 +373,24 @@ export function ProductionBoard() {
           projectId={projectId}
           members={members}
           teams={teams}
+          columns={columns}
           onClose={closeShot}
           onUpdate={handleShotUpdate}
           onDelete={id => setDeleteShotId(id)}
           closeOnEscape={!deleteShotId}
+        />
+      )}
+
+      {/* Columns */}
+      {addingColumn && (
+        <AddColumnModal saving={columnSaving} onSave={handleAddColumn} onClose={() => setAddingColumn(false)} />
+      )}
+      {columnToDelete && (
+        <DeleteColumnModal
+          column={columnToDelete} columns={columns} saving={columnSaving}
+          count={shots.filter(sh => columnOfShot(columns, sh)?.id === columnToDelete.id).length}
+          onDelete={moveTo => handleDeleteColumn(columnToDelete.id, moveTo)}
+          onClose={() => setDeleteColumnId(null)}
         />
       )}
 
@@ -381,20 +455,33 @@ export function ProductionBoard() {
 interface ViewProps {
   sequences: ProductionSequence[];
   shots: ProductionShot[];
+  columns: BoardColumn[];
   members: Member[];
   teams: Team[];
   projectId: string;
   onSelectShot: (shot: ProductionShot) => void;
-  onStatusChange: (shot: ProductionShot, status: ShotStatus) => void;
-  onCreateShot: (seqId: string, status: ShotStatus, name: string) => Promise<boolean>;
+  onMove: (shot: ProductionShot, columnId: string) => void;
+  onCreateShot: (seqId: string, columnId: string, name: string) => Promise<boolean>;
   onDeleteSeq: (id: string) => void;
   onEditSeq: (id: string) => void;
 }
 
 // ── Board view ─────────────────────────────────────────────────────────────────
-// A column per status, a lane per sequence; a card dragged to another column takes its status.
+// Its columns, each in one of the statuses, and a lane per sequence; a card dragged to another
+// column takes its status.
 
-function BoardView({ sequences, shots, members, teams, projectId, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq }: ViewProps) {
+interface ColumnActions {
+  columnSaving: boolean;
+  onAddColumn: () => void;
+  onRenameColumn: (columnId: string, name: string) => void;
+  onMoveColumn: (columnId: string, by: -1 | 1) => void;
+  onDeleteColumn: (columnId: string) => void;
+}
+
+function BoardView({
+  sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq,
+  columnSaving, onAddColumn, onRenameColumn, onMoveColumn, onDeleteColumn,
+}: ViewProps & ColumnActions) {
   const [dragging, setDragging] = useState<ProductionShot | null>(null);
   // A press that moves is a drag; one that doesn't, a click (opens the card). From the keyboard,
   // Space picks a card up and Enter opens it.
@@ -408,22 +495,33 @@ function BoardView({ sequences, shots, members, teams, projectId, onSelectShot, 
     setDragging(null);
     const shot = shots.find(sh => sh.id === active.id);
     if (!shot || !over) return;
-    const { seqId, status } = cellOf(String(over.id));
+    const { seqId, columnId } = cellOf(String(over.id));
     // Across columns only: its sequence is its lane, not something a drag changes.
-    if (seqId === shot.sequenceId) onStatusChange(shot, status);
+    if (seqId === shot.sequenceId) onMove(shot, columnId);
   };
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
       <div className={s.board}>
         <div className={s.boardHead}>
-          {STATUSES.map(status => (
-            <div key={status} className={s.colHead}>
-              <span className={`${s.colDot} ${STATUS_COLOR[status]}`} />
-              <span className={s.colLabel}>{STATUS_LABEL[status]}</span>
-              <span className={s.colCount}>{shots.filter(sh => sh.status === status).length}</span>
+          {columns.map((column, i) => (
+            <div key={column.id} className={s.column}>
+              <ColumnHead
+                column={column}
+                count={shots.filter(sh => columnOfShot(columns, sh)?.id === column.id).length}
+                dotClassName={STATUS_COLOR[column.status]}
+                canMoveLeft={i > 0}
+                canMoveRight={i < columns.length - 1}
+                busy={columnSaving}
+                onRename={name => onRenameColumn(column.id, name)}
+                onMove={by => onMoveColumn(column.id, by)}
+                onDelete={() => onDeleteColumn(column.id)}
+              />
             </div>
           ))}
+          <button type="button" className={s.addColumn} onClick={onAddColumn} aria-label="Add a column" title="Add a column">
+            <FontAwesomeIcon icon={faPlus} />
+          </button>
         </div>
 
         {sequences.map(seq => {
@@ -441,14 +539,15 @@ function BoardView({ sequences, shots, members, teams, projectId, onSelectShot, 
                 </button>
               </div>
               <div className={s.laneCells}>
-                {STATUSES.map(status => (
-                  <BoardCell key={status} id={cellId(seq.id, status)} label={`${seq.name}, ${STATUS_LABEL[status]}`} accepts={!dragging || dragging.sequenceId === seq.id}>
-                    {seqShots.filter(sh => sh.status === status).map(shot => (
+                {columns.map(column => (
+                  <BoardCell key={column.id} id={cellId(seq.id, column.id)} label={`${seq.name}, ${column.name}`} accepts={!dragging || dragging.sequenceId === seq.id}>
+                    {seqShots.filter(sh => columnOfShot(columns, sh)?.id === column.id).map(shot => (
                       <ShotCard key={shot.id} shot={shot} members={members} teams={teams} projectId={projectId} onSelect={onSelectShot} />
                     ))}
-                    <InlineCreate label={`Create a shot in ${seq.name}, ${STATUS_LABEL[status]}`} onCreate={name => onCreateShot(seq.id, status, name)} />
+                    <InlineCreate label={`Create a shot in ${seq.name}, ${column.name}`} onCreate={name => onCreateShot(seq.id, column.id, name)} />
                   </BoardCell>
                 ))}
+                <span className={s.addColumnSpace} aria-hidden="true" />
               </div>
             </section>
           );
@@ -574,12 +673,12 @@ function InlineCreate({ label, onCreate }: { label: string; onCreate: (name: str
 
 // ── List view ──────────────────────────────────────────────────────────────────
 
-function ListView({ sequences, shots, onSelectShot, onStatusChange, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot }: ViewProps & { onDeleteShot: (id: string) => void }) {
+function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot }: ViewProps & { onDeleteShot: (id: string) => void }) {
   return (
     <div className={s.list}>
       <div className={s.listHead}>
         <span>Shot</span>
-        <span>Status</span>
+        <span>Column</span>
         <span>Due</span>
         <span />
       </div>
@@ -599,11 +698,11 @@ function ListView({ sequences, shots, onSelectShot, onStatusChange, onCreateShot
             {seqShots.map(shot => (
               <div key={shot.id} className={s.listRow} onClick={() => onSelectShot(shot)}>
                 <span className={s.listShotName}>{shot.name}</span>
-                <span className={`${s.listStatus} ${STATUS_CHIP[shot.status]}`} onClick={e => e.stopPropagation()} aria-label={`Status of ${shot.name}`}>
+                <span className={`${s.listStatus} ${STATUS_CHIP[shot.status]}`} onClick={e => e.stopPropagation()} aria-label={`Column of ${shot.name}`}>
                   <DropdownInput
-                    value={shot.status}
-                    options={STATUSES.map(st => ({ value: st, label: STATUS_LABEL[st] }))}
-                    onChange={v => onStatusChange(shot, v as ShotStatus)}
+                    value={columnOfShot(columns, shot)?.id ?? ''}
+                    options={columns.map(c => ({ value: c.id, label: c.name }))}
+                    onChange={v => onMove(shot, v)}
                   />
                 </span>
                 <span className={s.listDue}>
@@ -617,7 +716,7 @@ function ListView({ sequences, shots, onSelectShot, onStatusChange, onCreateShot
               </div>
             ))}
             <div className={s.listCreate}>
-              <InlineCreate label={`Create a shot in ${seq.name}`} onCreate={name => onCreateShot(seq.id, 'todo', name)} />
+              <InlineCreate label={`Create a shot in ${seq.name}`} onCreate={name => onCreateShot(seq.id, columns[0]?.id ?? 'todo', name)} />
             </div>
           </div>
         );

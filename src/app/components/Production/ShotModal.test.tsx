@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShotModal } from './ShotModal';
 import * as production from '../../../services/production';
 import * as deliverables from '../../../services/deliverables';
-import { Member, ProductionShot, ProductionTask, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionShot, ProductionTask, Team } from '../../../interfaces';
 
 const SHOT: ProductionShot = {
   id: 's1', sequenceId: 'q1', projectId: 'p1', name: 'SH010', description: 'Wide establishing', order: 0, status: 'todo',
@@ -18,6 +18,11 @@ const TASK: ProductionTask = {
   id: 't1', shotId: 's1', projectId: 'p1', name: 'Layout', status: 'todo', priority: 'medium', assignedTo: [], teamIds: [],
   dueDate: null, notes: null, createdBy: 'u1', createdAt: '', updatedAt: '',
 };
+const COLUMNS: BoardColumn[] = [
+  { id: 'todo', name: 'To Do', status: 'todo' },
+  { id: 'qa', name: 'QA', status: 'in_progress' },
+  { id: 'done', name: 'Done', status: 'done' },
+];
 const TEAMS: Team[] = [
   { id: 'tm1', name: 'Animation', members: [{ userId: 'u3', username: 'pat' }], createdAt: '', updatedAt: '' },
   { id: 'tm2', name: 'Sound', members: [], createdAt: '', updatedAt: '' },
@@ -43,7 +48,7 @@ const renderModal = (shot: ProductionShot = SHOT) => {
       <MemoryRouter>
         <ShotModal
           shot={shot} sequence={{ id: 'q1', projectId: 'p1', name: 'Opening', order: 0, createdBy: 'u1', createdAt: '', updatedAt: '' }}
-          projectId="p1" members={MEMBERS} teams={TEAMS} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete}
+          projectId="p1" members={MEMBERS} teams={TEAMS} columns={COLUMNS} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete}
         />
       </MemoryRouter>
     </Provider>,
@@ -63,11 +68,20 @@ describe('ShotModal', () => {
     expect(screen.getByText('Opening')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /SH010/ })).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toHaveValue('Wide establishing');
-    expect(screen.getByRole('button', { name: 'To Do' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'To Do · To Do' })).toBeInTheDocument();
     expect(within(screen.getByTestId('shot-assignees')).getByLabelText('eli')).toBeInTheDocument();
     expect(screen.getByLabelText('Animation', { selector: 'input' })).not.toBeChecked();
     expect(screen.getByLabelText('eli', { selector: 'input' })).toBeChecked();
     expect(await screen.findByText('Layout')).toBeInTheDocument();
+  });
+
+  it("moves it to another column, which gives it its status", async () => {
+    const update = vi.spyOn(production, 'updateShot').mockResolvedValue({ ...SHOT, columnId: 'qa', status: 'in_progress' });
+    renderModal();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'To Do · To Do' }));
+    fireEvent.mouseDown(screen.getByText('QA · In Progress'));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { columnId: 'qa' }));
   });
 
   it('renames it in place: Enter saves, Esc puts it back (and leaves the modal open)', async () => {

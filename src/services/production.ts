@@ -1,5 +1,5 @@
 import { API_BASE } from '../config/api';
-import { ProductionSequence, ProductionShot, ProductionTask } from '../interfaces';
+import { BoardColumn, ProductionSequence, ProductionShot, ProductionTask } from '../interfaces';
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: 'include', ...options });
@@ -50,6 +50,35 @@ export async function deleteSequence(projectId: string, seqId: string): Promise<
   await request(`${base(projectId)}/sequences/${seqId}`, { method: 'DELETE' });
 }
 
+// ── Board ──────────────────────────────────────────────────────────────────
+// Each change answers the board's columns as they are then.
+
+export async function getBoardColumns(projectId: string): Promise<BoardColumn[]> {
+  const { columns } = await request<{ columns: BoardColumn[] }>(`${base(projectId)}/board`, { method: 'GET' });
+  return columns;
+}
+
+export async function addBoardColumn(projectId: string, payload: { name: string; status: string; position?: number }): Promise<BoardColumn[]> {
+  const { columns } = await request<{ columns: BoardColumn[] }>(`${base(projectId)}/board/columns`, json('POST', payload));
+  return columns;
+}
+
+export async function updateBoardColumn(projectId: string, columnId: string, payload: Partial<{ name: string; status: string }>): Promise<BoardColumn[]> {
+  const { columns } = await request<{ columns: BoardColumn[] }>(`${base(projectId)}/board/columns/${columnId}`, json('PATCH', payload));
+  return columns;
+}
+
+export async function orderBoardColumns(projectId: string, order: string[]): Promise<BoardColumn[]> {
+  const { columns } = await request<{ columns: BoardColumn[] }>(`${base(projectId)}/board`, json('PATCH', { order }));
+  return columns;
+}
+
+/** A column deleted; its cards, if it has any, moved to `moveTo`. */
+export async function deleteBoardColumn(projectId: string, columnId: string, moveTo?: string): Promise<{ columns: BoardColumn[]; moved: number }> {
+  const query = moveTo ? `?${new URLSearchParams({ moveTo })}` : '';
+  return request<{ columns: BoardColumn[]; moved: number }>(`${base(projectId)}/board/columns/${columnId}${query}`, { method: 'DELETE' });
+}
+
 // ── Shots ──────────────────────────────────────────────────────────────────
 
 export async function getShots(projectId: string, seqId: string): Promise<ProductionShot[]> {
@@ -66,6 +95,7 @@ export async function createShot(
     name: string;
     description?: string;
     status?: string;
+    columnId?: string;
     assignedTo?: string[];
     teamIds?: string[];
     assetId?: string;
@@ -87,6 +117,7 @@ export async function updateShot(
     name: string;
     description: string;
     status: string;
+    columnId: string;
     assignedTo: string[];
     teamIds: string[];
     assetId: string | null;

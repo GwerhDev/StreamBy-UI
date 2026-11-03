@@ -20,6 +20,13 @@ const shot = (over: Partial<ProductionShot>): ProductionShot => ({
   id: 's1', sequenceId: 'q1', projectId: 'p1', name: 'SH010', order: 0, status: 'todo', assignedTo: [],
   createdBy: 'u1', createdAt: '', updatedAt: '', ...over,
 });
+// The board a project starts with: a column per status.
+const COLUMNS = [
+  { id: 'todo', name: 'To Do', status: 'todo' as const },
+  { id: 'in_progress', name: 'In Progress', status: 'in_progress' as const },
+  { id: 'review', name: 'Review', status: 'review' as const },
+  { id: 'done', name: 'Done', status: 'done' as const },
+];
 const MEMBERS = [
   { userId: 'u1', username: 'ada', role: 'admin', status: 'active' },
   { userId: 'u2', username: 'eli', role: 'editor', status: 'active' },
@@ -60,6 +67,7 @@ beforeEach(() => {
   vi.spyOn(projects, 'fetchProjectMembers').mockResolvedValue(MEMBERS);
   vi.spyOn(deliverables, 'getDeliverables').mockResolvedValue([]);
   vi.spyOn(teamsService, 'getTeams').mockResolvedValue([]);
+  vi.spyOn(production, 'getBoardColumns').mockResolvedValue(COLUMNS);
 });
 
 const deleteButtons = () => screen.findAllByTitle('Delete sequence');
@@ -70,7 +78,7 @@ describe('ProductionBoard', () => {
   it('has a column per status and a lane per sequence, its cards in their cells', async () => {
     renderBoard();
     const opening = await screen.findByRole('region', { name: 'Opening' });
-    expect(within(opening).getAllByLabelText(/^Opening, /)).toHaveLength(STATUSES.length);
+    expect(within(opening).getAllByLabelText(/^Opening, /)).toHaveLength(COLUMNS.length);
     expect(within(cell('Opening', 'To Do')).getByText('SH010')).toBeInTheDocument();
     expect(within(cell('Chase', 'Review')).getByText('SH200')).toBeInTheDocument();
     expect(within(cell('Opening', 'Review')).queryByText('SH200')).not.toBeInTheDocument();
@@ -112,12 +120,12 @@ describe('ProductionBoard', () => {
   });
 
   it('creates a card in place, at the foot of a cell: in that sequence, with that status', async () => {
-    const create = vi.spyOn(production, 'createShot').mockResolvedValue(shot({ id: 's3', name: 'SH020', status: 'in_progress' }));
+    const create = vi.spyOn(production, 'createShot').mockResolvedValue(shot({ id: 's3', name: 'SH020', status: 'in_progress', columnId: 'in_progress' }));
     renderBoard();
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Create a shot in Opening, In Progress' }));
     await user.type(screen.getByLabelText('New shot name'), 'SH020{Enter}');
-    await waitFor(() => expect(create).toHaveBeenCalledWith('p1', 'q1', { name: 'SH020', status: 'in_progress', order: 1 }));
+    await waitFor(() => expect(create).toHaveBeenCalledWith('p1', 'q1', { name: 'SH020', columnId: 'in_progress', order: 1 }));
     expect(await within(cell('Opening', 'In Progress')).findByText('SH020')).toBeInTheDocument();
     // Another can follow.
     expect(screen.getByLabelText('New shot name')).toHaveValue('');
@@ -208,10 +216,10 @@ describe('dragging a card', () => {
   };
 
   it('to another column, changes its status, and saves it', async () => {
-    const update = vi.spyOn(production, 'updateShot').mockResolvedValue(shot({ status: 'in_progress' }));
+    const update = vi.spyOn(production, 'updateShot').mockResolvedValue(shot({ status: 'in_progress', columnId: 'in_progress' }));
     renderBoard();
     await drag('ArrowRight', 10);
-    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { status: 'in_progress' }));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { columnId: 'in_progress' }));
     expect(within(cell('Opening', 'In Progress')).getByText('SH010')).toBeInTheDocument();
   });
 
@@ -333,6 +341,97 @@ describe('filtering the board', () => {
     fireEvent.mouseDown(screen.getByText('Everyone'));
     await waitFor(() => expect(shown()).toEqual(['To Eli', 'To Animation', 'A task to Ada', 'A task to Sound']));
     expect(where()).toBe('/project/p1/dashboard/production');
+  });
+});
+
+describe('the board\'s columns', () => {
+  const QA = { id: 'qa', name: 'QA', status: 'in_progress' as const };
+  const heads = () => screen.getAllByLabelText(/^Column /).map(h => h.getAttribute('aria-label')!.replace('Column ', ''));
+
+  it('adds a QA column in in_progress, renames it and moves it among the others', async () => {
+    const add = vi.spyOn(production, 'addBoardColumn').mockResolvedValue([...COLUMNS, QA]);
+    const rename = vi.spyOn(production, 'updateBoardColumn').mockResolvedValue([...COLUMNS, { ...QA, name: 'Quality' }]);
+    const order = vi.spyOn(production, 'orderBoardColumns').mockResolvedValue([COLUMNS[0], COLUMNS[1], { ...QA, name: 'Quality' }, COLUMNS[2], COLUMNS[3]]);
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Add a column' }));
+    await user.type(screen.getByLabelText('Name'), 'QA');
+    // In in_progress unless told otherwise (the dialog's status, not the column of that name).
+    expect(within(screen.getByText('Status', { selector: 'label' }).parentElement!).getByRole('button', { name: 'In Progress' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Add column/ }));
+    await waitFor(() => expect(add).toHaveBeenCalledWith('p1', { name: 'QA', status: 'in_progress' }));
+    expect(heads()).toEqual(['To Do', 'In Progress', 'Review', 'Done', 'QA']);
+
+    await user.click(screen.getByRole('button', { name: 'QA' }));
+    const input = screen.getByLabelText('Column name');
+    await user.clear(input);
+    await user.type(input, 'Quality{Enter}');
+    await waitFor(() => expect(rename).toHaveBeenCalledWith('p1', 'qa', { name: 'Quality' }));
+    expect(heads()).toContain('Quality');
+
+    await user.click(screen.getByRole('button', { name: 'Quality column actions' }));
+    expect(screen.getByRole('menuitem', { name: /Move right/ })).toBeDisabled();
+    await user.click(screen.getByRole('menuitem', { name: /Move left/ }));
+    await waitFor(() => expect(order).toHaveBeenCalledWith('p1', ['todo', 'in_progress', 'review', 'qa', 'done']));
+    expect(heads()).toEqual(['To Do', 'In Progress', 'Quality', 'Review', 'Done']);
+  });
+
+  it("doesn't move a column again until its last move is saved", async () => {
+    let answer!: (columns: typeof COLUMNS) => void;
+    vi.spyOn(production, 'orderBoardColumns').mockImplementation(() => new Promise(resolve => { answer = resolve; }));
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Done column actions' }));
+    await user.click(screen.getByRole('menuitem', { name: /Move left/ }));
+    await user.click(screen.getByRole('button', { name: 'Done column actions' }));
+    expect(screen.getByRole('menuitem', { name: /Move left/ })).toBeDisabled();
+    expect(screen.getByRole('menuitem', { name: /Delete column/ })).toBeDisabled();
+    answer([COLUMNS[0], COLUMNS[1], COLUMNS[3], COLUMNS[2]]);
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /Move left/ })).toBeEnabled());
+    expect(heads()).toEqual(['To Do', 'In Progress', 'Done', 'Review']);
+  });
+
+  it("a card moved to QA is in QA, with QA's status", async () => {
+    vi.spyOn(production, 'getBoardColumns').mockResolvedValue([...COLUMNS, QA]);
+    const update = vi.spyOn(production, 'updateShot').mockResolvedValue(shot({ columnId: 'qa', status: 'in_progress' }));
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'List' }));
+    await user.click(within(screen.getByLabelText('Column of SH010')).getByRole('button'));
+    fireEvent.mouseDown(screen.getByText('QA', { selector: 'li' }));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { columnId: 'qa' }));
+    await user.click(screen.getByRole('button', { name: 'Board' }));
+    expect(within(cell('Opening', 'QA')).getByText('SH010')).toBeInTheDocument();
+  });
+
+  it('deleting a column with cards asks where to move them', async () => {
+    vi.spyOn(production, 'getBoardColumns').mockResolvedValue([...COLUMNS, QA]);
+    vi.spyOn(production, 'getShots').mockImplementation(async (_p, seqId) => (seqId === 'q1' ? [shot({ columnId: 'qa', status: 'in_progress' })] : []));
+    const del = vi.spyOn(production, 'deleteBoardColumn').mockResolvedValue({ columns: COLUMNS, moved: 1 });
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'QA column actions' }));
+    await user.click(screen.getByRole('menuitem', { name: /Delete column/ }));
+    expect(screen.getByText(/Its card will move to another column/)).toBeInTheDocument();
+    // Another column of its status first.
+    expect(within(screen.getByText('Move its cards to').parentElement!).getByRole('button', { name: 'In Progress (In Progress)' })).toBeInTheDocument();
+    await user.click(within(screen.getByText('Move its cards to').parentElement!).getByRole('button'));
+    fireEvent.mouseDown(screen.getByText('Review (Review)'));
+    await user.click(screen.getByRole('button', { name: /Delete column/ }));
+    await waitFor(() => expect(del).toHaveBeenCalledWith('p1', 'qa', 'review'));
+    expect(heads()).toEqual(['To Do', 'In Progress', 'Review', 'Done']);
+    expect(within(cell('Opening', 'Review')).getByText('SH010')).toBeInTheDocument();
+  });
+
+  it("can't delete the last column of a status", async () => {
+    const del = vi.spyOn(production, 'deleteBoardColumn');
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Done column actions' }));
+    await user.click(screen.getByRole('menuitem', { name: /Delete column/ }));
+    expect(screen.getByText(/each status keeps at least one/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete column/ })).toBeDisabled();
+    expect(del).not.toHaveBeenCalled();
   });
 });
 
