@@ -19,7 +19,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    resource: 'members', label: 'Members', description: 'Who is in the project, and their roles',
+    resource: 'members', label: 'Members', description: 'Who is in the project, their roles and its teams',
     actions: [
       { permission: 'members:read', label: 'Read' },
       { permission: 'members:manage', label: 'Manage' },

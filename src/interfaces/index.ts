@@ -246,6 +246,15 @@ export interface Member {
   status: 'pending' | 'active';
 }
 
+// A group of a project's members, to give work to all of them at once.
+export interface Team {
+  id: string;
+  name: string;
+  members: { userId: string; username: string; profilePic?: string | null }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Directory {
   name: string;
   path: string;

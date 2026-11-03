@@ -1,7 +1,7 @@
 import s from './MemberList.module.css';
 import skeleton from '../Loader/Skeleton.module.css';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -10,11 +10,13 @@ import { inviteMember, removeMember, updateMemberRole } from '../../../services/
 import { searchUsers, UserSearchResult } from '../../../services/users';
 import { Member } from '../../../interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faMagnifyingGlass, faXmark, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faUserPlus, faMagnifyingGlass, faXmark, faUserGroup, faUsersRectangle } from '@fortawesome/free-solid-svg-icons';
 import { MemberCard } from '../Cards/MemberCard';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { DropdownInput } from '../Inputs/DropdownInput';
+import { Tabs } from '../Tabs/Tabs';
+import { TeamList } from '../Teams/TeamList';
 
 type MemberRole = 'viewer' | 'editor' | 'admin';
 
@@ -39,6 +41,11 @@ export function MemberList() {
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Its members, or its teams (?tab=teams).
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'teams' ? 'teams' : 'members';
+  const showTab = (id: string) => setParams(p => { if (id === 'teams') p.set('tab', 'teams'); else p.delete('tab'); return p; }, { replace: true });
 
   const dispatch = useDispatch<AppDispatch>();
   const isAdmin = currentProject?.members?.find(m => m.userId === session.userId)?.role === 'admin';
@@ -134,86 +141,98 @@ export function MemberList() {
 
   return (
     <div className={s.container}>
-      <SectionHeader icon={faUserGroup} title="Project Members" subtitle="Manage your project's team" />
+      <SectionHeader icon={faUserGroup} title="Project Members" subtitle="Manage your project's members and teams" />
 
-      {isAdmin && (
-        <div className={s.inviteSection}>
-          <div className={s.inviteRow}>
-            <div className={s.searchWrap} ref={searchRef}>
-              <div className={s.searchInput}>
-                <FontAwesomeIcon icon={faMagnifyingGlass} className={s.searchIcon} />
-                <input
-                  type="text"
-                  placeholder="Search by username..."
-                  value={query}
-                  onChange={e => { setQuery(e.target.value); setSelectedUser(null); }}
-                  onFocus={() => results.length > 0 && setShowDropdown(true)}
-                  autoComplete="off"
-                />
-                {query && (
-                  <button type="button" className={s.clearBtn} onClick={handleClearSelection}>
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
+      <Tabs
+        tabs={[{ id: 'members', label: 'Members', icon: faUserGroup }, { id: 'teams', label: 'Teams', icon: faUsersRectangle }]}
+        active={tab}
+        onChange={showTab}
+      />
+
+      <div className={s.column}>
+      {tab === 'teams' && projectId ? (
+        <TeamList projectId={projectId} members={members.filter(m => m.status === 'active')} isAdmin={isAdmin} />
+      ) : (<>
+        {isAdmin && (
+          <div className={s.inviteSection}>
+            <div className={s.inviteRow}>
+              <div className={s.searchWrap} ref={searchRef}>
+                <div className={s.searchInput}>
+                  <FontAwesomeIcon icon={faMagnifyingGlass} className={s.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search by username..."
+                    value={query}
+                    onChange={e => { setQuery(e.target.value); setSelectedUser(null); }}
+                    onFocus={() => results.length > 0 && setShowDropdown(true)}
+                    autoComplete="off"
+                  />
+                  {query && (
+                    <button type="button" className={s.clearBtn} onClick={handleClearSelection}>
+                      <FontAwesomeIcon icon={faXmark} />
+                    </button>
+                  )}
+                </div>
+
+                {showDropdown && (
+                  <ul className={s.dropdown}>
+                    {searching && <li className={s.dropdownInfo}>Searching...</li>}
+                    {!searching && results.length === 0 && (
+                      <li className={s.dropdownInfo}>No users found</li>
+                    )}
+                    {results.map(user => (
+                      <li key={user.id} className={s.dropdownItem} onMouseDown={() => handleSelectUser(user)}>
+                        <span className={s.avatar}>{user.username[0].toUpperCase()}</span>
+                        <span className={s.dropdownUsername}>{user.username}</span>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
 
-              {showDropdown && (
-                <ul className={s.dropdown}>
-                  {searching && <li className={s.dropdownInfo}>Searching...</li>}
-                  {!searching && results.length === 0 && (
-                    <li className={s.dropdownInfo}>No users found</li>
-                  )}
-                  {results.map(user => (
-                    <li key={user.id} className={s.dropdownItem} onMouseDown={() => handleSelectUser(user)}>
-                      <span className={s.avatar}>{user.username[0].toUpperCase()}</span>
-                      <span className={s.dropdownUsername}>{user.username}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <DropdownInput
-              value={inviteRole}
-              onChange={v => setInviteRole(v as MemberRole)}
-              options={ROLES.map(r => ({ value: r, label: r }))}
-            />
-
-            <ActionButton
-              icon={faUserPlus}
-              text="Invite"
-              disabled={!selectedUser || inviting}
-              onClick={handleInvite}
-            />
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <ul className={s.memberGrid}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
-          ))}
-        </ul>
-      ) : error ? (
-        <p className={s.errorMsg}>{error}</p>
-      ) : members.length === 0 ? (
-        <p className={s.emptyMsg}>No members in this project.</p>
-      ) : (
-        <ul className={s.memberGrid}>
-          {members.map(member => (
-            <li key={member.userId} className={s.memberListItem}>
-              <MemberCard
-                member={member}
-                isAdmin={isAdmin}
-                isSelf={member.userId === session.userId}
-                onRoleChange={role => handleRoleChange(member.userId, role as MemberRole)}
-                onRemove={() => handleRemove(member.userId)}
+              <DropdownInput
+                value={inviteRole}
+                onChange={v => setInviteRole(v as MemberRole)}
+                options={ROLES.map(r => ({ value: r, label: r }))}
               />
-            </li>
-          ))}
-        </ul>
-      )}
+
+              <ActionButton
+                icon={faUserPlus}
+                text="Invite"
+                disabled={!selectedUser || inviting}
+                onClick={handleInvite}
+              />
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <ul className={s.memberGrid}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className={`${s.cardSkeleton} ${skeleton.skeleton}`} />
+            ))}
+          </ul>
+        ) : error ? (
+          <p className={s.errorMsg}>{error}</p>
+        ) : members.length === 0 ? (
+          <p className={s.emptyMsg}>No members in this project.</p>
+        ) : (
+          <ul className={s.memberGrid}>
+            {members.map(member => (
+              <li key={member.userId} className={s.memberListItem}>
+                <MemberCard
+                  member={member}
+                  isAdmin={isAdmin}
+                  isSelf={member.userId === session.userId}
+                  onRoleChange={role => handleRoleChange(member.userId, role as MemberRole)}
+                  onRemove={() => handleRemove(member.userId)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </>)}
+      </div>
     </div>
   );
 }

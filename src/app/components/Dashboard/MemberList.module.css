@@ -1,8 +1,17 @@
+/* The page takes its container's width (its header and tabs); what each tab shows is a column
+   in its middle. */
 .container {
+  width: 100%;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.column {
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
