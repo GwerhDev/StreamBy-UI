@@ -154,7 +154,7 @@ describe('ShotModal', () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole('checkbox', { name: 'Layout' }));
     await waitFor(() => expect(updateTask).toHaveBeenCalledWith('p1', 's1', 't1', { status: 'done' }));
-    expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: { done: 1, total: 1, priority: null } }));
+    expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: { done: 1, total: 1, priority: null, assignedTo: [], teamIds: [] } }));
     expect(screen.getByText('1/1')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Layout' })).toBeChecked();
 
@@ -172,7 +172,7 @@ describe('ShotModal', () => {
     await user.type(screen.getByLabelText('New task'), 'Lighting{Enter}');
     await waitFor(() => expect(create).toHaveBeenCalledWith('p1', 's1', { name: 'Lighting' }));
     expect(await screen.findByText('Lighting')).toBeInTheDocument();
-    expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: { done: 0, total: 2, priority: 'high' } }));
+    expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: { done: 0, total: 2, priority: 'high', assignedTo: [], teamIds: [] } }));
   });
 
   it('edits a task: name, notes, and the people and teams it is assigned to', async () => {

@@ -252,7 +252,8 @@ describe('filtering the board', () => {
       shot({ id: 's4', name: 'A task to Sound', taskSummary: { done: 0, total: 1, priority: 'low', assignedTo: [], teamIds: ['tm2'] } }),
     ]);
   });
-  const shown = () => ['To Eli', 'To Animation', 'A task to Ada', 'A task to Sound'].filter(n => screen.queryByRole('button', { name: n }));
+  // The board's cards (not, say, the open card's name in its modal).
+  const shown = () => [...document.querySelectorAll('[aria-roledescription="draggable"]')].map(c => c.getAttribute('aria-label'));
 
   it("a card shows the teams it's assigned to", async () => {
     renderBoard();
@@ -281,6 +282,44 @@ describe('filtering the board', () => {
     renderBoard('/project/p1/dashboard/production?team=tm1');
     await screen.findByRole('button', { name: 'To Animation' });
     expect(shown()).toEqual(['To Animation']);
+  });
+
+  it("keeps a card shown through a task of mine when a task of it changes in its modal", async () => {
+    vi.spyOn(production, 'getTasks').mockResolvedValue([
+      { id: 't1', shotId: 's3', projectId: 'p1', name: 'Layout', status: 'todo', priority: 'low', assignedTo: ['u1'], teamIds: [], createdBy: 'u1', createdAt: '', updatedAt: '' },
+    ]);
+    vi.spyOn(production, 'updateTask').mockImplementation(async (_p, _s, _t, changes) => ({
+      id: 't1', shotId: 's3', projectId: 'p1', name: 'Layout', status: 'todo', priority: 'low', assignedTo: ['u1'], teamIds: [], createdBy: 'u1', createdAt: '', updatedAt: '', ...changes,
+    } as never));
+    renderBoard('/project/p1/dashboard/production?person=me');
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'A task to Ada' }));
+    await user.click(await screen.findByRole('checkbox', { name: 'Layout' }));
+    await waitFor(() => expect(production.updateTask).toHaveBeenCalled());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByTestId('shot-modal')).not.toBeInTheDocument());
+    expect(shown()).toEqual(['To Animation', 'A task to Ada']);
+  });
+
+  it("shows a card under a team's filter once one of its tasks is assigned to the team", async () => {
+    vi.spyOn(production, 'getTasks').mockResolvedValue([
+      { id: 't9', shotId: 's1', projectId: 'p1', name: 'Rig', status: 'todo', priority: 'low', assignedTo: [], teamIds: [], createdBy: 'u1', createdAt: '', updatedAt: '' },
+    ]);
+    vi.spyOn(production, 'updateTask').mockImplementation(async (_p, _s, _t, changes) => ({
+      id: 't9', shotId: 's1', projectId: 'p1', name: 'Rig', status: 'todo', priority: 'low', assignedTo: [], teamIds: [], createdBy: 'u1', createdAt: '', updatedAt: '', ...changes,
+    } as never));
+    // Its card isn't under Animation yet: opened from its link.
+    renderBoard('/project/p1/dashboard/production?team=tm1&shot=s1');
+    const user = userEvent.setup();
+    expect(await screen.findByTestId('shot-modal')).toBeInTheDocument();
+    expect(shown()).toEqual(['To Animation']);
+    await user.click(await screen.findByRole('button', { name: 'Edit task Rig' }));
+    await user.click(screen.getByLabelText('Animation', { selector: '#task-t9-team-tm1' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(production.updateTask).toHaveBeenCalledWith('p1', 's1', 't9', expect.objectContaining({ teamIds: ['tm1'] })));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByTestId('shot-modal')).not.toBeInTheDocument());
+    expect(shown()).toEqual(['To Eli', 'To Animation']);
   });
 
   it('both filters together, and none', async () => {

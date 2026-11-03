@@ -13,11 +13,16 @@ export const PRIORITY_LABEL: Record<TaskPriority, string> = { low: 'Low', medium
 
 const PRIORITY_RANK: Record<TaskPriority, number> = { low: 1, medium: 2, high: 3 };
 
-// How a shot's tasks go, as the server sums them up: done of total, and the highest priority
-// among those still open.
-export function summaryOf(tasks: Pick<ProductionTask, 'status' | 'priority'>[]): TaskSummary {
+// How a shot's tasks go, as the server sums them up: done of total, the highest priority among
+// those still open, and who they're assigned to (people and teams, each once), which a board
+// finds the shot by.
+export function summaryOf(tasks: Pick<ProductionTask, 'status' | 'priority' | 'assignedTo' | 'teamIds'>[]): TaskSummary {
   const open = tasks.filter(t => t.status !== 'done');
   const priority = open.reduce<TaskPriority | null>(
     (top, t) => (!top || PRIORITY_RANK[t.priority] > PRIORITY_RANK[top] ? t.priority : top), null);
-  return { done: tasks.length - open.length, total: tasks.length, priority };
+  return {
+    done: tasks.length - open.length, total: tasks.length, priority,
+    assignedTo: [...new Set(tasks.flatMap(t => t.assignedTo ?? []))],
+    teamIds: [...new Set(tasks.flatMap(t => t.teamIds ?? []))],
+  };
 }
