@@ -3,7 +3,7 @@ import skeleton from '../Loader/Skeleton.module.css';
 import { FormEvent, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFloppyDisk, faPen, faPlus, faTrash, faUsersRectangle, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faFloppyDisk, faLock, faPen, faPlus, faTrash, faUsersRectangle, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTeam, deleteTeam, getTeams, updateTeam } from '../../../services/teams';
@@ -23,10 +23,17 @@ interface Props {
   members: Member[];
   // Who sees it may make, change and delete teams (an admin, or an editor if the project lets them).
   canManage: boolean;
+  // An admin of the project: who is in a team that grants permissions is only theirs to change.
+  isAdmin: boolean;
 }
 
-// A project's teams: everyone in it sees them; its admins make, change and delete them.
-export function TeamList({ projectId, members, canManage }: Props) {
+export const LOCKED_REASON = "Its members are managed by the project's admins because it grants permissions";
+
+// A project's teams: everyone in it sees them; its admins (and its editors, if the project lets
+// them) make, change and delete them. A team that grants permissions, for someone who isn't an
+// admin, can only be renamed.
+export function TeamList({ projectId, members, canManage, isAdmin }: Props) {
+  const locked = (team: Team) => !isAdmin && !!team.grantsPermissions;
   const dispatch = useDispatch<AppDispatch>();
   const [teams, setTeams] = useState<Team[] | null>(null);
   // The team being made (null) or changed, while its dialog is open.
@@ -46,10 +53,10 @@ export function TeamList({ projectId, members, canManage }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  const save = async (payload: { name: string; memberIds: string[] }) => {
+  const save = async (payload: { name: string; memberIds?: string[] }) => {
     setBusy(true);
     try {
-      setTeams(editing ? await updateTeam(projectId, editing.id, payload) : await createTeam(projectId, payload));
+      setTeams(editing ? await updateTeam(projectId, editing.id, payload) : await createTeam(projectId, { name: payload.name, memberIds: payload.memberIds ?? [] }));
       dispatch(addApiResponse({ message: editing ? 'Team saved.' : 'Team created.', type: 'success' }));
       setEditing(undefined);
     } catch (err) {
@@ -89,7 +96,14 @@ export function TeamList({ projectId, members, canManage }: Props) {
             <li key={team.id} className={s.team} aria-label={team.name}>
               <span className={s.teamIcon}><FontAwesomeIcon icon={faUsersRectangle} /></span>
               <div className={s.teamInfo}>
-                <span className={s.teamName}>{team.name}</span>
+                <span className={s.teamName}>
+                  {team.name}
+                  {locked(team) && (
+                    <span className={s.locked} title={LOCKED_REASON} role="img" aria-label={LOCKED_REASON}>
+                      <FontAwesomeIcon icon={faLock} />
+                    </span>
+                  )}
+                </span>
                 <span className={s.teamCount}>{team.members.length === 1 ? '1 member' : `${team.members.length} members`}</span>
               </div>
               <span className={s.avatars}>
@@ -101,9 +115,11 @@ export function TeamList({ projectId, members, canManage }: Props) {
                   <button type="button" className={s.iconBtn} onClick={() => setEditing(team)} aria-label={`Edit ${team.name}`}>
                     <FontAwesomeIcon icon={faPen} />
                   </button>
-                  <button type="button" className={`${s.iconBtn} ${s.deleteBtn}`} onClick={() => setToDelete(team)} aria-label={`Delete ${team.name}`}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
+                  {!locked(team) && (
+                    <button type="button" className={`${s.iconBtn} ${s.deleteBtn}`} onClick={() => setToDelete(team)} aria-label={`Delete ${team.name}`}>
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  )}
                 </span>
               )}
             </li>
@@ -112,7 +128,10 @@ export function TeamList({ projectId, members, canManage }: Props) {
       )}
 
       {editing !== undefined && (
-        <TeamModal team={editing} members={members} saving={busy} onSave={save} onClose={() => setEditing(undefined)} />
+        <TeamModal
+          team={editing} members={members} saving={busy} membersLocked={!!editing && locked(editing)}
+          onSave={save} onClose={() => setEditing(undefined)}
+        />
       )}
 
       {toDelete && (
@@ -130,12 +149,14 @@ export function TeamList({ projectId, members, canManage }: Props) {
   );
 }
 
-// A team made or changed: its name, and which of the project's members are in it.
-function TeamModal({ team, members, saving, onSave, onClose }: {
+// A team made or changed: its name, and which of the project's members are in it (unless its
+// members are locked: then only its name is saved).
+function TeamModal({ team, members, saving, membersLocked, onSave, onClose }: {
   team: Team | null;
   members: Member[];
   saving: boolean;
-  onSave: (payload: { name: string; memberIds: string[] }) => void;
+  membersLocked: boolean;
+  onSave: (payload: { name: string; memberIds?: string[] }) => void;
   onClose: () => void;
 }) {
   const [name, setName] = useState(team?.name ?? '');
@@ -144,7 +165,7 @@ function TeamModal({ team, members, saving, onSave, onClose }: {
     setMemberIds(ids => (on ? [...ids, userId] : ids.filter(id => id !== userId)));
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (name.trim() && !saving) onSave({ name: name.trim(), memberIds });
+    if (name.trim() && !saving) onSave(membersLocked ? { name: name.trim() } : { name: name.trim(), memberIds });
   };
 
   return (
@@ -156,10 +177,13 @@ function TeamModal({ team, members, saving, onSave, onClose }: {
         />
         <fieldset className={s.members}>
           <legend className={s.legend}>Members</legend>
+          {membersLocked && (
+            <p className={s.lockedNote}><FontAwesomeIcon icon={faLock} /> {LOCKED_REASON}.</p>
+          )}
           {members.length === 0 && <p className={s.hint}>No members to add.</p>}
           {members.map(m => (
             <CustomCheckbox
-              key={m.userId} id={`team-member-${m.userId}`} name="team-member" value={m.userId}
+              key={m.userId} id={`team-member-${m.userId}`} name="team-member" value={m.userId} disabled={membersLocked}
               label={m.username} checked={memberIds.includes(m.userId)} onChange={e => toggle(m.userId, e.target.checked)}
             />
           ))}

@@ -34,6 +34,11 @@ describe('RolePermissions', () => {
     expect(onChange).toHaveBeenCalledWith('teams:manage', 'editor');
   });
 
+  it("says, where managing teams is given, that teams that grant permissions stay the admins'", () => {
+    render(<RolePermissions actions={ACTIONS} roles={{ ...ROLES }} editable onChange={vi.fn()} />);
+    expect(screen.getByText("Teams that grant permissions stay the admins' to manage")).toBeInTheDocument();
+  });
+
   it('only the values, to who may not', () => {
     render(<RolePermissions actions={ACTIONS} roles={{ ...ROLES }} editable={false} onChange={vi.fn()} />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
@@ -69,6 +74,12 @@ describe('TeamPermissions', () => {
     render(<TeamPermissions teams={TEAMS} actions={ACTIONS} roles={{ 'teams:manage': 'editor', 'docs:delete': 'editor' }} grants={{}} editable onToggle={vi.fn()} />);
     expect(screen.getByText(/set an action as Admins only in Roles/)).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it("says it too where a team is given managing teams", () => {
+    render(<TeamPermissions teams={TEAMS} actions={ACTIONS} roles={{ ...ROLES }} grants={{}} editable onToggle={vi.fn()} />);
+    const docs = screen.getByRole('list', { name: 'What Docs adds' });
+    expect(within(docs).getByText("Teams that grant permissions stay the admins' to manage")).toBeInTheDocument();
   });
 
   it('says where to make teams when there are none', () => {

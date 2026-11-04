@@ -155,7 +155,7 @@ export function MemberList() {
 
       <div className={s.column}>
       {tab === 'teams' && projectId ? (
-        <TeamList projectId={projectId} members={members.filter(m => m.status === 'active')} canManage={canManageTeams} />
+        <TeamList projectId={projectId} members={members.filter(m => m.status === 'active')} canManage={canManageTeams} isAdmin={isAdmin} />
       ) : (<>
         {isAdmin && (
           <div className={s.inviteSection}>

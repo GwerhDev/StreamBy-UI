@@ -16,14 +16,14 @@ const team = (over: Partial<Team>): Team => ({
   id: 't1', name: 'Animation', members: [{ userId: 'u2', username: 'eli' }], createdAt: '', updatedAt: '', ...over,
 });
 
-const renderList = (canManage = true) => {
+const renderList = (canManage = true, isAdmin = canManage) => {
   const store = configureStore({
     reducer: {
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
   });
-  render(<Provider store={store}><TeamList projectId="p1" members={MEMBERS} canManage={canManage} /></Provider>);
+  render(<Provider store={store}><TeamList projectId="p1" members={MEMBERS} canManage={canManage} isAdmin={isAdmin} /></Provider>);
   return store;
 };
 
@@ -105,4 +105,53 @@ describe('TeamList', () => {
     expect(screen.queryByRole('button', { name: 'Edit Animation' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete Animation' })).not.toBeInTheDocument();
   });
+
+  describe('a team that grants permissions', () => {
+    const REASON = "Its members are managed by the project's admins because it grants permissions";
+    beforeEach(() => {
+      vi.spyOn(teamsService, 'getTeams').mockResolvedValue([
+        team({ grantsPermissions: true }),
+        team({ id: 't2', name: 'Layout', members: [] }),
+      ]);
+    });
+
+    it("to an editor who manages teams, says why its members aren't theirs; it can't be deleted", async () => {
+      renderList(true, false);
+      const granting = await screen.findByRole('listitem', { name: 'Animation' });
+      expect(within(granting).getByRole('img', { name: REASON })).toBeInTheDocument();
+      expect(within(granting).queryByRole('button', { name: 'Delete Animation' })).not.toBeInTheDocument();
+      // One that grants nothing is theirs to delete.
+      const plain = screen.getByRole('listitem', { name: 'Layout' });
+      expect(within(plain).queryByRole('img', { name: REASON })).not.toBeInTheDocument();
+      expect(within(plain).getByRole('button', { name: 'Delete Layout' })).toBeInTheDocument();
+    });
+
+    it('they rename it: its members show, but can only be seen, and only its name is sent', async () => {
+      const update = vi.spyOn(teamsService, 'updateTeam').mockResolvedValue([team({ name: 'Animators', grantsPermissions: true })]);
+      renderList(true, false);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: 'Edit Animation' }));
+      expect(screen.getByText(new RegExp(REASON))).toBeInTheDocument();
+      expect(screen.getByLabelText('eli', { selector: 'input' })).toBeDisabled();
+      const name = screen.getByLabelText('Name');
+      await user.clear(name);
+      await user.type(name, 'Animators');
+      await user.click(screen.getByRole('button', { name: /Save/ }));
+      await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 't1', { name: 'Animators' }));
+    });
+
+    it('an admin changes and deletes it as any other', async () => {
+      const update = vi.spyOn(teamsService, 'updateTeam').mockResolvedValue([team({ grantsPermissions: true })]);
+      renderList(true, true);
+      const user = userEvent.setup();
+      const granting = await screen.findByRole('listitem', { name: 'Animation' });
+      expect(within(granting).queryByRole('img', { name: REASON })).not.toBeInTheDocument();
+      expect(within(granting).getByRole('button', { name: 'Delete Animation' })).toBeInTheDocument();
+      await user.click(within(granting).getByRole('button', { name: 'Edit Animation' }));
+      await user.click(screen.getByLabelText('vic', { selector: 'input' }));
+      await user.click(screen.getByRole('button', { name: /Save/ }));
+      await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 't1', { name: 'Animation', memberIds: ['u2', 'u3'] }));
+    });
+  });
 });
+

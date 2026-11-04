@@ -160,3 +160,17 @@
   display: flex;
   gap: 0.5rem;
 }
+
+/* A team that grants permissions, to who isn't an admin: its members are the admins'. */
+.locked {
+  margin-left: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}
+
+.lockedNote {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}

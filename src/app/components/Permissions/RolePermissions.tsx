@@ -20,6 +20,7 @@ export function RolePermissions({ actions, roles, editable, onChange }: Props) {
           key={action}
           area={ACTIONS[action].area}
           label={ACTIONS[action].label}
+          hint={ACTIONS[action].note}
           control={editable ? (
             <span aria-label={`Who can: ${ACTIONS[action].label}`}>
               <DropdownInput value={roles[action]} onChange={v => onChange(action, v as ActionRole)} options={WHO} />

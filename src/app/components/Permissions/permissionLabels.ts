@@ -1,9 +1,9 @@
 import { ActionRole } from '../../../interfaces';
 
 // What each action a role (or a team) may be let do is.
-export const ACTIONS: Record<string, { area: string; label: string }> = {
+export const ACTIONS: Record<string, { area: string; label: string; note?: string }> = {
   'project:update': { area: 'Project', label: 'Change its details and settings' },
-  'teams:manage': { area: 'Teams', label: 'Make, change and delete teams' },
+  'teams:manage': { area: 'Teams', label: 'Make, change and delete teams', note: "Teams that grant permissions stay the admins' to manage" },
   'assets:write': { area: 'Assets', label: 'Upload and change files' },
   'assets:delete': { area: 'Assets', label: 'Delete files' },
   'production:write': { area: 'Production', label: 'Make and change sequences, shots, tasks and columns' },

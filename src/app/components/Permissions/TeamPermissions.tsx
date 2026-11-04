@@ -35,7 +35,7 @@ export function TeamPermissions({ teams, actions, roles, grants, editable, onTog
                 key={action}
                 area={ACTIONS[action].area}
                 label={ACTIONS[action].label}
-                hint={roles[action] === 'editor' ? 'Editors can already' : undefined}
+                hint={[roles[action] === 'editor' ? 'Editors can already' : '', ACTIONS[action].note ?? ''].filter(Boolean).join(' · ') || undefined}
                 controlId={`team-${team.id}-${action}`}
                 control={(
                   <CustomCheckbox

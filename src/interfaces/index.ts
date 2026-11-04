@@ -251,6 +251,8 @@ export interface Team {
   id: string;
   name: string;
   members: { userId: string; username: string; profilePic?: string | null }[];
+  // Whether the project's permissions give it actions for its editors: who is in it is then the admins' to decide.
+  grantsPermissions?: boolean;
   createdAt: string;
   updatedAt: string;
 }
