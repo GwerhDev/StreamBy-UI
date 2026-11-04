@@ -11,7 +11,7 @@ import { LabeledInput } from '../Inputs/LabeledInput';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { Spinner } from '../Spinner';
-import { faGlobe, faXmark, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faXmark, faLink } from '@fortawesome/free-solid-svg-icons';
 import { CustomForm } from './CustomForm';
 
 export const CreateAllowedOriginForm = () => {
@@ -51,7 +51,7 @@ export const CreateAllowedOriginForm = () => {
         <CustomForm
           readOnly={false}
           isLoading={loading}
-          header={{ icon: faGlobe, title: 'New Allowed Origin', subtitle: `Add an allowed origin for ${currentProject.name}` }}
+          header={{ icon: faLink, title: 'New Allowed Origin', subtitle: `Add an allowed origin for ${currentProject.name}` }}
           fields={[
             {
               icon: faLink,
@@ -69,7 +69,7 @@ export const CreateAllowedOriginForm = () => {
           ]}
           actions={
             <>
-              <ActionButton disabled={loading || !origin.trim()} icon={faGlobe} text="Add" type="submit" />
+              <ActionButton disabled={loading || !origin.trim()} icon={faLink} text="Add" type="submit" />
               <SecondaryButton disabled={loading} icon={faXmark} onClick={() => close(`/project/${projectId}/settings/allowed-origins`)} text="Cancel" />
             </>
           }

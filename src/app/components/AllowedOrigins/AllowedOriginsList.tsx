@@ -1,6 +1,6 @@
 import s from './AllowedOriginsList.module.css';
 import React, { useState } from 'react';
-import { faGlobe, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { useSelector, useDispatch } from 'react-redux';
@@ -42,7 +42,7 @@ export const AllowedOriginsList = () => {
     card: (
       <>
         <span className={s.originIconContainer}>
-          <FontAwesomeIcon icon={faGlobe} />
+          <FontAwesomeIcon icon={faLink} />
         </span>
         <h4 className={s.originText}>{origin}</h4>
       </>
@@ -60,7 +60,7 @@ export const AllowedOriginsList = () => {
 
   return (
     <ResourceList
-      icon={faGlobe}
+      icon={faLink}
       title="Allowed Origins"
       subtitle="Manage your project's allowed origins."
       items={items}
