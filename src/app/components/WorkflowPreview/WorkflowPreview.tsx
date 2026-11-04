@@ -1,6 +1,6 @@
 import s from './WorkflowPreview.module.css';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiagramProject, faBan, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Export, Workflow } from '../../../interfaces';
@@ -12,14 +12,13 @@ interface WorkflowPreviewProps {
   readonly?: boolean;
 }
 
-// Read-only miniature of the project's Workflow canvas — the whole card navigates to
-// /workflow on click, giving a real preview of the current production canvas instead of
-// a plain link (TCORE-67). Fetches the workflow itself (mirrors WorkflowPage) since
-// currentProject.data.workflow is only ever populated by visiting /workflow directly.
-// In the public preview (readonly), the click is disabled — same pattern as
-// ProjectStats/ProjectCharts — and a failed/unauthorized fetch degrades to a placeholder.
+// A miniature of the project's Workflow canvas: a link to /workflow over the whole card, and the
+// canvas under it only a picture (inert: nothing in it is hovered, clicked, dragged nor focused,
+// React Flow's nodes take pointer events even under a parent that turns them off). It fetches the
+// workflow itself, since currentProject.data.workflow is only populated by visiting /workflow.
+// In the public preview (readonly) it links nowhere, like ProjectStats/ProjectCharts, and a
+// failed or unauthorized fetch degrades to a placeholder.
 export const WorkflowPreview = ({ projectId, readonly }: WorkflowPreviewProps) => {
-  const navigate = useNavigate();
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -47,20 +46,16 @@ export const WorkflowPreview = ({ projectId, readonly }: WorkflowPreviewProps) =
     nodeSchema: workflow?.nodeSchema ?? null,
   }), [workflow, projectId]);
 
-  const handleClick = () => {
-    if (readonly) return;
-    navigate(`/project/${projectId}/workflow`);
-  };
-
   const showPlaceholder = failed || (!loading && !workflow?.nodeSchema && readonly);
 
   return (
-    <div className={`${s.container} ${readonly ? s.readonly : ''}`} onClick={handleClick}>
+    <div className={`${s.container} ${readonly ? s.readonly : ''}`} data-testid="workflow-preview">
+      {!readonly && <Link to={`/project/${projectId}/workflow`} className={s.link} aria-label="Open the workflow" />}
       <div className={s.header}>
         <FontAwesomeIcon icon={faDiagramProject} className={s.icon} />
         <span className={s.title}>Workflow</span>
       </div>
-      <div className={s.canvas}>
+      <div className={s.canvas} inert data-testid="workflow-preview-canvas">
         {loading ? (
           <div className={s.placeholder}>
             <FontAwesomeIcon icon={faSpinner} className={s.placeholderIcon} spin />
