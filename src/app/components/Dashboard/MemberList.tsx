@@ -17,6 +17,7 @@ import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import { Tabs } from '../Tabs/Tabs';
 import { TeamList } from '../Teams/TeamList';
+import { useRoleCan } from '../../../hooks/useRoleCan';
 
 type MemberRole = 'viewer' | 'editor' | 'admin';
 
@@ -48,7 +49,10 @@ export function MemberList() {
   const showTab = (id: string) => setParams(p => { if (id === 'teams') p.set('tab', 'teams'); else p.delete('tab'); return p; }, { replace: true });
 
   const dispatch = useDispatch<AppDispatch>();
-  const isAdmin = currentProject?.members?.find(m => m.userId === session.userId)?.role === 'admin';
+  const myRole = currentProject?.members?.find(m => m.userId === session.userId)?.role;
+  const isAdmin = myRole === 'admin';
+  // Teams: its admins, and its editors if the project lets them (its Permissions).
+  const canManageTeams = useRoleCan(projectId, myRole, 'teams:manage');
 
   const loadMembers = useCallback(async () => {
     if (!projectId) return;
@@ -151,7 +155,7 @@ export function MemberList() {
 
       <div className={s.column}>
       {tab === 'teams' && projectId ? (
-        <TeamList projectId={projectId} members={members.filter(m => m.status === 'active')} isAdmin={isAdmin} />
+        <TeamList projectId={projectId} members={members.filter(m => m.status === 'active')} canManage={canManageTeams} />
       ) : (<>
         {isAdmin && (
           <div className={s.inviteSection}>

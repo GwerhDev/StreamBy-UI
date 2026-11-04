@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemberList } from './MemberList';
 import * as projects from '../../../services/projects';
 import * as teamsService from '../../../services/teams';
+import * as permissionsService from '../../../services/permissions';
 
 const MEMBERS = [
   { userId: 'u1', username: 'ada', role: 'admin', status: 'active' },
@@ -15,10 +16,10 @@ const MEMBERS = [
 ];
 const Where = () => { const l = useLocation(); return <p data-testid="location">{l.pathname + l.search}</p>; };
 
-const renderMembers = (path = '/project/p1/dashboard/members') => {
+const renderMembers = (path = '/project/p1/dashboard/members', userId = 'u1') => {
   const store = configureStore({
     reducer: {
-      session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
+      session: () => ({ logged: true, loader: false, username: 'ada', userId }),
       currentProject: () => ({ data: { id: 'p1', name: 'Demo', public: false, members: MEMBERS }, loading: false, error: null, membership: null }),
       apiResponses: (state = { responses: [] as unknown[] }) => state,
     },
@@ -61,5 +62,33 @@ describe('MemberList', () => {
     renderMembers('/project/p1/dashboard/members?tab=teams');
     expect(await screen.findByRole('button', { name: /New team/ })).toBeInTheDocument();
     expect(teamsService.getTeams).toHaveBeenCalledWith('p1');
+  });
+
+  describe('teams for an editor', () => {
+    const permissions = (teams: 'editor' | 'admin') => vi.spyOn(permissionsService, 'getProjectPermissions').mockResolvedValue({
+      permissions: { roles: { 'teams:manage': teams }, apps: [] }, actions: ['teams:manage'], appPermissions: [],
+    });
+
+    it('manages them when the project lets editors', async () => {
+      permissions('editor');
+      renderMembers('/project/p1/dashboard/members?tab=teams', 'u2');
+      expect(await screen.findByRole('button', { name: /New team/ })).toBeInTheDocument();
+      expect(permissionsService.getProjectPermissions).toHaveBeenCalledWith('p1');
+    });
+
+    it("only sees them when it doesn't", async () => {
+      permissions('admin');
+      renderMembers('/project/p1/dashboard/members?tab=teams', 'u2');
+      await waitFor(() => expect(permissionsService.getProjectPermissions).toHaveBeenCalled());
+      await waitFor(() => expect(teamsService.getTeams).toHaveBeenCalled());
+      expect(screen.queryByRole('button', { name: /New team/ })).not.toBeInTheDocument();
+    });
+
+    it("an admin's isn't asked of the project", async () => {
+      const asked = permissions('admin');
+      renderMembers('/project/p1/dashboard/members?tab=teams');
+      expect(await screen.findByRole('button', { name: /New team/ })).toBeInTheDocument();
+      expect(asked).not.toHaveBeenCalled();
+    });
   });
 });

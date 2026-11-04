@@ -885,3 +885,13 @@ export interface DocumentEvent {
   title?: string;
   author: DocumentAuthor;
 }
+
+// What a project lets each role do (each action: editors and admins, or admins only), what its
+// teams add for their editors, and what it adds for the apps its members connect (OAuth).
+export type ActionRole = 'editor' | 'admin';
+export interface ProjectPermissionsConfig {
+  roles: Record<string, ActionRole>;
+  // What each team (by its id) adds for the editors in it.
+  teams: Record<string, string[]>;
+  apps: string[];
+}

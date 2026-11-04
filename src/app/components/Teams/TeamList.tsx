@@ -21,11 +21,12 @@ interface Props {
   projectId: string;
   // The project's active members: only they can be in a team.
   members: Member[];
-  isAdmin: boolean;
+  // Who sees it may make, change and delete teams (an admin, or an editor if the project lets them).
+  canManage: boolean;
 }
 
 // A project's teams: everyone in it sees them; its admins make, change and delete them.
-export function TeamList({ projectId, members, isAdmin }: Props) {
+export function TeamList({ projectId, members, canManage }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const [teams, setTeams] = useState<Team[] | null>(null);
   // The team being made (null) or changed, while its dialog is open.
@@ -70,7 +71,7 @@ export function TeamList({ projectId, members, isAdmin }: Props) {
 
   return (
     <div className={s.container}>
-      {isAdmin && (
+      {canManage && (
         <div className={s.toolbar}>
           <ActionButton icon={faPlus} text="New team" onClick={() => setEditing(null)} />
         </div>
@@ -95,7 +96,7 @@ export function TeamList({ projectId, members, isAdmin }: Props) {
                 {team.members.slice(0, 5).map(m => <MemberAvatar key={m.userId} username={m.username} profilePic={m.profilePic ?? undefined} size="small" />)}
                 {team.members.length > 5 && <span className={s.more}>+{team.members.length - 5}</span>}
               </span>
-              {isAdmin && (
+              {canManage && (
                 <span className={s.actions}>
                   <button type="button" className={s.iconBtn} onClick={() => setEditing(team)} aria-label={`Edit ${team.name}`}>
                     <FontAwesomeIcon icon={faPen} />

@@ -1,0 +1,92 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding: 0.45rem 0;
+}
+
+.row + .row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.what {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.area {
+  flex-shrink: 0;
+  width: 6.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.82rem;
+  color: var(--color-text-bright);
+}
+
+.hint {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}
+
+/* What's set for it: as wide as the dropdown it holds. */
+.control {
+  flex-shrink: 0;
+  min-width: 11rem;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.control > *,
+.control > * > * {
+  width: 100%;
+}
+
+/* A checkbox: at the end, as small as it is. */
+.control:has(input[type='checkbox']) {
+  min-width: 0;
+}
+
+.control:has(input[type='checkbox']) > * {
+  width: auto;
+}
+
+label.label {
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .what {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .control {
+    width: 100%;
+  }
+}

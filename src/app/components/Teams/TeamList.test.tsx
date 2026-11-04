@@ -16,14 +16,14 @@ const team = (over: Partial<Team>): Team => ({
   id: 't1', name: 'Animation', members: [{ userId: 'u2', username: 'eli' }], createdAt: '', updatedAt: '', ...over,
 });
 
-const renderList = (isAdmin = true) => {
+const renderList = (canManage = true) => {
   const store = configureStore({
     reducer: {
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
   });
-  render(<Provider store={store}><TeamList projectId="p1" members={MEMBERS} isAdmin={isAdmin} /></Provider>);
+  render(<Provider store={store}><TeamList projectId="p1" members={MEMBERS} canManage={canManage} /></Provider>);
   return store;
 };
 
