@@ -31,11 +31,13 @@
   100% { box-shadow: 0 0 0 0   rgba(56, 182, 255, 0); }
 }
 
+/* The track's inside (66px) is 2px of room on each side and two halves of 31px: the thumb is
+   one half, and each icon is centered on its half (see .labels), so it sits centered in the thumb. */
 .thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 32px;
+  width: 31px;
   height: 16px;
   border-radius: 16px;
   background-color: var(--color-accent);
@@ -45,21 +47,23 @@
 }
 
 .thumb.right {
-  transform: translateX(32px);
+  transform: translateX(31px);
 }
 
 .track:active .thumb {
-  width: 34px;
+  width: 33px;
 }
 
 .track:active .thumb.right {
-  transform: translateX(30px);
+  transform: translateX(29px);
 }
 
 .labels {
   position: relative;
   display: flex;
   width: 100%;
+  padding: 0 2px;
+  box-sizing: border-box;
   pointer-events: none;
 }
 

@@ -31,7 +31,8 @@ export default function UserLayout() {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const session = useSelector((state: RootState) => state.session);
-  const activeTab = searchParams.get('tab') ?? 'account';
+  // A settings category is active only when it's the one open (?tab=): the settings' own page isn't any of them.
+  const activeTab = searchParams.get('tab');
   const isUserRoute = pathname === '/user';
   const isProfileRoute = pathname === '/user/profile';
   const isArchiveRoute = pathname === '/user/archive';

@@ -7,6 +7,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
+import { ModeToggle } from '../ModeToggle/ModeToggle';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 
@@ -126,6 +127,10 @@ export const Browser = (props: BrowserProps) => {
 
               </>
             }
+            {/* The workspace's mode, at the end of where the user is. */}
+            <span className={s.locationActions}>
+              <ModeToggle />
+            </span>
           </section>
           :
           <span className={s.buttonsContainer}>

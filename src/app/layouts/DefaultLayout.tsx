@@ -14,7 +14,6 @@ import { EditorMenuProvider } from '../../context/EditorMenuContext';
 import { DesktopProvider, useDesktop } from '../../context/DesktopContext';
 import { AppSwitcher } from '../components/AppSwitcher/AppSwitcher';
 import { Desktop } from '../components/AppSwitcher/Desktop';
-import { ModeToggle } from '../components/ModeToggle/ModeToggle';
 import { APP_SWITCHER_URL } from '../../config/api';
 import streambyIcon from '../../assets/streamby-icon.svg';
 
@@ -71,7 +70,6 @@ function DefaultLayoutInner() {
           {/* Right section: user action icons, at the end of this outer (1fr) column. */}
           <span className="header-right">
             <span className='info-buttons'>
-              <ModeToggle />
               <NotificationsInfoButton />
               <IntegrationsInfoButton />
             </span>

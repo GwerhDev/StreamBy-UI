@@ -33,6 +33,12 @@
   color: var(--color-text-secondary);
 }
 
+.locationActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
 .folder {
   padding: 0 4px;
   color: var(--color-link);
