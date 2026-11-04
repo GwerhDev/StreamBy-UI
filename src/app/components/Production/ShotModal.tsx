@@ -9,7 +9,13 @@ import {
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { createTask, deleteTask, getTasks, updateShot, updateTask } from '../../../services/production';
-import { BoardColumn, Member, ProductionSequence, ProductionShot, ProductionTask, TaskPriority, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask, TaskPriority, Team } from '../../../interfaces';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
+import { useRoleCan } from '../../../hooks/useRoleCan';
+import { ShotPipelineRuns } from '../PipelineRuns/ShotPipelineRuns';
+import { DEFAULT_LABELS, lower } from './productionLabels';
+import { usePipelineTaskSteps } from './usePipelineTaskSteps';
 import { ModalShell } from '../Modals/ModalShell';
 import { AssetPickerModal } from '../Modals/AssetPickerModal';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -39,6 +45,8 @@ interface Props {
   onDelete: (id: string) => void;
   // Off while a dialog over it (its delete's confirmation) takes Esc.
   closeOnEscape?: boolean;
+  // What the project calls its shots.
+  labels?: ProductionLabels;
 }
 
 const PRIORITY_OPTIONS = (Object.keys(PRIORITY_LABEL) as TaskPriority[]).map(p => ({ value: p, label: PRIORITY_LABEL[p] }));
@@ -50,12 +58,20 @@ const PRIORITY_TINT: Record<TaskPriority, string> = {
 };
 
 const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
+const NO_PIPELINES: { id: string; name: string; order: number }[] = [];
 
 // A shot's card opened: everything of it seen and changed in place, each change saved as it's
 // made (and put back, told, if it fails).
-export function ShotModal({ shot, sequence, projectId, members, teams, columns, onClose, onUpdate, onDelete, closeOnEscape = true }: Props) {
+export function ShotModal({ shot, sequence, projectId, members, teams, columns, onClose, onUpdate, onDelete, closeOnEscape = true, labels = DEFAULT_LABELS }: Props) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  // The pipeline it goes through, and the Tasks steps of it its tasks may be part of; starting
+  // its run is for whoever may run jobs.
+  const pipelines = useSelector((state: RootState) => state.currentProject?.data?.pipelines ?? NO_PIPELINES);
+  const userId = useSelector((state: RootState) => state.session?.userId);
+  const myRole = useSelector((state: RootState) => state.currentProject?.data?.members?.find(m => m.userId === userId)?.role);
+  const canRun = useRoleCan(projectId, myRole, 'jobs:run');
+  const steps = usePipelineTaskSteps(projectId, shot.pipelineId ?? null);
   const [tasks, setTasks] = useState<ProductionTask[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [newTaskName, setNewTaskName] = useState('');
@@ -159,7 +175,7 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
     } finally { setSavingTask(false); }
   };
 
-  const changeTask = async (task: ProductionTask, changes: Partial<Pick<ProductionTask, 'status' | 'priority'>>) => {
+  const changeTask = async (task: ProductionTask, changes: Partial<Pick<ProductionTask, 'status' | 'priority' | 'stepId'>>) => {
     const before = tasks;
     withTasks(tasks.map(t => (t.id === task.id ? { ...t, ...changes } : t)));
     try {
@@ -196,7 +212,12 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
   const doneCount = tasks.filter(t => t.status === 'done').length;
   const topPriority = summaryOf(tasks).priority;
   // Its place, as a path: its sequence, then its key.
-  const path = [sequence?.name, shot.key].filter(Boolean).join(' / ') || 'Shot';
+  const path = [sequence?.name, shot.key].filter(Boolean).join(' / ') || labels.shot;
+
+  // Another pipeline: its tasks are in no step of it (as the API leaves them).
+  const changePipeline = async (pipelineId: string | null) => {
+    if (await save({ pipelineId }, 'Failed to change its pipeline.')) setTasks(prev => prev.map(t => ({ ...t, stepId: null })));
+  };
 
   return (
     <ModalShell title={path} icon={faClipboardList} onClose={onClose} className={s.modal}>
@@ -205,7 +226,7 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
           {editingName ? (
             <input
               autoFocus
-              aria-label="Shot name"
+              aria-label={`${labels.shot} name`}
               className={s.nameInput}
               value={name}
               onChange={e => setName(e.target.value)}
@@ -269,6 +290,14 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
                         </small>
                       )}
                     </div>
+                    {steps.length > 0 && (
+                      <div className={s.taskStep} aria-label={`Step of ${task.name}`}>
+                        <DropdownInput
+                          value={task.stepId ?? ''} options={[{ value: '', label: 'No step' }, ...steps.map(st => ({ value: st.id, label: st.label }))]}
+                          onChange={v => changeTask(task, { stepId: v || null })}
+                        />
+                      </div>
+                    )}
                     <div className={`${s.taskPriority} ${PRIORITY_TINT[task.priority]}`} aria-label={`Priority of ${task.name}`}>
                       <DropdownInput
                         value={task.priority} options={PRIORITY_OPTIONS}
@@ -311,6 +340,8 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
             )}
           </div>
 
+          <ShotPipelineRuns projectId={projectId} shotId={shot.id} pipelineId={shot.pipelineId ?? null} pipelines={pipelines} canRun={canRun} />
+
           <DeliverableItems projectId={projectId} of={{ shotId: shot.id }} />
         </div>
 
@@ -319,6 +350,12 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
             label="Status" htmlFor="shot-column" id="shot-column" value={columnOfShot(columns, shot)?.id ?? ''}
             onChange={e => save({ columnId: e.target.value }, 'Failed to move the shot.')}
             options={columns.map(c => ({ value: c.id, label: columnLabel(c) }))}
+          />
+
+          <LabeledSelect
+            label="Pipeline" htmlFor="shot-pipeline" id="shot-pipeline" value={shot.pipelineId ?? ''}
+            onChange={e => changePipeline(e.target.value || null)}
+            options={[{ value: '', label: 'None' }, ...pipelines.map(p => ({ value: p.id, label: p.name }))]}
           />
 
           <div className={s.sideField}>
@@ -386,7 +423,7 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
           )}
 
           <div className={s.sideFooter}>
-            <PrimaryButton icon={faTrash} text="Delete shot" onClick={() => onDelete(shot.id)} />
+            <PrimaryButton icon={faTrash} text={`Delete ${lower(labels.shot)}`} onClick={() => onDelete(shot.id)} />
           </div>
         </aside>
       </div>

@@ -68,10 +68,36 @@ describe('UpdateProjectForm', () => {
     expect(setKey).not.toHaveBeenCalled();
   });
 
+  it('an admin names its sequences and shots; only the names changed are saved', async () => {
+    vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: [], key: 'WOG', labels: { sequence: 'Sequence', sequences: 'Sequences', shot: 'Shot', shots: 'Shots' } });
+    const setLabels = vi.spyOn(production, 'setProductionLabels').mockResolvedValue({ sequence: 'Set', sequences: 'Sets', shot: 'Shot', shots: 'Shots' });
+    renderForm();
+    const user = userEvent.setup();
+    const one = await screen.findByLabelText('A sequence is called');
+    await waitFor(() => expect(one).toHaveValue('Sequence'));
+    await user.clear(one);
+    await user.type(one, 'Set');
+    await user.clear(screen.getByLabelText('Sequences are called'));
+    await user.type(screen.getByLabelText('Sequences are called'), 'Sets');
+    await user.click(screen.getByRole('button', { name: /Update/ }));
+    await waitFor(() => expect(setLabels).toHaveBeenCalledWith('p1', { sequence: 'Set', sequences: 'Sets' }));
+  });
+
+  it("doesn't save the names when none changed", async () => {
+    const setLabels = vi.spyOn(production, 'setProductionLabels');
+    vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: [], key: 'WOG', labels: { sequence: 'Set', sequences: 'Sets', shot: 'Asset', shots: 'Assets' } });
+    renderForm();
+    await waitFor(() => expect(screen.getByLabelText('A shot is called')).toHaveValue('Asset'));
+    await userEvent.setup().click(screen.getByRole('button', { name: /Update/ }));
+    await waitFor(() => expect(projects.updateProject).toHaveBeenCalled());
+    expect(setLabels).not.toHaveBeenCalled();
+  });
+
   it("isn't offered to who isn't an admin", async () => {
     renderForm('u2');
     expect(screen.getByLabelText("Project's name")).toBeInTheDocument();
     expect(screen.queryByLabelText(/Card key/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('A shot is called')).not.toBeInTheDocument();
     expect(production.getBoard).not.toHaveBeenCalled();
   });
 });

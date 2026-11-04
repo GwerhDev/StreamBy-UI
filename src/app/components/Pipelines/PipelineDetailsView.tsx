@@ -9,7 +9,7 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { DeletePipelineModal } from '../Modals/DeletePipelineModal';
 import {
   faFileLines, faClock,
-  faTrash, faSitemap, faTableColumns, faXmark, faDiagramProject,
+  faTrash, faSitemap, faTableColumns, faXmark, faDiagramProject, faPlay,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,8 +22,10 @@ import { Tabs, TabItem } from '../Tabs/Tabs';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { Export } from '../../../interfaces';
+import { PipelineRunsView } from '../PipelineRuns/PipelineRunsView';
+import { useRoleCan } from '../../../hooks/useRoleCan';
 
-type TabId = 'details' | 'nodes';
+type TabId = 'details' | 'nodes' | 'runs';
 
 interface PanelState {
   id: string;
@@ -36,8 +38,9 @@ interface ColumnState { id: string; rows: PanelState[]; }
 const TAB_DEFS: Record<TabId, { label: string; icon: IconDefinition }> = {
   details: { label: 'Details', icon: faFileLines },
   nodes: { label: 'Nodes', icon: faSitemap },
+  runs: { label: 'Runs', icon: faPlay },
 };
-const ALL_TABS: TabId[] = ['nodes', 'details'];
+const ALL_TABS: TabId[] = ['nodes', 'runs', 'details'];
 
 let _c = 0;
 const uid = () => `p${++_c}`;
@@ -52,6 +55,10 @@ export const PipelineDetailsView: React.FC = () => {
   ]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const currentProject = useSelector((state: RootState) => state.currentProject);
+  const userId = useSelector((state: RootState) => state.session.userId);
+  const myRole = currentProject.data?.members?.find(m => m.userId === userId)?.role;
+  // Its triggers are its own: whoever may change the workflow.
+  const canEdit = useRoleCan(id, myRole, 'workflow:write');
   const { data: pipelineDetails, loading, error } = useSelector((state: RootState) => state.currentPipeline);
   const dragRef = useRef<{ fromPanelId: string; tab: TabId; isOriginal: boolean } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -372,6 +379,9 @@ export const PipelineDetailsView: React.FC = () => {
                                 ]}
                               />
                             </div>
+                          )}
+                          {panel.activeTab === 'runs' && id && (
+                            <PipelineRunsView projectId={id} pipeline={pipelineDetails} canEdit={canEdit} />
                           )}
                           {panel.activeTab === 'nodes' && (
                             <NodeViewer context="pipeline" exportDetails={nodeViewerAdapter} editMode={false} projectId={id} />

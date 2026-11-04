@@ -108,6 +108,15 @@ describe('ProductionBoard', () => {
     await waitFor(() => expect(within(card).getByLabelText('eli')).toBeInTheDocument());
   });
 
+  it('calls its sequences and shots what the project calls them', async () => {
+    vi.spyOn(production, 'getBoard').mockResolvedValue({ columns: COLUMNS, key: 'POR', labels: { sequence: 'Set', sequences: 'Sets', shot: 'Asset', shots: 'Assets' } });
+    renderBoard();
+    expect(await screen.findByText(/2 sets · \d+ assets/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New set' })).toBeInTheDocument();
+    expect(screen.getAllByTitle('Delete set').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /^Create an asset in Opening/ }).length).toBeGreaterThan(0);
+  });
+
   it('opens a card in a modal, at its own URL; Esc closes it', async () => {
     renderBoard();
     const user = userEvent.setup();

@@ -261,6 +261,18 @@ div.modal {
 }
 
 /* The priority's dropdown, small and tinted by it. */
+.taskStep {
+  width: 7.5rem;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+}
+
+.taskStep button {
+  padding: 0.25rem 0.5rem;
+  min-height: 0;
+  height: 26px;
+}
+
 .taskPriority {
   width: 6.5rem;
   flex-shrink: 0;

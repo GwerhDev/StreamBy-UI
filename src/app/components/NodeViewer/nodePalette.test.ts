@@ -87,11 +87,13 @@ describe('getPaletteForContext', () => {
     const dev = typesOf('pipeline', 'developer');
     const des = typesOf('pipeline', 'designer');
 
-    it('developer exposes audiovisual + process + review + delivery core', () => {
+    it('developer exposes the steps people do, audiovisual, the process steps a worker does, review and delivery', () => {
       for (const t of [
+        'meetingNode', 'tasksNode',
         'shotNode', 'assemblyNode', 'masterNode',
+        'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
         'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
-        'reviewGateNode', 'annotationNode',
+        'reviewGateNode', 'annotationNode', 'creditsSheetNode',
         'exportFormatNode', 'deliverableNode', 'distributionNode',
       ]) {
         expect(dev.has(t)).toBe(true);
@@ -104,10 +106,11 @@ describe('getPaletteForContext', () => {
       }
     });
 
-    it('designer exposes only audiovisual + review', () => {
+    it('designer exposes the steps people do, audiovisual, review and delivery', () => {
       expect(des).toEqual(new Set([
+        'meetingNode', 'tasksNode',
         'shotNode', 'assemblyNode', 'masterNode',
-        'reviewGateNode',
+        'reviewGateNode', 'deliverableNode',
       ]));
     });
   });
@@ -127,12 +130,18 @@ describe('getGroupsForContext', () => {
     expect(groupKeysOf('workflow', 'designer')).toEqual(['process', 'review', 'delivery']);
   });
 
-  it('pipeline developer context surfaces audiovisual, process, review, delivery', () => {
-    expect(groupKeysOf('pipeline', 'developer')).toEqual(['audiovisual', 'process', 'review', 'delivery']);
+  it('pipeline developer context surfaces people, audiovisual, process, review, delivery', () => {
+    expect(groupKeysOf('pipeline', 'developer')).toEqual(['people', 'audiovisual', 'process', 'review', 'delivery']);
   });
 
-  it('pipeline designer context surfaces only audiovisual, review', () => {
-    expect(groupKeysOf('pipeline', 'designer')).toEqual(['audiovisual', 'review']);
+  it('pipeline designer context surfaces people, audiovisual, review, delivery', () => {
+    expect(groupKeysOf('pipeline', 'designer')).toEqual(['people', 'audiovisual', 'review', 'delivery']);
+  });
+
+  it("offers a pipeline's steps done by people under People, and none of them to the workflow", () => {
+    const people = getPaletteForContext('pipeline', 'developer').filter(i => i.contextGroup === 'people').map(i => i.type);
+    expect(people).toEqual(['meetingNode', 'tasksNode']);
+    expect(typesOf('workflow', 'developer').has('tasksNode')).toBe(false);
   });
 
   it('labels the category of Shot, Assembly and Master "Audiovisual"; no palette has one called Production', () => {

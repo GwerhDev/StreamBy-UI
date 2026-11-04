@@ -29,7 +29,8 @@ import {
   getShots, createShot, updateShot, deleteShot,
   getBoard, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
 } from '../../../services/production';
-import { BoardColumn, Member, ProductionSequence, ProductionShot, ShotStatus, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ShotStatus, Team } from '../../../interfaces';
+import { DEFAULT_LABELS, lower, withArticle } from './productionLabels';
 import { ShotModal } from './ShotModal';
 import { AssetThumbnail } from './AssetThumbnail';
 import { formatDueDate } from './dueDate';
@@ -119,6 +120,10 @@ export function ProductionBoard() {
   const [deleteShotId, setDeleteShotId] = useState<string | null>(null);
   const [deleting, setDeleting]         = useState(false);
 
+  // What the project calls its sequences and shots (a game's may be sets and assets).
+  const [labels, setLabels] = useState<ProductionLabels>(DEFAULT_LABELS);
+  const L = { seq: lower(labels.sequence), seqs: lower(labels.sequences), shot: lower(labels.shot), shots: lower(labels.shots) };
+
   const dispatch = useDispatch<AppDispatch>();
   // A failed change says so, instead of leaving its dialog open with nothing shown.
   const failed = (err: unknown, fallback: string) =>
@@ -131,6 +136,7 @@ export function ProductionBoard() {
       const [seqs, board] = await Promise.all([getSequences(projectId), getBoard(projectId)]);
       setSequences(seqs);
       setColumns(board.columns);
+      setLabels(board.labels ?? DEFAULT_LABELS);
       const allShots = (await Promise.all(seqs.map(seq => getShots(projectId, seq.id)))).flat();
       setShots(allShots);
     } finally {
@@ -287,7 +293,7 @@ export function ProductionBoard() {
   const columnToDelete = columns.find(c => c.id === deleteColumnId);
 
   const viewProps = {
-    sequences, shots: visibleShots, columns, members, teams, projectId,
+    sequences, shots: visibleShots, columns, members, teams, projectId, names: { seq: L.seq, shot: L.shot },
     onSelectShot: openShot,
     onMove: handleMove,
     onCreateShot: handleCreateShot,
@@ -301,7 +307,7 @@ export function ProductionBoard() {
         <SectionHeader
           icon={faClipboardList}
           title="Production"
-          subtitle={`${sequences.length} sequences · ${shots.length} shots${filtering ? ` · ${visibleShots.length} shown` : ''}`}
+          subtitle={`${sequences.length} ${L.seqs} · ${shots.length} ${L.shots}${filtering ? ` · ${visibleShots.length} shown` : ''}`}
           action={
             <div className={s.toolbarActions}>
               <div className={s.viewToggle}>
@@ -322,7 +328,7 @@ export function ProductionBoard() {
                   List
                 </button>
               </div>
-              <ActionButton icon={faPlus} text="New sequence" onClick={() => { setShowCreateSeq(true); setNewSeqName(''); }} />
+              <ActionButton icon={faPlus} text={`New ${L.seq}`} onClick={() => { setShowCreateSeq(true); setNewSeqName(''); }} />
             </div>
           }
         />
@@ -375,7 +381,7 @@ export function ProductionBoard() {
             onDeleteColumn={id => setDeleteColumnId(id)}
           />
         ) : (
-          <ListView {...viewProps} onDeleteShot={id => setDeleteShotId(id)} />
+          <ListView {...viewProps} shotLabel={labels.shot} onDeleteShot={id => setDeleteShotId(id)} />
         )}
       </div>
 
@@ -393,6 +399,7 @@ export function ProductionBoard() {
           onUpdate={handleShotUpdate}
           onDelete={id => setDeleteShotId(id)}
           closeOnEscape={!deleteShotId}
+          labels={labels}
         />
       )}
 
@@ -411,7 +418,7 @@ export function ProductionBoard() {
 
       {/* Create sequence modal */}
       {showCreateSeq && (
-        <ModalShell title="New sequence" icon={faClipboardList} onClose={() => setShowCreateSeq(false)}>
+        <ModalShell title={`New ${L.seq}`} icon={faClipboardList} onClose={() => setShowCreateSeq(false)}>
           <form onSubmit={handleCreateSequence} className={s.form}>
             <label className={s.formLabel}>Name</label>
             <input
@@ -422,7 +429,7 @@ export function ProductionBoard() {
               placeholder="e.g. Act 1 — Intro"
             />
             <div className={s.formActions}>
-              <ActionButton type="submit" icon={faPlus} text={seqSaving ? 'Creating…' : 'Create sequence'} disabled={seqSaving || !newSeqName.trim()} />
+              <ActionButton type="submit" icon={faPlus} text={seqSaving ? 'Creating…' : `Create ${L.seq}`} disabled={seqSaving || !newSeqName.trim()} />
               <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setShowCreateSeq(false)} />
             </div>
           </form>
@@ -436,13 +443,13 @@ export function ProductionBoard() {
 
       {/* Delete sequence confirm */}
       {deleteSeqId && seqToDelete && (
-        <ModalShell title="Delete sequence" icon={faTrash} onClose={() => setDeleteSeqId(null)}>
+        <ModalShell title={`Delete ${L.seq}`} icon={faTrash} onClose={() => setDeleteSeqId(null)}>
           <div className={s.confirmBody}>
             <p className={s.confirmText}>
-              Delete <strong>{seqToDelete.name}</strong>? All shots in this sequence, and their tasks, will also be deleted.
+              Delete <strong>{seqToDelete.name}</strong>? All {L.shots} in this {L.seq}, and their tasks, will also be deleted.
             </p>
             <div className={s.formActions}>
-              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : 'Delete sequence'} disabled={deleting} onClick={() => handleDeleteSequence(deleteSeqId)} />
+              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : `Delete ${L.seq}`} disabled={deleting} onClick={() => handleDeleteSequence(deleteSeqId)} />
               <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setDeleteSeqId(null)} />
             </div>
           </div>
@@ -451,13 +458,13 @@ export function ProductionBoard() {
 
       {/* Delete shot confirm (over the shot's modal) */}
       {deleteShotId && shotToDelete && (
-        <ModalShell title="Delete shot" icon={faTrash} onClose={() => setDeleteShotId(null)}>
+        <ModalShell title={`Delete ${L.shot}`} icon={faTrash} onClose={() => setDeleteShotId(null)}>
           <div className={s.confirmBody}>
             <p className={s.confirmText}>
-              Delete <strong>{shotToDelete.name}</strong>? All tasks in this shot will also be deleted.
+              Delete <strong>{shotToDelete.name}</strong>? All tasks in this {L.shot} will also be deleted.
             </p>
             <div className={s.formActions}>
-              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : 'Delete shot'} disabled={deleting} onClick={() => handleDeleteShot(deleteShotId)} />
+              <PrimaryButton icon={faTrash} text={deleting ? 'Deleting…' : `Delete ${L.shot}`} disabled={deleting} onClick={() => handleDeleteShot(deleteShotId)} />
               <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setDeleteShotId(null)} />
             </div>
           </div>
@@ -479,6 +486,8 @@ interface ViewProps {
   onCreateShot: (seqId: string, columnId: string, name: string) => Promise<boolean>;
   onDeleteSeq: (id: string) => void;
   onEditSeq: (id: string) => void;
+  // What the project calls them, as read mid-sentence.
+  names: { seq: string; shot: string };
 }
 
 // ── Board view ─────────────────────────────────────────────────────────────────
@@ -495,7 +504,7 @@ interface ColumnActions {
 }
 
 function BoardView({
-  sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq,
+  sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, names,
   columnSaving, onOrderColumns, onAddColumn, onRenameColumn, onMoveColumn, onDeleteColumn,
 }: ViewProps & ColumnActions) {
   const sequenceName = (id: string) => sequences.find(seq => seq.id === id)?.name;
@@ -548,10 +557,10 @@ function BoardView({
               <div className={s.laneHead}>
                 <span className={s.laneName}>{seq.name}</span>
                 <span className={s.colCount}>{seqShots.length}</span>
-                <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title="Edit sequence">
+                <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title={`Edit ${names.seq}`}>
                   <FontAwesomeIcon icon={faPen} />
                 </button>
-                <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title="Delete sequence">
+                <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title={`Delete ${names.seq}`}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </div>
@@ -561,7 +570,7 @@ function BoardView({
                     {seqShots.filter(sh => columnOfShot(columns, sh)?.id === column.id).map(shot => (
                       <ShotCard key={shot.id} shot={shot} sequenceName={seq.name} members={members} teams={teams} projectId={projectId} onSelect={onSelectShot} />
                     ))}
-                    <InlineCreate label={`Create a shot in ${seq.name}, ${column.name}`} onCreate={name => onCreateShot(seq.id, column.id, name)} />
+                    <InlineCreate label={`Create ${withArticle(names.shot)} in ${seq.name}, ${column.name}`} placeholderName={names.shot} onCreate={name => onCreateShot(seq.id, column.id, name)} />
                   </BoardCell>
                 ))}
                 <span className={s.addColumnSpace} aria-hidden="true" />
@@ -695,7 +704,7 @@ function CardBody({ shot, sequenceName, members, teams, projectId }: {
 }
 
 // "+ Create" at the foot of a cell: a name typed in place makes a shot, and another can follow.
-function InlineCreate({ label, onCreate }: { label: string; onCreate: (name: string) => Promise<boolean> }) {
+function InlineCreate({ label, placeholderName, onCreate }: { label: string; placeholderName: string; onCreate: (name: string) => Promise<boolean> }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -719,7 +728,7 @@ function InlineCreate({ label, onCreate }: { label: string; onCreate: (name: str
     <form onSubmit={submit} className={s.inlineCreate}>
       <input
         autoFocus
-        aria-label="New shot name"
+        aria-label={`New ${placeholderName} name`}
         className={s.inlineInput}
         value={name}
         disabled={saving}
@@ -734,11 +743,11 @@ function InlineCreate({ label, onCreate }: { label: string; onCreate: (name: str
 
 // ── List view ──────────────────────────────────────────────────────────────────
 
-function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot }: ViewProps & { onDeleteShot: (id: string) => void }) {
+function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot, names, shotLabel }: ViewProps & { onDeleteShot: (id: string) => void; shotLabel: string }) {
   return (
     <div className={s.list}>
       <div className={s.listHead}>
-        <span>Shot</span>
+        <span>{shotLabel}</span>
         <span>Column</span>
         <span>Due</span>
         <span />
@@ -749,10 +758,10 @@ function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateSho
           <div key={seq.id} className={s.listGroup}>
             <div className={s.listSeqRow}>
               <span className={s.listSeqName}>{seq.name}</span>
-              <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title="Edit sequence">
+              <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title={`Edit ${names.seq}`}>
                 <FontAwesomeIcon icon={faPen} />
               </button>
-              <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title="Delete sequence">
+              <button type="button" className={s.seqDeleteBtn} onClick={() => onDeleteSeq(seq.id)} title={`Delete ${names.seq}`}>
                 <FontAwesomeIcon icon={faTrash} />
               </button>
             </div>
@@ -772,14 +781,14 @@ function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateSho
                   {shot.dueDate ? formatDueDate(shot.dueDate) : '—'}
                 </span>
                 <span onClick={e => e.stopPropagation()}>
-                  <button type="button" className={s.rowDeleteBtn} onClick={() => onDeleteShot(shot.id)} title="Delete shot">
+                  <button type="button" className={s.rowDeleteBtn} onClick={() => onDeleteShot(shot.id)} title={`Delete ${names.shot}`}>
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </span>
               </div>
             ))}
             <div className={s.listCreate}>
-              <InlineCreate label={`Create a shot in ${seq.name}`} onCreate={name => onCreateShot(seq.id, columns[0]?.id ?? 'todo', name)} />
+              <InlineCreate label={`Create ${withArticle(names.shot)} in ${seq.name}`} placeholderName={names.shot} onCreate={name => onCreateShot(seq.id, columns[0]?.id ?? 'todo', name)} />
             </div>
           </div>
         );

@@ -17,7 +17,7 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faTriangleExclamation, faPlug, faBook, faTableList,
+  faTriangleExclamation, faPlug, faBook, faTableList, faPeopleGroup, faListCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import s from '../NodeViewer.module.css';
 
@@ -608,6 +608,31 @@ export const AnnotationNode = memo(({ data, selected }: NodeProps<BaseNodeData>)
 ));
 AnnotationNode.displayName = 'AnnotationNode';
 
+// ─── Steps done by people (a pipeline's) ──────────────────────────────────────
+
+// A step people complete, chained left to right with the pipeline's other steps.
+const PeopleStepNode = ({ data, selected, icon, color }: NodeProps<BaseNodeData> & { icon: IconDefinition; color: string }) => (
+  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
+    <Handle type="target" position={Position.Left}  id="in-left"   className={s.handle} style={hIn(color)} />
+    <Handle type="source" position={Position.Right} id="out-right" className={s.handle} style={hOut(color)} />
+    <div className={s.nodeIconBar} style={{ backgroundColor: '#0e2537' }}>
+      <div className={s.nodeIcon} style={{ color }}><FontAwesomeIcon icon={icon} /></div>
+    </div>
+    <div className={s.nodeBody}>
+      <div className={s.nodeLabel}>{data.label}</div>
+      <div className={s.nodeSubtitle}>{data.subtitle}</div>
+    </div>
+  </div>
+);
+
+// A meeting (its notes, a project document): done when they're published.
+export const MeetingNode = memo((props: NodeProps<BaseNodeData>) => <PeopleStepNode {...props} icon={faPeopleGroup} color={H_LEFT} />);
+MeetingNode.displayName = 'MeetingNode';
+
+// A card's tasks linked to it: done when they are (or the card, when none is).
+export const TasksNode = memo((props: NodeProps<BaseNodeData>) => <PeopleStepNode {...props} icon={faListCheck} color={H_LEFT} />);
+TasksNode.displayName = 'TasksNode';
+
 // ─── Audiovisual production nodes ─────────────────────────────────────────────
 
 // Production unit — a video clip with metadata. Entry point of raw material into the pipeline.
@@ -824,6 +849,8 @@ export const nodeTypes = {
   upscaleNode: UpscaleNode,
   proceduralAssetNode: ProceduralAssetNode,
   pipelineSuggestNode: PipelineSuggestNode,
+  meetingNode: MeetingNode,
+  tasksNode: TasksNode,
   shotNode: ShotNode,
   assemblyNode: AssemblyNode,
   colorGradeNode: ColorGradeNode,

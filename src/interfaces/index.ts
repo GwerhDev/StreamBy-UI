@@ -70,7 +70,49 @@ export interface Pipeline {
   description?: string | null;
   order: number;
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
+  // What starts a card's run of it by itself (none: only by hand).
+  triggers?: PipelineTrigger[];
   createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Pipeline runs ──
+// Each card linked to a pipeline goes through its steps in a run of its own.
+
+export type PipelineTrigger = 'card_linked' | 'card_done' | 'deliverable_marked';
+export type RunStatus = 'running' | 'completed' | 'failed' | 'cancelled';
+export type StepStatus = 'waiting' | 'active' | 'running' | 'done' | 'failed';
+export type StepKind = 'meeting' | 'tasks' | 'review' | 'credits' | 'worker' | 'deliverable' | 'pass';
+
+// Who completes a step: its people and teams, or its worker.
+export type StepCompletedBy = { userIds: string[]; teamIds: string[] } | { worker: string; kind: string } | null;
+
+export interface RunStep {
+  nodeId: string;
+  type: string;
+  label: string;
+  kind: StepKind;
+  status: StepStatus;
+  // What it waits on, or what went wrong.
+  reason: string | null;
+  jobId: string | null;
+  deliverableId: string | null;
+  completedBy: StepCompletedBy;
+}
+
+export interface PipelineRun {
+  id: string;
+  projectId: string;
+  pipelineId: string;
+  shotId: string;
+  trigger: PipelineTrigger | 'manual';
+  status: RunStatus;
+  startedBy: string;
+  card: { id: string; name: string; key: string | null } | null;
+  steps: RunStep[];
+  // The steps it's on now.
+  current: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +126,7 @@ export interface PipelineRef {
 export interface PipelinePayload {
   name?: string;
   description?: string;
+  triggers?: PipelineTrigger[];
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
   order?: number;
 }
@@ -741,6 +784,8 @@ export interface ProductionShot {
   teamIds?: string[];
   assetId?: string | null;
   exportId?: string | null;
+  // The pipeline it goes through, in a run of its own.
+  pipelineId?: string | null;
   dueDate?: string | null;
   // How its tasks go (listed with the sequence's shots): done of total, the top open priority.
   taskSummary?: TaskSummary;
@@ -776,9 +821,19 @@ export interface ProductionTask {
   priority: TaskPriority;
   dueDate?: string | null;
   notes?: string | null;
+  // The Tasks step of its card's pipeline it's part of.
+  stepId?: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// What a project calls its sequences and shots (a game's may be sets and assets).
+export interface ProductionLabels {
+  sequence: string;
+  sequences: string;
+  shot: string;
+  shots: string;
 }
 
 // ── Asset Rights ──────────────────────────────────────────────────────────────

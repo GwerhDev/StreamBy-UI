@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShotModal } from './ShotModal';
 import * as production from '../../../services/production';
 import * as deliverables from '../../../services/deliverables';
+import * as pipelines from '../../../services/pipelines';
+import * as teamsService from '../../../services/teams';
 import { BoardColumn, Member, ProductionShot, ProductionTask, Team } from '../../../interfaces';
 
 const SHOT: ProductionShot = {
@@ -240,5 +242,69 @@ describe('ShotModal', () => {
     expect(onDelete).toHaveBeenCalledWith('s1');
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('a shot in a pipeline', () => {
+  const renderInProject = (shot: ProductionShot, labels?: { sequence: string; sequences: string; shot: string; shots: string }) => {
+    const store = configureStore({
+      reducer: {
+        session: () => ({ userId: 'u1' }),
+        currentProject: () => ({ data: { members: MEMBERS, pipelines: [{ id: 'pl1', name: 'Props', order: 0 }] } }),
+        pipelineRuns: () => ({ eventSeq: 0 }),
+        apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
+          (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <ShotModal shot={shot} projectId="p1" members={MEMBERS} teams={TEAMS} columns={COLUMNS} onClose={vi.fn()} onUpdate={vi.fn()} onDelete={vi.fn()} labels={labels} />
+        </MemoryRouter>
+      </Provider>,
+    );
+  };
+
+  beforeEach(() => {
+    vi.spyOn(pipelines, 'listShotPipelineRuns').mockResolvedValue([]);
+    vi.spyOn(pipelines, 'getPipeline').mockResolvedValue({
+      id: 'pl1', projectId: 'p1', name: 'Props', order: 0, createdBy: 'u1', createdAt: '', updatedAt: '',
+      nodeSchema: { nodes: [{ id: 'model', type: 'tasksNode', data: { label: 'Modeling' } }, { id: 'review', type: 'reviewGateNode', data: { label: 'Art review' } }], edges: [] },
+    });
+    vi.spyOn(teamsService, 'getTeams').mockResolvedValue([]);
+  });
+
+  it('is linked to one of the project\'s pipelines, its tasks then in no step of the one it left', async () => {
+    const update = vi.spyOn(production, 'updateShot').mockResolvedValue({ ...SHOT, pipelineId: 'pl1' });
+    renderInProject(SHOT);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'None' }));
+    fireEvent.mouseDown(screen.getByText('Props'));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 's1', { pipelineId: 'pl1' }));
+  });
+
+  it("puts each task in a Tasks step of its pipeline, and starts its run (for whoever can run jobs)", async () => {
+    const updateTask = vi.spyOn(production, 'updateTask').mockResolvedValue({ ...TASK, stepId: 'model' });
+    renderInProject({ ...SHOT, pipelineId: 'pl1' });
+    const user = userEvent.setup();
+    const step = await screen.findByLabelText('Step of Layout');
+    await user.click(within(step).getByRole('button', { name: 'No step' }));
+    // Only its Tasks steps.
+    expect(screen.queryByText('Art review')).not.toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByText('Modeling'));
+    await waitFor(() => expect(updateTask).toHaveBeenCalledWith('p1', 's1', 't1', { stepId: 'model' }));
+    expect(await screen.findByRole('button', { name: 'Start run' })).toBeInTheDocument();
+  });
+
+  it("offers no step to a task of a card in no pipeline", async () => {
+    renderInProject(SHOT);
+    await screen.findByText('Layout');
+    expect(screen.queryByLabelText('Step of Layout')).not.toBeInTheDocument();
+  });
+
+  it('is called what the project calls its shots', async () => {
+    renderInProject(SHOT, { sequence: 'Set', sequences: 'Sets', shot: 'Asset', shots: 'Assets' });
+    expect(screen.getByRole('button', { name: 'Delete asset' })).toBeInTheDocument();
+    await screen.findByText('Layout');
   });
 });

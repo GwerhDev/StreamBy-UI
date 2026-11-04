@@ -2,7 +2,7 @@ import s from './UpdateProjectForm.module.css';
 import { useRef, useState, FormEvent, useEffect } from 'react';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { faDiagramProject, faFileImage, faFileLines, faHashtag, faLayerGroup, faLock, faFloppyDisk, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faFileImage, faFileLines, faHashtag, faClipboardList, faLayerGroup, faLock, faFloppyDisk, faPlug, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
@@ -15,7 +15,9 @@ import {
   addProjectIntegration,
   removeProjectIntegration,
 } from '../../../services/projects';
-import { getBoard, setCardKey } from '../../../services/production';
+import { getBoard, setCardKey, setProductionLabels } from '../../../services/production';
+import { DEFAULT_LABELS } from '../Production/productionLabels';
+import { ProductionLabels } from '../../../interfaces';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { useFormRoute } from '../../../hooks/useFormRoute';
@@ -49,11 +51,18 @@ export const UpdateProjectForm = () => {
   // The key its Production cards' keys start with (e.g. WOG-12): its admins change it.
   const [cardKey, setCardKeyValue] = useState('');
   const savedCardKey = useRef('');
+  // What it calls its sequences and shots (a game's may be sets and assets): its admins name them.
+  const [labels, setLabels] = useState<ProductionLabels>(DEFAULT_LABELS);
+  const savedLabels = useRef<ProductionLabels>(DEFAULT_LABELS);
   useEffect(() => {
     if (!currentProjectData?.id || !isAdmin) return;
     let cancelled = false;
     getBoard(currentProjectData.id)
-      .then(({ key }) => { if (!cancelled) { savedCardKey.current = key; setCardKeyValue(key); } })
+      .then(({ key, labels: named }) => {
+        if (cancelled) return;
+        savedCardKey.current = key; setCardKeyValue(key);
+        if (named) { savedLabels.current = named; setLabels(named); }
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [currentProjectData?.id, isAdmin]);
@@ -102,6 +111,10 @@ export const UpdateProjectForm = () => {
       const { projectId } = await updateProject(currentProjectData?.id || '', payload);
       if (isAdmin && projectId && cardKey.trim() && cardKey.trim().toUpperCase() !== savedCardKey.current) {
         savedCardKey.current = await setCardKey(projectId, cardKey.trim());
+      }
+      const changedLabels = (Object.keys(labels) as (keyof ProductionLabels)[]).filter(k => labels[k].trim() !== savedLabels.current[k]);
+      if (isAdmin && projectId && changedLabels.length) {
+        savedLabels.current = await setProductionLabels(projectId, Object.fromEntries(changedLabels.map(k => [k, labels[k].trim()])));
       }
 
       if (imageFile && projectId) {
@@ -207,6 +220,21 @@ export const UpdateProjectForm = () => {
                   id="card-key-input" name="card-key-input" htmlFor="card-key-input"
                   value={cardKey} onChange={e => setCardKeyValue(e.target.value.toUpperCase())}
                 />
+              ),
+            }, {
+              icon: faClipboardList,
+              label: 'Production names',
+              value: `${labels.sequences} · ${labels.shots}`,
+              editComponent: (
+                <div className={s.labelsField}>
+                  {([['sequence', 'A sequence is called'], ['sequences', 'Sequences are called'], ['shot', 'A shot is called'], ['shots', 'Shots are called']] as [keyof ProductionLabels, string][]).map(([k, text]) => (
+                    <LabeledInput
+                      key={k} label={text} type="text" placeholder={DEFAULT_LABELS[k]}
+                      id={`labels-${k}-input`} name={`labels-${k}-input`} htmlFor={`labels-${k}-input`}
+                      value={labels[k]} onChange={e => setLabels(prev => ({ ...prev, [k]: e.target.value }))}
+                    />
+                  ))}
+                </div>
               ),
             }] : []),
             {

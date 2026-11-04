@@ -9,14 +9,14 @@ import {
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileImport, faGears, faClapperboard, faCheckDouble,
   faPalette, faVolumeHigh, faFileVideo, faStar,
-  faSitemap, faPlug,
+  faSitemap, faPlug, faPeopleGroup, faListCheck, faUserGroup,
 } from '@fortawesome/free-solid-svg-icons';
 import { H_LEFT, H_TOP, H_BOTTOM, H_RIGHT, H_JOB, H_REVIEW } from './nodes/nodeTypes';
 
 // Export-context groups (request → process → response model)
 export type ExportGroup = 'input' | 'data' | 'process' | 'output';
 // Workflow-context groups
-export type WorkflowGroup = 'audiovisual' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai';
+export type WorkflowGroup = 'people' | 'audiovisual' | 'ingest' | 'process' | 'render' | 'review' | 'delivery' | 'ai';
 
 export type PaletteItem = {
   type: string;
@@ -27,7 +27,7 @@ export type PaletteItem = {
   iconColor: string;
   // Group in the export palette. Items exclusive to the workflow palette use 'review' | 'delivery' | 'ai'
   // (which overlap conceptually) and are re-grouped for workflow via WORKFLOW_GROUP_BY_TYPE.
-  group: ExportGroup | 'review' | 'delivery' | 'ai';
+  group: ExportGroup | 'review' | 'delivery' | 'ai' | 'people';
 };
 
 export const NODE_PALETTE: PaletteItem[] = [
@@ -69,6 +69,8 @@ export const NODE_PALETTE: PaletteItem[] = [
   { type: 'vfxNode',           label: 'VFX',           subtitle: 'Visual effects segment', icon: faWandMagicSparkles, bgColor: '#1a0d00', iconColor: H_JOB,   group: 'process' },
   { type: 'masterNode',        label: 'Master',        subtitle: 'Versioned master',      icon: faStar,             bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
   { type: 'exportFormatNode',  label: 'Export Format', subtitle: 'Codec / container',     icon: faFileVideo,        bgColor: '#1e1300', iconColor: H_RIGHT,  group: 'output' },
+  { type: 'meetingNode',       label: 'Meeting',       subtitle: 'Done by people',        icon: faPeopleGroup,      bgColor: '#0e2537', iconColor: H_LEFT,   group: 'people' },
+  { type: 'tasksNode',         label: 'Tasks',         subtitle: 'Done by people',        icon: faListCheck,        bgColor: '#0e2537', iconColor: H_LEFT,   group: 'people' },
   { type: 'pipelineRefNode',   label: 'Pipeline',      subtitle: 'Sub-workflow reference', icon: faSitemap,         bgColor: '#0a2826', iconColor: '#14b8a6', group: 'process' },
 ];
 
@@ -112,21 +114,28 @@ export const WORKFLOW_DESIGNER_TYPES = new Set([
 // Pipeline context — a Pipeline is a scoped sub-process. Its palette is the
 // audiovisual/process/review/delivery core, WITHOUT pipelineRefNode (no nesting) or the
 // orchestration/infra nodes (api/dataSource/ingest/AI) that live in workflow.
+// Its steps done by people (a Meeting, Tasks) go with the ones workers do (the media process
+// nodes, each set to a worker of the project).
 export const PIPELINE_DEVELOPER_TYPES = new Set([
+  'meetingNode', 'tasksNode',
   'shotNode', 'assemblyNode', 'masterNode',
+  'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
   'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
-  'reviewGateNode', 'annotationNode',
+  'reviewGateNode', 'annotationNode', 'creditsSheetNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
 ]);
 
-// Pipeline designer mode — audiovisual essentials + review.
+// Pipeline designer mode — the steps people do, audiovisual essentials, review and delivery.
 export const PIPELINE_DESIGNER_TYPES = new Set([
+  'meetingNode', 'tasksNode',
   'shotNode', 'assemblyNode', 'masterNode',
-  'reviewGateNode',
+  'reviewGateNode', 'deliverableNode',
 ]);
 
 // Workflow/pipeline group assignment per node type — independent of the export-oriented `group` field.
 export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
+  meetingNode: 'people', tasksNode: 'people',
+  transcodeNode: 'process', thumbnailNode: 'process', formatConvertNode: 'process', lodNode: 'process',
   shotNode: 'audiovisual', assemblyNode: 'audiovisual', masterNode: 'audiovisual',
   pipelineRefNode: 'process',
   ingestNode: 'ingest', dataSourceNode: 'ingest', connectionNode: 'ingest', integrationConnectionNode: 'ingest',
@@ -137,6 +146,7 @@ export const WORKFLOW_GROUP_BY_TYPE: Record<string, WorkflowGroup> = {
 };
 
 export const WORKFLOW_PALETTE_GROUPS: { key: WorkflowGroup; label: string; icon: IconDefinition; color: string }[] = [
+  { key: 'people',   label: 'People',   icon: faUserGroup,           color: H_LEFT },
   { key: 'audiovisual', label: 'Audiovisual', icon: faClapperboard,      color: H_LEFT },
   { key: 'ingest',   label: 'Ingest',   icon: faFileImport,          color: H_JOB },
   { key: 'process',  label: 'Process',  icon: faGears,               color: H_TOP },

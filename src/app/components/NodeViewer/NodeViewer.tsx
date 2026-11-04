@@ -8,6 +8,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { fetchDeliverableGates } from '../../../store/deliverableGatesSlice';
 import { getProjectReviews } from '../../../services/exports';
+import { PipelineStepPanel } from '../PipelineRuns/PipelineStepPanel';
 import { fromTarget, gateSummary, targetLabel, targetOf, targetOptions } from './deliverableTargets';
 import { getConnectionResponse, createConnection } from '../../../services/connections';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -385,6 +386,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const src = nodes.find(n => n.id === conn.source);
     const tgt = nodes.find(n => n.id === conn.target);
     if (!src || !tgt || src.id === tgt.id) return false;
+    // A pipeline's nodes are steps, each one after the ones with edges into it: any step may
+    // follow any other (a meeting, its tasks, a review, a worker's step, a deliverable).
+    if (context === 'pipeline') return true;
 
     const sh = conn.sourceHandle;
     const th = conn.targetHandle;
@@ -500,7 +504,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (orchestratorInputTypes.includes(st) && tt === 'orchestratorNode') return sh === 'out-stream' && th === 'in-top';
 
     return false;
-  }, [nodes]);
+  }, [nodes, context]);
 
   const onConnect = useCallback((connection: Connection) => {
     const src = nodes.find(n => n.id === connection.source);
@@ -771,6 +775,18 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     // ─── Phase 3 — Collaboration & Review ─────────────────────────────────────
 
+    if (node.type === 'meetingNode') return {
+      title: 'Meeting',
+      description: "A pipeline's step done by people: a meeting, its notes a project document. Done when they're published; its cards come out of it.",
+      fields: [{ key: 'label', label: 'Name', value: (node.data.label as string) || '' }],
+    };
+
+    if (node.type === 'tasksNode') return {
+      title: 'Tasks',
+      description: "A pipeline's step done by people: a card's tasks linked to it (or the card itself, when none is). Done for the card when they are.",
+      fields: [{ key: 'label', label: 'Name', value: (node.data.label as string) || '' }],
+    };
+
     if (node.type === 'creditsSheetNode') return {
       title: 'Credits sheet',
       description: "A table of the credits of the assets fed to it (picked here, in a folder picked, or imported by an Ingest node connected on its left), from each asset's license metadata. Complete when each has its creator, link and license: connect its right side to a Review Gate.",
@@ -986,7 +1002,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     return null;
   }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections, documentList, reviews, gates, projectExports]);
 
-  const selectedDetail = getNodeDetail(selectedNodeId);
+  // In a pipeline, what a Deliverable or a Review Gate is linked to is its step's (see
+  // PipelineStepPanel): the workflow's targets and sessions aren't.
+  const PIPELINE_HIDDEN = ['target', 'gateStatus', 'reviewId'];
+  const detail = getNodeDetail(selectedNodeId);
+  const selectedDetail = detail && context === 'pipeline' ? { ...detail, fields: detail.fields.filter(f => !PIPELINE_HIDDEN.includes(f.key)) } : detail;
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
   const hasChanges = Object.keys(localData).length > 0;
   const isJsonNode = selectedNode?.type === 'jsonInputNode';
@@ -1537,6 +1557,13 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
                 {selectedNode?.type === 'creditsSheetNode' && projectId && (selectedNode.data?.documentId as string) && (
                   <CreditsSheetPanel projectId={projectId} documentId={selectedNode.data.documentId as string} editMode={editMode} />
+                )}
+
+                {context === 'pipeline' && projectId && selectedNode && (
+                  <PipelineStepPanel
+                    projectId={projectId} node={selectedNode} editMode={editMode}
+                    onChange={patch => setNodes(prev => prev.map(n => (n.id === selectedNode.id ? { ...n, data: { ...n.data, ...patch } } : n)))}
+                  />
                 )}
 
                 {isIngestNode && editMode && (

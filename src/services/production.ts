@@ -1,5 +1,5 @@
 import { API_BASE } from '../config/api';
-import { BoardColumn, ProductionSequence, ProductionShot, ProductionTask } from '../interfaces';
+import { BoardColumn, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask } from '../interfaces';
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: 'include', ...options });
@@ -53,9 +53,14 @@ export async function deleteSequence(projectId: string, seqId: string): Promise<
 // ── Board ──────────────────────────────────────────────────────────────────
 // Each change answers the board's columns as they are then.
 
-/** The board's columns, and the key its cards' keys start with. */
-export async function getBoard(projectId: string): Promise<{ columns: BoardColumn[]; key: string }> {
-  return request<{ columns: BoardColumn[]; key: string }>(`${base(projectId)}/board`, { method: 'GET' });
+/** The board's columns, the key its cards' keys start with, and what the project calls its sequences and shots. */
+export async function getBoard(projectId: string): Promise<{ columns: BoardColumn[]; key: string; labels?: ProductionLabels }> {
+  return request<{ columns: BoardColumn[]; key: string; labels?: ProductionLabels }>(`${base(projectId)}/board`, { method: 'GET' });
+}
+
+/** What the project calls its sequences and shots (its admins only); an empty one is the default again. */
+export async function setProductionLabels(projectId: string, labels: Partial<ProductionLabels>): Promise<ProductionLabels> {
+  return (await request<{ labels: ProductionLabels }>(`${base(projectId)}/board/labels`, json('PUT', labels))).labels;
 }
 
 /** The project's card key (its admins only); cards keep their numbers. */
@@ -106,6 +111,7 @@ export async function createShot(
     teamIds?: string[];
     assetId?: string;
     exportId?: string;
+    pipelineId?: string | null;
     dueDate?: string;
     order?: number;
   },
@@ -128,6 +134,7 @@ export async function updateShot(
     teamIds: string[];
     assetId: string | null;
     exportId: string | null;
+    pipelineId: string | null;
     dueDate: string | null;
     order: number;
   }>,
@@ -162,6 +169,7 @@ export async function createTask(
     teamIds?: string[];
     dueDate?: string;
     notes?: string;
+    stepId?: string | null;
   },
 ): Promise<ProductionTask> {
   const { task } = await request<{ task: ProductionTask }>(
@@ -182,6 +190,7 @@ export async function updateTask(
     teamIds: string[];
     dueDate: string | null;
     notes: string;
+    stepId: string | null;
   }>,
 ): Promise<ProductionTask> {
   const { task } = await request<{ task: ProductionTask }>(
