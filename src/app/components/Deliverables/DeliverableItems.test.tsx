@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DeliverableItems } from './DeliverableItems';
 import * as deliverablesService from '../../../services/deliverables';
 import { Deliverable } from '../../../interfaces';
+import deliverableGates, { deliverableGatesEventReceived } from '../../../store/deliverableGatesSlice';
 
 const deliverable = (over: Partial<Deliverable>): Deliverable => ({
   id: 'd1', projectId: 'p1', assetId: 'a1', versionId: 'v2', shotId: 's1', exportId: null, note: 'Layout pass',
@@ -16,6 +17,7 @@ const deliverable = (over: Partial<Deliverable>): Deliverable => ({
 const renderSection = (of: { shotId: string } | { exportId: string } = { shotId: 's1' }) => {
   const store = configureStore({
     reducer: {
+      deliverableGates,
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
@@ -73,5 +75,32 @@ describe('DeliverableItems', () => {
     renderSection();
     expect(await screen.findByText('Deleted asset')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Download/ })).toBeDisabled();
+  });
+
+  it('shows whether the gates before each one let it out, and what holds a blocked one', async () => {
+    vi.spyOn(deliverablesService, 'getDeliverables').mockResolvedValue([
+      deliverable({ status: 'blocked', gated: true, blockedBy: [{ nodeId: 'gate', type: 'reviewGateNode', label: 'Art review', reason: 'Waiting for approvals: 0 of 1' }] }),
+      deliverable({ id: 'd2', status: 'ready', gated: true, blockedBy: [] }),
+      deliverable({ id: 'd3', status: 'ready', gated: false, blockedBy: [] }),
+    ]);
+    renderSection();
+    const blocked = await screen.findByTestId('deliverable-d1');
+    expect(blocked).toHaveTextContent('Blocked');
+    expect(blocked).toHaveTextContent('Art review: Waiting for approvals: 0 of 1');
+    expect(screen.getByTestId('deliverable-d2')).toHaveTextContent('Ready');
+    // One with no gates before it is as it always was.
+    expect(screen.getByTestId('deliverable-d3')).not.toHaveTextContent(/Ready|Blocked/);
+  });
+
+  it('reads them again when a gate changes, keeping the list meanwhile', async () => {
+    const list = vi.spyOn(deliverablesService, 'getDeliverables')
+      .mockResolvedValueOnce([deliverable({ status: 'blocked', gated: true, blockedBy: [{ nodeId: 'gate', type: 'reviewGateNode', label: 'Art review', reason: 'Waiting for approvals: 0 of 1' }] })])
+      .mockResolvedValueOnce([deliverable({ status: 'ready', gated: true, blockedBy: [] })]);
+    const store = renderSection();
+    expect(await screen.findByTestId('deliverable-d1')).toHaveTextContent('Blocked');
+    act(() => { store.dispatch(deliverableGatesEventReceived()); });
+    expect(screen.getByTestId('deliverable-d1')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('deliverable-d1')).toHaveTextContent('Ready'));
+    expect(list).toHaveBeenCalledTimes(2);
   });
 });

@@ -4,6 +4,7 @@ import { NodeEditContext } from '../NodeContext';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../../../store';
 import { fetchCreditsSheets } from '../../../../store/creditsSheetsSlice';
+import { gateSubtitle, gateSummary } from '../deliverableTargets';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -11,7 +12,7 @@ import {
   faCloudArrowDown, faFilm, faClosedCaptioning, faImage,
   faMicrochip, faArrowsRotate, faLayerGroup, faDiagramProject,
   faCircleCheck, faCommentDots,
-  faBoxArchive, faRocket, faShieldHalved,
+  faBoxArchive, faLock, faRocket, faShieldHalved,
   faMicrophone, faExpand, faWandMagicSparkles, faBrain,
   faArrowRightToBracket, faArrowRightFromBracket,
   faFileExport, faSitemap,
@@ -517,20 +518,28 @@ export const PipelineSuggestNode = memo(({ data, selected }: NodeProps<BaseNodeD
 ));
 PipelineSuggestNode.displayName = 'PipelineSuggestNode';
 
-// Packages a pipeline output as a versioned deliverable artifact
-export const DeliverableNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
-  <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
-    <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
-    <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
-    <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1300' }}>
-      <div className={s.nodeIcon} style={{ color: H_RIGHT }}><FontAwesomeIcon icon={faBoxArchive} /></div>
+// Stands for the deliverables it applies to, and shows whether the gates before it let them out
+// (its state read by the canvas, again on each change to a gate): ready, or what holds them.
+export const DeliverableNode = memo(({ id, data, selected }: NodeProps<BaseNodeData>) => {
+  const projectId = useSelector((state: RootState) => state.currentProject.data?.id);
+  const gate = useSelector((state: RootState) =>
+    state.deliverableGates?.projectId === projectId ? state.deliverableGates.nodes?.[id] : undefined);
+  const status = gateSubtitle(gate);
+  const color = gate?.gated ? (gate.status === 'ready' ? '#4ade80' : '#facc15') : H_RIGHT;
+  return (
+    <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`} data-testid="deliverable-node" title={gate?.gated ? gateSummary(gate) : undefined}>
+      <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
+      <Handle type="source" position={Position.Right} id="out-filter" className={s.handle} style={hOut(H_RIGHT)} />
+      <div className={s.nodeIconBar} style={{ backgroundColor: '#1e1300' }}>
+        <div className={s.nodeIcon} style={{ color }}><FontAwesomeIcon icon={gate?.status === 'blocked' ? faLock : faBoxArchive} /></div>
+      </div>
+      <div className={s.nodeBody}>
+        <div className={s.nodeLabel}>{data.label}</div>
+        <div className={s.nodeSubtitle} data-testid="deliverable-node-status">{status ?? data.subtitle}</div>
+      </div>
     </div>
-    <div className={s.nodeBody}>
-      <div className={s.nodeLabel}>{data.label}</div>
-      <div className={s.nodeSubtitle}>{data.subtitle}</div>
-    </div>
-  </div>
-));
+  );
+});
 DeliverableNode.displayName = 'DeliverableNode';
 
 // Publishes a deliverable to one or more distribution targets

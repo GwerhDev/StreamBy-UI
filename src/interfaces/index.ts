@@ -689,6 +689,37 @@ export interface Deliverable {
   version: number | null;
   shotName: string | null;
   exportName: string | null;
+  // Ready, or blocked by the gates before it in the workflow (see GateState).
+  status?: GateStatus;
+  gated?: boolean;
+  blockedBy?: GateBlocker[];
+}
+
+export type GateStatus = 'ready' | 'blocked';
+
+// A gate that holds a deliverable back: its workflow node, and what it lacks.
+export interface GateBlocker {
+  nodeId: string;
+  type: string;
+  label: string;
+  reason: string;
+}
+
+// What the gates before something let it do: ready, or blocked (and by which). `gated` is
+// whether it has gates before it at all: one without them is as deliverables always were.
+export interface GateState {
+  status: GateStatus;
+  gated: boolean;
+  blockedBy: GateBlocker[];
+}
+
+// What a Deliverable node of the workflow applies to: every deliverable, its shots', its
+// exports' (or one export's, exportId).
+export type DeliverableAppliesTo = 'all' | 'shots' | 'exports';
+
+export interface DeliverableNodeState extends GateState {
+  appliesTo: DeliverableAppliesTo;
+  exportId: string | null;
 }
 
 export interface ProductionShot {

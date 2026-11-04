@@ -15,6 +15,7 @@ import currentPipelineReducer from './currentPipelineSlice';
 import workersReducer from './workersSlice';
 import documentsReducer from './documentsSlice';
 import creditsSheetsReducer from './creditsSheetsSlice';
+import deliverableGatesReducer from './deliverableGatesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     workers: workersReducer,
     documents: documentsReducer,
     creditsSheets: creditsSheetsReducer,
+    deliverableGates: deliverableGatesReducer,
   },
 });
 

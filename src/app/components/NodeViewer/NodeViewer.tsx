@@ -6,6 +6,9 @@ import { ActionButton } from '../Buttons/ActionButton';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { setCurrentProject } from '../../../store/currentProjectSlice';
+import { fetchDeliverableGates } from '../../../store/deliverableGatesSlice';
+import { getProjectReviews } from '../../../services/exports';
+import { fromTarget, gateSummary, targetLabel, targetOf, targetOptions } from './deliverableTargets';
 import { getConnectionResponse, createConnection } from '../../../services/connections';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { fetchDocuments, upsertDocument } from '../../../store/documentsSlice';
@@ -32,7 +35,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import s from './NodeViewer.module.css';
-import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection, IntegrationConnection, IntegrationPoolEntry } from '../../../interfaces';
+import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection, IntegrationConnection, IntegrationPoolEntry, ReviewSession } from '../../../interfaces';
 import { fetchRecords, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -175,6 +178,13 @@ export const CONNECT_PREFIX = '__connect__:';
 export const pendingIntegrationOf = (value: unknown) =>
   typeof value === 'string' && value.startsWith(CONNECT_PREFIX) ? value.slice(CONNECT_PREFIX.length) : null;
 const NO_INTEGRATIONS: IntegrationPoolEntry[] = [];
+const NO_EXPORTS: Export[] = [];
+
+// A review session as a Review Gate's panel names it: its asset, approvals and status.
+const reviewLabel = (review: ReviewSession | undefined) => review && (
+  `${review.assetId.slice(-8)} · ${review.approvals.filter(a => a.decision === 'approve').length}/${review.requiredApprovers} · ${review.status}`
+);
+
 
 const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
   exportDetails, editMode = false, onSave, onChange, connections = [], dbConnections = [], storageConnections = [], integrationConnections = [], projectId, canvasOverlay, context = 'export', onOpenPipeline, onOpenExport, onRemoveResource,
@@ -191,6 +201,23 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (projectId && context === 'export' && !documentList) dispatch(fetchDocuments(projectId));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, context]);
+
+  // The project's review sessions, for a Review Gate to be linked to one; and the state of its
+  // Deliverable nodes (read again on each change to a gate the websocket tells).
+  const [reviews, setReviews] = useState<ReviewSession[] | null>(null);
+  useEffect(() => {
+    if (!projectId || context !== 'workflow' || !editMode) return;
+    let cancelled = false;
+    getProjectReviews(projectId).then((list: ReviewSession[]) => { if (!cancelled) setReviews(list); }).catch(() => { if (!cancelled) setReviews([]); });
+    return () => { cancelled = true; };
+  }, [projectId, context, editMode]);
+  const gateChanges = useSelector((state: RootState) => state.deliverableGates?.eventSeq ?? 0);
+  const gates = useSelector((state: RootState) => (state.deliverableGates?.projectId === projectId ? state.deliverableGates.nodes : null));
+  useEffect(() => {
+    if (projectId && context === 'workflow') dispatch(fetchDeliverableGates(projectId));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, context, gateChanges]);
+  const projectExports = currentProject?.exports ?? NO_EXPORTS;
 
   const activePalette = getPaletteForContext(context, workspaceMode);
   const activeGroups = getGroupsForContext(context, workspaceMode);
@@ -752,8 +779,13 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node.type === 'reviewGateNode') return {
       title: 'Review Gate',
-      description: 'Blocks the pipeline until the minimum number of approvals is collected.',
+      description: "Holds back the deliverables after it until its review session is approved. Connect a Credits sheet's status to it, and it to a Deliverable node.",
       fields: [
+        {
+          key: 'reviewId', label: 'Review session', value: (node.data.reviewId as string) || '', editable: true, inputType: 'select',
+          displayValue: reviewLabel(reviews?.find(r => r.id === node.data.reviewId)) ?? ((node.data.reviewId as string) ? 'A review session' : 'None linked'),
+          options: [{ value: '', label: 'None linked' }, ...(reviews ?? []).map(r => ({ value: r.id, label: reviewLabel(r)! }))],
+        },
         { key: 'requiredApprovers', label: 'Required Approvers', value: String(node.data.requiredApprovers ?? 1) },
         { key: 'approverRoles', label: 'Approver Roles', value: (node.data.approverRoles as string) || '' },
         { key: 'deadlineHours', label: 'Deadline (hours)', value: String(node.data.deadlineHours ?? '') },
@@ -782,8 +814,13 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node.type === 'deliverableNode') return {
       title: 'Deliverable',
-      description: 'Packages the pipeline output as a versioned deliverable artifact.',
+      description: 'Stands for the deliverables it applies to: the gates before it (a Review Gate, a Credits sheet) hold them back until each one passes.',
       fields: [
+        {
+          key: 'target', label: 'Applies to', value: targetOf(node.data), editable: true, inputType: 'select',
+          displayValue: targetLabel(targetOf(node.data), projectExports), options: targetOptions(projectExports),
+        },
+        { key: 'gateStatus', label: 'Status', value: '', displayValue: gateSummary(gates?.[node.id]) },
         { key: 'deliverableType', label: 'Type', value: (node.data.deliverableType as string) || 'asset-bundle' },
         { key: 'deliverableVersion', label: 'Version', value: (node.data.deliverableVersion as string) || '1.0.0' },
         { key: 'changeNotes', label: 'Notes', value: (node.data.changeNotes as string) || '' },
@@ -947,7 +984,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     };
 
     return null;
-  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections, documentList]);
+  }, [exportDetails, nodes, connections, allDbConnections, panelRecords, projectId, integrationConnections, documentList, reviews, gates, projectExports]);
 
   const selectedDetail = getNodeDetail(selectedNodeId);
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
@@ -1105,6 +1142,14 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
         ...n,
         data: { ...n.data, connectionId, tableName, recordId, ...named, ...(tableName && { subtitle: tableName }) },
       } : n));
+      setLocalData({});
+      return;
+    }
+
+    if (node?.type === 'deliverableNode') {
+      const { target, ...rest } = localData;
+      const applies = target === undefined ? {} : fromTarget(String(target));
+      setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, ...rest, ...applies } } : n));
       setLocalData({});
       return;
     }

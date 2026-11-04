@@ -5,6 +5,7 @@ import { upsertJob } from '../store/currentJobSlice';
 import { handleReviewEvent } from '../store/currentReviewSlice';
 import { documentEventReceived } from '../store/documentsSlice';
 import { assetRightsEventReceived } from '../store/creditsSheetsSlice';
+import { deliverableGatesEventReceived } from '../store/deliverableGatesSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 
@@ -44,6 +45,8 @@ function handleMessage(event: MessageEvent) {
       store.dispatch(documentEventReceived(msg.data));
     } else if (msg.type === 'assetRightsEvent') {
       store.dispatch(assetRightsEventReceived(msg.data));
+    } else if (msg.type === 'deliverableGatesEvent') {
+      store.dispatch(deliverableGatesEventReceived());
     }
   } catch {
     // Ignore malformed messages

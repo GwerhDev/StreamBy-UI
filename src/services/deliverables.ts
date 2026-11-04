@@ -1,5 +1,5 @@
 import { API_BASE } from '../config/api';
-import { Deliverable } from '../interfaces';
+import { Deliverable, DeliverableNodeState } from '../interfaces';
 
 const errorOf = async (res: Response, fallback: string) => {
   try { return new Error((await res.json()).message || fallback); } catch { return new Error(fallback); }
@@ -10,6 +10,13 @@ export async function getDeliverables(projectId: string, of: { shotId?: string; 
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/deliverables${query ? `?${query}` : ''}`, { credentials: 'include' });
   if (!res.ok) throw await errorOf(res, 'Failed to load deliverables');
   return (await res.json()).deliverables;
+}
+
+// The state of each Deliverable node of the workflow, by node id.
+export async function getDeliverableGates(projectId: string): Promise<Record<string, DeliverableNodeState>> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/deliverables/gates`, { credentials: 'include' });
+  if (!res.ok) throw await errorOf(res, "Failed to load the deliverables' gates");
+  return (await res.json()).nodes;
 }
 
 // A URL that downloads an asset's file (a version of it if given), with its name.
