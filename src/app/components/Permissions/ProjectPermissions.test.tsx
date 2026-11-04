@@ -44,67 +44,95 @@ const choose = (action: string, label: string) => {
   fireEvent.mouseDown(screen.getByText(label, { selector: 'li' }));
 };
 
+// The sections start closed: open them to see what's in them.
+const openAll = () => {
+  for (const title of ['Roles', 'Teams', 'Connected apps']) fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${title}`) }));
+};
+
 describe('ProjectPermissions', () => {
-  it("shows a skeleton while it loads, then what each role can do and what apps can", async () => {
+  it("shows a skeleton while it loads, then its three sections closed, with what each role can do and what apps can", async () => {
     let answer!: (v: Awaited<ReturnType<typeof service.getProjectPermissions>>) => void;
     vi.spyOn(service, 'getProjectPermissions').mockImplementation(() => new Promise(resolve => { answer = resolve; }));
     renderSection();
     expect(screen.getByTestId('permissions-skeleton')).toBeInTheDocument();
     answer({ permissions: { roles: { ...DEFAULTS.roles }, teams: { t1: ['teams:manage'] }, apps: ['docs:publish'] }, actions: ACTIONS, appPermissions: APPS });
-    expect(await screen.findByRole('list', { name: 'Roles' })).toBeInTheDocument();
+    const roles = await screen.findByRole('button', { name: /^Roles/ });
+    for (const title of ['Roles', 'Teams', 'Connected apps']) expect(screen.getByRole('button', { name: new RegExp(`^${title}`) })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('list', { name: 'Roles' })).not.toBeInTheDocument();
+    expect(roles).toBeInTheDocument();
+    openAll();
     expect(within(screen.getByLabelText('Who can: Make, change and delete teams')).getByRole('button')).toHaveTextContent('Admins only');
     expect(within(screen.getByLabelText('Who can: Delete documents')).getByRole('button')).toHaveTextContent('Editors and admins');
     expect(within(screen.getByRole('list', { name: 'Connected apps' })).getByRole('checkbox', { name: 'Publish documents' })).toBeChecked();
     expect(within(screen.getByRole('list', { name: 'Connected apps' })).getByRole('checkbox', { name: 'Manage teams' })).not.toBeChecked();
-    // Three sections, open.
-    for (const title of ['Roles', 'Teams', 'Connected apps']) expect(screen.getByRole('button', { name: new RegExp(`^${title}`) })).toHaveAttribute('aria-expanded', 'true');
     expect(within(screen.getByRole('list', { name: 'What Docs adds' })).getByRole('checkbox', { name: /Make, change and delete teams/ })).toBeChecked();
+    // Nothing to save nor discard: each change saves itself.
+    expect(screen.queryByRole('button', { name: /Save|Discard/ })).not.toBeInTheDocument();
   });
 
-  it('an admin lets editors manage teams and apps delete documents, and saves it', async () => {
+  it('saves each change an admin makes as it is made, and says so', async () => {
     loaded();
     const save = vi.spyOn(service, 'saveProjectPermissions').mockImplementation(async (_p, payload) => payload as never);
     const store = renderSection();
     const user = userEvent.setup();
-    await screen.findByRole('list', { name: 'Roles' });
-    expect(screen.getByRole('button', { name: /Save/ })).toBeDisabled();
+    await screen.findByRole('button', { name: /^Roles/ });
+    openAll();
     choose('Make, change and delete teams', 'Editors and admins');
+    await waitFor(() => expect(save).toHaveBeenLastCalledWith('p1', { roles: { ...DEFAULTS.roles, 'teams:manage': 'editor' }, teams: {}, apps: [] }));
+    await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([expect.objectContaining({ type: 'success', message: 'Permissions saved.' })]));
     await user.click(within(screen.getByRole('list', { name: 'Connected apps' })).getByRole('checkbox', { name: 'Delete documents' }));
-    choose('Delete documents', 'Admins only');
-    await user.click(within(screen.getByRole('list', { name: 'What Docs adds' })).getByRole('checkbox', { name: /Delete documents/ }));
-    await user.click(screen.getByRole('button', { name: /Save/ }));
-    await waitFor(() => expect(save).toHaveBeenCalledWith('p1', {
-      roles: { ...DEFAULTS.roles, 'teams:manage': 'editor', 'docs:delete': 'admin' }, teams: { t1: ['docs:delete'] }, apps: ['docs:delete'],
-    }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Save/ })).toBeDisabled());
-    expect(store.getState().apiResponses.responses).toEqual([expect.objectContaining({ type: 'success' })]);
+    await waitFor(() => expect(save).toHaveBeenLastCalledWith('p1', { roles: { ...DEFAULTS.roles, 'teams:manage': 'editor' }, teams: {}, apps: ['docs:delete'] }));
+    await waitFor(() => expect(store.getState().apiResponses.responses).toHaveLength(2));
+    expect(save).toHaveBeenCalledTimes(2);
   });
 
-  it('discards what was changed, and says so when saving fails, keeping the change', async () => {
+  it('a change made while one saves goes in the next save, with all made meanwhile', async () => {
+    loaded();
+    const answers: ((v: never) => void)[] = [];
+    const save = vi.spyOn(service, 'saveProjectPermissions').mockImplementation((_p, payload) => new Promise(resolve => { answers.push(() => resolve(payload as never)); }));
+    const store = renderSection();
+    const user = userEvent.setup();
+    await screen.findByRole('button', { name: /^Roles/ });
+    openAll();
+    choose('Delete documents', 'Admins only');
+    // What a team adds: a change to a team, made while the first saves.
+    await user.click(within(screen.getByRole('list', { name: 'What Docs adds' })).getByRole('checkbox', { name: /Delete documents/ }));
+    const apps = within(screen.getByRole('list', { name: 'Connected apps' }));
+    await user.click(apps.getByRole('checkbox', { name: 'Delete documents' }));
+    await user.click(apps.getByRole('checkbox', { name: 'Publish documents' }));
+    expect(save).toHaveBeenCalledTimes(1);
+    answers[0](undefined as never);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    expect(save).toHaveBeenLastCalledWith('p1', { roles: { ...DEFAULTS.roles, 'docs:delete': 'admin' }, teams: { t1: ['docs:delete'] }, apps: ['docs:delete', 'docs:publish'] });
+    answers[1](undefined as never);
+    await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([expect.objectContaining({ type: 'success' })]));
+    expect(apps.getByRole('checkbox', { name: 'Publish documents' })).toBeChecked();
+  });
+
+  it('when a save fails it says so, and shows what the project has', async () => {
     loaded();
     vi.spyOn(service, 'saveProjectPermissions').mockRejectedValue(new Error('Only a project admin can change its permissions'));
     const store = renderSection();
-    const user = userEvent.setup();
-    await screen.findByLabelText('Who can: Delete documents');
+    await screen.findByRole('button', { name: /^Roles/ });
+    openAll();
     choose('Delete documents', 'Admins only');
-    await user.click(screen.getByRole('button', { name: /Save/ }));
     await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([
       expect.objectContaining({ type: 'error', message: 'Only a project admin can change its permissions' }),
     ]));
-    expect(within(screen.getByLabelText('Who can: Delete documents')).getByRole('button')).toHaveTextContent('Admins only');
-    await user.click(screen.getByRole('button', { name: /Discard/ }));
     expect(within(screen.getByLabelText('Who can: Delete documents')).getByRole('button')).toHaveTextContent('Editors and admins');
   });
 
   it("someone who isn't an admin only sees them", async () => {
     loaded();
+    const save = vi.spyOn(service, 'saveProjectPermissions');
     renderSection('u2');
-    expect(await screen.findByRole('list', { name: 'Roles' })).toBeInTheDocument();
+    await screen.findByRole('button', { name: /^Roles/ });
+    openAll();
     expect(screen.queryByLabelText('Who can: Make, change and delete teams')).not.toBeInTheDocument();
     expect(screen.getAllByText('Admins only')).toHaveLength(1);
     expect(within(screen.getByRole('list', { name: 'Connected apps' })).getByRole('checkbox', { name: 'Delete documents' })).toBeDisabled();
-    expect(screen.queryByRole('button', { name: /Save/ })).not.toBeInTheDocument();
     expect(screen.getByText("Only the project's admins change them.")).toBeInTheDocument();
+    expect(save).not.toHaveBeenCalled();
   });
 
   it("says so when they can't be loaded", async () => {
