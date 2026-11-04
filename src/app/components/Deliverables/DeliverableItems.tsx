@@ -5,9 +5,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCube, faDownload, faFile, faFilm, faImage, faMusic, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { getAssetDownloadUrl, getDeliverables } from '../../../services/deliverables';
+import { getAssetDownloadUrl, getDeliverables, startDeliverableWorkers } from '../../../services/deliverables';
 import { Deliverable } from '../../../interfaces';
 import { GateStatus } from './GateStatus';
+import { WaitingWorkers } from './WaitingWorkers';
+import { useRoleCan } from '../../../hooks/useRoleCan';
 
 const CATEGORY_ICON: Record<string, typeof faFile> = {
   images: faImage,
@@ -23,7 +25,8 @@ interface Props {
 }
 
 // What's been delivered for a shot or an export: each asset (or version), downloadable, and
-// whether the gates before it in the workflow let it out (read again when one changes).
+// whether the gates before it in the workflow let it out (read again when one changes). One
+// ready whose workers are still waiting says so, and who can run jobs in the project starts them.
 export function DeliverableItems({ projectId, of }: Props) {
   const shotId = 'shotId' in of ? of.shotId : undefined;
   const exportId = 'exportId' in of ? of.exportId : undefined;
@@ -31,6 +34,12 @@ export function DeliverableItems({ projectId, of }: Props) {
   const [deliverables, setDeliverables] = useState<Deliverable[] | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const gateChanges = useSelector((state: RootState) => state.deliverableGates?.eventSeq ?? 0);
+  const myRole = useSelector((state: RootState) =>
+    state.currentProject?.data?.members?.find(m => m.userId === state.session?.userId)?.role);
+  const canRunJobs = useRoleCan(projectId, myRole, 'jobs:run');
+  const [starting, setStarting] = useState<string | null>(null);
+  // Read again after its workers are started.
+  const [reads, setReads] = useState(0);
 
   // Another shot or export: its own, from nothing.
   useEffect(() => { setDeliverables(null); }, [projectId, shotId, exportId]);
@@ -40,7 +49,7 @@ export function DeliverableItems({ projectId, of }: Props) {
       .then(list => { if (!cancelled) setDeliverables(list); })
       .catch(() => { if (!cancelled) setDeliverables(prev => prev ?? []); });
     return () => { cancelled = true; };
-  }, [projectId, shotId, exportId, gateChanges]);
+  }, [projectId, shotId, exportId, gateChanges, reads]);
 
   const download = async (deliverable: Deliverable) => {
     setDownloading(deliverable.id);
@@ -50,6 +59,19 @@ export function DeliverableItems({ projectId, of }: Props) {
       dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to download.', type: 'error' }));
     } finally {
       setDownloading(null);
+    }
+  };
+
+  const startWorkers = async (deliverable: Deliverable) => {
+    setStarting(deliverable.id);
+    try {
+      const { jobs } = await startDeliverableWorkers(projectId, deliverable.id);
+      dispatch(addApiResponse({ message: jobs.length === 1 ? '1 job started.' : `${jobs.length} jobs started.`, type: 'success' }));
+    } catch (err) {
+      dispatch(addApiResponse({ message: err instanceof Error && err.message ? err.message : "Failed to start the deliverable's workers.", type: 'error' }));
+    } finally {
+      setStarting(null);
+      setReads(n => n + 1);
     }
   };
 
@@ -72,6 +94,7 @@ export function DeliverableItems({ projectId, of }: Props) {
                 <span className={s.name}>{d.asset?.displayName ?? 'Deleted asset'}</span>
                 {d.note && <small className={s.note}>{d.note}</small>}
                 <GateStatus state={d} />
+                {d.workersWaiting && <WaitingWorkers canStart={canRunJobs} starting={starting === d.id} onStart={() => startWorkers(d)} />}
               </span>
               <span className={s.version}>{d.version ? `v${d.version}` : 'latest'}</span>
               <button

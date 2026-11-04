@@ -693,6 +693,8 @@ export interface Deliverable {
   status?: GateStatus;
   gated?: boolean;
   blockedBy?: GateBlocker[];
+  // Ready, but its automatic workers are still held: nothing started them when it got ready.
+  workersWaiting?: boolean;
 }
 
 export type GateStatus = 'ready' | 'blocked';

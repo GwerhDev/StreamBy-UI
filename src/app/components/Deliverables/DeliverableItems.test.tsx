@@ -14,10 +14,12 @@ const deliverable = (over: Partial<Deliverable>): Deliverable => ({
   version: 2, shotName: 'SH010', exportName: null, ...over,
 });
 
-const renderSection = (of: { shotId: string } | { exportId: string } = { shotId: 's1' }) => {
+const renderSection = (of: { shotId: string } | { exportId: string } = { shotId: 's1' }, role = 'admin') => {
   const store = configureStore({
     reducer: {
       deliverableGates,
+      session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
+      currentProject: () => ({ data: { id: 'p1', members: [{ userId: 'u1', role, status: 'active' }] }, loading: false, error: null }),
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },
@@ -102,5 +104,35 @@ describe('DeliverableItems', () => {
     expect(screen.getByTestId('deliverable-d1')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('deliverable-d1')).toHaveTextContent('Ready'));
     expect(list).toHaveBeenCalledTimes(2);
+  });
+
+  it("says when a ready one's workers are still waiting, and starts them, saying how many jobs started", async () => {
+    vi.spyOn(deliverablesService, 'getDeliverables')
+      .mockResolvedValueOnce([deliverable({ status: 'ready', gated: true, blockedBy: [], workersWaiting: true })])
+      .mockResolvedValueOnce([deliverable({ status: 'ready', gated: true, blockedBy: [], workersWaiting: false })]);
+    const start = vi.spyOn(deliverablesService, 'startDeliverableWorkers').mockResolvedValue({ deliverable: deliverable({}), jobs: [{ jobId: 'j1' }, { jobId: 'j2' }] });
+    const store = renderSection();
+    expect(await screen.findByTestId('workers-waiting')).toHaveTextContent('Workers waiting');
+    await userEvent.setup().click(screen.getByRole('button', { name: /Start workers/ }));
+    expect(start).toHaveBeenCalledWith('p1', 'd1');
+    await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([{ message: '2 jobs started.', type: 'success' }]));
+    // Read again: they're not waiting any more.
+    await waitFor(() => expect(screen.queryByTestId('workers-waiting')).not.toBeInTheDocument());
+  });
+
+  it('says why they could not be started, and reads it again', async () => {
+    const list = vi.spyOn(deliverablesService, 'getDeliverables').mockResolvedValue([deliverable({ status: 'ready', gated: true, blockedBy: [], workersWaiting: true })]);
+    vi.spyOn(deliverablesService, 'startDeliverableWorkers').mockRejectedValue(new Error('Blocked: Art review (Its review session was rejected)'));
+    const store = renderSection();
+    await userEvent.setup().click(await screen.findByRole('button', { name: /Start workers/ }));
+    await waitFor(() => expect(store.getState().apiResponses.responses).toEqual([{ message: 'Blocked: Art review (Its review session was rejected)', type: 'error' }]));
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+  });
+
+  it("only says they're waiting to who can't run jobs in the project", async () => {
+    vi.spyOn(deliverablesService, 'getDeliverables').mockResolvedValue([deliverable({ status: 'ready', gated: true, blockedBy: [], workersWaiting: true })]);
+    renderSection({ shotId: 's1' }, 'viewer');
+    expect(await screen.findByTestId('workers-waiting')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Start workers/ })).not.toBeInTheDocument();
   });
 });

@@ -19,6 +19,13 @@ export async function getDeliverableGates(projectId: string): Promise<Record<str
   return (await res.json()).nodes;
 }
 
+// A ready deliverable's waiting workers, started: the deliverable as it is then, and the jobs.
+export async function startDeliverableWorkers(projectId: string, deliverableId: string): Promise<{ deliverable: Deliverable; jobs: { jobId: string }[] }> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/deliverables/${deliverableId}/start-workers`, { method: 'POST', credentials: 'include' });
+  if (!res.ok) throw await errorOf(res, "Failed to start the deliverable's workers");
+  return res.json();
+}
+
 // A URL that downloads an asset's file (a version of it if given), with its name.
 export async function getAssetDownloadUrl(projectId: string, assetId: string, versionId?: string | null): Promise<string> {
   const query = versionId ? `?${new URLSearchParams({ versionId })}` : '';
