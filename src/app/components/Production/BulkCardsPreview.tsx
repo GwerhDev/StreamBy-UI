@@ -1,4 +1,4 @@
-import s from './BulkCards.module.css';
+import s from './BulkCardsPreview.module.css';
 import { ParsedRow, Problem } from './bulkCards';
 
 interface Props {

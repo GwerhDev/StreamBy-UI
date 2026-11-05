@@ -335,7 +335,7 @@ describe('a task template', () => {
     await waitFor(() => expect(apply).toHaveBeenCalledWith('p1', 't1', ['s1']));
     expect(await screen.findByText('Rig')).toBeInTheDocument();
     expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: expect.objectContaining({ total: 3 }) }));
-    expect((store.getState() as any).apiResponses.responses).toContainEqual({ message: 'Character: 2 tasks added.', type: 'success' });
+    expect((store.getState() as { apiResponses: { responses: unknown[] } }).apiResponses.responses).toContainEqual({ message: 'Character: 2 tasks added.', type: 'success' });
   });
 
   it("isn't offered when the project has none", async () => {

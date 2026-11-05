@@ -1,11 +1,13 @@
 import s from './ProductionEditModals.module.css';
 import { FormEvent, ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { faFloppyDisk, faPen, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faFloppyDisk, faListCheck, faPen, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ModalShell } from '../Modals/ModalShell';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { Member, ProductionSequence, ProductionTask, Team } from '../../../interfaces';
+import { Member, ProductionSequence, ProductionTask, TaskTemplate, Team } from '../../../interfaces';
+import { TemplatePayload } from '../../../services/production';
 import { AssigneePicker } from './AssigneePicker';
 
 // The date part of an ISO date, for a date input ('' when there's none).
@@ -18,17 +20,25 @@ interface EditModalProps {
   onSubmit: () => void;
   onClose: () => void;
   children: ReactNode;
+  icon?: IconDefinition;
+  // What its button says and shows (Save, by default), and what it says while it's on its way.
+  submitText?: string;
+  submitIcon?: IconDefinition;
+  savingText?: string;
+  // Wider, for what needs the room (a table).
+  wide?: boolean;
 }
 
-function EditModal({ title, saving, canSave, onSubmit, onClose, children }: EditModalProps) {
+/** A form in a modal, over the page (and the modal it's opened from): its fields, and Save or Cancel. */
+export function EditModal({ title, saving, canSave, onSubmit, onClose, children, icon = faPen, submitText = 'Save', submitIcon = faFloppyDisk, savingText = 'Saving…', wide }: EditModalProps) {
   const submit = (e: FormEvent) => { e.preventDefault(); if (canSave && !saving) onSubmit(); };
   // In the page's body, over the shot's modal it's opened from.
   return createPortal(
-    <ModalShell title={title} icon={faPen} onClose={onClose}>
+    <ModalShell title={title} icon={icon} onClose={onClose} className={wide ? s.wide : undefined}>
       <form onSubmit={submit} className={s.form}>
         {children}
         <div className={s.formActions}>
-          <ActionButton type="submit" icon={faFloppyDisk} text={saving ? 'Saving…' : 'Save'} disabled={saving || !canSave} />
+          <ActionButton type="submit" icon={submitIcon} text={saving ? savingText : submitText} disabled={saving || !canSave} />
           <SecondaryButton icon={faXmark} text="Cancel" onClick={onClose} />
         </div>
       </form>
@@ -37,7 +47,7 @@ function EditModal({ title, saving, canSave, onSubmit, onClose, children }: Edit
   );
 }
 
-function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
+export function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
     <div className={s.field}>
       <label htmlFor={id} className={s.formLabel}>{label}</label>
@@ -100,6 +110,29 @@ export function EditTaskModal({ task, members, teams, saving, onSave, onClose }:
           onTogglePerson={toggle(setAssignedTo)} onToggleTeam={toggle(setTeamIds)}
         />
       </div>
+    </EditModal>
+  );
+}
+
+// What a template's tasks are written as: one per line.
+const linesOf = (text: string) => text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+/** A task template made, or changed: its name and its tasks, one per line (a task kept keeps its priority and notes). */
+export function EditTemplateModal({ template, saving, onSave, onClose }: { template?: TaskTemplate; saving: boolean; onSave: (payload: TemplatePayload) => void; onClose: () => void }) {
+  const [name, setName] = useState(template?.name ?? '');
+  const [tasks, setTasks] = useState(template?.tasks.map(t => t.name).join('\n') ?? '');
+  return (
+    <EditModal
+      title={template ? 'Edit template' : 'New template'} icon={faListCheck} saving={saving}
+      canSave={!!name.trim() && linesOf(tasks).length > 0} onClose={onClose}
+      onSubmit={() => onSave({ name: name.trim(), tasks: linesOf(tasks).map(line => template?.tasks.find(t => t.name === line) ?? line) })}
+    >
+      <Field id="template-name" label="Name">
+        <input id="template-name" autoFocus className={s.formInput} value={name} placeholder="e.g. Character" onChange={e => setName(e.target.value)} />
+      </Field>
+      <Field id="template-tasks" label="Tasks, one per line">
+        <textarea id="template-tasks" className={s.formTextarea} rows={5} value={tasks} placeholder={'Modeling\nRig and animations\nExport and upload'} onChange={e => setTasks(e.target.value)} />
+      </Field>
     </EditModal>
   );
 }

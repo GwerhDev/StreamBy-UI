@@ -1,14 +1,12 @@
-import s from './BulkCards.module.css';
-import { FormEvent, useMemo, useState } from 'react';
-import { faPlus, faTableList, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { useMemo, useState } from 'react';
+import { faPlus, faTableList } from '@fortawesome/free-solid-svg-icons';
 import { Member, ProductionSequence, ProductionShot, TaskTemplate, Team } from '../../../interfaces';
 import { createShots } from '../../../services/production';
-import { ModalShell } from '../Modals/ModalShell';
-import { ActionButton } from '../Buttons/ActionButton';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { LabeledSelect } from '../Inputs/LabeledSelect';
+import { DropdownInput } from '../Inputs/DropdownInput';
+import { EditModal, Field } from './ProductionEditModals';
 import { BulkCardsPreview } from './BulkCardsPreview';
 import { parseCards, resolveCards } from './bulkCards';
+import f from './ProductionEditModals.module.css';
 
 interface Props {
   projectId: string;
@@ -23,7 +21,8 @@ interface Props {
   onClose: () => void;
 }
 
-// Cards made in a sequence at once, from a table pasted from a spreadsheet or a CSV: its rows
+// Cards made in a sequence at once, from a table pasted from a spreadsheet or a CSV (a row each:
+// name, description, people, teams; a first row of column names says which is which): its rows
 // shown first, with what's wrong with any; and, if one is picked, a task template's tasks for each.
 export function BulkCardsModal({ projectId, sequence, members, teams, templates, names, onCreated, onError, onClose }: Props) {
   const [text, setText] = useState('');
@@ -31,11 +30,9 @@ export function BulkCardsModal({ projectId, sequence, members, teams, templates,
   const [saving, setSaving] = useState(false);
   const rows = useMemo(() => parseCards(text), [text]);
   const { cards, problems } = useMemo(() => resolveCards(rows, members, teams), [rows, members, teams]);
-  const canCreate = cards.length > 0 && !problems.length && !saving;
+  const plural = (n: number) => (n === 1 ? names.shot : names.shots).toLowerCase();
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!canCreate) return;
+  const create = async () => {
     setSaving(true);
     try {
       const made = await createShots(projectId, sequence.id, cards, templateId || undefined);
@@ -48,31 +45,26 @@ export function BulkCardsModal({ projectId, sequence, members, teams, templates,
   };
 
   return (
-    <ModalShell title={`Add ${names.shots.toLowerCase()} to ${sequence.name}`} icon={faTableList} onClose={onClose}>
-      <form onSubmit={submit} className={s.form}>
-        <label className={s.label} htmlFor="bulk-cards">Paste a table or a CSV</label>
-        <p className={s.hint}>
-          A row per {names.shot.toLowerCase()}: name, description, people, teams (several separated by commas). A first row of
-          column names says which is which.
-        </p>
+    <EditModal
+      title={`Add ${names.shots.toLowerCase()} to ${sequence.name}`} icon={faTableList} wide
+      saving={saving} canSave={cards.length > 0 && !problems.length} onSubmit={create} onClose={onClose}
+      submitIcon={faPlus} submitText={cards.length ? `Create ${cards.length} ${plural(cards.length)}` : 'Create'} savingText="Creating…"
+    >
+      <Field id="bulk-cards" label="Paste a table or a CSV">
         <textarea
-          id="bulk-cards" className={s.textarea} value={text} onChange={e => setText(e.target.value)} autoFocus
+          id="bulk-cards" autoFocus className={f.formTextarea} rows={8} value={text} onChange={e => setText(e.target.value)}
           placeholder={'name\tdescription\tpeople\tteams\nAventurero\tThe hero\tada\tArtists'}
         />
-        <BulkCardsPreview rows={rows} problems={problems} cardName={names.shots} />
-        <LabeledSelect
-          label="Task template" htmlFor="bulk-template" value={templateId}
-          onChange={e => setTemplateId(e.target.value)}
-          options={[{ value: '', label: 'None' }, ...templates.map(t => ({ value: t.id, label: `${t.name} (${t.tasks.length} tasks)` }))]}
-        />
-        <div className={s.actions}>
-          <ActionButton
-            type="submit" icon={faPlus} disabled={!canCreate}
-            text={saving ? 'Creating…' : `Create ${cards.length || ''} ${(cards.length === 1 ? names.shot : names.shots).toLowerCase()}`.replace(/\s+/g, ' ')}
+      </Field>
+      <BulkCardsPreview rows={rows} problems={problems} cardName={names.shots} />
+      {templates.length > 0 && (
+        <Field id="bulk-template" label="Task template">
+          <DropdownInput
+            value={templateId} onChange={setTemplateId}
+            options={[{ value: '', label: 'None' }, ...templates.map(t => ({ value: t.id, label: `${t.name} (${t.tasks.length} tasks)` }))]}
           />
-          <SecondaryButton icon={faXmark} text="Cancel" onClick={onClose} />
-        </div>
-      </form>
-    </ModalShell>
+        </Field>
+      )}
+    </EditModal>
   );
 }
