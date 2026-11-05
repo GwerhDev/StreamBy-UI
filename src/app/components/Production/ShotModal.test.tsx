@@ -308,3 +308,39 @@ describe('a shot in a pipeline', () => {
     await screen.findByText('Layout');
   });
 });
+
+describe('a task template', () => {
+  it("gives the shot its tasks, which are then read again", async () => {
+    const template = { id: 't1', projectId: 'p1', name: 'Character', tasks: [{ name: 'Modeling', priority: 'medium' as const, notes: null }, { name: 'Rig', priority: 'high' as const, notes: null }], createdBy: 'u1', createdAt: '', updatedAt: '' };
+    const apply = vi.spyOn(production, 'applyTaskTemplate').mockResolvedValue(2);
+    const store = configureStore({
+      reducer: {
+        apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
+          (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
+      },
+    });
+    const onUpdate = vi.fn();
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <ShotModal shot={SHOT} projectId="p1" members={MEMBERS} teams={TEAMS} columns={COLUMNS} onClose={vi.fn()} onUpdate={onUpdate} onDelete={vi.fn()} templates={[template]} />
+        </MemoryRouter>
+      </Provider>,
+    );
+    await screen.findByText('Layout');
+    vi.spyOn(production, 'getTasks').mockResolvedValue([TASK, { ...TASK, id: 't2', name: 'Modeling' }, { ...TASK, id: 't3', name: 'Rig', priority: 'high' }]);
+    const user = userEvent.setup();
+    await user.click(within(screen.getByLabelText('Apply a template')).getByRole('button', { name: 'Apply a template' }));
+    fireEvent.mouseDown(screen.getByText('Character (2)'));
+    await waitFor(() => expect(apply).toHaveBeenCalledWith('p1', 't1', ['s1']));
+    expect(await screen.findByText('Rig')).toBeInTheDocument();
+    expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ taskSummary: expect.objectContaining({ total: 3 }) }));
+    expect((store.getState() as any).apiResponses.responses).toContainEqual({ message: 'Character: 2 tasks added.', type: 'success' });
+  });
+
+  it("isn't offered when the project has none", async () => {
+    renderModal();
+    await screen.findByText('Layout');
+    expect(screen.queryByLabelText('Apply a template')).not.toBeInTheDocument();
+  });
+});

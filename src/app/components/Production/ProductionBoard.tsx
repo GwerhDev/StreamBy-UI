@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCheck, faClipboardList, faMagnifyingGlass, faPlus, faTableColumns, faList, faTrash, faPen, faXmark,
+  faCheck, faClipboardList, faMagnifyingGlass, faPlus, faTableColumns, faList, faTrash, faPen, faXmark, faTableList, faListCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor,
@@ -27,9 +27,12 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   getSequences, createSequence, updateSequence, deleteSequence,
   getShots, createShot, updateShot, deleteShot,
-  getBoard, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
+  getBoard, getTaskTemplates, addBoardColumn, updateBoardColumn, orderBoardColumns, deleteBoardColumn,
 } from '../../../services/production';
-import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ShotStatus, Team } from '../../../interfaces';
+import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ShotStatus, TaskTemplate, Team } from '../../../interfaces';
+import { BulkCardsModal } from './BulkCardsModal';
+import { TaskTemplatesModal } from './TaskTemplatesModal';
+import { useRoleCan } from '../../../hooks/useRoleCan';
 import { DEFAULT_LABELS, lower, withArticle } from './productionLabels';
 import { ShotModal } from './ShotModal';
 import { AssetThumbnail } from './AssetThumbnail';
@@ -74,6 +77,14 @@ export function ProductionBoard() {
   const { members } = useProjectMembers(projectId);
   const { teams } = useProjectTeams(projectId);
   const userId = useSelector((state: RootState) => state.session.userId);
+  // Its task templates: changed by whoever may change production, deleted by whoever may delete it.
+  const myRole = useSelector((state: RootState) => state.currentProject?.data?.members?.find(m => m.userId === userId)?.role);
+  const canEditTemplates = useRoleCan(projectId, myRole, 'production:write');
+  const canDeleteTemplates = useRoleCan(projectId, myRole, 'production:delete');
+  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  // The sequence cards are being added to in bulk.
+  const [bulkSeqId, setBulkSeqId] = useState<string | null>(null);
 
   // The shot open is in the URL (?shot=<id>): a link to it opens it, Back closes it.
   const [params, setParams] = useSearchParams();
@@ -137,6 +148,7 @@ export function ProductionBoard() {
       setSequences(seqs);
       setColumns(board.columns);
       setLabels(board.labels ?? DEFAULT_LABELS);
+      getTaskTemplates(projectId).then(setTemplates).catch(() => setTemplates([]));
       const allShots = (await Promise.all(seqs.map(seq => getShots(projectId, seq.id)))).flat();
       setShots(allShots);
     } finally {
@@ -293,12 +305,13 @@ export function ProductionBoard() {
   const columnToDelete = columns.find(c => c.id === deleteColumnId);
 
   const viewProps = {
-    sequences, shots: visibleShots, columns, members, teams, projectId, names: { seq: L.seq, shot: L.shot },
+    sequences, shots: visibleShots, columns, members, teams, projectId, names: { seq: L.seq, shot: L.shot, shots: L.shots },
     onSelectShot: openShot,
     onMove: handleMove,
     onCreateShot: handleCreateShot,
     onDeleteSeq: (id: string) => setDeleteSeqId(id),
     onEditSeq: (id: string) => setEditSeqId(id),
+    onBulkSeq: (id: string) => setBulkSeqId(id),
   };
 
   return (
@@ -328,6 +341,7 @@ export function ProductionBoard() {
                   List
                 </button>
               </div>
+              <SecondaryButton icon={faListCheck} text="Task templates" onClick={() => setShowTemplates(true)} />
               <ActionButton icon={faPlus} text={`New ${L.seq}`} onClick={() => { setShowCreateSeq(true); setNewSeqName(''); }} />
             </div>
           }
@@ -400,6 +414,7 @@ export function ProductionBoard() {
           onDelete={id => setDeleteShotId(id)}
           closeOnEscape={!deleteShotId}
           labels={labels}
+          templates={templates}
         />
       )}
 
@@ -413,6 +428,32 @@ export function ProductionBoard() {
           count={shots.filter(sh => columnOfShot(columns, sh)?.id === columnToDelete.id).length}
           onDelete={moveTo => handleDeleteColumn(columnToDelete.id, moveTo)}
           onClose={() => setDeleteColumnId(null)}
+        />
+      )}
+
+      {bulkSeqId && sequences.find(seq => seq.id === bulkSeqId) && (
+        <BulkCardsModal
+          projectId={projectId} sequence={sequences.find(seq => seq.id === bulkSeqId)!} members={members} teams={teams} templates={templates}
+          names={{ shot: labels.shot, shots: labels.shots }}
+          onCreated={(made, tasks) => {
+            setShots(prev => [...prev, ...made.map(shot => ({ ...shot, taskSummary: { done: 0, total: 0, priority: null } }))]);
+            setBulkSeqId(null);
+            dispatch(addApiResponse({ message: `${made.length} ${lower(made.length === 1 ? labels.shot : labels.shots)} created.`, type: 'success' }));
+            // Their template's tasks, summed up on their cards as the board reads them.
+            if (tasks) load();
+          }}
+          onError={err => failed(err, 'Failed to create them.')}
+          onClose={() => setBulkSeqId(null)}
+        />
+      )}
+
+      {showTemplates && (
+        <TaskTemplatesModal
+          projectId={projectId} templates={templates} canEdit={canEditTemplates} canDelete={canDeleteTemplates}
+          onChange={setTemplates}
+          onSaved={message => dispatch(addApiResponse({ message, type: 'success' }))}
+          onError={err => failed(err, 'Failed to save the template.')}
+          onClose={() => setShowTemplates(false)}
         />
       )}
 
@@ -486,8 +527,10 @@ interface ViewProps {
   onCreateShot: (seqId: string, columnId: string, name: string) => Promise<boolean>;
   onDeleteSeq: (id: string) => void;
   onEditSeq: (id: string) => void;
+  // Cards added to a sequence in bulk.
+  onBulkSeq: (id: string) => void;
   // What the project calls them, as read mid-sentence.
-  names: { seq: string; shot: string };
+  names: { seq: string; shot: string; shots: string };
 }
 
 // ── Board view ─────────────────────────────────────────────────────────────────
@@ -504,7 +547,7 @@ interface ColumnActions {
 }
 
 function BoardView({
-  sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, names,
+  sequences, shots, columns, members, teams, projectId, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onBulkSeq, names,
   columnSaving, onOrderColumns, onAddColumn, onRenameColumn, onMoveColumn, onDeleteColumn,
 }: ViewProps & ColumnActions) {
   const sequenceName = (id: string) => sequences.find(seq => seq.id === id)?.name;
@@ -557,6 +600,9 @@ function BoardView({
               <div className={s.laneHead}>
                 <span className={s.laneName}>{seq.name}</span>
                 <span className={s.colCount}>{seqShots.length}</span>
+                <button type="button" className={s.seqEditBtn} onClick={() => onBulkSeq(seq.id)} title={`Add ${names.shots} in bulk`} aria-label={`Add ${names.shots} to ${seq.name} in bulk`}>
+                  <FontAwesomeIcon icon={faTableList} />
+                </button>
                 <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title={`Edit ${names.seq}`}>
                   <FontAwesomeIcon icon={faPen} />
                 </button>
@@ -743,7 +789,7 @@ function InlineCreate({ label, placeholderName, onCreate }: { label: string; pla
 
 // ── List view ──────────────────────────────────────────────────────────────────
 
-function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onDeleteShot, names, shotLabel }: ViewProps & { onDeleteShot: (id: string) => void; shotLabel: string }) {
+function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateShot, onDeleteSeq, onEditSeq, onBulkSeq, onDeleteShot, names, shotLabel }: ViewProps & { onDeleteShot: (id: string) => void; shotLabel: string }) {
   return (
     <div className={s.list}>
       <div className={s.listHead}>
@@ -758,6 +804,9 @@ function ListView({ sequences, shots, columns, onSelectShot, onMove, onCreateSho
           <div key={seq.id} className={s.listGroup}>
             <div className={s.listSeqRow}>
               <span className={s.listSeqName}>{seq.name}</span>
+              <button type="button" className={s.seqEditBtn} onClick={() => onBulkSeq(seq.id)} title={`Add ${names.shots} in bulk`} aria-label={`Add ${names.shots} to ${seq.name} in bulk`}>
+                <FontAwesomeIcon icon={faTableList} />
+              </button>
               <button type="button" className={s.seqEditBtn} onClick={() => onEditSeq(seq.id)} title={`Edit ${names.seq}`}>
                 <FontAwesomeIcon icon={faPen} />
               </button>

@@ -1,5 +1,5 @@
 import { API_BASE } from '../config/api';
-import { BoardColumn, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask } from '../interfaces';
+import { BoardColumn, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask, TaskTemplate, TemplateTask } from '../interfaces';
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: 'include', ...options });
@@ -114,6 +114,7 @@ export async function createShot(
     pipelineId?: string | null;
     dueDate?: string;
     order?: number;
+    templateId?: string;
   },
 ): Promise<ProductionShot> {
   const { shot } = await request<{ shot: ProductionShot }>(
@@ -201,4 +202,43 @@ export async function updateTask(
 
 export async function deleteTask(projectId: string, shotId: string, taskId: string): Promise<void> {
   await request(`${base(projectId)}/shots/${shotId}/tasks/${taskId}`, { method: 'DELETE' });
+}
+
+// ── In bulk, and task templates ─────────────────────────────────────────────
+
+export interface NewCard {
+  name: string;
+  description?: string;
+  assignedTo?: string[];
+  teamIds?: string[];
+}
+
+/** Several cards made in a sequence at once (none, if one is wrong): each with its key. */
+export async function createShots(projectId: string, seqId: string, shots: NewCard[], templateId?: string): Promise<{ shots: ProductionShot[]; tasks: number }> {
+  return request<{ shots: ProductionShot[]; tasks: number }>(
+    `${base(projectId)}/sequences/${seqId}/shots/batch`, json('POST', { shots, ...(templateId ? { templateId } : {}) }),
+  );
+}
+
+export async function getTaskTemplates(projectId: string): Promise<TaskTemplate[]> {
+  return (await request<{ templates: TaskTemplate[] }>(`${base(projectId)}/task-templates`, { method: 'GET' })).templates;
+}
+
+export type TemplatePayload = { name: string; tasks: (string | Partial<TemplateTask> & { name: string })[] };
+
+export async function createTaskTemplate(projectId: string, payload: TemplatePayload): Promise<TaskTemplate> {
+  return (await request<{ template: TaskTemplate }>(`${base(projectId)}/task-templates`, json('POST', payload))).template;
+}
+
+export async function updateTaskTemplate(projectId: string, templateId: string, payload: Partial<TemplatePayload>): Promise<TaskTemplate> {
+  return (await request<{ template: TaskTemplate }>(`${base(projectId)}/task-templates/${templateId}`, json('PATCH', payload))).template;
+}
+
+export async function deleteTaskTemplate(projectId: string, templateId: string): Promise<void> {
+  await request(`${base(projectId)}/task-templates/${templateId}`, { method: 'DELETE' });
+}
+
+/** A template's tasks given to cards, each its own: how many were made. */
+export async function applyTaskTemplate(projectId: string, templateId: string, shotIds: string[]): Promise<number> {
+  return (await request<{ tasks: number }>(`${base(projectId)}/task-templates/${templateId}/apply`, json('POST', { shotIds }))).tasks;
 }

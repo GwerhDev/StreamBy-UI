@@ -117,6 +117,31 @@ describe('ProductionBoard', () => {
     expect(screen.getAllByRole('button', { name: /^Create an asset in Opening/ }).length).toBeGreaterThan(0);
   });
 
+  it("adds cards to a sequence in bulk, from a pasted table, shown with their keys", async () => {
+    vi.spyOn(production, 'getTaskTemplates').mockResolvedValue([]);
+    const create = vi.spyOn(production, 'createShots').mockResolvedValue({
+      shots: [shot({ id: 'n1', name: 'Hero', key: 'POR-20' }), shot({ id: 'n2', name: 'Villain', key: 'POR-21' })], tasks: 0,
+    });
+    renderBoard();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Add shots to Opening in bulk' }));
+    fireEvent.change(screen.getByLabelText('Paste a table or a CSV'), { target: { value: 'Hero\nVillain' } });
+    await user.click(screen.getByRole('button', { name: 'Create 2 shots' }));
+    await waitFor(() => expect(create).toHaveBeenCalledWith('p1', 'q1', [{ name: 'Hero' }, { name: 'Villain' }], undefined));
+    expect(await screen.findByRole('button', { name: 'Hero' })).toBeInTheDocument();
+    expect(within(screen.getByRole('button', { name: 'Villain' })).getByText('POR-21')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Paste a table or a CSV')).not.toBeInTheDocument();
+  });
+
+  it("opens the project's task templates", async () => {
+    vi.spyOn(production, 'getTaskTemplates').mockResolvedValue([
+      { id: 't1', projectId: 'p1', name: 'Character', tasks: [{ name: 'Modeling', priority: 'medium', notes: null }], createdBy: 'u1', createdAt: '', updatedAt: '' },
+    ]);
+    renderBoard();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Task templates' }));
+    expect(await screen.findByText('Character')).toBeInTheDocument();
+  });
+
   it('opens a card in a modal, at its own URL; Esc closes it', async () => {
     renderBoard();
     const user = userEvent.setup();

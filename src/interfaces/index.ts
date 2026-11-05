@@ -828,6 +828,23 @@ export interface ProductionTask {
   updatedAt: string;
 }
 
+// A project's task template: a name and its tasks, given at once to the cards it's applied to.
+export interface TemplateTask {
+  name: string;
+  priority: TaskPriority;
+  notes: string | null;
+}
+
+export interface TaskTemplate {
+  id: string;
+  projectId: string;
+  name: string;
+  tasks: TemplateTask[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // What a project calls its sequences and shots (a game's may be sets and assets).
 export interface ProductionLabels {
   sequence: string;

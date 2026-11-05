@@ -410,3 +410,20 @@ div.modal {
   margin: 0;
   color: var(--color-text-secondary);
 }
+
+.taskHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.templatePick {
+  width: 11rem;
+  font-size: 0.72rem;
+}
+
+.templatePick button {
+  padding: 0.25rem 0.5rem;
+  min-height: 0;
+  height: 26px;
+}

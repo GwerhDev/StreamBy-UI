@@ -8,8 +8,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { createTask, deleteTask, getTasks, updateShot, updateTask } from '../../../services/production';
-import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask, TaskPriority, Team } from '../../../interfaces';
+import { applyTaskTemplate, createTask, deleteTask, getTasks, updateShot, updateTask } from '../../../services/production';
+import { BoardColumn, Member, ProductionLabels, ProductionSequence, ProductionShot, ProductionTask, TaskPriority, TaskTemplate, Team } from '../../../interfaces';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { useRoleCan } from '../../../hooks/useRoleCan';
@@ -47,6 +47,8 @@ interface Props {
   closeOnEscape?: boolean;
   // What the project calls its shots.
   labels?: ProductionLabels;
+  // The project's task templates, to give it one's tasks.
+  templates?: TaskTemplate[];
 }
 
 const PRIORITY_OPTIONS = (Object.keys(PRIORITY_LABEL) as TaskPriority[]).map(p => ({ value: p, label: PRIORITY_LABEL[p] }));
@@ -59,10 +61,11 @@ const PRIORITY_TINT: Record<TaskPriority, string> = {
 
 const dateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
 const NO_PIPELINES: { id: string; name: string; order: number }[] = [];
+const NO_TEMPLATES: TaskTemplate[] = [];
 
 // A shot's card opened: everything of it seen and changed in place, each change saved as it's
 // made (and put back, told, if it fails).
-export function ShotModal({ shot, sequence, projectId, members, teams, columns, onClose, onUpdate, onDelete, closeOnEscape = true, labels = DEFAULT_LABELS }: Props) {
+export function ShotModal({ shot, sequence, projectId, members, teams, columns, onClose, onUpdate, onDelete, closeOnEscape = true, labels = DEFAULT_LABELS, templates = NO_TEMPLATES }: Props) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   // The pipeline it goes through, and the Tasks steps of it its tasks may be part of; starting
@@ -186,6 +189,21 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
     }
   };
 
+  // A template's tasks given to it, then its tasks read again.
+  const [applying, setApplying] = useState(false);
+  const applyTemplate = async (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+    setApplying(true);
+    try {
+      await applyTaskTemplate(projectId, template.id, [shot.id]);
+      withTasks(await getTasks(projectId, shot.id));
+      dispatch(addApiResponse({ message: `${template.name}: ${template.tasks.length} tasks added.`, type: 'success' }));
+    } catch (err) {
+      failed(err, 'Failed to apply the template.');
+    } finally { setApplying(false); }
+  };
+
   const handleDeleteTask = async (task: ProductionTask) => {
     const before = tasks;
     withTasks(tasks.filter(t => t.id !== task.id));
@@ -259,9 +277,20 @@ export function ShotModal({ shot, sequence, projectId, members, teams, columns, 
                 Tasks
                 {tasks.length > 0 && <span className={s.taskCount}>{doneCount}/{tasks.length}</span>}
               </span>
-              <button type="button" className={s.addTaskBtn} onClick={() => setAddingTask(true)}>
-                <FontAwesomeIcon icon={faPlus} /> Add
-              </button>
+              <div className={s.taskHeaderActions}>
+                {templates.length > 0 && (
+                  <div className={s.templatePick} aria-label="Apply a template">
+                    <DropdownInput
+                      value="" placeholder={applying ? 'Applying…' : 'Apply a template'} disabled={applying}
+                      options={templates.map(t => ({ value: t.id, label: `${t.name} (${t.tasks.length})` }))}
+                      onChange={applyTemplate}
+                    />
+                  </div>
+                )}
+                <button type="button" className={s.addTaskBtn} onClick={() => setAddingTask(true)}>
+                  <FontAwesomeIcon icon={faPlus} /> Add
+                </button>
+              </div>
             </div>
 
             {tasks.length > 0 && (
