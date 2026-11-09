@@ -1,0 +1,58 @@
+/* The same title as Nhexa's other apps (Spectra, Spellcast): their wordmark's font and size,
+   in StreamBy's own color. */
+.title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-family: 'Geist', -apple-system, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+
+.title:hover {
+  background: transparent;
+}
+
+.project,
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* A project's name gives way to StreamBy on hover: where the title goes. */
+.brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.title:hover .project,
+.title:focus-visible .project {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.title:hover .brand,
+.title:focus-visible .brand {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.projectImage {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  object-fit: cover;
+}

@@ -14,6 +14,7 @@ import { EditorMenuProvider } from '../../context/EditorMenuContext';
 import { DesktopProvider, useDesktop } from '../../context/DesktopContext';
 import { AppSwitcher } from '../components/AppSwitcher/AppSwitcher';
 import { Desktop } from '../components/AppSwitcher/Desktop';
+import { AppTitle } from '../components/AppTitle/AppTitle';
 import { APP_SWITCHER_URL } from '../../config/api';
 import streambyIcon from '../../assets/streamby-icon.svg';
 
@@ -64,11 +65,11 @@ function DefaultLayoutInner() {
                 )}
             </span>
           </span>
-          {/* Center section: the current project's name, centered on the header's real width
-              regardless of how wide header-left/header-right end up being. */}
+          {/* Center section: the title (the current project, or StreamBy), which goes home;
+              centered on the header's real width regardless of how wide header-left/
+              header-right end up being. */}
           <span className="title-container">
-            {image && <img src={image} alt="" />}
-            <small className="nowrap">{name || 'StreamBy'}</small>
+            <AppTitle projectName={name} projectImage={image} onClick={handleGoHome} />
           </span>
           {/* Right section: user action icons, at the end of this outer (1fr) column. */}
           <span className="header-right">
