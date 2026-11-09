@@ -6,13 +6,13 @@ import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useFormRoute } from '../../../hooks/useFormRoute';
 import { registerWorkerRunner } from '../../../services/workerRunners';
-import { API_BASE } from '../../../config/api';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { CustomForm } from '../Forms/CustomForm';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { TokenCreated } from '../Tokens/TokenCreated';
+import { RunnerConnectSteps } from './RunnerConnectSteps';
 
 const LIST_PATH = '/user/runners';
 
@@ -41,10 +41,7 @@ export const RunnerCreate = () => {
     return (
       <div className={s.container}>
         <TokenCreated title="Runner registered" subtitle={name.trim()} token={created} testId="runner-token" onDone={() => done(LIST_PATH)}>
-          <ol className={s.next}>
-            <li>Start the runner on that machine with this token. It asks for jobs at <code>{`${API_BASE}/streamby/runner/jobs/next`}</code>.</li>
-            <li>Share it with the projects (or teams) that may use it: until then, it gets no jobs.</li>
-          </ol>
+          <RunnerConnectSteps token={created} />
         </TokenCreated>
       </div>
     );

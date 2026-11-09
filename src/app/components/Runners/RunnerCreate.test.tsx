@@ -25,8 +25,11 @@ describe('registering a runner', () => {
 
     await waitFor(() => expect(register).toHaveBeenCalledWith('Studio'));
     expect(await screen.findByTestId('runner-token-value')).toHaveTextContent('sbr_the-secret');
-    expect(screen.getByTestId('runner-token-created')).toHaveTextContent('/streamby/runner/jobs/next');
-    expect(screen.getByTestId('runner-token-created')).toHaveTextContent('until then, it gets no jobs');
+    // How it will connect, with its token: StreamBy Runner isn't out yet.
+    expect(screen.getByTestId('runner-connect-command')).toHaveTextContent('npx streamby-runner --token sbr_the-secret');
+    expect(screen.getByTestId('runner-connect-command')).toHaveTextContent('/streamby');
+    expect(screen.getByTestId('runner-connect-soon')).toHaveTextContent('Coming soon');
+    expect(screen.getByTestId('runner-token-created')).toHaveTextContent('Until then it gets no jobs');
     await user.click(screen.getByRole('button', { name: /Done/ }));
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/user\/runners$/);
   });

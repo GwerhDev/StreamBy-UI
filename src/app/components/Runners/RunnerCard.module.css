@@ -140,3 +140,18 @@
 .revokeButton:hover {
   color: var(--color-danger-text);
 }
+
+.connect {
+  font-size: 0.78rem;
+}
+
+.connect summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.connect summary:hover {
+  color: var(--color-accent);
+}

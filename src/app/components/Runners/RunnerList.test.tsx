@@ -69,6 +69,15 @@ describe('RunnerList', () => {
     expect(list.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
+  it("shows on each one how it will connect, its token's place kept, as coming soon", async () => {
+    vi.spyOn(runnersService, 'getWorkerRunners').mockResolvedValue([runner()]);
+    renderAt('/user/runners', page);
+    const card = await screen.findByTestId('runner-a1');
+    expect(within(card).getByText('How to connect it')).toBeInTheDocument();
+    expect(within(card).getByTestId('runner-connect-command')).toHaveTextContent('npx streamby-runner --token sbr_…');
+    expect(within(card).getByTestId('runner-connect-soon')).toHaveTextContent('Coming soon');
+  });
+
   it('opens the form to register one', async () => {
     vi.spyOn(runnersService, 'getWorkerRunners').mockResolvedValue([]);
     renderAt('/user/runners', page);

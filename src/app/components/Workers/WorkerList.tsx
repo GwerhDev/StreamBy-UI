@@ -6,14 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGears, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { deleteWorker } from '../../../services/workers';
-import { clearWorkersError, fetchWorkers, removeWorker } from '../../../store/workersSlice';
+import { deleteWorker, setRunnerAutoKind } from '../../../services/workers';
+import { clearWorkersError, fetchWorkers, removeWorker, setWorkerAutoKind } from '../../../store/workersSlice';
 import { Worker } from '../../../interfaces';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { ModalShell } from '../Modals/ModalShell';
 import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { useOpenForm } from '../../../hooks/useFormRoute';
+import { DropdownInput } from '../Inputs/DropdownInput';
 
 // The processing workers the project can use: the host's and the runners shared with it
 // (read-only here: a runner's owner shares it), and its own.
@@ -24,6 +25,9 @@ export const WorkerList = () => {
   const openForm = useOpenForm();
   const { id: projectId = '' } = useParams<{ id: string }>();
   const workers = useSelector((state: RootState) => (state.workers.projectId === projectId ? state.workers.list : null));
+  // Only the project's admins choose what a runner runs by itself.
+  const isAdmin = useSelector((state: RootState) =>
+    state.currentProject?.data?.members?.find(m => m.userId === state.session?.userId)?.role === 'admin');
   const [toRemove, setToRemove] = useState<Worker | null>(null);
   const [removing, setRemoving] = useState(false);
 
@@ -51,6 +55,19 @@ export const WorkerList = () => {
       dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to remove the worker.', type: 'error' }));
     } finally {
       setRemoving(false);
+    }
+  };
+
+  const handleAutoKind = async (worker: Worker, value: string) => {
+    const autoKind = value || null;
+    try {
+      const saved = await setRunnerAutoKind(projectId, worker.id, autoKind);
+      dispatch(setWorkerAutoKind({ source: 'runner', id: worker.id, autoKind: saved }));
+      dispatch(addApiResponse({
+        message: saved ? `${worker.name} runs ${saved} on deliverables by itself.` : `${worker.name} runs nothing by itself.`, type: 'success',
+      }));
+    } catch (err) {
+      dispatch(addApiResponse({ message: err instanceof Error ? err.message : "Failed to set the runner's automatic kind.", type: 'error' }));
     }
   };
 
@@ -84,6 +101,15 @@ export const WorkerList = () => {
       >
         <FontAwesomeIcon icon={faTrash} />
       </button>
+    ) : worker.source === 'runner' && isAdmin && worker.kinds.length > 0 ? (
+      <span className={s.autoKind} data-testid={`worker-auto-kind-${worker.id}`} title="What it runs by itself on deliverables">
+        <DropdownInput
+          value={worker.autoKind ?? ''}
+          options={[{ value: '', label: 'Nothing by itself' }, ...worker.kinds.map(kind => ({ value: kind, label: `Runs ${kind}` }))]}
+          onChange={value => handleAutoKind(worker, value)}
+          dropdownMinWidth={180}
+        />
+      </span>
     ) : undefined,
   }));
 

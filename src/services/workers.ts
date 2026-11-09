@@ -26,6 +26,12 @@ export const createWorker = async (projectId: string, payload: CreateWorkerPaylo
 export const deleteWorker = (projectId: string, workerId: string): Promise<unknown> =>
   request(`${base(projectId)}/workers/${encodeURIComponent(workerId)}`, { method: 'DELETE' });
 
+// What a runner shared with the project runs by itself on its deliverables (its admins choose).
+export const setRunnerAutoKind = async (projectId: string, runnerId: string, autoKind: string | null): Promise<string | null> =>
+  (await request<{ data: { autoKind: string | null } }>(`${base(projectId)}/workers/runners/${encodeURIComponent(runnerId)}`, {
+    method: 'PATCH', body: JSON.stringify({ autoKind }),
+  })).data.autoKind;
+
 // A project's jobs (of one asset if given), newest first.
 export const getJobs = async (projectId: string, assetId?: string): Promise<JobRecord[]> =>
   (await request<{ data: JobRecord[] }>(`${base(projectId)}/jobs${assetId ? `?${new URLSearchParams({ assetId })}` : ''}`)).data;

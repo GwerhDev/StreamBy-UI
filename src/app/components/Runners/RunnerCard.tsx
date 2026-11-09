@@ -2,6 +2,7 @@ import s from './RunnerCard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDesktop, faShareNodes, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { WorkerRunner, WorkerRunnerShare } from '../../../interfaces';
+import { RunnerConnectSteps } from './RunnerConnectSteps';
 
 const formatDate = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : null);
 
@@ -65,5 +66,10 @@ export const RunnerCard = ({ runner, onShare, onUnshare, onRevoke }: RunnerCardP
         </ul>
       </dd>
     </dl>
+
+    <details className={s.connect}>
+      <summary>How to connect it</summary>
+      <RunnerConnectSteps />
+    </details>
   </div>
 );

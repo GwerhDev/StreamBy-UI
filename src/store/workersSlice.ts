@@ -38,6 +38,10 @@ const workersSlice = createSlice({
     addWorker(state, action: PayloadAction<Worker>) {
       state.list?.push(action.payload);
     },
+    setWorkerAutoKind(state, action: PayloadAction<{ source: Worker['source']; id: string; autoKind: string | null }>) {
+      const worker = state.list?.find(w => w.source === action.payload.source && w.id === action.payload.id);
+      if (worker) worker.autoKind = action.payload.autoKind;
+    },
     removeWorker(state, action: PayloadAction<string>) {
       if (state.list) state.list = state.list.filter(w => !(w.source === 'project' && w.id === action.payload));
     },
@@ -65,5 +69,5 @@ const workersSlice = createSlice({
   },
 });
 
-export const { addWorker, removeWorker, clearWorkersError } = workersSlice.actions;
+export const { addWorker, removeWorker, clearWorkersError, setWorkerAutoKind } = workersSlice.actions;
 export default workersSlice.reducer;

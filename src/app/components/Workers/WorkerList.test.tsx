@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorkerList } from './WorkerList';
@@ -46,6 +46,30 @@ describe('WorkerList', () => {
     expect(screen.getByTestId('worker-state-a2')).toHaveTextContent('Offline');
     expect(screen.getByTestId('worker-a2')).toHaveTextContent('Not said yet');
     expect(screen.queryByRole('button', { name: 'Remove Studio' })).not.toBeInTheDocument();
+  });
+
+  it("lets the project's admins choose what a runner runs by itself, among the kinds it declares", async () => {
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([
+      worker({ source: 'runner', id: 'r1', name: 'Studio', provider: 'runner', online: false, kinds: ['gltf-optimize', 'lod'] }),
+    ]);
+    const set = vi.spyOn(workers, 'setRunnerAutoKind').mockResolvedValue('lod');
+    const store = renderAt('/project/p1/workers', ROUTE, <WorkerList />, { role: 'admin' });
+    const user = userEvent.setup();
+    const picker = await screen.findByTestId('worker-auto-kind-r1');
+    await user.click(within(picker).getByRole('button', { name: 'Nothing by itself' }));
+    fireEvent.mouseDown(await screen.findByText('Runs lod'));
+    await waitFor(() => expect(set).toHaveBeenCalledWith('p1', 'r1', 'lod'));
+    expect(await screen.findByTestId('worker-r1')).toHaveTextContent('runs lod on deliverables');
+    expect(store.getState().apiResponses.responses).toEqual([expect.objectContaining({ message: 'Studio runs lod on deliverables by itself.', type: 'success' })]);
+  });
+
+  it("doesn't let an editor choose it: they see what it runs", async () => {
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([
+      worker({ source: 'runner', id: 'r1', name: 'Studio', provider: 'runner', online: true, autoKind: 'lod' }),
+    ]);
+    renderAt('/project/p1/workers', ROUTE, <WorkerList />);
+    expect(await screen.findByTestId('worker-r1')).toHaveTextContent('runs lod on deliverables');
+    expect(screen.queryByTestId('worker-auto-kind-r1')).not.toBeInTheDocument();
   });
 
   it("removes one of the project's once confirmed", async () => {

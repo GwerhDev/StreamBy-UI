@@ -19,12 +19,15 @@ export const job = (over: Partial<JobRecord> = {}): JobRecord => ({
   createdAt: '2026-10-26T10:00:00Z', ...over,
 });
 
-// A component at a project's route, with the job and worker stores and the toasts.
-export const renderAt = (path: string, route: string, element: ReactNode) => {
+// A component at a project's route, with the job and worker stores and the toasts; the user
+// (u1) is the project's `role`.
+export const renderAt = (path: string, route: string, element: ReactNode, { role = 'editor' }: { role?: string } = {}) => {
   const store = configureStore({
     reducer: {
       currentJob,
       workers,
+      session: () => ({ logged: true, loader: false, username: 'eli', userId: 'u1' }),
+      currentProject: () => ({ data: { id: 'p1', name: 'Alpha', members: [{ userId: 'u1', role }] }, loading: false, error: null, membership: null }),
       apiResponses: (state = { responses: [] as unknown[] }, action: { type: string; payload?: unknown }) =>
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload] } : state),
     },

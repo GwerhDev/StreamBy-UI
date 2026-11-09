@@ -16,20 +16,3 @@
   align-items: stretch;
   justify-content: flex-start;
 }
-
-.next {
-  margin: 0;
-  padding-left: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  text-align: left;
-}
-
-.next code {
-  font-size: 0.78rem;
-  overflow-wrap: anywhere;
-  color: var(--color-text-bright);
-}

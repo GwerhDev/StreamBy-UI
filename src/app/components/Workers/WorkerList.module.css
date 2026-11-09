@@ -103,3 +103,8 @@
 .online {
   color: var(--color-success);
 }
+
+.autoKind {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
