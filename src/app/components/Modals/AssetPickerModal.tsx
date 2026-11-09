@@ -135,7 +135,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
     for (const file of files) {
       try {
         setUploadProgress(`Uploading ${file.name}…`);
-        await uploadStorageFile(projectId, 'builtin', activeCategory, file, file.type);
+        await uploadStorageFile(projectId, 'builtin', activeCategory, file);
         succeeded++;
       } catch {
         // error toast handled inside service

@@ -1,4 +1,5 @@
 import { API_BASE } from "../config/api";
+import { resolveContentType } from '../utils/contentType';
 import { AssetMetadata, AssetRights, LicenseMetadata, StorageCategory, StorageFile, StorageFolder } from '../interfaces';
 
 const CONN_BASE = (projectId: string, connId: string) =>
@@ -76,22 +77,27 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   return true;
 }
 
-/** Uploads a new asset, its SHA-256 declared with it. What its upload URL was answered with. */
+/**
+ * Uploads a new asset, its SHA-256 declared with it, with its content type resolved from its
+ * extension when the browser has none for it. What its upload URL was answered with.
+ */
 export async function uploadStorageFile(
-  projectId: string, connId: string, category: StorageCategory, file: File, contentType: string,
+  projectId: string, connId: string, category: StorageCategory, file: File,
   license?: Partial<LicenseMetadata>,
 ): Promise<UploadUrl> {
+  const contentType = resolveContentType(file);
   const sha256 = await fileSha256(file);
   const answer = await getStorageUploadUrl(projectId, connId, category, file.name, contentType, license, sha256);
   await uploadToPresignedUrl(answer.url, file, contentType, answer.headers);
   return answer;
 }
 
-/** Uploads a new version of an asset, its SHA-256 declared with it. */
+/** Uploads a new version of an asset, its SHA-256 and its content type as uploadStorageFile does. */
 export async function replaceStorageFile(projectId: string, connId: string, fileId: string, file: File): Promise<void> {
+  const contentType = resolveContentType(file);
   const sha256 = await fileSha256(file);
-  const { url, headers } = await getStorageReplaceUrl(projectId, connId, fileId, file.type, file.name, sha256);
-  await uploadToPresignedUrl(url, file, file.type, headers);
+  const { url, headers } = await getStorageReplaceUrl(projectId, connId, fileId, contentType, file.name, sha256);
+  await uploadToPresignedUrl(url, file, contentType, headers);
 }
 
 export async function renameStorageFile(projectId: string, connId: string, fileId: string, displayName: string) {

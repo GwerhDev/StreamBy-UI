@@ -47,7 +47,7 @@ describe('UploadModal — license metadata', () => {
     await user.type(screen.getByTestId('upload-license-creatorName'), 'Jane Doe');
     await user.selectOptions(screen.getByTestId('upload-license-licenseType'), 'CC0');
     await user.click(screen.getByRole('button', { name: /Upload \(1\)/ }));
-    await waitFor(() => expect(upload).toHaveBeenCalledWith('p1', 'builtin', 'images', expect.objectContaining({ name: 'rock.png' }), 'image/png',
+    await waitFor(() => expect(upload).toHaveBeenCalledWith('p1', 'builtin', 'images', expect.objectContaining({ name: 'rock.png' }),
       expect.objectContaining({ creatorName: 'Jane Doe', licenseType: 'CC0', sourceUrl: null })));
   });
 });

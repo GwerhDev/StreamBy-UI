@@ -28,7 +28,7 @@ describe('storage service', () => {
     const headers = { 'Content-Type': 'model/gltf-binary', 'x-amz-checksum-sha256': 'b64' };
     const fetchMock = answer(200, { url: 'https://upload.test/x', fileId: 'a1', headers });
     vi.stubGlobal('fetch', fetchMock);
-    expect(await uploadStorageFile('p1', 'builtin', '3d-models', rock(), 'model/gltf-binary')).toMatchObject({ fileId: 'a1' });
+    expect(await uploadStorageFile('p1', 'builtin', '3d-models', rock())).toMatchObject({ fileId: 'a1' });
     const [[asked], [put, init]] = calls(fetchMock);
     expect(new URL(asked).searchParams.get('sha256')).toBe(ROCK);
     expect(put).toBe('https://upload.test/x');
@@ -45,6 +45,27 @@ describe('storage service', () => {
     expect(url.pathname).toMatch(/\/files\/a1\/replace-url$/);
     expect(url.searchParams.get('sha256')).toBe(ROCK);
     expect(init).toMatchObject({ method: 'PUT', headers });
+  });
+
+  // A browser gives most 3D files no type: a .glb comes as ''.
+  const untypedGlb = () => new File(['rock'], 'rock.glb', { type: '' });
+
+  it("replaces a file the browser has no type for with the one its extension says", async () => {
+    const fetchMock = answer(200, { url: 'https://upload.test/y', storageKey: 'k', fileId: 'a1' });
+    vi.stubGlobal('fetch', fetchMock);
+    await replaceStorageFile('p1', 'builtin', 'a1', untypedGlb());
+    const [[asked], [, init]] = calls(fetchMock);
+    expect(new URL(asked).searchParams.get('contentType')).toBe('model/gltf-binary');
+    expect(init).toMatchObject({ method: 'PUT', headers: { 'Content-Type': 'model/gltf-binary' } });
+  });
+
+  it('uploads a new one the same way', async () => {
+    const fetchMock = answer(200, { url: 'https://upload.test/x', fileId: 'a1' });
+    vi.stubGlobal('fetch', fetchMock);
+    await uploadStorageFile('p1', 'builtin', '3d-models', untypedGlb());
+    const [[asked], [, init]] = calls(fetchMock);
+    expect(new URL(asked).searchParams.get('contentType')).toBe('model/gltf-binary');
+    expect(init).toMatchObject({ method: 'PUT', headers: { 'Content-Type': 'model/gltf-binary' } });
   });
 
   it('reads a credits sheet, and tells why it failed', async () => {

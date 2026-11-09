@@ -67,17 +67,6 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-const EXTENSION_MIME: Record<string, string> = {
-  glb: 'model/gltf-binary', gltf: 'model/gltf+json', obj: 'model/obj',
-  fbx: 'application/octet-stream', stl: 'model/stl', ply: 'model/ply',
-};
-
-function resolveContentType(file: File): string {
-  if (file.type) return file.type;
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-  return EXTENSION_MIME[ext] ?? 'application/octet-stream';
-}
-
 function detectCategory(file: File): StorageCategory | null {
   const t = file.type;
   if (t.startsWith('image/')) return 'images';
@@ -358,8 +347,7 @@ export const StorageDrive = () => {
       await Promise.all(osFiles.map(async file => {
         const category = detectCategory(file);
         if (!category) return;
-        const contentType = resolveContentType(file);
-        const { fileId } = await uploadStorageFile(projectId, connId, category, file, contentType);
+        const { fileId } = await uploadStorageFile(projectId, connId, category, file);
         if (targetFolderId) await moveStorageFile(projectId, connId, fileId, targetFolderId);
       }));
       await fetchFiles();
