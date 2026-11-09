@@ -1,3 +1,5 @@
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 import s from './StorageCard.module.css';
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -40,6 +42,7 @@ const CTX_W = 188;
 const CTX_H = 200;
 
 export function StorageCard({ file, category, onDelete, onRename, onReplace, onMove, selected: controlledSelected, onSelect }: StorageCardProps) {
+  const thumbnail = useSelector((state: RootState) => state.assetThumbnails?.byFileId[file.id]) ?? file.thumbnailUrl ?? null;
   const [previewOpen, setPreviewOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(false);
   const isControlled = onSelect !== undefined;
@@ -170,8 +173,9 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
         onContextMenu={handleContextMenu}
       >
         <div className={s.preview}>
-          {category === 'images' ? (
-            <img src={file.url} alt={file.displayName} className={s.image} loading="lazy" />
+          {category === 'images' || (category === 'videos' && thumbnail) ? (
+            // Its thumbnail, once the server made it (the image itself until then).
+            <img src={thumbnail ?? file.url} alt={file.displayName} className={s.image} loading="lazy" />
           ) : category === '3d-models' ? (
             <Suspense fallback={<div className={s.iconPreview}><FontAwesomeIcon icon={faCubes} className={s.fileIcon} /></div>}>
               <ModelThumbnail url={file.url} />

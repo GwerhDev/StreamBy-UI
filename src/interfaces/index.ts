@@ -466,6 +466,9 @@ export interface StorageFile {
   storageKey: string;
   size: number;
   url: string;
+  // A small image of it (an image's or a video's), made by the server once it's listed: null
+  // until then.
+  thumbnailUrl?: string | null;
   lastModified: string;
   contentType: string;
   category: StorageCategory;
