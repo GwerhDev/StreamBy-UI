@@ -2,7 +2,7 @@ import s from './UserIntegrationCreate.module.css';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench, faXmark, faMicrophone, faLink, faCube } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlug, faTag, faKey, faFileLines, faWrench, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { upsertIntegration } from '../../../store/managementSlice';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -15,10 +15,8 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { CustomForm } from '../Forms/CustomForm';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
-import { SPEECH_PROVIDERS } from './speechProviders';
-import { LabeledSelect } from '../Inputs/LabeledSelect';
 
-type Choice = 'claude' | 'jira' | 'google' | 'speech' | 'custom' | null;
+type Choice = 'claude' | 'jira' | 'google' | 'custom' | null;
 
 // Jira/Google OAuth requires client credentials registered on the deploy (config.oauthProviders)
 // that don't exist yet — the backend 503s on /oauth/:provider/start until they're configured.
@@ -27,7 +25,6 @@ const TILES: { id: Choice; label: string; description: string; icon: typeof faWr
   { id: 'claude', label: 'Claude',  description: 'Connect with an API key', icon: SERVICE_PROVIDER_ICON.claude },
   { id: 'jira',   label: 'Jira',    description: 'Connect via OAuth',        icon: SERVICE_PROVIDER_ICON.jira, soon: true },
   { id: 'google', label: 'Google',  description: 'Connect via OAuth',        icon: SERVICE_PROVIDER_ICON.google, soon: true },
-  { id: 'speech', label: 'Speech to text', description: 'Transcribe videos and audios: OpenAI, Deepgram, AssemblyAI or a compatible service', icon: faMicrophone },
   { id: 'custom', label: 'Custom',  description: 'Your own database, storage, or API credential', icon: faWrench },
 ];
 
@@ -40,21 +37,14 @@ export const UserIntegrationCreate = () => {
   const [description, setDescription] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [credential, setCredential] = useState('');
-  // A speech provider: which one, and an OpenAI-compatible service's base URL and model.
-  const [speechProvider, setSpeechProvider] = useState<string>('openai');
-  const [baseUrl, setBaseUrl] = useState('');
-  const [model, setModel] = useState('');
-  const compatible = speechProvider === 'openai-compatible';
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(true);
 
   useEffect(() => {
-    const hasCredential = choice === 'claude' ? !!apiKey
-      : choice === 'speech' ? (compatible ? !!baseUrl : !!apiKey)
-        : choice === 'custom' ? !!credential : false;
+    const hasCredential = choice === 'claude' ? !!apiKey : choice === 'custom' ? !!credential : false;
     setDisabled(!name || !hasCredential || loading);
-  }, [choice, name, apiKey, credential, loading, compatible, baseUrl]);
+  }, [choice, name, apiKey, credential, loading]);
 
   const handleConnectOAuth = (provider: 'jira' | 'google') => {
     window.location.href = `${API_BASE}/streamby/user/integrations/oauth/${provider}/start`;
@@ -71,7 +61,7 @@ export const UserIntegrationCreate = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (choice !== 'claude' && choice !== 'custom' && choice !== 'speech') return;
+    if (choice !== 'claude' && choice !== 'custom') return;
     setLoading(true);
     try {
       // Custom has no free-standing provider slot on the backend — it always submits as a
@@ -80,12 +70,7 @@ export const UserIntegrationCreate = () => {
       // anywhere; the field is simply labeled "Credential".
       const payload = choice === 'claude'
         ? { kind: 'service' as const, provider: 'claude', name, credential: apiKey }
-        : choice === 'speech'
-          ? {
-            kind: 'service' as const, provider: speechProvider, name,
-            credential: compatible ? { baseUrl, ...(apiKey ? { apiKey } : {}), ...(model ? { model } : {}) } : apiKey,
-          }
-          : { kind: 'database' as const, provider: 'postgresql', name, credential };
+        : { kind: 'database' as const, provider: 'postgresql', name, credential };
 
       const integration = await createUserIntegration({
         ...payload,
@@ -142,8 +127,8 @@ export const UserIntegrationCreate = () => {
           header={
             <SectionHeader
               icon={faArrowLeft}
-              title={choice === 'claude' ? 'Connect Claude' : choice === 'speech' ? 'Connect a speech provider' : 'Custom Integration'}
-              subtitle={choice === 'claude' ? 'Connect with an API key' : choice === 'speech' ? 'Its transcripts are made as you, with your own key' : 'Your own database, storage, or API credential'}
+              title={choice === 'claude' ? 'Connect Claude' : 'Custom Integration'}
+              subtitle={choice === 'claude' ? 'Connect with an API key' : 'Your own database, storage, or API credential'}
               onIconClick={() => setChoice(null)}
             />
           }
@@ -160,47 +145,14 @@ export const UserIntegrationCreate = () => {
                 />
               ),
             },
-            ...(choice === 'speech' ? [{
-              icon: faMicrophone,
-              label: 'Provider',
-              value: SPEECH_PROVIDERS.find(p => p.value === speechProvider)?.label ?? '—',
-              editComponent: (
-                <LabeledSelect
-                  label="Provider" id="integration-speech-provider" htmlFor="integration-speech-provider"
-                  value={speechProvider} options={SPEECH_PROVIDERS} onChange={e => setSpeechProvider(e.target.value)} disabled={loading}
-                />
-              ),
-            }, ...(compatible ? [{
-              icon: faLink,
-              label: 'Base URL',
-              value: baseUrl || '—',
-              editComponent: (
-                <LabeledInput
-                  label="Base URL (its OpenAI-compatible API)" name="baseUrl" value={baseUrl} type="url"
-                  placeholder="https://api.groq.com/openai/v1" id="integration-base-url" htmlFor="integration-base-url"
-                  onChange={e => setBaseUrl(e.target.value)} disabled={loading}
-                />
-              ),
-            }, {
-              icon: faCube,
-              label: 'Model',
-              value: model || '—',
-              editComponent: (
-                <LabeledInput
-                  label="Model (optional)" name="model" value={model} type="text"
-                  placeholder="whisper-large-v3" id="integration-model" htmlFor="integration-model"
-                  onChange={e => setModel(e.target.value)} disabled={loading}
-                />
-              ),
-            }] : [])] : []),
-            choice === 'claude' || choice === 'speech' ? {
+            choice === 'claude' ? {
               icon: faKey,
               label: 'API key',
               value: apiKey ? '••••••••' : '—',
               editComponent: (
                 <LabeledInput
-                  label={choice === 'speech' && compatible ? 'API key (if it takes one)' : 'API key'} name="apiKey" value={apiKey} type="password"
-                  placeholder={choice === 'claude' ? 'sk-ant-...' : ''} id="integration-api-key" htmlFor="integration-api-key"
+                  label="API key" name="apiKey" value={apiKey} type="password"
+                  placeholder="sk-ant-..." id="integration-api-key" htmlFor="integration-api-key"
                   onChange={e => setApiKey(e.target.value)} disabled={loading}
                 />
               ),

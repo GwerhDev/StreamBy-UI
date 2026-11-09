@@ -559,7 +559,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (WORKER_STEP_TYPES.has(node.type ?? '')) return {
       title: paletteTitle,
       description: context === 'pipeline'
-        ? "A pipeline's step, done by the worker set to it on its card's asset (StreamBy's own makes thumbnails, transcodes, LODs, glTF conversions and transcripts). Without a worker it passes."
+        ? "A pipeline's step, done by the worker set to it on its card's asset (an external worker, the host's or the project's: StreamBy processes nothing itself). Without a worker it passes."
         : "Nothing, here: it's a pipeline's step, done there by the worker set to it.",
       fields: [{ key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true }],
     };

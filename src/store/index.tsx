@@ -17,7 +17,6 @@ import documentsReducer from './documentsSlice';
 import creditsSheetsReducer from './creditsSheetsSlice';
 import deliverableGatesReducer from './deliverableGatesSlice';
 import pipelineRunsReducer from './pipelineRunsSlice';
-import assetThumbnailsReducer from './assetThumbnailsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -39,7 +38,6 @@ export const store = configureStore({
     creditsSheets: creditsSheetsReducer,
     deliverableGates: deliverableGatesReducer,
     pipelineRuns: pipelineRunsReducer,
-    assetThumbnails: assetThumbnailsReducer,
   },
 });
 

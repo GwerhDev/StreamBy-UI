@@ -7,7 +7,6 @@ import { documentEventReceived } from '../store/documentsSlice';
 import { assetRightsEventReceived } from '../store/creditsSheetsSlice';
 import { deliverableGatesEventReceived } from '../store/deliverableGatesSlice';
 import { pipelineRunEventReceived } from '../store/pipelineRunsSlice';
-import { assetThumbnailReceived } from '../store/assetThumbnailsSlice';
 
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/streamby/ws';
 
@@ -51,8 +50,6 @@ function handleMessage(event: MessageEvent) {
       store.dispatch(deliverableGatesEventReceived());
     } else if (msg.type === 'pipelineRunEvent') {
       store.dispatch(pipelineRunEventReceived());
-    } else if (msg.type === 'assetThumbnailEvent') {
-      store.dispatch(assetThumbnailReceived(msg.data));
     }
   } catch {
     // Ignore malformed messages

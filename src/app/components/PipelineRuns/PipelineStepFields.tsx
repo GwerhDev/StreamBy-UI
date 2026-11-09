@@ -3,8 +3,7 @@ import { DocumentSummary, Export, Member, ReviewSession, Team, Worker } from '..
 import { AssigneePicker } from '../Production/AssigneePicker';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { StepPanelKind, workerValue } from './pipelineSteps';
-import { JobProfileFields, SpeechIntegration } from '../Jobs/JobProfileFields';
-import { isLocalWorker } from '../Jobs/jobProfiles';
+import { JobProfileFields } from '../Jobs/JobProfileFields';
 
 export interface StepData {
   assignedTo?: string[];
@@ -14,7 +13,7 @@ export interface StepData {
   worker?: { source: string; id: string; name?: string } | null;
   kind?: string;
   resultMode?: 'derived' | 'version';
-  // What its job asks of the worker (its kind's options).
+  // What its job asks of the worker (its options, as the worker takes them).
   profile?: Record<string, unknown>;
   exportId?: string;
 }
@@ -31,8 +30,6 @@ interface Props {
   reviews: ReviewSession[];
   workers: Worker[];
   exports: Pick<Export, 'id' | 'name'>[];
-  // The editor's speech providers, for a transcript (made as whoever starts the run).
-  speechIntegrations?: SpeechIntegration[];
   // Who completes it, as it's read (shown when it can't be changed).
   summary: string;
   onChange: (patch: StepData) => void;
@@ -43,7 +40,7 @@ const toggled = (list: string[] | undefined, id: string, on: boolean) =>
 
 // What a pipeline's step takes: who completes it (its people and teams), what it's linked to (a
 // Meeting's document, a Review Gate's session), its worker, or where its deliverable goes.
-export function PipelineStepFields({ nodeId, type, panel, data, editMode, members, teams, documents, reviews, workers, exports, speechIntegrations = [], summary, onChange }: Props) {
+export function PipelineStepFields({ nodeId, type, panel, data, editMode, members, teams, documents, reviews, workers, exports, summary, onChange }: Props) {
   if (!editMode) {
     return (
       <div className={s.panel} data-testid="pipeline-step-panel">
@@ -105,8 +102,8 @@ export function PipelineStepFields({ nodeId, type, panel, data, editMode, member
                 onChange={e => onChange({ resultMode: e.target.value as 'derived' | 'version' })}
               />
               <JobProfileFields
-                key={`${workerValue(data.worker)}:${data.kind}`} idPrefix={`${nodeId}-profile`} local={isLocalWorker(worker)} kind={data.kind ?? ''}
-                profile={data.profile ?? {}} speechIntegrations={speechIntegrations} onChange={profile => onChange({ profile })}
+                key={`${workerValue(data.worker)}:${data.kind}`} idPrefix={`${nodeId}-profile`}
+                profile={data.profile ?? {}} onChange={profile => onChange({ profile })}
               />
             </>
           )}

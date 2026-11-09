@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssetJobs } from './AssetJobs';
 import currentJob from '../../../store/currentJobSlice';
 import * as workers from '../../../services/workers';
-import * as userIntegrations from '../../../services/userIntegrations';
 import { job, worker } from '../../../test/workers';
 
 const renderJobs = (category: 'images' | '3d-models' = '3d-models') => {
@@ -56,6 +55,19 @@ describe('AssetJobs', () => {
     expect(await screen.findByTestId('job-new')).toHaveTextContent('Queued');
   });
 
+  it("sends the worker's own options, as JSON", async () => {
+    vi.spyOn(workers, 'getJobs').mockResolvedValue([]);
+    const process = vi.spyOn(workers, 'processAsset').mockResolvedValue(job({ jobId: 'new' }));
+    renderJobs();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: /Process with a worker/ }));
+    fireEvent.change(screen.getByLabelText('Options (JSON, optional)'), { target: { value: '{ "textureFormat": "ktx2" }' } });
+    await user.click(screen.getByRole('button', { name: /^Process$/ }));
+    await waitFor(() => expect(process).toHaveBeenCalledWith('p1', {
+      assetId: 'a1', worker: { source: 'builtin', id: 'gltf' }, kind: 'gltf-optimize', resultMode: 'derived', profile: { textureFormat: 'ktx2' },
+    }));
+  });
+
   it('retries a failed job', async () => {
     vi.spyOn(workers, 'getJobs').mockResolvedValue([job({ status: 'failed', error: 'Timed out' })]);
     const retry = vi.spyOn(workers, 'retryJob').mockResolvedValue(job({ status: 'pending', stage: 'queued', error: null }));
@@ -70,51 +82,5 @@ describe('AssetJobs', () => {
     vi.spyOn(workers, 'getJobs').mockResolvedValue([]);
     renderJobs('images');
     expect(await screen.findByText(/No worker takes this kind of asset/)).toBeInTheDocument();
-  });
-});
-
-describe("StreamBy's own worker", () => {
-  const own = worker({ id: 'streamby', name: 'StreamBy', kinds: ['thumbnail', 'transcode', 'lod', 'gltf-convert', 'transcribe'], categories: ['images', 'videos', 'audios', '3d-models'] });
-
-  it("asks it for a video's thumbnail, with its options", async () => {
-    vi.spyOn(workers, 'getWorkers').mockResolvedValue([own]);
-    vi.spyOn(workers, 'getJobs').mockResolvedValue([]);
-    const process = vi.spyOn(workers, 'processAsset').mockResolvedValue(job({ jobId: 'new', status: 'pending', stage: 'queued', progress: 0 }));
-    renderJobs('videos' as never);
-    const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: /Process with a worker/ }));
-    expect(screen.getByRole('button', { name: 'StreamBy (built in)' })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Width (px)'), { target: { value: '320' } });
-    await user.click(screen.getByRole('button', { name: /^Process$/ }));
-    await waitFor(() => expect(process).toHaveBeenCalledWith('p1', {
-      assetId: 'a1', worker: { source: 'builtin', id: 'streamby' }, kind: 'thumbnail', resultMode: 'derived', profile: { width: 320 },
-    }));
-  });
-
-  it("transcribes only once one of the requester's speech providers is chosen", async () => {
-    vi.spyOn(workers, 'getWorkers').mockResolvedValue([own]);
-    vi.spyOn(workers, 'getJobs').mockResolvedValue([]);
-    vi.spyOn(userIntegrations, 'getUserIntegrations').mockResolvedValue([
-      { id: 'i1', kind: 'service', name: 'Whisper', provider: 'openai', source: 'integration', available: true },
-      { id: 'c1', kind: 'service', name: 'Claude', provider: 'claude', source: 'integration', available: true },
-    ]);
-    const process = vi.spyOn(workers, 'processAsset').mockResolvedValue(job({ jobId: 'new' }));
-    renderJobs('audios' as never);
-    const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: /Process with a worker/ }));
-    await user.click(screen.getByRole('button', { name: 'transcode' }));
-    fireEvent.mouseDown(screen.getByText('transcribe'));
-    expect(screen.getByRole('button', { name: /^Process$/ })).toBeDisabled();
-    await user.click(await screen.findByRole('button', { name: 'Choose one' }));
-    expect(screen.queryByText('Claude')).not.toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByText('Whisper'));
-    await user.click(screen.getByRole('button', { name: /^Process$/ }));
-    await waitFor(() => expect(process).toHaveBeenCalledWith('p1', expect.objectContaining({ kind: 'transcribe', profile: { integrationId: 'i1' } })));
-  });
-
-  it('says a transcript was saved as a project document', async () => {
-    vi.spyOn(workers, 'getJobs').mockResolvedValue([job({ jobId: 'doc', status: 'completed', progress: 100, kind: 'transcribe', result: { mode: 'document', documentId: 'd1' } })]);
-    renderJobs();
-    expect(await screen.findByTestId('job-doc')).toHaveTextContent('Saved as a project document');
   });
 });

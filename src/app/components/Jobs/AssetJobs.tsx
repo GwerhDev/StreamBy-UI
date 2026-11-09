@@ -11,10 +11,7 @@ import { JobRecord, StorageCategory, Worker, WorkerResultMode } from '../../../i
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import { getUserIntegrations } from '../../../services/userIntegrations';
-import { isSpeechProvider } from '../Integrations/speechProviders';
-import { JobProfileFields, SpeechIntegration } from './JobProfileFields';
-import { cleanProfile, isLocalWorker, kindsFor } from './jobProfiles';
+import { JobProfileFields } from './JobProfileFields';
 
 const RESULT_MODES: { value: WorkerResultMode; label: string }[] = [
   { value: 'derived', label: 'As a new asset (this one stays as it is)' },
@@ -50,7 +47,6 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
   const [resultMode, setResultMode] = useState<WorkerResultMode>('derived');
   // What it asks of the worker: its kind's options (StreamBy's own), or JSON (another).
   const [profile, setProfile] = useState<Record<string, unknown>>({});
-  const [speechIntegrations, setSpeechIntegrations] = useState<SpeechIntegration[]>([]);
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState(false);
 
@@ -66,29 +62,16 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
 
   const keyOf = (w: Worker) => `${w.source}:${w.id}`;
   const worker = workers.find(w => keyOf(w) === workerKey) ?? workers[0];
-  const kinds = kindsFor(worker, category);
+  const kinds = worker?.kinds ?? [];
   const chosenKind = kinds.includes(kind) ? kind : kinds[0] ?? '';
-  const local = isLocalWorker(worker);
-  // A transcript is made with one of the requester's own speech providers.
-  const needsIntegration = local && chosenKind === 'transcribe' && !profile.integrationId;
-
-  useEffect(() => {
-    if (!local || chosenKind !== 'transcribe') return;
-    let cancelled = false;
-    getUserIntegrations()
-      .then(pool => { if (!cancelled) setSpeechIntegrations(pool.filter(i => i.source === 'integration' && isSpeechProvider(i.provider)).map(i => ({ id: i.id, name: i.name }))); })
-      .catch(() => { if (!cancelled) setSpeechIntegrations([]); });
-    return () => { cancelled = true; };
-  }, [local, chosenKind]);
 
   const handleProcess = async () => {
     if (!worker || !chosenKind) return;
     setBusy(true);
     try {
-      const options = cleanProfile(profile);
       const job = await processAsset(projectId, {
         assetId, worker: { source: worker.source, id: worker.id }, kind: chosenKind, resultMode,
-        ...(Object.keys(options).length ? { profile: options } : {}),
+        ...(Object.keys(profile).length ? { profile } : {}),
       });
       dispatch(upsertJob(job));
       setAsking(false);
@@ -118,7 +101,7 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
         <div className={s.process}>
           <LabeledSelect
             id="job-worker" htmlFor="job-worker" label="Worker" value={worker ? keyOf(worker) : ''}
-            options={workers.map(w => ({ value: keyOf(w), label: `${w.name}${isLocalWorker(w) ? ' (built in)' : w.source === 'builtin' ? ' (host)' : ''}` }))}
+            options={workers.map(w => ({ value: keyOf(w), label: `${w.name}${w.source === 'builtin' ? ' (host)' : ''}` }))}
             onChange={e => { setWorkerKey(e.target.value); setProfile({}); }}
           />
           <LabeledSelect
@@ -126,15 +109,14 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
             options={kinds.map(k => ({ value: k, label: k }))} onChange={e => { setKind(e.target.value); setProfile({}); }}
           />
           <JobProfileFields
-            key={`${worker ? keyOf(worker) : ''}:${chosenKind}`} idPrefix="job-profile" local={local} kind={chosenKind}
-            category={category} profile={profile} speechIntegrations={speechIntegrations} onChange={setProfile}
+            key={`${worker ? keyOf(worker) : ''}:${chosenKind}`} idPrefix="job-profile" profile={profile} onChange={setProfile}
           />
           <LabeledSelect
             id="job-result" htmlFor="job-result" label="Keep the result" value={resultMode}
             options={RESULT_MODES} onChange={e => setResultMode(e.target.value as WorkerResultMode)}
           />
           <div className={s.processActions}>
-            <ActionButton icon={faGears} text="Process" onClick={handleProcess} disabled={busy || !chosenKind || needsIntegration} isLoading={busy} />
+            <ActionButton icon={faGears} text="Process" onClick={handleProcess} disabled={busy || !chosenKind} isLoading={busy} />
             <SecondaryButton icon={faXmark} text="Cancel" onClick={() => setAsking(false)} disabled={busy} />
           </div>
         </div>
@@ -170,9 +152,7 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
           )}
           {job.result && (
             <p className={s.result}>
-              {job.result.mode === 'version' ? "Saved as this asset's new version."
-                : job.result.mode === 'document' ? "Saved as a project document, in the project's Documents."
-                  : 'Saved as a new asset, derived from this one.'}
+              {job.result.mode === 'version' ? "Saved as this asset's new version." : 'Saved as a new asset, derived from this one.'}
             </p>
           )}
           {job.report && Object.keys(job.report).length > 0 && (

@@ -363,8 +363,7 @@ export interface Database {
 }
 
 export type IntegrationKind = 'database' | 'storage' | 'service';
-// Speech to text providers transcribe for StreamBy's own worker: a user's, never a project's.
-export type ServiceProviderType = 'claude' | 'jira' | 'google' | 'openai' | 'deepgram' | 'assemblyai' | 'openai-compatible';
+export type ServiceProviderType = 'claude' | 'jira' | 'google';
 
 // Combined pool entry from GET /user/integrations — a user's own (BYOC) integrations plus
 // the deploy's built-ins, the latter gated by subscription. Built-ins without access are
@@ -466,8 +465,7 @@ export interface StorageFile {
   storageKey: string;
   size: number;
   url: string;
-  // A small image of it (an image's or a video's), made by the server once it's listed: null
-  // until then.
+  // A small image of it, when the list gives one (none yet: null).
   thumbnailUrl?: string | null;
   lastModified: string;
   contentType: string;
@@ -549,8 +547,7 @@ export interface JobRecord {
   attempts?: number;
   maxAttempts?: number;
   report?: Record<string, unknown> | null;
-  // A new asset or version; or a project document (a transcript).
-  result?: { assetId?: string; versionId?: string; mode: WorkerResultMode | 'document'; documentId?: string } | null;
+  result?: { assetId: string; versionId: string; mode: WorkerResultMode } | null;
 }
 
 // A processing worker a project can use: the host's, or the project's own.

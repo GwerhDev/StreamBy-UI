@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -29,44 +29,13 @@ const renderPage = () => render(
 describe('UserIntegrationCreate', () => {
   beforeEach(() => vi.restoreAllMocks());
 
-  it('renders a grid of 5 tiles: Claude, Jira, Google, Speech to text, Custom', () => {
+  it('renders a grid of 4 tiles: Claude, Jira, Google, Custom', () => {
     renderPage();
     expect(screen.getByText('Add an integration')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Claude Connect with an API key/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Jira Soon Connect via OAuth/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Google Soon Connect via OAuth/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Speech to text/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Custom/ })).toBeInTheDocument();
-  });
-
-  it('connects a speech provider with its key; an OpenAI-compatible one with its base URL and model', async () => {
-    const create = vi.spyOn(userIntegrationsService, 'createUserIntegration').mockResolvedValue({ id: 'i1', kind: 'service', name: 'Whisper', provider: 'openai', source: 'integration', available: true });
-    renderPage();
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Speech to text/ }));
-    await user.type(screen.getByLabelText('Name'), 'Whisper');
-    expect(screen.queryByLabelText(/Base URL/)).not.toBeInTheDocument();
-    await user.type(screen.getByLabelText('API key'), 'sk-1');
-    await user.click(screen.getByRole('button', { name: 'Create' }));
-    expect(create).toHaveBeenCalledWith({ kind: 'service', provider: 'openai', name: 'Whisper', credential: 'sk-1' });
-  });
-
-  it('an OpenAI-compatible service takes its base URL, a key only if it has one, and a model', async () => {
-    const create = vi.spyOn(userIntegrationsService, 'createUserIntegration').mockResolvedValue({ id: 'i1', kind: 'service', name: 'Groq', provider: 'openai-compatible', source: 'integration', available: true });
-    renderPage();
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Speech to text/ }));
-    await user.type(screen.getByLabelText('Name'), 'Groq');
-    await user.click(screen.getByRole('button', { name: 'OpenAI' }));
-    fireEvent.mouseDown(screen.getByText('OpenAI-compatible service'));
-    expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
-    await user.type(screen.getByLabelText(/Base URL/), 'https://api.groq.com/openai/v1');
-    await user.type(screen.getByLabelText('Model (optional)'), 'whisper-large-v3');
-    await user.click(screen.getByRole('button', { name: 'Create' }));
-    expect(create).toHaveBeenCalledWith({
-      kind: 'service', provider: 'openai-compatible', name: 'Groq',
-      credential: { baseUrl: 'https://api.groq.com/openai/v1', model: 'whisper-large-v3' },
-    });
   });
 
   it('clicking Claude shows only Name + API key fields, no Kind/Provider anywhere', async () => {
