@@ -1,0 +1,47 @@
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.6rem;
+}
+
+.json {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.json label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.json textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-bright);
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  resize: vertical;
+}
+
+.json textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--color-danger-text);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}

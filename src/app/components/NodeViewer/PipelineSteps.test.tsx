@@ -63,3 +63,33 @@ describe("a pipeline's steps", () => {
     expect(screen.queryByTestId('pipeline-step-panel')).not.toBeInTheDocument();
   });
 });
+
+describe('processing nodes', () => {
+  it("are a pipeline's steps: StreamBy's own worker set to one takes its kind's options", async () => {
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([
+      { source: 'builtin', id: 'streamby', name: 'StreamBy', provider: 'streamby-worker', kinds: ['thumbnail', 'lod'], categories: ['3d-models'], autoKind: null, description: null, hasCredential: false, createdBy: null },
+    ]);
+    const ref = createRef<NodeViewerHandle>();
+    renderAt('/project/p1/pipelines/pl1', '/project/:id/pipelines/:pipelineId', <NodeViewer ref={ref} context="pipeline" editMode exportDetails={pipeline(NODES)} projectId="p1" />);
+    fireEvent.click(await screen.findByText('LODs'));
+    expect(screen.getByText(/done by the worker set to it on its card's asset/)).toBeInTheDocument();
+    const panel = await screen.findByTestId('pipeline-step-panel');
+    fireEvent.click(within(panel).getByRole('button', { name: 'None: it passes' }));
+    fireEvent.mouseDown(await screen.findByText('StreamBy', { selector: 'li' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'thumbnail' }));
+    fireEvent.mouseDown(await screen.findByText('lod', { selector: 'li' }));
+    fireEvent.change(await within(panel).findByLabelText('Triangles kept (0 to 1)'), { target: { value: '0.25' } });
+    await waitFor(() => expect(dataOf(ref, 'lod')).toMatchObject({ worker: { id: 'streamby' }, kind: 'lod', profile: { ratio: 0.25 } }));
+  });
+
+  it("say, in the workflow, they do nothing there; one StreamBy doesn't do, that it does nothing", async () => {
+    renderAt('/project/p1/workflow', '/project/:id/workflow', <NodeViewer context="workflow" editMode projectId="p1" exportDetails={pipeline([
+      { id: 'lod', type: 'lodNode', position: { x: 0, y: 0 }, data: { label: 'LODs', subtitle: '' } },
+      { id: 'qc', type: 'qcCheckNode', position: { x: 300, y: 0 }, data: { label: 'QC', subtitle: '' } },
+    ])} />);
+    fireEvent.click(await screen.findByText('LODs'));
+    expect(screen.getByText(/Nothing, here: it's a pipeline's step/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('QC'));
+    expect(screen.getByText(/StreamBy doesn't do this/)).toBeInTheDocument();
+  });
+});

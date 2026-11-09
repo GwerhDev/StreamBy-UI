@@ -6,8 +6,11 @@ import { Member, PipelineTrigger, StepCompletedBy, Team } from '../../../interfa
 export const PEOPLE_STEP_TYPES = new Set(['meetingNode', 'tasksNode', 'reviewGateNode']);
 export const WORKER_STEP_TYPES = new Set([
   'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
-  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
+  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode',
 ]);
+
+// Nodes that stand for nothing StreamBy does: kept only so the canvases saved with them show them.
+export const RETIRED_TYPES = new Set(['captionNode', 'renderJobNode', 'assetDependencyNode', 'qcCheckNode', 'proceduralAssetNode', 'pipelineSuggestNode']);
 
 export type StepPanelKind = 'people' | 'worker' | 'deliverable';
 

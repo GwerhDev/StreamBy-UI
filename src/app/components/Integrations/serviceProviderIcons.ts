@@ -1,4 +1,4 @@
-import { faRobot } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faRobot } from '@fortawesome/free-solid-svg-icons';
 import { faJira, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ServiceProviderType } from '../../../interfaces';
@@ -9,4 +9,8 @@ export const SERVICE_PROVIDER_ICON: Record<ServiceProviderType, IconDefinition> 
   claude: faRobot,
   jira: faJira,
   google: faGoogle,
+  openai: faMicrophone,
+  deepgram: faMicrophone,
+  assemblyai: faMicrophone,
+  'openai-compatible': faMicrophone,
 };

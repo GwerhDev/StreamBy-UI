@@ -12,6 +12,12 @@ const POOL: IntegrationPoolEntry[] = [
 ];
 
 describe('IntegrationPicker', () => {
+  it("never offers a speech provider: it's its owner's, not a project's connection", () => {
+    render(<IntegrationPicker pool={[...POOL, { id: 'sp1', kind: 'service', name: 'Whisper', provider: 'openai', source: 'integration', available: true }]} kind="service" selected={[]} onChange={() => {}} />);
+    expect(screen.getByText('My Claude (claude)')).toBeInTheDocument();
+    expect(screen.queryByText('Whisper (openai)')).not.toBeInTheDocument();
+  });
+
   it('shows an empty state when the pool is empty', () => {
     render(<IntegrationPicker pool={[]} selected={[]} onChange={() => {}} />);
     expect(screen.getByText('No integrations available.')).toBeInTheDocument();

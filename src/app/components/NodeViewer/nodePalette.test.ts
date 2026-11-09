@@ -37,10 +37,11 @@ describe('getPaletteForContext', () => {
       for (const t of ['shotNode', 'assemblyNode', 'masterNode']) expect(types.has(t)).toBe(false);
     });
 
-    it('includes the other audiovisual nodes', () => {
-      for (const t of ['colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'exportFormatNode', 'distributionNode']) {
-        expect(types.has(t)).toBe(true);
+    it("offers no processing step: the workflow runs none (they're a pipeline's, done by a worker)", () => {
+      for (const t of ['colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
+        expect(types.has(t)).toBe(false);
       }
+      for (const t of ['exportFormatNode', 'distributionNode']) expect(types.has(t)).toBe(true);
     });
 
     it('includes pipelineRefNode (workflow references pipelines)', () => {
@@ -53,8 +54,8 @@ describe('getPaletteForContext', () => {
       }
     });
 
-    it('keeps the shared ingest and AI nodes', () => {
-      for (const t of ['ingestNode', 'connectionNode', 'dataSourceNode', 'proceduralAssetNode', 'pipelineSuggestNode', 'reviewGateNode', 'deliverableNode']) {
+    it('keeps the shared ingest, review and delivery nodes', () => {
+      for (const t of ['ingestNode', 'connectionNode', 'dataSourceNode', 'reviewGateNode', 'deliverableNode']) {
         expect(types.has(t)).toBe(true);
       }
     });
@@ -92,7 +93,7 @@ describe('getPaletteForContext', () => {
         'meetingNode', 'tasksNode',
         'shotNode', 'assemblyNode', 'masterNode',
         'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
-        'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
+        'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode',
         'reviewGateNode', 'annotationNode', 'creditsSheetNode',
         'exportFormatNode', 'deliverableNode', 'distributionNode',
       ]) {
@@ -101,7 +102,7 @@ describe('getPaletteForContext', () => {
     });
 
     it('never nests pipelines (no pipelineRefNode) and excludes orchestration/infra + AI', () => {
-      for (const t of ['pipelineRefNode', 'connectionNode', 'dataSourceNode', 'ingestNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
+      for (const t of ['pipelineRefNode', 'connectionNode', 'dataSourceNode', 'ingestNode', 'proceduralAssetNode', 'pipelineSuggestNode', 'captionNode', 'renderJobNode', 'qcCheckNode']) {
         expect(dev.has(t)).toBe(false);
       }
     });
@@ -122,7 +123,7 @@ describe('getGroupsForContext', () => {
   });
 
   it('workflow developer context has no audiovisual group, its Pipeline node under process', () => {
-    expect(groupKeysOf('workflow', 'developer')).toEqual(['ingest', 'process', 'review', 'delivery', 'ai']);
+    expect(groupKeysOf('workflow', 'developer')).toEqual(['ingest', 'process', 'review', 'delivery']);
     expect(getPaletteForContext('workflow', 'developer').find(i => i.type === 'pipelineRefNode')?.contextGroup).toBe('process');
   });
 

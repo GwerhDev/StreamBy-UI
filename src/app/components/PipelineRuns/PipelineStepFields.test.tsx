@@ -48,7 +48,7 @@ describe('PipelineStepFields', () => {
     const onChange = fields({ type: 'lodNode', panel: 'worker' });
     await userEvent.setup().click(screen.getByRole('button', { name: 'None: it passes' }));
     fireEvent.mouseDown(screen.getByText('Blender'));
-    expect(onChange).toHaveBeenCalledWith({ worker: { source: 'builtin', id: 'blender', name: 'Blender' }, kind: 'lod' });
+    expect(onChange).toHaveBeenCalledWith({ worker: { source: 'builtin', id: 'blender', name: 'Blender' }, kind: 'lod', profile: {} });
   });
 
   it('with a worker set, offers its kinds and where its result goes', () => {

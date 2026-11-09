@@ -4,6 +4,9 @@ import { AppDispatch, RootState } from '../../../store';
 import { fetchDocuments } from '../../../store/documentsSlice';
 import { getProjectReviews } from '../../../services/exports';
 import { getWorkers } from '../../../services/workers';
+import { getUserIntegrations } from '../../../services/userIntegrations';
+import { isSpeechProvider } from '../Integrations/speechProviders';
+import { SpeechIntegration } from '../Jobs/JobProfileFields';
 import { Export, ReviewSession, Worker } from '../../../interfaces';
 import { PipelineStepFields, StepData } from './PipelineStepFields';
 import { completedByText, stepPanelKind } from './pipelineSteps';
@@ -29,6 +32,7 @@ export function PipelineStepPanel({ projectId, node, editMode, onChange }: Props
   const exports = useSelector((state: RootState) => state.currentProject?.data?.exports ?? NO_EXPORTS) as Pick<Export, 'id' | 'name'>[];
   const [reviews, setReviews] = useState<ReviewSession[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [speechIntegrations, setSpeechIntegrations] = useState<SpeechIntegration[]>([]);
 
   useEffect(() => {
     if (node.type === 'meetingNode' && !documents) dispatch(fetchDocuments(projectId));
@@ -38,6 +42,11 @@ export function PipelineStepPanel({ projectId, node, editMode, onChange }: Props
     let cancelled = false;
     if (node.type === 'reviewGateNode' && editMode) getProjectReviews(projectId).then(list => { if (!cancelled) setReviews(list); }).catch(() => {});
     if (panel === 'worker') getWorkers(projectId).then(list => { if (!cancelled) setWorkers(list); }).catch(() => {});
+    if (panel === 'worker' && editMode) {
+      getUserIntegrations()
+        .then(pool => { if (!cancelled) setSpeechIntegrations(pool.filter(i => i.source === 'integration' && isSpeechProvider(i.provider)).map(i => ({ id: i.id, name: i.name }))); })
+        .catch(() => {});
+    }
     return () => { cancelled = true; };
   }, [projectId, node.type, panel, editMode]);
 
@@ -64,7 +73,7 @@ export function PipelineStepPanel({ projectId, node, editMode, onChange }: Props
   return (
     <PipelineStepFields
       nodeId={node.id} type={node.type ?? ''} panel={panel} data={data} editMode={editMode}
-      members={active} teams={teams} documents={documents ?? []} reviews={reviews} workers={workers} exports={exports}
+      members={active} teams={teams} documents={documents ?? []} reviews={reviews} workers={workers} exports={exports} speechIntegrations={speechIntegrations}
       summary={summary} onChange={change}
     />
   );

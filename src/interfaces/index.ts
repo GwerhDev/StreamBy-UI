@@ -363,7 +363,8 @@ export interface Database {
 }
 
 export type IntegrationKind = 'database' | 'storage' | 'service';
-export type ServiceProviderType = 'claude' | 'jira' | 'google';
+// Speech to text providers transcribe for StreamBy's own worker: a user's, never a project's.
+export type ServiceProviderType = 'claude' | 'jira' | 'google' | 'openai' | 'deepgram' | 'assemblyai' | 'openai-compatible';
 
 // Combined pool entry from GET /user/integrations — a user's own (BYOC) integrations plus
 // the deploy's built-ins, the latter gated by subscription. Built-ins without access are
@@ -545,7 +546,8 @@ export interface JobRecord {
   attempts?: number;
   maxAttempts?: number;
   report?: Record<string, unknown> | null;
-  result?: { assetId: string; versionId: string; mode: WorkerResultMode } | null;
+  // A new asset or version; or a project document (a transcript).
+  result?: { assetId?: string; versionId?: string; mode: WorkerResultMode | 'document'; documentId?: string } | null;
 }
 
 // A processing worker a project can use: the host's, or the project's own.

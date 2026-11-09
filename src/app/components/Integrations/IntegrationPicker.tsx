@@ -4,6 +4,7 @@ import { CustomCheckbox } from '../Inputs/CustomCheckbox';
 import { LockedIntegrationBadge } from './LockedIntegrationBadge';
 import { IntegrationKind, IntegrationPoolEntry, ServiceProviderType } from '../../../interfaces';
 import { SERVICE_PROVIDER_ICON } from './serviceProviderIcons';
+import { isSpeechProvider } from './speechProviders';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface IntegrationPickerProps {
@@ -20,7 +21,9 @@ interface IntegrationPickerProps {
 }
 
 export const IntegrationPicker = ({ pool, kind, selected, onChange, single, disabled, excludeIds }: IntegrationPickerProps) => {
+  // A speech provider is its owner's, for transcribing: never a project's connection.
   const entries = pool
+    .filter(entry => !isSpeechProvider(entry.provider))
     .filter(entry => !kind || entry.kind === kind)
     .filter(entry => !excludeIds?.includes(entry.id));
 

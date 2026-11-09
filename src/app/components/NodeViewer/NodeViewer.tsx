@@ -9,6 +9,7 @@ import { setCurrentProject } from '../../../store/currentProjectSlice';
 import { fetchDeliverableGates } from '../../../store/deliverableGatesSlice';
 import { getProjectReviews } from '../../../services/exports';
 import { PipelineStepPanel } from '../PipelineRuns/PipelineStepPanel';
+import { RETIRED_TYPES, WORKER_STEP_TYPES } from '../PipelineRuns/pipelineSteps';
 import { fromTarget, gateSummary, targetLabel, targetOf, targetOptions } from './deliverableTargets';
 import { getConnectionResponse, createConnection } from '../../../services/connections';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -51,7 +52,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { nodeTypes as NODE_TYPES, H_LEFT, H_BOTTOM, H_RIGHT } from './nodes/nodeTypes';
 import { NodeEditContext } from './NodeContext';
-import { PaletteItem, edgeColorForSource, getPaletteForContext, getGroupsForContext, EXPORT_ONLY_TYPES, NodeContext } from './nodePalette';
+import { PaletteItem, edgeColorForSource, getPaletteForContext, getGroupsForContext, EXPORT_ONLY_TYPES, NodeContext, NODE_PALETTE } from './nodePalette';
 import { ResponsePreview } from '../Exports/ResponsePreview';
 export { computeResponseFromSchema } from './nodeSchema';
 
@@ -168,9 +169,6 @@ const HTTP_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].map(m => ({ value
 const RESOLUTION_OPTIONS = ['3840x2160', '1920x1080', '1280x720', '720x480'].map(r => ({ value: r, label: r }));
 const CODEC_OPTIONS = ['h264', 'h265', 'prores', 'vp9', 'av1'].map(c => ({ value: c, label: c }));
 const CONTAINER_OPTIONS = ['mp4', 'mkv', 'mov', 'webm'].map(c => ({ value: c, label: c }));
-const SUBTITLE_SOURCE_OPTIONS = [{ value: 'transcription', label: 'Transcription node' }, { value: 'upload', label: 'External upload' }];
-const SUBTITLE_FORMAT_OPTIONS = ['srt', 'vtt'].map(f => ({ value: f, label: f }));
-const VFX_STATUS_OPTIONS = [{ value: 'pending', label: 'Pending' }, { value: 'in-progress', label: 'In progress' }, { value: 'done', label: 'Done' }];
 const DESIGNER_HIDDEN_TYPES = new Set(['dataSourceNode', 'connectionNode', 'exportNode', 'integrationConnectionNode']);
 const CREATE_NEW_SENTINEL = '__create_new__';
 // A connection picked that the project doesn't have yet (one of the user's integrations, a
@@ -555,6 +553,22 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return null;
 
+    // A processing node is a pipeline's step, done by the worker set to it; one StreamBy doesn't
+    // do anything for is kept only so a canvas saved with it shows it.
+    const paletteTitle = NODE_PALETTE.find(item => item.type === node.type)?.label ?? String(node.data.label ?? node.type);
+    if (WORKER_STEP_TYPES.has(node.type ?? '')) return {
+      title: paletteTitle,
+      description: context === 'pipeline'
+        ? "A pipeline's step, done by the worker set to it on its card's asset (StreamBy's own makes thumbnails, transcodes, LODs, glTF conversions and transcripts). Without a worker it passes."
+        : "Nothing, here: it's a pipeline's step, done there by the worker set to it.",
+      fields: [{ key: 'label', label: 'Name', value: (node.data.label as string) || '', editable: true }],
+    };
+    if (RETIRED_TYPES.has(node.type ?? '')) return {
+      title: paletteTitle,
+      description: "Nothing: StreamBy doesn't do this. It's kept only so a canvas saved with it shows it.",
+      fields: [],
+    };
+
     if (nodeId === 'client' || nodeId === 'request' || node.type === 'clientNode' || node.type === 'requestNode') return {
       title: node.type === 'requestNode' || nodeId === 'request' ? 'Request' : 'Client',
       description: 'Consumer making requests to this StreamBy endpoint.',
@@ -689,89 +703,14 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       };
     }
 
-    if (node.type === 'transcodeNode') return {
-      title: 'Transcode',
-      description: 'Converts a video or audio file. Actual encoding runs in the host worker (FFmpeg).',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'codec', label: 'Output Codec', value: (node.data.codec as string) || 'h264' },
-        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || 'original' },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'mp4' },
-        { key: 'bitrate', label: 'Bitrate', value: (node.data.bitrate as string) || '' },
-        { key: 'audioCodec', label: 'Audio Codec', value: (node.data.audioCodec as string) || 'aac' },
-      ],
-    };
 
-    if (node.type === 'captionNode') return {
-      title: 'Captions',
-      description: 'Generates subtitle files (SRT/VTT) from a video or audio file.',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'sourceLanguage', label: 'Source Language', value: (node.data.sourceLanguage as string) || 'auto' },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'srt' },
-        { key: 'provider', label: 'Provider', value: (node.data.provider as string) || 'manual' },
-      ],
-    };
 
-    if (node.type === 'thumbnailNode') return {
-      title: 'Thumbnail',
-      description: 'Extracts a frame or region from a video as a thumbnail image.',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'timecode', label: 'Timecode', value: (node.data.timecode as string) || '00:00:01' },
-        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1280x720' },
-        { key: 'strategy', label: 'Strategy', value: (node.data.strategy as string) || 'timecode' },
-      ],
-    };
 
     // ─── Phase 2 — 3D & VFX Pipeline ──────────────────────────────────────────
 
-    if (node.type === 'renderJobNode') return {
-      title: 'Render Job',
-      description: 'Dispatches a render task to the configured render farm (Flamenco, Deadline, etc.).',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'renderer', label: 'Renderer', value: (node.data.renderer as string) || 'blender' },
-        { key: 'renderFarmConnectionId', label: 'Farm Connection', value: (node.data.renderFarmConnectionId as string) || '' },
-        { key: 'frameRange', label: 'Frame Range', value: (node.data.frameRange as string) || '1-1' },
-        { key: 'resolution', label: 'Resolution', value: (node.data.resolution as string) || '1920x1080' },
-        { key: 'samples', label: 'Samples', value: String(node.data.samples ?? 128) },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'png' },
-      ],
-    };
 
-    if (node.type === 'formatConvertNode') return {
-      title: 'Format Convert',
-      description: 'Converts a 3D file between formats (FBX, OBJ, GLB, USD, USDZ, STL).',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'inputFormat', label: 'Input Format', value: (node.data.inputFormat as string) || 'fbx' },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'glb' },
-        { key: 'applyTransforms', label: 'Apply Transforms', value: String(node.data.applyTransforms ?? true) },
-        { key: 'embedTextures', label: 'Embed Textures', value: String(node.data.embedTextures ?? true) },
-      ],
-    };
 
-    if (node.type === 'lodNode') return {
-      title: 'LOD',
-      description: 'Generates multiple LOD levels for a 3D asset to optimize real-time performance.',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'levels', label: 'LOD Levels', value: String(node.data.levels ?? 3) },
-        { key: 'reductionRatios', label: 'Reduction Ratios', value: (node.data.reductionRatios as number[] | undefined)?.join(', ') ?? '0.5, 0.25, 0.1' },
-        { key: 'algorithm', label: 'Algorithm', value: (node.data.algorithm as string) || 'quadric' },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'glb' },
-      ],
-    };
 
-    if (node.type === 'assetDependencyNode') return {
-      title: 'Asset Dependencies',
-      description: 'Resolves the full dependency tree of a 3D asset (textures, materials, rigs).',
-      fields: [
-        { key: 'fileId', label: 'Root Asset ID', value: (node.data.fileId as string) || '' },
-        { key: 'maxDepth', label: 'Max Depth', value: String(node.data.maxDepth ?? 5) },
-      ],
-    };
 
     // ─── Phase 3 — Collaboration & Review ─────────────────────────────────────
 
@@ -819,14 +758,6 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     // ─── Phase 4 — Distribution & Delivery ────────────────────────────────────
 
-    if (node.type === 'qcCheckNode') return {
-      title: 'QC Check',
-      description: 'Runs quality checks (resolution, bitrate, format, duration) before review or distribution.',
-      fields: [
-        { key: 'checks', label: 'Checks', value: (node.data.checks as string[] | undefined)?.join(', ') || '' },
-        { key: 'failureAction', label: 'On Failure', value: (node.data.failureAction as string) || 'block' },
-      ],
-    };
 
     if (node.type === 'deliverableNode') return {
       title: 'Deliverable',
@@ -845,7 +776,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     if (node.type === 'distributionNode') return {
       title: 'Distribution',
-      description: 'Publishes the deliverable to a platform (CDN, Steam, App Store, Google Play, itch.io).',
+      description: "Where its export is published to: one of the project's distribution connections. Publishing records when, by whom and where to; StreamBy uploads nothing to a platform.",
       fields: [
         { key: 'distributionConnectionId', label: 'Connection', value: (node.data.distributionConnectionId as string) || '' },
         { key: 'distributionTarget', label: 'Target', value: (node.data.distributionTarget as string) || 'cdnPush' },
@@ -856,48 +787,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
 
     // ─── Phase 5 — AI-Augmented Production ────────────────────────────────────
 
-    if (node.type === 'transcriptionNode') return {
-      title: 'Transcription',
-      description: 'Converts speech in a video or audio file to text using an AI provider.',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'provider', label: 'Provider', value: (node.data.provider as string) || 'openai' },
-        { key: 'model', label: 'Model', value: (node.data.model as string) || 'whisper-1' },
-        { key: 'sourceLanguage', label: 'Source Language', value: (node.data.sourceLanguage as string) || 'auto' },
-        { key: 'outputFormats', label: 'Output Formats', value: (node.data.outputFormats as string) || 'srt,vtt' },
-        { key: 'credentialId', label: 'Credential', value: (node.data.credentialId as string) || '' },
-      ],
-    };
 
-    if (node.type === 'upscaleNode') return {
-      title: 'Upscale',
-      description: 'AI-powered image or video upscaling (Real-ESRGAN, Topaz, custom).',
-      fields: [
-        { key: 'fileId', label: 'File ID', value: (node.data.fileId as string) || '' },
-        { key: 'scale', label: 'Scale', value: String(node.data.scale ?? 4) },
-        { key: 'model', label: 'Model', value: (node.data.model as string) || 'real-esrgan' },
-        { key: 'mode', label: 'Mode', value: (node.data.mode as string) || 'images' },
-        { key: 'credentialId', label: 'Credential', value: (node.data.credentialId as string) || '' },
-      ],
-    };
 
-    if (node.type === 'proceduralAssetNode') return {
-      title: 'Generate Asset',
-      description: 'Generates a 3D model, texture or audio clip from a prompt via an AI provider.',
-      fields: [
-        { key: 'assetType', label: 'Asset Type', value: (node.data.assetType as string) || '3d' },
-        { key: 'provider', label: 'Provider', value: (node.data.provider as string) || 'meshy' },
-        { key: 'prompt', label: 'Prompt', value: (node.data.prompt as string) || '' },
-        { key: 'seed', label: 'Seed', value: String(node.data.seed ?? '') },
-        { key: 'credentialId', label: 'Credential', value: (node.data.credentialId as string) || '' },
-      ],
-    };
 
-    if (node.type === 'pipelineSuggestNode') return {
-      title: 'AI Suggest',
-      description: 'Analyses the current pipeline topology and suggests missing nodes. Remove this node after applying the suggestion.',
-      fields: [],
-    };
 
     // ─── Audiovisual production pipeline (TCORE-56) ───────────────────────────
 
@@ -921,43 +813,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       ],
     };
 
-    if (node.type === 'colorGradeNode') return {
-      title: 'Color Grade',
-      description: 'Applies a LUT or colour adjustments (exposure, contrast, saturation, temperature).',
-      fields: [
-        { key: 'preset', label: 'Preset Name', value: (node.data.preset as string) || '', editable: true },
-        { key: 'lutRef', label: 'LUT Reference (.cube path / URL)', value: (node.data.lutRef as string) || '', editable: true },
-      ],
-    };
 
-    if (node.type === 'audioMixNode') return {
-      title: 'Audio Mix',
-      description: 'Mixes audio tracks — dialogue, music, effects — with individual levels.',
-      fields: [
-        { key: 'trackCount', label: 'Track Count', value: String(node.data.trackCount ?? 1), editable: true },
-        { key: 'levels', label: 'Levels (0-100, comma-separated)', value: (node.data.levels as string) || '', editable: true },
-      ],
-    };
 
-    if (node.type === 'subtitleNode') return {
-      title: 'Subtitles',
-      description: 'Generates or imports SRT/VTT. Can link to a Transcription node or an external file.',
-      fields: [
-        { key: 'language', label: 'Language', value: (node.data.language as string) || 'es', editable: true },
-        { key: 'source', label: 'Source', value: (node.data.source as string) || 'transcription', editable: true, inputType: 'select', options: SUBTITLE_SOURCE_OPTIONS },
-        { key: 'outputFormat', label: 'Output Format', value: (node.data.outputFormat as string) || 'srt', editable: true, inputType: 'select', options: SUBTITLE_FORMAT_OPTIONS },
-      ],
-    };
 
-    if (node.type === 'vfxNode') return {
-      title: 'VFX',
-      description: 'Marks segments requiring visual effects. Holds the compositing file reference and status.',
-      fields: [
-        { key: 'description', label: 'Description', value: (node.data.description as string) || '', editable: true },
-        { key: 'status', label: 'Status', value: (node.data.status as string) || 'pending', editable: true, inputType: 'select', options: VFX_STATUS_OPTIONS },
-        { key: 'fileRef', label: 'File Reference', value: (node.data.fileRef as string) || '', editable: true },
-      ],
-    };
 
     if (node.type === 'masterNode') return {
       title: 'Master',

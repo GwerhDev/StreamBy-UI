@@ -95,13 +95,13 @@ export const EXPORT_ONLY_TYPES = new Set(['requestNode', 'responseNode', 'filter
 // qcCheck) are no longer offered here, nor are Shot, Assembly and Master, which are steps of an
 // audiovisual pipeline (see the pipeline palettes). All their components remain registered, so
 // saved schemas keep rendering.
+// Processing steps aren't offered here: the workflow runs none of them. They're a pipeline's
+// steps, done by the worker set to each (see the pipeline palettes).
 export const WORKFLOW_DEVELOPER_TYPES = new Set([
   'pipelineRefNode',
   'ingestNode', 'dataSourceNode', 'connectionNode', 'integrationConnectionNode',
-  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'upscaleNode', 'transcriptionNode',
   'reviewGateNode', 'annotationNode', 'creditsSheetNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
-  'proceduralAssetNode', 'pipelineSuggestNode',
 ]);
 
 // Designer mode — essentials only (pipeline ref, review, credits sheet, deliverable).
@@ -120,7 +120,7 @@ export const PIPELINE_DEVELOPER_TYPES = new Set([
   'meetingNode', 'tasksNode',
   'shotNode', 'assemblyNode', 'masterNode',
   'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
-  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode',
+  'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode',
   'reviewGateNode', 'annotationNode', 'creditsSheetNode',
   'exportFormatNode', 'deliverableNode', 'distributionNode',
 ]);
