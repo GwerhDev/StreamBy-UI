@@ -41,7 +41,11 @@ describe('getPaletteForContext', () => {
       for (const t of ['colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode', 'proceduralAssetNode', 'pipelineSuggestNode']) {
         expect(types.has(t)).toBe(false);
       }
-      for (const t of ['exportFormatNode', 'distributionNode']) expect(types.has(t)).toBe(true);
+      expect(types.has('exportFormatNode')).toBe(true);
+    });
+
+    it("doesn't offer Distribution: StreamBy sends nothing to a platform", () => {
+      expect(types.has('distributionNode')).toBe(false);
     });
 
     it('includes pipelineRefNode (workflow references pipelines)', () => {
@@ -95,10 +99,14 @@ describe('getPaletteForContext', () => {
         'transcodeNode', 'thumbnailNode', 'formatConvertNode', 'lodNode',
         'colorGradeNode', 'audioMixNode', 'subtitleNode', 'vfxNode', 'transcriptionNode', 'upscaleNode',
         'reviewGateNode', 'annotationNode', 'creditsSheetNode',
-        'exportFormatNode', 'deliverableNode', 'distributionNode',
+        'exportFormatNode', 'deliverableNode',
       ]) {
         expect(dev.has(t)).toBe(true);
       }
+    });
+
+    it("doesn't offer Distribution: StreamBy sends nothing to a platform", () => {
+      expect(dev.has('distributionNode')).toBe(false);
     });
 
     it('never nests pipelines (no pipelineRefNode) and excludes orchestration/infra + AI', () => {

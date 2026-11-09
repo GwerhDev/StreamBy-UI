@@ -656,38 +656,6 @@ export interface ReviewSession {
   updatedAt: string;
 }
 
-export type DistributionTarget =
-  | 'cdnPush'
-  | 'hlsStream'
-  | 'steam'
-  | 'appStoreConnect'
-  | 'googlePlay'
-  | 'itchIo'
-  | 'customWebhook';
-
-export type DeliveryStatus = 'pending' | 'publishing' | 'published' | 'failed';
-
-export interface DeliveryTarget {
-  connectionId: string;
-  target: DistributionTarget;
-  channel?: string;
-  publishedAt?: string;
-  publishedBy?: string;
-  receipt?: Record<string, string>;
-  status: DeliveryStatus;
-}
-
-export interface DistributionConnection {
-  id: string;
-  name: string;
-  target: DistributionTarget;
-  credentialId?: string;
-  projectId: string;
-  config: Record<string, string>;
-  createdAt?: string;
-  description?: string;
-}
-
 export interface QcCheck {
   name: string;
   passed: boolean;

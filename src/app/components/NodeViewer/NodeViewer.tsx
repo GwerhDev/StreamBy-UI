@@ -468,12 +468,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (st === 'streambyNode' && tt === 'proceduralAssetNode') return sh === 'out-bottom';
     if (st === 'proceduralAssetNode' && tt === 'streambyNode') return th === 'in-bottom';
 
-    // DeliverableNode and DistributionNode: output lane (chained left→right)
-    const outputLaneTypes = ['filterNode', 'annotationNode', 'deliverableNode', 'distributionNode'];
+    // DeliverableNode: output lane (chained left→right)
+    const outputLaneTypes = ['filterNode', 'annotationNode', 'deliverableNode'];
     if (outputLaneTypes.includes(st) && tt === 'deliverableNode') return sh === 'out-filter' && th === 'in-filter';
     if (st === 'streambyNode' && tt === 'deliverableNode') return sh === 'out-right' && th === 'in-filter';
-    if (outputLaneTypes.includes(st) && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
-    if (st === 'deliverableNode' && tt === 'distributionNode') return sh === 'out-filter' && th === 'in-filter';
 
     // ─── Audiovisual production pipeline (TCORE-56) ─────────────────────────
     // Linear stage chain: shot → assembly → colorGrade → audioMix → reviewGate → master → exportFormat → deliverable
@@ -487,9 +485,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     if (avStageTypes.includes(st) && tt === 'reviewGateNode') return sh === 'out-right' && th === 'in-process';
     // Approved review gate feeds the master
     if (st === 'reviewGateNode' && tt === 'masterNode') return sh === 'out-review' && th === 'in-filter';
-    // Master → export format → deliverable / distribution (output lane, chained left→right)
-    const avOutputTypes = ['masterNode', 'exportFormatNode', 'deliverableNode', 'distributionNode'];
-    if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode', 'distributionNode'].includes(tt)) {
+    // Master → export format → deliverable (output lane, chained left→right)
+    const avOutputTypes = ['masterNode', 'exportFormatNode', 'deliverableNode'];
+    if (avOutputTypes.includes(st) && ['exportFormatNode', 'deliverableNode'].includes(tt)) {
       return sh === 'out-filter' && th === 'in-filter';
     }
 
@@ -774,15 +772,11 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       ],
     };
 
+    // Left in schemas saved before it was retired: it does nothing, and says so.
     if (node.type === 'distributionNode') return {
-      title: 'Distribution',
-      description: "Where its export is published to: one of the project's distribution connections. Publishing records when, by whom and where to; StreamBy uploads nothing to a platform.",
-      fields: [
-        { key: 'distributionConnectionId', label: 'Connection', value: (node.data.distributionConnectionId as string) || '' },
-        { key: 'distributionTarget', label: 'Target', value: (node.data.distributionTarget as string) || 'cdnPush' },
-        { key: 'channel', label: 'Channel', value: (node.data.channel as string) || '' },
-        { key: 'autoPublish', label: 'Auto-publish', value: String(node.data.autoPublish ?? false) },
-      ],
+      title: 'Distribution (retired)',
+      description: "This node does nothing: StreamBy sends nothing to a platform. A site or a build takes an export's deliverables from its catalog. You can remove it.",
+      fields: [],
     };
 
     // ─── Phase 5 — AI-Augmented Production ────────────────────────────────────
