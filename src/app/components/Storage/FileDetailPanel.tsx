@@ -14,6 +14,7 @@ import { LicenseFields } from './LicenseFields';
 import { EMPTY_LICENSE, licenseError } from '../../../utils/licenses';
 import { AssetJobs } from '../Jobs/AssetJobs';
 import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
+import { assetReference } from '../../../utils/assetReference';
 
 interface FileDetailPanelProps {
   file: StorageFile;
@@ -230,10 +231,12 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
     if (renaming) renameInputRef.current?.focus();
   }, [renaming]);
 
-  const cleanUrl = (url: string) => url.split('?')[0];
+  // What's copied: the asset's reference, for an export's data (StreamBy answers it as a signed
+  // URL); the bucket is private, so its own URL doesn't work.
+  const reference = assetReference(file.id);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(cleanUrl(file.url));
+    await navigator.clipboard.writeText(reference);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -337,8 +340,8 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
         )}
 
         <div className={s.urlRow}>
-          <p className={s.urlText} title={cleanUrl(file.url)}>{cleanUrl(file.url)}</p>
-          <button className={s.copyBtn} onClick={handleCopy} title="Copy URL">
+          <p className={s.urlText} title={reference}>{reference}</p>
+          <button className={s.copyBtn} onClick={handleCopy} title="Copy reference">
             <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
           </button>
         </div>

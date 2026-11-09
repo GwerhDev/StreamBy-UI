@@ -7,6 +7,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { ReplaceModal } from '../Modals/ReplaceModal';
+import { assetReference } from '../../../utils/assetReference';
 
 const ModelViewer = lazy(() => import('./ModelViewer').then(m => ({ default: m.ModelViewer })));
 const ModelThumbnail = lazy(() => import('./ModelThumbnail').then(m => ({ default: m.ModelThumbnail })));
@@ -146,16 +147,18 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
     }
   };
 
-  const cleanUrl = (url: string) => url.split('?')[0];
+  // What's copied: the asset's reference, for an export's data (StreamBy answers it as a signed
+  // URL); the bucket is private, so its own URL doesn't work.
+  const reference = assetReference(file.id);
 
   const handleCopyUrl = async () => {
-    await navigator.clipboard.writeText(cleanUrl(file.url));
+    await navigator.clipboard.writeText(reference);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCtxCopy = async () => {
-    await navigator.clipboard.writeText(cleanUrl(file.url));
+    await navigator.clipboard.writeText(reference);
     closeCtx();
   };
 
@@ -225,7 +228,7 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
           </li>
           <li className={s.ctxItem} onClick={handleCtxCopy}>
             <FontAwesomeIcon icon={faCopy} className={s.ctxIcon} />
-            Copy URL
+            Copy reference
           </li>
           <li className={s.ctxItem} onClick={closeCtx}>
             <a target='_blank' href={file.url} download={file.displayName} className={s.ctxLink}>
@@ -306,9 +309,9 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
             )}
 
             <div className={s.previewActions}>
-              <button className={s.previewActionBtn} onClick={handleCopyUrl} title="Copy public S3 URL">
+              <button className={s.previewActionBtn} onClick={handleCopyUrl} title="Copy its reference, for an export (answered as its URL)">
                 <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
-                {copied ? 'Copied!' : 'Copy URL'}
+                {copied ? 'Copied!' : 'Copy reference'}
               </button>
               <a href={file.url} download={file.displayName} className={s.previewActionBtn} title="Download file">
                 <FontAwesomeIcon icon={faDownload} />

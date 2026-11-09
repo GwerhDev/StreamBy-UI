@@ -50,9 +50,9 @@ export const CreateProjectForm = () => {
 
       if (imageFile && projectId) {
         const contentType = imageFile.type;
-        const { url, publicUrl } = await uploadProjectImage(projectId);
+        const { url, imageUrl } = await uploadProjectImage(projectId);
         await uploadToPresignedUrl(url, imageFile, contentType);
-        await updateProjectImage(projectId, publicUrl);
+        await updateProjectImage(projectId, imageUrl);
       }
       navigate(`/project/${projectId}/dashboard/overview`);
       setLoader(false);

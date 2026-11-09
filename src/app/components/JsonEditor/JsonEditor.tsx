@@ -11,6 +11,7 @@ import {
 import { loadEditorPrefs, saveEditorPrefs } from '../../../utils/editorPrefs';
 import { AssetPickerModal } from '../Modals/AssetPickerModal';
 import type { StorageFile } from '../../../interfaces';
+import { assetReference } from '../../../utils/assetReference';
 
 // ─── Syntax Highlighter ────────────────────────────────────────────────────
 
@@ -181,13 +182,13 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
     }
   }, []);
 
-  const cleanUrl = (url: string) => url.split('?')[0];
-
+  // Each asset is inserted as a reference StreamBy resolves when it answers the export (a
+  // signed URL of its current version), never a URL of the bucket.
   const handleInsertAssets = useCallback((files: StorageFile[]) => {
     const { start, end } = savedSelection.current;
     const insertText = files.length === 1
-      ? `"${cleanUrl(files[0].url)}"`
-      : JSON.stringify(files.map(f => cleanUrl(f.url)));
+      ? JSON.stringify(assetReference(files[0].id))
+      : JSON.stringify(files.map(f => assetReference(f.id)));
     const newValue  = value.substring(0, start) + insertText + value.substring(end);
     const newCursor = start + insertText.length;
     const { data: d, isValid: v } = parseJson(newValue);
@@ -232,7 +233,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
                   className={`${s.toolbarBtn} ${s.toolbarBtnAsset}`}
                   onMouseDown={handleAssetBtnMouseDown}
                   onClick={() => setShowAssetPicker(true)}
-                  title="Insert asset URL at cursor"
+                  title="Insert a reference to an asset at the cursor (answered as its URL)"
                 >
                   <FontAwesomeIcon icon={faLink} /> Asset
                 </button>

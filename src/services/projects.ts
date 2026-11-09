@@ -51,7 +51,9 @@ export async function removeProjectIntegration(projectId: string, integrationId:
   return res.json();
 }
 
-export async function uploadProjectImage(projectId: string) {
+// Where to upload a project's image (url), and what to save as its image (imageUrl: StreamBy's
+// image route, never a URL of the bucket).
+export async function uploadProjectImage(projectId: string): Promise<{ url: string; imageUrl: string }> {
   const res = await fetch(`${API_BASE}/streamby/upload-project-image-url/${projectId}`, {
     method: 'GET',
     credentials: 'include',
