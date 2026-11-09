@@ -542,7 +542,7 @@ export const DeliverableNode = memo(({ id, data, selected }: NodeProps<BaseNodeD
 });
 DeliverableNode.displayName = 'DeliverableNode';
 
-// Publishes a deliverable to one or more distribution targets
+// Retired: StreamBy sends nothing to a platform. Kept only to render one left in a saved schema.
 export const DistributionNode = memo(({ data, selected }: NodeProps<BaseNodeData>) => (
   <div className={`${s.customNode} ${selected ? s.nodeSelected : ''}`}>
     <Handle type="target" position={Position.Left}  id="in-filter"  className={s.handle} style={hIn(H_RIGHT)} />
