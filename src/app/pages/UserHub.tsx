@@ -1,13 +1,14 @@
 import s from '../components/User/Settings.module.css';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faChevronRight, faGlobe, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faChevronRight, faDesktop, faGlobe, faUser } from '@fortawesome/free-solid-svg-icons';
 import { SectionHeader } from '../components/SectionHeader/SectionHeader';
 
 const SECTIONS = [
   { icon: faUser,    label: 'Profile',      description: 'Your personal information and preferences', path: '/user/profile' },
   { icon: faArchive, label: 'Archive',      description: 'Your archived projects',                    path: '/user/archive' },
   { icon: faGlobe,   label: 'Integrations', description: 'Connect your own databases, storage and services', path: '/user/integrations' },
+  { icon: faDesktop, label: 'Agents',       description: 'Your machines that process assets for your projects', path: '/user/agents' },
 ];
 
 export const UserHub = () => {

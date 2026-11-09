@@ -6,15 +6,17 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 
 interface RevokeApiTokenModalProps {
   name: string;
+  // What revoking it ends (a token's users, by default).
+  message?: string;
   busy: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
 
-export const RevokeApiTokenModal = ({ name, busy, onConfirm, onClose }: RevokeApiTokenModalProps) => (
+export const RevokeApiTokenModal = ({ name, message = "Anything using this token stops working right away. This can't be undone.", busy, onConfirm, onClose }: RevokeApiTokenModalProps) => (
   <ModalShell title={`Revoke ${name}`} onClose={onClose}>
     <div className={s.body}>
-      <p>Anything using this token stops working right away. This can't be undone.</p>
+      <p>{message}</p>
       <div className={s.actions}>
         <PrimaryButton type="button" disabled={busy} icon={faBan} text="Revoke" onClick={onConfirm} />
         <SecondaryButton disabled={busy} icon={faXmark} onClick={onClose} text="Cancel" />

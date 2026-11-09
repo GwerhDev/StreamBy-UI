@@ -1,0 +1,142 @@
+.card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: start;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.icon {
+  border-radius: 100%;
+  width: 32px;
+  aspect-ratio: 1/1;
+  border: solid 3px var(--color-accent-hover);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.title h4 {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.title code {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.state {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.dot {
+  width: 0.5rem;
+  aspect-ratio: 1/1;
+  border-radius: 100%;
+  background-color: var(--color-text-muted);
+}
+
+.online {
+  color: var(--color-success);
+}
+
+.online .dot {
+  background-color: var(--color-success);
+}
+
+.meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.meta dt {
+  color: var(--color-text-muted);
+}
+
+.meta dd {
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.shares {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-subtle-border);
+}
+
+.chip button,
+.shareButton,
+.revokeButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.shareButton {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.shareButton:hover {
+  color: var(--color-accent);
+}
+
+.revokeButton {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.revokeButton:hover {
+  color: var(--color-danger-text);
+}

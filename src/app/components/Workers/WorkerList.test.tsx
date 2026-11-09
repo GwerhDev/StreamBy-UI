@@ -35,6 +35,19 @@ describe('WorkerList', () => {
     expect(screen.getByRole('button', { name: 'Remove Own LOD' })).toBeInTheDocument();
   });
 
+  it("lists the agents shared with the project, online or not, never removable here", async () => {
+    vi.spyOn(workers, 'getWorkers').mockResolvedValue([
+      worker({ source: 'agent', id: 'a1', name: 'Studio', provider: 'agent', online: true }),
+      worker({ source: 'agent', id: 'a2', name: 'Cloud box', provider: 'agent', online: false, kinds: [], categories: [] }),
+    ]);
+    renderAt('/project/p1/workers', ROUTE, <WorkerList />);
+    expect(await screen.findByTestId('worker-a1')).toHaveTextContent('Agent');
+    expect(screen.getByTestId('worker-state-a1')).toHaveTextContent('Online');
+    expect(screen.getByTestId('worker-state-a2')).toHaveTextContent('Offline');
+    expect(screen.getByTestId('worker-a2')).toHaveTextContent('Not said yet');
+    expect(screen.queryByRole('button', { name: 'Remove Studio' })).not.toBeInTheDocument();
+  });
+
   it("removes one of the project's once confirmed", async () => {
     const list = vi.spyOn(workers, 'getWorkers').mockResolvedValue([worker({ source: 'project', id: 'w2', name: 'Own LOD' })]);
     const remove = vi.spyOn(workers, 'deleteWorker').mockResolvedValue({});

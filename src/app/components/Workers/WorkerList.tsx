@@ -15,7 +15,10 @@ import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { useOpenForm } from '../../../hooks/useFormRoute';
 
-// The processing workers the project can use: the host's (read-only here) and its own.
+// The processing workers the project can use: the host's and the agents shared with it
+// (read-only here: an agent's owner shares it), and its own.
+const SOURCE_BADGE: Record<Worker['source'], string> = { builtin: 'Host', project: 'Project', agent: 'Agent' };
+
 export const WorkerList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const openForm = useOpenForm();
@@ -60,10 +63,15 @@ export const WorkerList = () => {
         <span className={s.info}>
           <span className={s.titleRow}>
             <h4 className={s.name}>{worker.name}</h4>
-            <span className={s.badge}>{worker.source === 'builtin' ? 'Host' : 'Project'}</span>
+            <span className={s.badge}>{SOURCE_BADGE[worker.source]}</span>
+            {worker.source === 'agent' && (
+              <span className={`${s.state} ${worker.online ? s.online : ''}`} data-testid={`worker-state-${worker.id}`}>
+                {worker.online ? 'Online' : 'Offline'}
+              </span>
+            )}
           </span>
           <small className={s.detail}>
-            {worker.kinds.join(', ')} · {worker.categories.join(', ')}
+            {worker.kinds.join(', ') || 'Not said yet'}{worker.categories.length > 0 && ` · ${worker.categories.join(', ')}`}
             {worker.autoKind && ` · runs ${worker.autoKind} on deliverables`}
           </small>
         </span>
@@ -84,7 +92,7 @@ export const WorkerList = () => {
       <ResourceList
         icon={faGears}
         title="Workers"
-        subtitle="External services that process the project's assets (optimizing models, making LODs...)."
+        subtitle="External services, and agents shared with the project, that process its assets (optimizing models, making LODs...). An offline agent's jobs wait for it."
         items={items}
         loading={workers === null}
         layout="grid"

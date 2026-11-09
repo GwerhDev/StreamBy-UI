@@ -101,7 +101,7 @@ export function AssetJobs({ projectId, assetId, category }: Props) {
         <div className={s.process}>
           <LabeledSelect
             id="job-worker" htmlFor="job-worker" label="Worker" value={worker ? keyOf(worker) : ''}
-            options={workers.map(w => ({ value: keyOf(w), label: `${w.name}${w.source === 'builtin' ? ' (host)' : ''}` }))}
+            options={workers.map(w => ({ value: keyOf(w), label: `${w.name}${w.source === 'builtin' ? ' (host)' : w.source === 'agent' ? (w.online ? ' (agent)' : ' (agent, offline: its job waits)') : ''}` }))}
             onChange={e => { setWorkerKey(e.target.value); setProfile({}); }}
           />
           <LabeledSelect

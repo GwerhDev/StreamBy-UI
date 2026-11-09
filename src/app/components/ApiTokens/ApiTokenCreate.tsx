@@ -1,9 +1,8 @@
 import s from './ApiTokenCreate.module.css';
 import { FormEvent, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faArrowLeft, faCalendar, faCheck, faFolder, faKey, faShieldHalved, faTag, faTriangleExclamation, faXmark,
+  faArrowLeft, faCalendar, faFolder, faKey, faShieldHalved, faTag, faTriangleExclamation, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
@@ -15,7 +14,7 @@ import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { CustomForm } from '../Forms/CustomForm';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
-import CopyButton from '../Buttons/CopyButton';
+import { TokenCreated } from '../Tokens/TokenCreated';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { LabeledSelect } from '../Inputs/LabeledSelect';
 import { CustomCheckbox } from '../Inputs/CustomCheckbox';
@@ -84,24 +83,7 @@ export const ApiTokenCreate = ({ projectId }: ApiTokenCreateProps) => {
   if (created) {
     return (
       <div className={s.container}>
-        <div className={s.created} data-testid="api-token-created">
-          <CustomForm
-            header={<SectionHeader icon={faKey} title="Token created" subtitle={name.trim()} />}
-            fields={[]}
-            actions={<ActionButton icon={faCheck} text="Done" onClick={() => done(listPath)} />}
-          >
-            <div className={s.createdBody}>
-              <p className={s.warning}>
-                <FontAwesomeIcon icon={faTriangleExclamation} />
-                Copy your token now. It won't be shown again.
-              </p>
-              <div className={s.tokenRow}>
-                <code className={s.token} data-testid="api-token-value">{created}</code>
-                <CopyButton title="Copy token" textToCopy={created} copiedMessage="Token copied to clipboard." />
-              </div>
-            </div>
-          </CustomForm>
-        </div>
+        <TokenCreated title="Token created" subtitle={name.trim()} token={created} testId="api-token" onDone={() => done(listPath)} />
       </div>
     );
   }
