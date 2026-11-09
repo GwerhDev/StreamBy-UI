@@ -1,5 +1,5 @@
 import s from './DeliverableItems.module.css';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCube, faDownload, faFile, faFilm, faImage, faMusic, faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -22,12 +22,16 @@ interface Props {
   projectId: string;
   // What they were delivered for: a shot, or an export.
   of: { shotId: string } | { exportId: string };
+  // Read again each time it changes (after deliverables are added).
+  reload?: number;
+  // Shown beside its title (an action that adds deliverables).
+  actions?: ReactNode;
 }
 
 // What's been delivered for a shot or an export: each asset (or version), downloadable, and
 // whether the gates before it in the workflow let it out (read again when one changes). One
 // ready whose workers are still waiting says so, and who can run jobs in the project starts them.
-export function DeliverableItems({ projectId, of }: Props) {
+export function DeliverableItems({ projectId, of, reload = 0, actions }: Props) {
   const shotId = 'shotId' in of ? of.shotId : undefined;
   const exportId = 'exportId' in of ? of.exportId : undefined;
   const dispatch = useDispatch<AppDispatch>();
@@ -49,7 +53,7 @@ export function DeliverableItems({ projectId, of }: Props) {
       .then(list => { if (!cancelled) setDeliverables(list); })
       .catch(() => { if (!cancelled) setDeliverables(prev => prev ?? []); });
     return () => { cancelled = true; };
-  }, [projectId, shotId, exportId, gateChanges, reads]);
+  }, [projectId, shotId, exportId, gateChanges, reads, reload]);
 
   const download = async (deliverable: Deliverable) => {
     setDownloading(deliverable.id);
@@ -80,6 +84,7 @@ export function DeliverableItems({ projectId, of }: Props) {
       <span className={s.label}>
         Deliverables
         {!!deliverables?.length && <span className={s.count}>{deliverables.length}</span>}
+        {actions && <span className={s.actions}>{actions}</span>}
       </span>
       {deliverables === null ? (
         <FontAwesomeIcon icon={faSpinner} spin className={s.loading} />

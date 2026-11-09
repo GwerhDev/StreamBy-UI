@@ -14,6 +14,12 @@
   color: var(--color-text-muted);
 }
 
+.actions {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .count {
   margin-left: 0.4rem;
   padding: 0 6px;

@@ -17,6 +17,9 @@ interface AssetPickerModalProps {
   projectId: string;
   onInsert: (files: StorageFile[]) => void;
   onClose: () => void;
+  // What it's picking for: its title, and its button's text ("Insert Asset" and "Insert" if not given).
+  title?: string;
+  actionText?: string;
 }
 
 const CATEGORIES: { key: StorageCategory; label: string; icon: typeof faImage; accept: string }[] = [
@@ -72,7 +75,7 @@ function FileTile({ file, selected, onToggle }: {
 
 // ─── AssetPickerModal ─────────────────────────────────────────────────────
 
-export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerModalProps) {
+export function AssetPickerModal({ projectId, onInsert, onClose, title = 'Insert Asset', actionText = 'Insert' }: AssetPickerModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeCategory, setActiveCategory] = useState<StorageCategory>('images');
@@ -172,7 +175,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
         <div className={s.header}>
           <span className={s.headerTitle}>
             <FontAwesomeIcon icon={faLayerGroup} />
-            Insert Asset
+            {title}
           </span>
           <button className={s.closeBtn} type="button" onClick={onClose}>
             <FontAwesomeIcon icon={faXmark} />
@@ -267,7 +270,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
           <div className={s.footerActions}>
             <SecondaryButton text="Cancel" onClick={onClose} icon={faXmark} />
             <ActionButton
-              text={`Insert${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
+              text={`${actionText}${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
               onClick={handleInsert}
               disabled={selectedCount === 0}
             />

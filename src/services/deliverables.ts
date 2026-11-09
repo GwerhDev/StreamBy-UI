@@ -12,6 +12,23 @@ export async function getDeliverables(projectId: string, of: { shotId?: string; 
   return (await res.json()).deliverables;
 }
 
+// What an asset (or one of its versions) is delivered for: a shot or an export, one of them.
+export type DeliverableFor = ({ shotId: string } | { exportId: string }) & { versionId?: string | null; note?: string };
+
+// An asset marked as a deliverable: answered with its status (ready, or blocked and by what), and
+// the jobs its automatic workers started (none while it's blocked).
+export async function markDeliverable(projectId: string, assetId: string, of: DeliverableFor): Promise<{ deliverable: Deliverable; jobs: { jobId: string }[] }> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/deliverables`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assetId, ...of }),
+  });
+  if (!res.ok) throw await errorOf(res, 'Failed to mark the deliverable');
+  const body = await res.json();
+  return { deliverable: body.deliverable, jobs: body.jobs ?? [] };
+}
+
 // The state of each Deliverable node of the workflow, by node id.
 export async function getDeliverableGates(projectId: string): Promise<Record<string, DeliverableNodeState>> {
   const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/deliverables/gates`, { credentials: 'include' });
