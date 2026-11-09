@@ -47,25 +47,28 @@ function DefaultLayoutInner() {
         <div className="header-app">
           {/* Left section: the app's own brand icon, in its own inner slot (same fixed
               width as LateralTab's .container -- the rail below) so it sits centered
-              directly above the rail, at the start of this outer (1fr) column. */}
+              directly above the rail, at the start of this outer (1fr) column. It opens
+              Nhexa's apps; without them, it goes home. */}
           <span className="header-left">
             <span className="streamby-brand-slot">
-              <img
-                className="streamby-brand-icon"
-                onClick={handleGoHome}
-                src={streambyIcon}
-                alt="StreamBy"
-                height={18}
-              />
+              {APP_SWITCHER_URL
+                ? <AppSwitcher />
+                : (
+                  <img
+                    className="streamby-brand-icon"
+                    onClick={handleGoHome}
+                    src={streambyIcon}
+                    alt="StreamBy"
+                    height={18}
+                  />
+                )}
             </span>
           </span>
-          {/* Center section: current project name/AppSwitcher, centered on the header's
-              real width regardless of how wide header-left/header-right end up being. */}
+          {/* Center section: the current project's name, centered on the header's real width
+              regardless of how wide header-left/header-right end up being. */}
           <span className="title-container">
-            {APP_SWITCHER_URL
-              ? <AppSwitcher label={name || 'StreamBy'} projectIcon={image} />
-              : (<>{image && <img src={image} alt="" />}<small className="nowrap">{name || 'StreamBy'}</small></>)
-            }
+            {image && <img src={image} alt="" />}
+            <small className="nowrap">{name || 'StreamBy'}</small>
           </span>
           {/* Right section: user action icons, at the end of this outer (1fr) column. */}
           <span className="header-right">

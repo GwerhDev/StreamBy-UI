@@ -1,83 +1,45 @@
-.root {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .trigger {
   position: relative;
-  display: flex;
-  align-items: center;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  background: transparent;
   border: none;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
-  color: var(--color-text-primary);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
 }
 
 .trigger:hover {
   background: transparent;
 }
 
-.brandStreamby,
-.brandNhexa {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+.streambyIcon,
+.appsIcon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.brandNhexa {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
+.streambyIcon {
+  object-fit: contain;
+}
+
+.appsIcon {
   opacity: 0;
-  pointer-events: none;
-}
-
-.trigger:hover .brandStreamby {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.trigger:hover .brandNhexa {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.triggerIcon {
-  width: 15px;
-  height: 15px;
-}
-
-.projectIcon {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.name {
-  color: inherit;
-}
-
-.nhexaIcon {
-  width: 15px;
-  height: 15px;
-  display: inline-block;
-  flex-shrink: 0;
-  background-color: var(--nhexa-desktop-text);
-  -webkit-mask: url('../../../assets/nhexa-logo.svg') no-repeat center / contain;
-  mask: url('../../../assets/nhexa-logo.svg') no-repeat center / contain;
-}
-
-.nhexaName {
-  font-family: 'Game-Of-Squids', sans-serif;
+  transform: scale(0.7) rotate(-30deg);
   color: var(--nhexa-desktop-text);
+}
+
+.trigger:hover .streambyIcon,
+.trigger:focus-visible .streambyIcon {
+  opacity: 0;
+  transform: scale(0.7) rotate(30deg);
+}
+
+.trigger:hover .appsIcon,
+.trigger:focus-visible .appsIcon {
+  opacity: 1;
+  transform: none;
 }
