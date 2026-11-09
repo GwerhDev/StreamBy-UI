@@ -35,13 +35,13 @@ describe('WorkerList', () => {
     expect(screen.getByRole('button', { name: 'Remove Own LOD' })).toBeInTheDocument();
   });
 
-  it("lists the agents shared with the project, online or not, never removable here", async () => {
+  it("lists the runners shared with the project, online or not, never removable here", async () => {
     vi.spyOn(workers, 'getWorkers').mockResolvedValue([
-      worker({ source: 'agent', id: 'a1', name: 'Studio', provider: 'agent', online: true }),
-      worker({ source: 'agent', id: 'a2', name: 'Cloud box', provider: 'agent', online: false, kinds: [], categories: [] }),
+      worker({ source: 'runner', id: 'a1', name: 'Studio', provider: 'runner', online: true }),
+      worker({ source: 'runner', id: 'a2', name: 'Cloud box', provider: 'runner', online: false, kinds: [], categories: [] }),
     ]);
     renderAt('/project/p1/workers', ROUTE, <WorkerList />);
-    expect(await screen.findByTestId('worker-a1')).toHaveTextContent('Agent');
+    expect(await screen.findByTestId('worker-a1')).toHaveTextContent('Runner');
     expect(screen.getByTestId('worker-state-a1')).toHaveTextContent('Online');
     expect(screen.getByTestId('worker-state-a2')).toHaveTextContent('Offline');
     expect(screen.getByTestId('worker-a2')).toHaveTextContent('Not said yet');

@@ -8,7 +8,7 @@ const SECTIONS = [
   { icon: faUser,    label: 'Profile',      description: 'Your personal information and preferences', path: '/user/profile' },
   { icon: faArchive, label: 'Archive',      description: 'Your archived projects',                    path: '/user/archive' },
   { icon: faGlobe,   label: 'Integrations', description: 'Connect your own databases, storage and services', path: '/user/integrations' },
-  { icon: faDesktop, label: 'Agents',       description: 'Your machines that process assets for your projects', path: '/user/agents' },
+  { icon: faDesktop, label: 'Runners',      description: 'Your machines that process assets for your projects', path: '/user/runners' },
 ];
 
 export const UserHub = () => {

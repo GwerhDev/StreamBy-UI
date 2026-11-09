@@ -552,8 +552,8 @@ export interface JobRecord {
 
 // A processing worker a project can use: the host's, or the project's own.
 export interface Worker {
-  // The host's, the project's own, or an agent shared with the project.
-  source: 'builtin' | 'project' | 'agent';
+  // The host's, the project's own, or a runner shared with the project.
+  source: 'builtin' | 'project' | 'runner';
   id: string;
   name: string;
   provider: string;
@@ -563,13 +563,13 @@ export interface Worker {
   description: string | null;
   hasCredential: boolean;
   createdBy: string | null;
-  // An agent's: whether it asked for jobs in the last minute, and when it last did.
+  // A runner's: whether it asked for jobs in the last minute, and when it last did.
   online?: boolean;
   lastSeenAt?: string | null;
 }
 
 // A machine of the user's that asks StreamBy for jobs; shared with projects or teams.
-export interface WorkerAgentShare {
+export interface WorkerRunnerShare {
   id: string;
   projectId: string;
   projectName: string | null;
@@ -577,7 +577,7 @@ export interface WorkerAgentShare {
   teamName: string | null;
 }
 
-export interface WorkerAgent {
+export interface WorkerRunner {
   id: string;
   name: string;
   prefix: string;
@@ -587,7 +587,7 @@ export interface WorkerAgent {
   online: boolean;
   lastSeenAt: string | null;
   createdAt: string;
-  shares: WorkerAgentShare[];
+  shares: WorkerRunnerShare[];
 }
 
 export interface CreateWorkerPayload {

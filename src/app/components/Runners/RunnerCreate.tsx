@@ -1,11 +1,11 @@
-import s from './AgentCreate.module.css';
+import s from './RunnerCreate.module.css';
 import { FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { faArrowLeft, faDesktop, faTag, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { useFormRoute } from '../../../hooks/useFormRoute';
-import { registerWorkerAgent } from '../../../services/workerAgents';
+import { registerWorkerRunner } from '../../../services/workerRunners';
 import { API_BASE } from '../../../config/api';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { CustomForm } from '../Forms/CustomForm';
@@ -14,10 +14,10 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { LabeledInput } from '../Inputs/LabeledInput';
 import { TokenCreated } from '../Tokens/TokenCreated';
 
-const LIST_PATH = '/user/agents';
+const LIST_PATH = '/user/runners';
 
-// Registering one of the user's machines as an agent: its token, shown once.
-export const AgentCreate = () => {
+// Registering one of the user's machines as a runner: its token, shown once.
+export const RunnerCreate = () => {
   const { inModal, close, done } = useFormRoute();
   const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState('');
@@ -29,9 +29,9 @@ export const AgentCreate = () => {
     if (!name.trim() || busy) return;
     setBusy(true);
     try {
-      setCreated((await registerWorkerAgent(name.trim())).token);
+      setCreated((await registerWorkerRunner(name.trim())).token);
     } catch (err) {
-      dispatch(addApiResponse({ message: err instanceof Error && err.message ? err.message : 'Failed to register the agent.', type: 'error' }));
+      dispatch(addApiResponse({ message: err instanceof Error && err.message ? err.message : 'Failed to register the runner.', type: 'error' }));
     } finally {
       setBusy(false);
     }
@@ -40,9 +40,9 @@ export const AgentCreate = () => {
   if (created) {
     return (
       <div className={s.container}>
-        <TokenCreated title="Agent registered" subtitle={name.trim()} token={created} testId="agent-token" onDone={() => done(LIST_PATH)}>
+        <TokenCreated title="Runner registered" subtitle={name.trim()} token={created} testId="runner-token" onDone={() => done(LIST_PATH)}>
           <ol className={s.next}>
-            <li>Start the agent on that machine with this token. It asks for jobs at <code>{`${API_BASE}/streamby/worker-agent/jobs/next`}</code>.</li>
+            <li>Start the runner on that machine with this token. It asks for jobs at <code>{`${API_BASE}/streamby/runner/jobs/next`}</code>.</li>
             <li>Share it with the projects (or teams) that may use it: until then, it gets no jobs.</li>
           </ol>
         </TokenCreated>
@@ -52,15 +52,15 @@ export const AgentCreate = () => {
 
   return (
     <div className={s.container}>
-      <form onSubmit={handleSubmit} className={s.form} data-testid="agent-form">
+      <form onSubmit={handleSubmit} className={s.form} data-testid="runner-form">
         <CustomForm
           readOnly={false}
           isLoading={busy}
           header={
             <SectionHeader
               icon={inModal ? faDesktop : faArrowLeft}
-              title="New agent"
-              subtitle="One of your machines, to process assets with it: one agent per machine."
+              title="New runner"
+              subtitle="One of your machines, to process assets with it: one runner per machine."
               onIconClick={inModal ? undefined : () => close(LIST_PATH)}
             />
           }
@@ -70,7 +70,7 @@ export const AgentCreate = () => {
             value: name || '—',
             editComponent: (
               <LabeledInput
-                id="agent-name" htmlFor="agent-name" name="agent-name" type="text" label="Name"
+                id="runner-name" htmlFor="runner-name" name="runner-name" type="text" label="Name"
                 placeholder="e.g. Studio workstation" value={name} onChange={e => setName(e.target.value)} disabled={busy}
               />
             ),

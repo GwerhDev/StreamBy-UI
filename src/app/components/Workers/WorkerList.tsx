@@ -15,9 +15,9 @@ import { PrimaryButton } from '../Buttons/PrimaryButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { useOpenForm } from '../../../hooks/useFormRoute';
 
-// The processing workers the project can use: the host's and the agents shared with it
-// (read-only here: an agent's owner shares it), and its own.
-const SOURCE_BADGE: Record<Worker['source'], string> = { builtin: 'Host', project: 'Project', agent: 'Agent' };
+// The processing workers the project can use: the host's and the runners shared with it
+// (read-only here: a runner's owner shares it), and its own.
+const SOURCE_BADGE: Record<Worker['source'], string> = { builtin: 'Host', project: 'Project', runner: 'Runner' };
 
 export const WorkerList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -64,7 +64,7 @@ export const WorkerList = () => {
           <span className={s.titleRow}>
             <h4 className={s.name}>{worker.name}</h4>
             <span className={s.badge}>{SOURCE_BADGE[worker.source]}</span>
-            {worker.source === 'agent' && (
+            {worker.source === 'runner' && (
               <span className={`${s.state} ${worker.online ? s.online : ''}`} data-testid={`worker-state-${worker.id}`}>
                 {worker.online ? 'Online' : 'Offline'}
               </span>
@@ -92,7 +92,7 @@ export const WorkerList = () => {
       <ResourceList
         icon={faGears}
         title="Workers"
-        subtitle="External services, and agents shared with the project, that process its assets (optimizing models, making LODs...). An offline agent's jobs wait for it."
+        subtitle="External services, and runners shared with the project, that process its assets (optimizing models, making LODs...). An offline runner's jobs wait for it."
         items={items}
         loading={workers === null}
         layout="grid"

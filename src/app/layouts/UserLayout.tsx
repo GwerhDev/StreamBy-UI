@@ -37,7 +37,7 @@ export default function UserLayout() {
   const isProfileRoute = pathname === '/user/profile';
   const isArchiveRoute = pathname === '/user/archive';
   const isIntegrationsRoute = pathname.startsWith('/user/integrations');
-  const isAgentsRoute = pathname.startsWith('/user/agents');
+  const isRunnersRoute = pathname.startsWith('/user/runners');
   const isSettingsRoute = pathname === '/user/settings';
   const [userOpen, setUserOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
@@ -52,7 +52,7 @@ export default function UserLayout() {
 
         <div className={s.accordionSection}>
           <div
-            className={`${s.sectionHeader} ${isUserRoute || isProfileRoute || isArchiveRoute || isIntegrationsRoute || isAgentsRoute ? s.sectionHeaderActive : ''}`}
+            className={`${s.sectionHeader} ${isUserRoute || isProfileRoute || isArchiveRoute || isIntegrationsRoute || isRunnersRoute ? s.sectionHeaderActive : ''}`}
             onClick={() => setUserOpen(v => !v)}
           >
             <span className={s.sectionLabel} onClick={e => { e.stopPropagation(); navigate('/user'); }}>User</span>
@@ -85,11 +85,11 @@ export default function UserLayout() {
                 Integrations
               </Link>
               <Link
-                to="/user/agents"
-                className={`${s.navItem} ${isAgentsRoute ? s.activeLink : ''}`}
+                to="/user/runners"
+                className={`${s.navItem} ${isRunnersRoute ? s.activeLink : ''}`}
               >
                 <FontAwesomeIcon icon={faDesktop} />
-                Agents
+                Runners
               </Link>
             </div>
           )}

@@ -35,8 +35,8 @@ const ApiTokens = lazyPage(() => import('./app/pages/ApiTokens'), 'ApiTokens');
 const ApiTokenCreate = lazyPage(() => import('./app/pages/ApiTokenCreate'), 'ApiTokenCreate');
 const UserApiTokens = lazyPage(() => import('./app/pages/UserApiTokens'), 'UserApiTokens');
 const UserApiTokenCreate = lazyPage(() => import('./app/pages/UserApiTokenCreate'), 'UserApiTokenCreate');
-const UserAgents = lazyPage(() => import('./app/pages/UserAgents'), 'UserAgents');
-const UserAgentCreate = lazyPage(() => import('./app/pages/UserAgentCreate'), 'UserAgentCreate');
+const UserRunners = lazyPage(() => import('./app/pages/UserRunners'), 'UserRunners');
+const UserRunnerCreate = lazyPage(() => import('./app/pages/UserRunnerCreate'), 'UserRunnerCreate');
 const Dashboard = lazyPage(() => import('./app/pages/Dashboard'), 'Dashboard');
 const UserHub      = lazyPage(() => import('./app/pages/UserHub'), 'UserHub');
 const UserAccount  = lazyPage(() => import('./app/pages/UserAccount'), 'UserAccount');
@@ -89,7 +89,7 @@ const PipelineEditorPage       = lazyPage(() => import('./app/pages/PipelineEdit
 const USER_FORMS: FormRoute[] = [
   { path: '/user/settings/api-tokens/create', element: <UserApiTokenCreate /> },
   { path: '/user/integrations/create', element: <UserIntegrationCreate /> },
-  { path: '/user/agents/create', element: <UserAgentCreate /> },
+  { path: '/user/runners/create', element: <UserRunnerCreate /> },
 ];
 
 const PROJECT_FORMS: FormRoute[] = [
@@ -141,7 +141,7 @@ function App() {
                   <Route path="/user/settings" element={<UserSettings />} />
                   <Route path="/user/settings/api-tokens" element={<UserApiTokens />} />
                   <Route path="/user/integrations" element={<UserIntegrations />} />
-                  <Route path="/user/agents" element={<UserAgents />} />
+                  <Route path="/user/runners" element={<UserRunners />} />
                   {asPages(USER_FORMS)}
                 </Route>
                 <Route element={<NotificationLayout />}>

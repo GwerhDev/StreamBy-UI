@@ -3,33 +3,33 @@ import { useDispatch } from 'react-redux';
 import { faDesktop } from '@fortawesome/free-solid-svg-icons';
 import { AppDispatch } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
-import { getWorkerAgents, revokeWorkerAgent, shareWorkerAgent, unshareWorkerAgent } from '../../../services/workerAgents';
-import { WorkerAgent, WorkerAgentShare } from '../../../interfaces';
+import { getWorkerRunners, revokeWorkerRunner, shareWorkerRunner, unshareWorkerRunner } from '../../../services/workerRunners';
+import { WorkerRunner, WorkerRunnerShare } from '../../../interfaces';
 import { ResourceList } from '../ResourceList/ResourceList';
 import { RevokeApiTokenModal } from '../ApiTokens/RevokeApiTokenModal';
 import { useFormSaved, useOpenForm } from '../../../hooks/useFormRoute';
-import { AgentCard } from './AgentCard';
-import { ShareAgentModal } from './ShareAgentModal';
+import { RunnerCard } from './RunnerCard';
+import { ShareRunnerModal } from './ShareRunnerModal';
 
 const messageOf = (err: unknown, fallback: string) => (err instanceof Error && err.message ? err.message : fallback);
 
-// The user's agents: machines of theirs that ask StreamBy for jobs. Registered, shared with
+// The user's runners: machines of theirs that ask StreamBy for jobs. Registered, shared with
 // projects or teams, and revoked here.
-export const AgentList = () => {
+export const RunnerList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const openForm = useOpenForm();
   const saved = useFormSaved();
-  const [agents, setAgents] = useState<WorkerAgent[] | null>(null);
-  const [toRevoke, setToRevoke] = useState<WorkerAgent | null>(null);
-  const [toShare, setToShare] = useState<WorkerAgent | null>(null);
+  const [runners, setRunners] = useState<WorkerRunner[] | null>(null);
+  const [toRevoke, setToRevoke] = useState<WorkerRunner | null>(null);
+  const [toShare, setToShare] = useState<WorkerRunner | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setAgents(await getWorkerAgents());
+      setRunners(await getWorkerRunners());
     } catch (err) {
-      setAgents([]);
-      dispatch(addApiResponse({ message: messageOf(err, 'Failed to load agents.'), type: 'error' }));
+      setRunners([]);
+      dispatch(addApiResponse({ message: messageOf(err, 'Failed to load runners.'), type: 'error' }));
     }
   }, [dispatch]);
   useEffect(() => { load(); }, [load, saved]);
@@ -49,33 +49,33 @@ export const AgentList = () => {
   };
 
   const handleRevoke = () => toRevoke && act(
-    () => revokeWorkerAgent(toRevoke.id), `${toRevoke.name} revoked.`, 'Failed to revoke the agent.', () => setToRevoke(null),
+    () => revokeWorkerRunner(toRevoke.id), `${toRevoke.name} revoked.`, 'Failed to revoke the runner.', () => setToRevoke(null),
   );
   const handleShare = (projectId: string, teamId: string | null) => toShare && act(
-    () => shareWorkerAgent(toShare.id, projectId, teamId), `${toShare.name} shared.`, 'Failed to share the agent.', () => setToShare(null),
+    () => shareWorkerRunner(toShare.id, projectId, teamId), `${toShare.name} shared.`, 'Failed to share the runner.', () => setToShare(null),
   );
-  const handleUnshare = (agent: WorkerAgent, share: WorkerAgentShare) => act(
-    () => unshareWorkerAgent(agent.id, share.id), `${agent.name} is no longer shared with ${share.projectName ?? 'that project'}.`, 'Failed to stop sharing the agent.', () => {},
+  const handleUnshare = (runner: WorkerRunner, share: WorkerRunnerShare) => act(
+    () => unshareWorkerRunner(runner.id, share.id), `${runner.name} is no longer shared with ${share.projectName ?? 'that project'}.`, 'Failed to stop sharing the runner.', () => {},
   );
 
   return (
     <>
       <ResourceList
         icon={faDesktop}
-        title="Agents"
+        title="Runners"
         subtitle="Your machines that process assets: they connect to StreamBy and ask for jobs, no public address needed. Share each one with the projects or teams that may use it."
-        items={(agents ?? []).map(agent => ({
-          id: agent.id,
+        items={(runners ?? []).map(runner => ({
+          id: runner.id,
           card: (
-            <AgentCard
-              agent={agent} onRevoke={() => setToRevoke(agent)} onShare={() => setToShare(agent)}
-              onUnshare={share => handleUnshare(agent, share)}
+            <RunnerCard
+              runner={runner} onRevoke={() => setToRevoke(runner)} onShare={() => setToShare(runner)}
+              onUnshare={share => handleUnshare(runner, share)}
             />
           ),
         }))}
-        loading={agents === null}
-        onAdd={() => openForm('/user/agents/create')}
-        addLabel="Register an agent"
+        loading={runners === null}
+        onAdd={() => openForm('/user/runners/create')}
+        addLabel="Register a runner"
       />
       {toRevoke && (
         <RevokeApiTokenModal
@@ -83,7 +83,7 @@ export const AgentList = () => {
           message="Its token stops working right away, and its jobs, queued or running, fail. This can't be undone."
         />
       )}
-      {toShare && <ShareAgentModal agent={toShare} busy={busy} onShare={handleShare} onClose={() => setToShare(null)} />}
+      {toShare && <ShareRunnerModal runner={toShare} busy={busy} onShare={handleShare} onClose={() => setToShare(null)} />}
     </>
   );
 };
