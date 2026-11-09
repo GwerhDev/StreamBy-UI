@@ -63,8 +63,10 @@ export const Desktop = () => {
                     style={{ '--app-color': app.color ?? 'var(--color-accent)' } as React.CSSProperties}
                     onClick={() => handleClick(app)}
                   >
-                    <img src={app.icon} alt="" className={s.appIcon} />
-                    <span className={s.label}>{app.label.toUpperCase()}</span>
+                    <span className={s.face}>
+                      <img src={app.icon} alt="" className={s.appIcon} />
+                      <span className={s.label}>{app.label.toUpperCase()}</span>
+                    </span>
                   </button>
                 );
               })}
