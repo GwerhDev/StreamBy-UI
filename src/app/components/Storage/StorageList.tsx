@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCloudArrowUp, faImage, faHeadphones, faVideo, faCubes } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
-import { getStorageFiles, deleteStorageFile, renameStorageFile, getStorageReplaceUrl, uploadToPresignedUrl } from '../../../services/storage';
+import { getStorageFiles, deleteStorageFile, renameStorageFile, replaceStorageFile } from '../../../services/storage';
 import { StorageCard } from './StorageCard';
 import { UploadModal } from '../Modals/UploadModal';
 import { ActionButton } from '../Buttons/ActionButton';
@@ -70,8 +70,7 @@ export function StorageList({ category, previewLimit }: StorageListProps) {
   const handleReplace = async (id: string, file: File) => {
     if (!projectId || !connId) return;
     try {
-      const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
-      await uploadToPresignedUrl(url, file, file.type);
+      await replaceStorageFile(projectId, connId, id, file);
       await fetchFiles();
       dispatch(addApiResponse({ message: 'File replaced.', type: 'success' }));
     } catch (error: any) {

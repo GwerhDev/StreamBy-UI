@@ -35,13 +35,23 @@ export async function getStorageCategoryStats(
   return Object.fromEntries(results.map(r => [r.cat, { count: r.count, size: r.size }]));
 }
 
+// The headers an upload URL is answered with, to send its file with: its content type, and the
+// SHA-256 it was declared with, for the storage to check the bytes against.
+export type UploadUrl = { url: string; fileId: string; storageKey?: string; headers?: Record<string, string> };
+
+/** A file's SHA-256, in hex: declared with its upload, so an export's catalog can list it. */
+export async function fileSha256(file: Blob): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // With license metadata, the new asset is saved with it (the fields given, empty ones left out).
 export async function getStorageUploadUrl(
   projectId: string, connId: string, category: StorageCategory, fileName: string, contentType: string,
-  license?: Partial<LicenseMetadata>,
-) {
+  license?: Partial<LicenseMetadata>, sha256?: string,
+): Promise<UploadUrl> {
   const given = Object.entries(license ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && !!entry[1].trim());
-  const params = new URLSearchParams({ fileName, contentType, category, ...Object.fromEntries(given) });
+  const params = new URLSearchParams({ fileName, contentType, category, ...Object.fromEntries(given), ...(sha256 ? { sha256 } : {}) });
   const res = await fetch(`${CONN_BASE(projectId, connId)}/upload-url?${params}`, {
     method: 'GET',
     credentials: 'include',
@@ -53,16 +63,35 @@ export async function getStorageUploadUrl(
   return res.json();
 }
 
-export async function uploadToPresignedUrl(url: string, file: File, contentType: string) {
+// headers: the ones its upload URL was answered with (they carry its declared hash).
+export async function uploadToPresignedUrl(url: string, file: File, contentType: string, headers?: Record<string, string>) {
   const res = await fetch(url, {
     method: 'PUT',
     body: file,
-    headers: { 'Content-Type': contentType },
+    headers: headers ?? { 'Content-Type': contentType },
   });
   if (!res.ok) {
     throw new Error('Failed to upload file to storage');
   }
   return true;
+}
+
+/** Uploads a new asset, its SHA-256 declared with it. What its upload URL was answered with. */
+export async function uploadStorageFile(
+  projectId: string, connId: string, category: StorageCategory, file: File, contentType: string,
+  license?: Partial<LicenseMetadata>,
+): Promise<UploadUrl> {
+  const sha256 = await fileSha256(file);
+  const answer = await getStorageUploadUrl(projectId, connId, category, file.name, contentType, license, sha256);
+  await uploadToPresignedUrl(answer.url, file, contentType, answer.headers);
+  return answer;
+}
+
+/** Uploads a new version of an asset, its SHA-256 declared with it. */
+export async function replaceStorageFile(projectId: string, connId: string, fileId: string, file: File): Promise<void> {
+  const sha256 = await fileSha256(file);
+  const { url, headers } = await getStorageReplaceUrl(projectId, connId, fileId, file.type, file.name, sha256);
+  await uploadToPresignedUrl(url, file, file.type, headers);
 }
 
 export async function renameStorageFile(projectId: string, connId: string, fileId: string, displayName: string) {
@@ -86,8 +115,9 @@ export async function getStorageReplaceUrl(
   fileId: string,
   contentType: string,
   fileName: string,
-): Promise<{ url: string; storageKey: string; fileId: string }> {
-  const params = new URLSearchParams({ contentType, fileName });
+  sha256?: string,
+): Promise<{ url: string; storageKey: string; fileId: string; headers?: Record<string, string> }> {
+  const params = new URLSearchParams({ contentType, fileName, ...(sha256 ? { sha256 } : {}) });
   const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}/replace-url?${params}`, {
     method: 'GET',
     credentials: 'include',

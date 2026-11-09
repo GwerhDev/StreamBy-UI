@@ -6,7 +6,7 @@ import {
   faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
-import { getStorageFiles, getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
+import { getStorageFiles, uploadStorageFile } from '../../../services/storage';
 import s from './AssetPickerModal.module.css';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -135,8 +135,7 @@ export function AssetPickerModal({ projectId, onInsert, onClose }: AssetPickerMo
     for (const file of files) {
       try {
         setUploadProgress(`Uploading ${file.name}…`);
-        const { url } = await getStorageUploadUrl(projectId, 'builtin', activeCategory, file.name, file.type);
-        await uploadToPresignedUrl(url, file, file.type);
+        await uploadStorageFile(projectId, 'builtin', activeCategory, file, file.type);
         succeeded++;
       } catch {
         // error toast handled inside service

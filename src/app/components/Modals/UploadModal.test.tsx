@@ -38,8 +38,7 @@ describe('UploadModal — license metadata', () => {
   };
 
   it('uploads the files with the license metadata given', async () => {
-    const getUrl = vi.spyOn(storage, 'getStorageUploadUrl').mockResolvedValue({ url: 'https://upload.test/x', fileId: 'a1' });
-    vi.spyOn(storage, 'uploadToPresignedUrl').mockResolvedValue(true);
+    const upload = vi.spyOn(storage, 'uploadStorageFile').mockResolvedValue({ url: 'https://upload.test/x', fileId: 'a1' });
     renderModal();
     const user = userEvent.setup();
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -48,7 +47,7 @@ describe('UploadModal — license metadata', () => {
     await user.type(screen.getByTestId('upload-license-creatorName'), 'Jane Doe');
     await user.selectOptions(screen.getByTestId('upload-license-licenseType'), 'CC0');
     await user.click(screen.getByRole('button', { name: /Upload \(1\)/ }));
-    await waitFor(() => expect(getUrl).toHaveBeenCalledWith('p1', 'builtin', 'images', 'rock.png', 'image/png',
+    await waitFor(() => expect(upload).toHaveBeenCalledWith('p1', 'builtin', 'images', expect.objectContaining({ name: 'rock.png' }), 'image/png',
       expect.objectContaining({ creatorName: 'Jane Doe', licenseType: 'CC0', sourceUrl: null })));
   });
 });

@@ -8,7 +8,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { LicenseMetadata, StorageCategory } from '../../../interfaces';
 import { LicenseFields } from '../Storage/LicenseFields';
 import { EMPTY_LICENSE, licenseError } from '../../../utils/licenses';
-import { getStorageUploadUrl, uploadToPresignedUrl } from '../../../services/storage';
+import { uploadStorageFile } from '../../../services/storage';
 import { Spinner } from '../Spinner';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -103,8 +103,7 @@ export function UploadModal({ projectId, connId, category, onSuccess, onClose }:
     try {
       await Promise.all(files.map(async (file) => {
         const contentType = resolveContentType(file);
-        const { url } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType, license);
-        await uploadToPresignedUrl(url, file, contentType);
+        await uploadStorageFile(projectId, connId, category, file, contentType, license);
       }));
       dispatch(addApiResponse({ message: `${files.length} file${files.length > 1 ? 's' : ''} uploaded.`, type: 'success' }));
       onSuccess();

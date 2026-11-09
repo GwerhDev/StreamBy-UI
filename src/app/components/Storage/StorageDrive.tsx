@@ -17,11 +17,10 @@ import { MoveModal } from '../Modals/MoveModal';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import {
   getStorageFiles,
-  getStorageUploadUrl,
+  uploadStorageFile,
   deleteStorageFile,
   renameStorageFile,
-  getStorageReplaceUrl,
-  uploadToPresignedUrl,
+  replaceStorageFile,
   getStorageFolders,
   getStorageFolderById,
   createStorageFolder,
@@ -265,8 +264,7 @@ export const StorageDrive = () => {
   const handleReplace = useCallback(async (id: string, file: File) => {
     if (!projectId || !connId) return;
     try {
-      const { url } = await getStorageReplaceUrl(projectId, connId, id, file.type, file.name);
-      await uploadToPresignedUrl(url, file, file.type);
+      await replaceStorageFile(projectId, connId, id, file);
       await fetchFiles();
       dispatch(addApiResponse({ message: 'File replaced.', type: 'success' }));
     } catch (error: any) {
@@ -361,8 +359,7 @@ export const StorageDrive = () => {
         const category = detectCategory(file);
         if (!category) return;
         const contentType = resolveContentType(file);
-        const { url, fileId } = await getStorageUploadUrl(projectId, connId, category, file.name, contentType);
-        await uploadToPresignedUrl(url, file, contentType);
+        const { fileId } = await uploadStorageFile(projectId, connId, category, file, contentType);
         if (targetFolderId) await moveStorageFile(projectId, connId, fileId, targetFolderId);
       }));
       await fetchFiles();
