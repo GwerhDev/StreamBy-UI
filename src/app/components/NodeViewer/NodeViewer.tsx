@@ -422,6 +422,10 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
     // Credits sheet: Ingest nodes feed it their asset; its status goes on to a review.
     if (st === 'ingestNode' && tt === 'creditsSheetNode') return sh === 'out-stream' && th === 'in-assets';
     if (st === 'creditsSheetNode' && tt === 'reviewGateNode') return sh === 'out-status' && th === 'in-process';
+    // A gate holds back the deliverables of the Deliverable node it leads to (the same rules
+    // StreamBy applies to an agent's edits).
+    if (st === 'creditsSheetNode' && tt === 'deliverableNode') return sh === 'out-status' && th === 'in-filter';
+    if (st === 'reviewGateNode' && tt === 'deliverableNode') return sh === 'out-review' && th === 'in-filter';
 
     // IngestNode: receives file ref from left, outputs to streamby bottom data lane
     if (st === 'streambyNode' && tt === 'ingestNode') return sh === 'out-bottom';
