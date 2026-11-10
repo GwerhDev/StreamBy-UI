@@ -10,13 +10,15 @@ interface UnsavedChangesModalProps {
   saving: boolean;
   // What the user was going to do: go to view mode, or leave the page.
   leaving: string;
+  // What has the changes ("The workflow" if not given).
+  subject?: string;
   onKeep: () => void;
   onDiscard: () => void;
   onSave: () => void;
 }
 
 // Changes not saved, and something about to leave them behind: keep editing, discard, or save.
-export function UnsavedChangesModal({ saving, leaving, onKeep, onDiscard, onSave }: UnsavedChangesModalProps) {
+export function UnsavedChangesModal({ saving, leaving, subject = 'The workflow', onKeep, onDiscard, onSave }: UnsavedChangesModalProps) {
   return (
     <ModalShell
       title="Unsaved changes"
@@ -30,14 +32,16 @@ export function UnsavedChangesModal({ saving, leaving, onKeep, onDiscard, onSave
         </>
       }
     >
-      <p data-testid="workflow-leave">The workflow has changes that aren't saved. Save them, or discard them, before {leaving}.</p>
+      <p data-testid="workflow-leave">{subject} has changes that aren't saved. Save them, or discard them, before {leaving}.</p>
     </ModalShell>
   );
 }
 
 // Holds a navigation away (a link, the menu, back) while there are changes, until it's decided
 // what to do with them; reloading or closing the tab asks the browser's own question.
-function NavigationGuard({ when, saving, onSave, onDiscard }: { when: boolean; saving: boolean; onSave: () => Promise<boolean>; onDiscard: () => void }) {
+type GuardProps = { when: boolean; saving: boolean; onSave: () => Promise<boolean>; onDiscard: () => void; subject?: string };
+
+function NavigationGuard({ when, saving, onSave, onDiscard, subject }: GuardProps) {
   const blocker = useBlocker(({ currentLocation, nextLocation }) => when && currentLocation.pathname !== nextLocation.pathname);
 
   useEffect(() => {
@@ -51,6 +55,7 @@ function NavigationGuard({ when, saving, onSave, onDiscard }: { when: boolean; s
   return (
     <UnsavedChangesModal
       saving={saving}
+      subject={subject}
       leaving="leaving the page"
       onKeep={() => blocker.reset?.()}
       onDiscard={() => { onDiscard(); blocker.proceed?.(); }}
@@ -60,6 +65,6 @@ function NavigationGuard({ when, saving, onSave, onDiscard }: { when: boolean; s
 }
 
 /** The navigation guard, where the router can hold a navigation (a data router). */
-export function UnsavedChangesGuard(props: { when: boolean; saving: boolean; onSave: () => Promise<boolean>; onDiscard: () => void }) {
+export function UnsavedChangesGuard(props: GuardProps) {
   return useContext(UNSAFE_DataRouterContext) ? <NavigationGuard {...props} /> : null;
 }

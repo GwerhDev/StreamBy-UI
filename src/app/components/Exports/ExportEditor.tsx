@@ -4,11 +4,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { getExport, updateExport } from '../../../services/exports';
 import { ActionButton } from '../Buttons/ActionButton';
-import { SecondaryButton } from '../Buttons/SecondaryButton';
 import {
   faXmark, faCode, faSitemap,
   faTableColumns, faArrowLeft,
-  faSave, faTriangleExclamation,
+  faSave,
   faTerminal, faCircleCheck, faCircleXmark, faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -23,7 +22,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { Tabs, TabItem } from '../Tabs/Tabs';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { setCurrentExport, setExportLoading, setExportError } from '../../../store/currentExportSlice';
-import { ModalShell } from '../Modals/ModalShell';
+import { UnsavedChangesGuard } from '../Workflow/UnsavedChanges';
 import { PipelineRunLog } from './PipelineRunLog';
 
 type TabId = 'nodes' | 'response';
@@ -51,7 +50,12 @@ function schemaKey(nodeSchema: unknown): string {
     .filter(n => n.type === 'dataSourceNode' && n.data?.recordId)
     .map(n => `${n.id}:${n.data!.recordId as string}`)
     .join('|');
-  return `${edgesKey}~~${filterKey}~~${recordKey}`;
+  // A JSON Data node's JSON, applied from its editor: a change to save like any other.
+  const jsonKey = schema.nodes
+    .filter(n => n.type === 'jsonInputNode')
+    .map(n => `${n.id}:${String(n.data?.jsonString ?? '')}`)
+    .join('|');
+  return `${edgesKey}~~${filterKey}~~${recordKey}~~${jsonKey}`;
 }
 
 export const ExportEditor: React.FC = () => {
@@ -63,7 +67,6 @@ export const ExportEditor: React.FC = () => {
 
   const [submitting,    setSubmitting]    = useState(false);
   const [isDirty,       setIsDirty]       = useState(false);
-  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingSchema, setPendingSchema] = useState<{ nodes: object[]; edges: object[] } | null>(null);
   const [schemaVersion, setSchemaVersion] = useState(0);
   const [isDragging,   setIsDragging]   = useState(false);
@@ -228,8 +231,9 @@ export const ExportEditor: React.FC = () => {
     setIsDirty(true);
   }, [dispatch, exportDetails]);
 
-  const handleSubmit = async () => {
-    if (!projectId || !exportId) return;
+  // Saves the export: whether it was saved (the guard leaves only then).
+  const handleSubmit = async (): Promise<boolean> => {
+    if (!projectId || !exportId) return false;
     setSubmitting(true);
     try {
       const nodeSchema = nodeViewerRef.current?.getSchema() ?? liveSchemaRef.current as { nodes: object[]; edges: object[] } | null;
@@ -253,27 +257,17 @@ export const ExportEditor: React.FC = () => {
       };
       await updateExport(projectId, exportId, payload);
       setIsDirty(false);
+      return true;
     } catch (err) {
       console.error(err);
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
 
+  // With changes, the guard asks first (as for any other way out of the editor).
   const handleBack = () => {
-    if (isDirty) {
-      setShowLeaveModal(true);
-    } else {
-      navigate(`/project/${projectId}/workflow/exports/${exportId}`, { replace: true });
-    }
-  };
-
-  const handleLeaveConfirm = async () => {
-    await handleSubmit();
-    navigate(`/project/${projectId}/workflow/exports/${exportId}`, { replace: true });
-  };
-
-  const handleLeaveDiscard = () => {
     navigate(`/project/${projectId}/workflow/exports/${exportId}`, { replace: true });
   };
 
@@ -433,12 +427,12 @@ export const ExportEditor: React.FC = () => {
               <FontAwesomeIcon icon={faTerminal} />
             </button>
             <div className={s.buttonsContainer}>
-              <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={handleSubmit} />
+              <ActionButton isLoading={loading} disabled={!isDirty || loading} icon={faSave} text="Save" onClick={() => { void handleSubmit(); }} />
             </div>
           </div>
         </div>
       </div>
-      <form onSubmit={handleSubmit} className={s.form}>
+      <form onSubmit={e => { e.preventDefault(); void handleSubmit(); }} className={s.form}>
         <PanelGroup orientation="horizontal" className={s.splitGroup}>
           {columns.map((col, colIdx) => (
             <React.Fragment key={col.id}>
@@ -524,21 +518,9 @@ export const ExportEditor: React.FC = () => {
 
       {showLog && <PipelineRunLog onClose={() => setShowLog(false)} />}
 
-      {showLeaveModal && (
-        <ModalShell
-          title="Unsaved changes"
-          icon={faTriangleExclamation}
-          onClose={() => setShowLeaveModal(false)}
-          footer={
-            <>
-              <SecondaryButton icon={faXmark} text="Discard" onClick={handleLeaveDiscard} />
-              <ActionButton isLoading={submitting} icon={faSave} text="Save and leave" onClick={handleLeaveConfirm} />
-            </>
-          }
-        >
-          <p>You have unsaved changes. Do you want to save before leaving the editor?</p>
-        </ModalShell>
-      )}
+      {/* Any way out of the editor with changes (its back arrow, the menu, the breadcrumbs,
+          closing the tab) asks to keep editing, discard or save them. */}
+      <UnsavedChangesGuard when={isDirty} saving={submitting} subject="The export" onSave={handleSubmit} onDiscard={() => setIsDirty(false)} />
     </div>
   );
 };

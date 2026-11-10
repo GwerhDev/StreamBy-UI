@@ -41,7 +41,7 @@ import { Export, Connection as ConnectionEntity, DbConnection, StorageConnection
 import { fetchRecords, fetchTables } from '../../../services/database';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faDatabase, faGlobe, faXmark, faFloppyDisk,
+  faDatabase, faGlobe, faXmark, faFloppyDisk, faCheck,
   faInfoCircle, faArrowsRotate, faFilter,
   faPlus, faCode, faGear, faUser, faWrench,
   faChevronRight,
@@ -978,7 +978,7 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
       setLocalData({});
       setSelectedNodeId(null);
     } catch {
-      setJsonError('Invalid JSON — fix the syntax before saving.');
+      setJsonError('Invalid JSON — fix the syntax before applying.');
     }
   }, [modalJsonValue, selectedNodeId, setNodes]);
 
@@ -1620,8 +1620,9 @@ const NodeViewerInner = forwardRef<NodeViewerHandle, NodeViewerProps>(({
                   className={s.saveButton}
                   onClick={handleJsonModalSave}
                   disabled={!modalJsonValid}
+                  title="Apply to the canvas (save the export to keep it)"
                 >
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Save Changes
+                  <FontAwesomeIcon icon={faCheck} /> Apply
                 </button>
               )}
             </div>
