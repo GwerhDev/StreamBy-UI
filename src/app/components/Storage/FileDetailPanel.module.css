@@ -282,27 +282,31 @@
 /* ── Tabs ──────────────────────────────────── */
 .tabBar {
   display: flex;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 2px;
+  margin: 0.25rem 1.1rem 0.5rem;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--color-surface-sunken);
   flex-shrink: 0;
 }
 
 .tabBtn {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  padding: 0.5rem 0.25rem;
-  background: none;
+  gap: 0.35rem;
+  padding: 0.4rem 0.3rem;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 6px;
+  background: none;
   color: var(--color-text-muted);
   font-size: 0.72rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-  letter-spacing: 0.02em;
-  margin-bottom: -1px;
+  transition: color 0.15s, background-color 0.15s;
 }
 
 .tabBtn:hover {
@@ -310,12 +314,18 @@
 }
 
 .tabBtnActive {
+  background: var(--color-surface-hover);
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.tabBtnActive:hover {
+  color: var(--color-accent);
 }
 
 .tabIcon {
-  font-size: 0.65rem;
+  flex-shrink: 0;
+  font-size: 0.7rem;
 }
 
 .tabBody {
