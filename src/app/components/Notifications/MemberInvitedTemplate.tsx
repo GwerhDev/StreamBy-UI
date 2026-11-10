@@ -1,10 +1,11 @@
 import s from './MemberInvitedTemplate.module.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBan, faCheck, faEye } from '@fortawesome/free-solid-svg-icons';
-import { RootState } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
+import { reloadProjects } from '../../../store/projectsSlice';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
 import { ActionButton } from '../Buttons/ActionButton';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
@@ -16,6 +17,7 @@ interface MemberInvitedTemplateProps {
 
 export const MemberInvitedTemplate = ({ notification }: MemberInvitedTemplateProps) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const userId = useSelector((state: RootState) => state.session.userId);
   const { projectId, role } = (notification.data as { projectId: string; role: string; invitedBy: string }) || {};
 
@@ -29,6 +31,8 @@ export const MemberInvitedTemplate = ({ notification }: MemberInvitedTemplatePro
     try {
       await acceptInvitation(projectId, userId);
       setDone('accepted');
+      // A member now: the project joins their list.
+      dispatch(reloadProjects());
     } finally {
       setAccepting(false);
     }

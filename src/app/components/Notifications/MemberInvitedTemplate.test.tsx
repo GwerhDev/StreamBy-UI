@@ -1,4 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import projects from '../../../store/projectsSlice';
+import * as projectsService from '../../../services/projects';
+import { ProjectList } from '../../../interfaces';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
@@ -12,7 +16,7 @@ vi.mock('../../../services/members', () => ({
 
 const makeStore = (userId = 'u1') =>
   configureStore({
-    reducer: { session: () => ({ userId, username: 'user', logged: true }) },
+    reducer: { projects, session: () => ({ userId, username: 'user', logged: true }) },
   });
 
 const makeNotif = (overrides: Partial<ServerNotification> = {}): ServerNotification => ({
@@ -29,14 +33,19 @@ const makeNotif = (overrides: Partial<ServerNotification> = {}): ServerNotificat
   ...overrides,
 });
 
-const renderTemplate = (notif = makeNotif()) =>
+const renderTemplate = (notif = makeNotif()) => {
+  const store = makeStore();
   render(
-    <Provider store={makeStore()}>
+    <Provider store={store}>
       <MemoryRouter>
         <MemberInvitedTemplate notification={notif} />
       </MemoryRouter>
     </Provider>,
   );
+  return store;
+};
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('MemberInvitedTemplate', () => {
   it('renders the notification message', () => {
@@ -68,5 +77,22 @@ describe('MemberInvitedTemplate', () => {
   it('does not render role badge when data is null', () => {
     renderTemplate(makeNotif({ data: null }));
     expect(screen.queryByText('admin')).not.toBeInTheDocument();
+  });
+
+  it('accepted, reads the projects again: the project joins the list', async () => {
+    const joined = [{ id: 'p1', name: 'Project X', image: '', archived: false }] as unknown as ProjectList[];
+    const read = vi.spyOn(projectsService, 'fetchProjects').mockResolvedValue(joined);
+    const store = renderTemplate();
+    await userEvent.setup().click(screen.getByRole('button', { name: /accept/i }));
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(store.getState().projects.list).toEqual(joined));
+  });
+
+  it('rejected, the list stays as it is', async () => {
+    const read = vi.spyOn(projectsService, 'fetchProjects').mockResolvedValue([]);
+    renderTemplate();
+    await userEvent.setup().click(screen.getByRole('button', { name: /reject/i }));
+    expect(await screen.findByText(/rejected/i)).toBeInTheDocument();
+    expect(read).not.toHaveBeenCalled();
   });
 });

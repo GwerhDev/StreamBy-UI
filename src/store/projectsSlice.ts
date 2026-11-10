@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { ProjectList } from '../interfaces';
+import { fetchProjects } from '../services/projects';
 
 export interface ProjectsState {
   list: ProjectList[];
@@ -40,4 +41,14 @@ export const projectsSlice = createSlice({
 });
 
 export const { setProjects, addProject, removeProject, setProjectsLoading, setProjectsError } = projectsSlice.actions;
+
+/** The user's projects, read again (after something changed them: an invitation accepted). */
+export const reloadProjects = () => async (dispatch: Dispatch) => {
+  dispatch(setProjectsLoading());
+  try {
+    dispatch(setProjects(await fetchProjects()));
+  } catch (err) {
+    dispatch(setProjectsError(err instanceof Error ? err.message : 'Failed to load projects'));
+  }
+};
 export default projectsSlice.reducer;

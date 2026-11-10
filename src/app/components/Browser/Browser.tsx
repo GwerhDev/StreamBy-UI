@@ -9,6 +9,8 @@ import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
 import { ModeToggle } from '../ModeToggle/ModeToggle';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
+import { setMembership } from '../../../store/currentProjectSlice';
+import { reloadProjects } from '../../../store/projectsSlice';
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 
 type BrowserProps = {
@@ -51,6 +53,9 @@ export const Browser = (props: BrowserProps) => {
     try {
       await acceptInvitation(currentProject.id, session.userId);
       dispatch(addApiResponse({ message: 'Invitation accepted.', type: 'success' }));
+      // A member now: no longer pending here, and the project joins their list.
+      dispatch(setMembership({ isMember: true, status: 'active' }));
+      dispatch(reloadProjects());
     } catch (error: any) {
       dispatch(addApiResponse({ message: error.message || 'Failed to accept invitation.', type: 'error' }));
     }
