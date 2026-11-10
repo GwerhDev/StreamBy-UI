@@ -1,11 +1,11 @@
 import s from './FileDetailPanel.module.css';
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faXmark, faCopy, faCheck, faDownload, faTrash,
   faHeadphones, faVideo, faCubes, faImage, faArrowsRotate, faPencil,
-  faFileLines, faDatabase, faBolt, faShield, faTriangleExclamation, faSpinner,
+  faFileLines, faDatabase, faBolt, faShield, faTriangleExclamation, faSpinner, faMagnifyingGlassChart,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory, AssetRights, LicenseMetadata } from '../../../interfaces';
 import { useSelector } from 'react-redux';
@@ -15,6 +15,8 @@ import { EMPTY_LICENSE, licenseError } from '../../../utils/licenses';
 import { AssetJobs } from '../Jobs/AssetJobs';
 import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
 import { assetReference } from '../../../utils/assetReference';
+import { ModelThumbnail } from './ModelThumbnail';
+import { inspectorPath } from '../../../utils/inspectorPath';
 
 interface FileDetailPanelProps {
   file: StorageFile;
@@ -210,7 +212,7 @@ function RightsTab({ fileId, projectId }: { fileId: string; projectId: string })
 }
 
 export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, onRename }: FileDetailPanelProps) {
-  const { id: projectId = '' } = useParams<{ id: string }>();
+  const { id: projectId = '', connId } = useParams<{ id: string; connId: string }>();
   const [activeTab, setActiveTab]     = useState<TabId>('info');
   const [copied, setCopied]           = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -308,6 +310,9 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
       <div className={s.preview}>
         {category === 'images' ? (
           <img src={file.url} alt={file.displayName} className={s.previewImage} />
+        ) : category === '3d-models' ? (
+          // A still of it, light: orbiting it and its measurements are in the inspector.
+          <ModelThumbnail url={file.url} />
         ) : (
           <div className={s.previewIcon}>
             <FontAwesomeIcon icon={categoryIcon[category]} className={s.fileIcon} />
@@ -337,6 +342,13 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
               </button>
             )}
           </div>
+        )}
+
+        {category === '3d-models' && projectId && (
+          // The inspector: its own page (a link to share), with what it measures against the budgets.
+          <Link className={s.inspectBtn} to={inspectorPath(projectId, connId, file.id)} data-testid="inspect-asset">
+            <FontAwesomeIcon icon={faMagnifyingGlassChart} /> Inspect
+          </Link>
         )}
 
         <div className={s.urlRow}>

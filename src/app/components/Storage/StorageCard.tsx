@@ -1,13 +1,15 @@
 import s from './StorageCard.module.css';
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeadphones, faVideo, faCubes, faTrash, faDownload,
-  faXmark, faCopy, faCheck, faEye, faPencil, faArrowsRotate, faArrowRight,
+  faXmark, faCopy, faCheck, faEye, faPencil, faArrowsRotate, faArrowRight, faMagnifyingGlassChart,
 } from '@fortawesome/free-solid-svg-icons';
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { ReplaceModal } from '../Modals/ReplaceModal';
 import { assetReference } from '../../../utils/assetReference';
+import { inspectorPath } from '../../../utils/inspectorPath';
 
 const ModelViewer = lazy(() => import('./ModelViewer').then(m => ({ default: m.ModelViewer })));
 const ModelThumbnail = lazy(() => import('./ModelThumbnail').then(m => ({ default: m.ModelThumbnail })));
@@ -42,6 +44,7 @@ const CTX_H = 200;
 
 export function StorageCard({ file, category, onDelete, onRename, onReplace, onMove, selected: controlledSelected, onSelect }: StorageCardProps) {
   const thumbnail = file.thumbnailUrl ?? null;
+  const { id: projectId, connId } = useParams<{ id: string; connId: string }>();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(false);
   const isControlled = onSelect !== undefined;
@@ -309,6 +312,13 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
             )}
 
             <div className={s.previewActions}>
+              {category === '3d-models' && projectId && (
+                // The inspector: its own page, with what it measures against the budgets.
+                <Link className={`${s.previewActionBtn} ${s.previewInspectBtn}`} to={inspectorPath(projectId, connId, file.id)} data-testid="inspect-asset">
+                  <FontAwesomeIcon icon={faMagnifyingGlassChart} />
+                  Inspect
+                </Link>
+              )}
               <button className={s.previewActionBtn} onClick={handleCopyUrl} title="Copy its reference, for an export (answered as its URL)">
                 <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
                 {copied ? 'Copied!' : 'Copy reference'}

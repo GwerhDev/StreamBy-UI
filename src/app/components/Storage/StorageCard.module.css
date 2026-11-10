@@ -246,6 +246,15 @@
   color: var(--color-text-bright);
 }
 
+.previewInspectBtn {
+  color: var(--color-accent);
+}
+
+.previewInspectBtn:hover {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+}
+
 .previewDeleteBtn {
   color: var(--color-danger-text);
 }

@@ -6,7 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FileDetailPanel } from './FileDetailPanel';
 import * as storage from '../../../services/storage';
-import { AssetRights, StorageFile } from '../../../interfaces';
+import { AssetRights, StorageCategory, StorageFile } from '../../../interfaces';
 import creditsSheets, { assetRightsEventReceived } from '../../../store/creditsSheetsSlice';
 
 const FILE: StorageFile = {
@@ -14,15 +14,16 @@ const FILE: StorageFile = {
   url: 'https://storage.test/f1.png', lastModified: '', contentType: 'image/png', category: 'images', uploadedBy: 'u1', createdAt: '',
 };
 
-const renderPanel = () => {
+const renderPanel = (file: StorageFile = FILE) => {
   const store = configureStore({ reducer: { currentJob: () => ({ jobs: {} }), creditsSheets } });
   render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/project/p1/storage']}>
+      <MemoryRouter initialEntries={['/project/p1/storage/c-builtin']}>
         <Routes>
-          <Route path="/project/:id/storage" element={
-            <FileDetailPanel file={FILE} category="images" onClose={vi.fn()} onDelete={vi.fn()} onUpdate={vi.fn()} />
+          <Route path="/project/:id/storage/:connId" element={
+            <FileDetailPanel file={file} category={file.category as StorageCategory} onClose={vi.fn()} onDelete={vi.fn()} onUpdate={vi.fn()} />
           } />
+          <Route path="/project/:id/storage/:connId/3d-models/:assetId" element={<p data-testid="inspector-page">Inspector</p>} />
         </Routes>
       </MemoryRouter>
     </Provider>,
@@ -33,6 +34,23 @@ const renderPanel = () => {
 beforeEach(() => vi.restoreAllMocks());
 
 describe('FileDetailPanel', () => {
+  it("opens a 3D model's inspector, its own page, from Inspect", async () => {
+    vi.spyOn(storage, 'getAssetMetadata').mockResolvedValue(null);
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(null);
+    renderPanel({ ...FILE, id: 'm1', displayName: 'goblin.glb', category: '3d-models', contentType: 'model/gltf-binary' });
+    const inspect = screen.getByTestId('inspect-asset');
+    expect(inspect).toHaveAttribute('href', '/project/p1/storage/c-builtin/3d-models/m1');
+    await userEvent.setup().click(inspect);
+    expect(await screen.findByTestId('inspector-page')).toBeInTheDocument();
+  });
+
+  it('has no Inspect for what isn\'t a 3D model', () => {
+    vi.spyOn(storage, 'getAssetMetadata').mockResolvedValue(null);
+    vi.spyOn(storage, 'getAssetRights').mockResolvedValue(null);
+    renderPanel();
+    expect(screen.queryByTestId('inspect-asset')).not.toBeInTheDocument();
+  });
+
   it("shows the file's custom tags in its Metadata tab", async () => {
     const get = vi.spyOn(storage, 'getAssetMetadata').mockResolvedValue({ assetId: 'f1', customTags: { shot: 'SH010', pass: 'layout' } });
     renderPanel();

@@ -1,6 +1,7 @@
 /* ─── Drive shell ────────────────────────────────────────────────────────── */
 
 .drive {
+  position: relative;
   width: 100%;
   height: 100%;
   padding: 1rem;
@@ -646,14 +647,24 @@
 
 /* ─── Detail panel (slide in from right) ────────────────────────────────── */
 
+/* The preview floats over the files: opening it never moves nor resizes them. */
 .detail {
-  width: 0;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  width: 280px;
   overflow: hidden;
-  transition: width 0.2s ease;
-  flex-shrink: 0;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  transform: translateX(calc(100% + 2rem));
+  visibility: hidden;
+  transition: transform 0.2s ease, visibility 0s linear 0.2s;
 }
 
 .detailOpen {
-  width: 260px;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  transform: none;
+  visibility: visible;
+  transition: transform 0.2s ease;
 }

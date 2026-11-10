@@ -1,0 +1,55 @@
+.modal {
+  width: min(720px, 92vw);
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.profiles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--color-surface-sunken);
+}
+
+.profileHead {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.profileHead > span {
+  flex: 1;
+}
+
+.limits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.remove {
+  padding: 0.4rem 0.5rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: var(--color-danger-text, #f87171);
+}

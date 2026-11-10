@@ -121,6 +121,24 @@
 }
 
 /* ── URL row ── */
+.inspectBtn {
+  margin: 0.25rem 1.1rem 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 28px;
+  border-radius: var(--space-4);
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.inspectBtn:hover {
+  background: var(--color-accent-hover);
+}
+
 .urlRow {
   display: flex;
   align-items: center;

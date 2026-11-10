@@ -60,6 +60,7 @@ const ProjectCreate = lazyPage(() => import('./app/pages/ProjectCreate'), 'Proje
 const ExportsCreate = lazyPage(() => import('./app/pages/ExportsCreate'), 'ExportsCreate');
 const ExportsDetails = lazyPage(() => import('./app/pages/ExportsDetails'), 'ExportsDetails');
 const ExportEditorPage = lazyPage(() => import('./app/pages/ExportEditorPage'), 'ExportEditorPage');
+const AssetInspectorPage = lazyPage(() => import('./app/pages/AssetInspectorPage'), 'AssetInspectorPage');
 const ConnectionEdit = lazyPage(() => import('./app/pages/ConnectionEdit'), 'ConnectionEdit');
 const ConnectionsList = lazyPage(() => import('./app/pages/ConnectionsList'), 'ConnectionsList');
 const ConnectionDetail = lazyPage(() => import('./app/pages/ConnectionDetail'), 'ConnectionDetail');
@@ -161,6 +162,7 @@ function App() {
                   <Route path="/project/:id/storage" element={<StorageConnectionList />} />
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
                   <Route path="/project/:id/storage/:connId/:segment" element={<StorageDrive />} />
+                  <Route path="/project/:id/storage/:connId/3d-models/:assetId" element={<AssetInspectorPage />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />
