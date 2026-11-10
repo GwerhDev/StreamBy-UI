@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import sessionReducer from '../../../store/sessionSlice';
 import currentProject from '../../../store/currentProjectSlice';
 import projects from '../../../store/projectsSlice';
+import crumbNames, { nameCrumb } from '../../../store/crumbNamesSlice';
 import * as members from '../../../services/members';
 import * as projectsService from '../../../services/projects';
 import { MembershipInfo, ProjectList } from '../../../interfaces';
@@ -19,6 +20,7 @@ const renderBrowser = (props: { preview?: boolean; env?: string } = {}, path = '
       session: sessionReducer,
       currentProject,
       projects,
+      crumbNames,
       currentExport: empty, currentWorkflow: empty, currentPipeline: empty, currentStorageFolder: empty,
       documents: () => ({ list: [] }),
       management: () => ({ databases: [], storages: [] }),
@@ -75,5 +77,44 @@ describe('Browser', () => {
     await waitFor(() => expect(store.getState().projects.list).toEqual(joined));
     expect(store.getState().currentProject.membership).toEqual({ isMember: true, status: 'active' });
     expect(screen.queryByText('Project invitation')).not.toBeInTheDocument();
+  });
+
+  describe('its crumbs, for the ids in the route', () => {
+    const ASSET = '5d1efdae-ce1e-4aec-9d0b-2f1c3e4a5b6c';
+    const spinners = () => document.querySelectorAll('.fa-spinner');
+
+    it("never wait forever: an id nothing names is shown as a short id", () => {
+      renderBrowser({}, `/project/p1/storage/c-builtin/3d-models/${ASSET}`);
+      expect(screen.getByText('3d models')).toBeInTheDocument();
+      expect(screen.getByText('5d1efdae')).toBeInTheDocument();
+      expect(spinners()).toHaveLength(0);
+      // A Mongo id too.
+      document.body.innerHTML = '';
+      renderBrowser({}, '/project/p1/workflow/exports/0123456789abcdef01234567');
+      expect(screen.getByText('01234567')).toBeInTheDocument();
+      expect(spinners()).toHaveLength(0);
+    });
+
+    it('show the name a page gives an id', () => {
+      const store = renderBrowser({}, `/project/p1/storage/c-builtin/3d-models/${ASSET}`);
+      act(() => { store.dispatch(nameCrumb({ id: ASSET, name: 'nhexa-icon.glb' })); });
+      expect(screen.getByText('nhexa-icon.glb')).toBeInTheDocument();
+      expect(screen.queryByText('5d1efdae')).not.toBeInTheDocument();
+    });
+
+    it('wait, with a spinner, only while something that names them is loading', () => {
+      const store = renderBrowser({}, `/project/p1/storage/c-builtin/3d-models/${ASSET}`);
+      act(() => { store.dispatch({ type: 'currentProject/setProjectLoading' }); });
+      expect(spinners()).toHaveLength(1);
+      act(() => { store.dispatch({ type: 'currentProject/setCurrentProject', payload: { id: 'p1', name: 'Demo' } }); });
+      expect(spinners()).toHaveLength(0);
+      expect(screen.getByText('5d1efdae')).toBeInTheDocument();
+    });
+
+    it("show a project's storage connection by its name", () => {
+      const store = renderBrowser({}, '/project/p1/storage/c-builtin');
+      act(() => { store.dispatch({ type: 'currentProject/setCurrentProject', payload: { id: 'p1', name: 'Demo', storageConnections: [{ id: 'c-builtin', name: 'StreamBy' }] } }); });
+      expect(screen.getByText('streamby')).toBeInTheDocument();
+    });
   });
 });

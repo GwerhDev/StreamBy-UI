@@ -32,6 +32,11 @@ export const Browser = (props: BrowserProps) => {
   const currentPipeline = useSelector((state: RootState) => state.currentPipeline.data);
   const currentStorageFolder = useSelector((state: RootState) => state.currentStorageFolder.data);
   const documents = useSelector((state: RootState) => state.documents.list);
+  const crumbNames = useSelector((state: RootState) => state.crumbNames?.names);
+  // Whether something that names a route's ids is still on its way (then an id waits for it).
+  const naming = useSelector((state: RootState) =>
+    !!(state.currentProject?.loading || state.currentExport?.loading || state.currentWorkflow?.loading
+      || state.currentPipeline?.loading || state.documents?.loading));
 
 
   const isPending = membership?.isMember && membership?.status === 'pending';
@@ -83,11 +88,10 @@ export const Browser = (props: BrowserProps) => {
   const isUUID = (seg: string) =>
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg);
 
-  const storageConnIds = currentProject?.storageConnections?.map(c => c.id) ?? [];
-  const dbConnIds = currentProject?.dbConnections?.map(c => c.id) ?? [];
   const documentTitle = (seg: string) => documents?.find(d => d.id === seg)?.title;
 
-  const formatSegment = (seg: string) => {
+  // A segment's name, if something loaded names it.
+  const nameOf = (seg: string): string | undefined => {
     if (currentExport && seg === currentExport.id) return currentExport.name;
     if (currentWorkflow && seg === currentWorkflow.id) return currentWorkflow.name;
     if (currentPipeline && seg === currentPipeline.id) return currentPipeline.name;
@@ -96,8 +100,15 @@ export const Browser = (props: BrowserProps) => {
     const dbConn = currentProject?.dbConnections?.find(c => c.id === seg);
     if (dbConn) return dbConn.name.toLowerCase();
     if (currentStorageFolder && seg === currentStorageFolder.id) return currentStorageFolder.name;
-    const title = documentTitle(seg);
-    if (title) return title;
+    return documentTitle(seg) ?? crumbNames?.[seg];
+  };
+
+  // An id is its name once something names it; while something that could is loading, it
+  // waits (a spinner); else it's a short id, never a spinner forever.
+  const crumbOf = (seg: string) => {
+    const name = nameOf(seg);
+    if (name) return name;
+    if (isMongoId(seg) || isUUID(seg)) return naming ? <FontAwesomeIcon icon={faSpinner} spin /> : seg.slice(0, 8);
     return seg.replace(/[_-]/g, ' ');
   };
 
@@ -119,12 +130,7 @@ export const Browser = (props: BrowserProps) => {
                     <span key={i} className={s.separator}>
                       <FontAwesomeIcon icon={faChevronRight} />
                       <span className={s.breadcrumb} onClick={() => handleNavigate(i)}>
-                        {(isMongoId(seg) && seg !== currentExport?.id && seg !== currentWorkflow?.id && seg !== currentPipeline?.id) ||
-                         (isUUID(seg) && seg !== currentWorkflow?.id && seg !== currentPipeline?.id
-                           && (!currentStorageFolder || currentStorageFolder.id !== seg)
-                           && !storageConnIds.includes(seg) && !dbConnIds.includes(seg) && !documentTitle(seg))
-                          ? <FontAwesomeIcon icon={faSpinner} spin />
-                          : formatSegment(seg)}
+                        {crumbOf(seg)}
                       </span>
                     </span>
                   ))

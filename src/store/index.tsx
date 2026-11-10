@@ -17,6 +17,7 @@ import documentsReducer from './documentsSlice';
 import creditsSheetsReducer from './creditsSheetsSlice';
 import deliverableGatesReducer from './deliverableGatesSlice';
 import pipelineRunsReducer from './pipelineRunsSlice';
+import crumbNamesReducer from './crumbNamesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -38,6 +39,7 @@ export const store = configureStore({
     creditsSheets: creditsSheetsReducer,
     deliverableGates: deliverableGatesReducer,
     pipelineRuns: pipelineRunsReducer,
+    crumbNames: crumbNamesReducer,
   },
 });
 
