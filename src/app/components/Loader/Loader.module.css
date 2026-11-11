@@ -1,0 +1,41 @@
+/* The splash's loading bar, under the logo: StreamBy doesn't know how far its loading has come,
+   so it's an indeterminate one -- a stretch of light running along its track. The same track
+   as Nhexa's other splashes (Spellcast's, Spectra's). */
+/* Under the wordmark, not under the logo's box: the logo's SVG is square, its wordmark a band
+   across its middle ending 4.48% of its height below its center -- and it's 50vw wide (so as
+   tall), centered in the splash. */
+.barTrack {
+  position: absolute;
+  top: calc(50% + 50vw * 0.0448 + 2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--nhexa-desktop-border-soft);
+  overflow: hidden;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 999px;
+  background: var(--color-accent);
+  animation: run 1.4s ease-in-out infinite;
+}
+
+@keyframes run {
+  from { left: -35%; }
+  to   { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

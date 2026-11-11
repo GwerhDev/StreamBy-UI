@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Loader } from './index';
 
 describe('Loader', () => {
@@ -10,5 +10,10 @@ describe('Loader', () => {
   it('renders logo image', () => {
     const { container } = render(<Loader />);
     expect(container.querySelector('img')).toBeInTheDocument();
+  });
+
+  it('shows a loading bar under the logo', () => {
+    render(<Loader />);
+    expect(screen.getByRole('progressbar', { name: 'Loading' })).toBeInTheDocument();
   });
 });
