@@ -1,45 +1,20 @@
+/* As the notifications' bell beside it. */
 .trigger {
-  position: relative;
-  width: 18px;
-  height: 18px;
   padding: 0;
   border: none;
-  border-radius: 0;
-  background: transparent;
+  display: flex;
   cursor: pointer;
+  align-items: center;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: color 0.15s ease;
 }
 
 .trigger:hover {
+  color: var(--color-text-bright);
   background: transparent;
 }
 
-.streambyIcon,
-.appsIcon {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.streambyIcon {
-  object-fit: contain;
-}
-
-.appsIcon {
-  opacity: 0;
-  transform: scale(0.7) rotate(-30deg);
-  color: var(--nhexa-desktop-text);
-}
-
-.trigger:hover .streambyIcon,
-.trigger:focus-visible .streambyIcon {
-  opacity: 0;
-  transform: scale(0.7) rotate(30deg);
-}
-
-.trigger:hover .appsIcon,
-.trigger:focus-visible .appsIcon {
-  opacity: 1;
-  transform: none;
+.icon {
+  font-size: 0.90rem;
 }

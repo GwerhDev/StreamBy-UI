@@ -1,4 +1,5 @@
 import s from './AppTitle.module.css';
+import streambyIcon from '../../../assets/streamby-icon.svg';
 
 interface AppTitleProps {
   // The project open now, if any: shown instead of StreamBy, which it turns into on hover.
@@ -6,6 +7,11 @@ interface AppTitleProps {
   projectImage?: string;
   onClick: () => void;
 }
+
+// StreamBy's mark and name.
+const Brand = () => (
+  <><img src={streambyIcon} alt="" className={s.brandIcon} data-testid="app-title-brand-icon" />STREAMBY</>
+);
 
 // The header's centered title, as Nhexa's other apps have it: it goes to StreamBy's home.
 export const AppTitle = ({ projectName, projectImage, onClick }: AppTitleProps) => (
@@ -16,10 +22,10 @@ export const AppTitle = ({ projectName, projectImage, onClick }: AppTitleProps) 
           {projectImage && <img src={projectImage} alt="" className={s.projectImage} />}
           {projectName.toUpperCase()}
         </span>
-        <span className={s.brand} data-testid="app-title-brand">STREAMBY</span>
+        <span className={s.brand} data-testid="app-title-brand"><Brand /></span>
       </>
     ) : (
-      <span data-testid="app-title-brand">STREAMBY</span>
+      <span className={s.home} data-testid="app-title-brand"><Brand /></span>
     )}
   </button>
 );

@@ -7,6 +7,7 @@ describe('AppTitle', () => {
     render(<AppTitle onClick={() => {}} />);
     expect(screen.getByTestId('app-title')).toHaveTextContent(/^STREAMBY$/);
     expect(screen.queryByTestId('app-title-project')).not.toBeInTheDocument();
+    expect(screen.getByTestId('app-title-brand-icon')).toBeInTheDocument();
   });
 
   it("is the project's name in one, with StreamBy for its hover", () => {

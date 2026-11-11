@@ -7,11 +7,11 @@ import { DesktopProvider, useDesktop } from '../../../context/DesktopContext';
 const State = () => <p data-testid="minimized">{String(useDesktop().minimized)}</p>;
 
 describe('AppSwitcher', () => {
-  it("is StreamBy's icon, with the apps icon (hexagon nodes) for its hover", () => {
+  it('is the apps icon (hexagon nodes)', () => {
     render(<DesktopProvider><AppSwitcher /></DesktopProvider>);
     const trigger = screen.getByRole('button', { name: 'Nhexa apps' });
-    expect(trigger.querySelector('img')).toBeInTheDocument();
     expect(trigger.querySelector('svg[data-icon="hexagon-nodes"]')).toBeInTheDocument();
+    expect(trigger.querySelector('img')).not.toBeInTheDocument();
   });
 
   it("opens Nhexa's apps, and closes them", async () => {

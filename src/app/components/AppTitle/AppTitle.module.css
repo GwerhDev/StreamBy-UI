@@ -22,7 +22,8 @@
 }
 
 .project,
-.brand {
+.brand,
+.home {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -48,6 +49,14 @@
 .title:focus-visible .brand {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* StreamBy's own mark: as it is, not cropped round as the header's images are. */
+.title .brandIcon {
+  width: auto;
+  height: 14px;
+  aspect-ratio: auto;
+  border-radius: 0;
 }
 
 .projectImage {

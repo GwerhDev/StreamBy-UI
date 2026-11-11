@@ -8,7 +8,6 @@ import { fetchIntegrations } from '../../store/managementSlice';
 import { clearCurrentProject } from '../../store/currentProjectSlice';
 import { LateralTab } from '../components/LateralTab/LateralTab';
 import { LogoutModal } from '../components/Modals/LogoutModal';
-import { IntegrationsInfoButton } from '../components/IntegrationsInfo/IntegrationsInfoButton';
 import { NotificationsInfoButton } from '../components/NotificationsInfo/NotificationsInfoButton';
 import { EditorMenuProvider } from '../../context/EditorMenuContext';
 import { DesktopProvider, useDesktop } from '../../context/DesktopContext';
@@ -16,7 +15,6 @@ import { AppSwitcher } from '../components/AppSwitcher/AppSwitcher';
 import { Desktop } from '../components/AppSwitcher/Desktop';
 import { AppTitle } from '../components/AppTitle/AppTitle';
 import { APP_SWITCHER_URL } from '../../config/api';
-import streambyIcon from '../../assets/streamby-icon.svg';
 
 function DefaultLayoutInner() {
   const session = useSelector((state: RootState) => state.session);
@@ -31,9 +29,7 @@ function DefaultLayoutInner() {
     dispatch(fetchIntegrations());
   }, [dispatch]);
 
-  // Moved here from LateralTab's own icon -- the app's own logo/identity belongs in the
-  // header (same spot as the other NHEXA apps' brand mark), not the project rail, which is
-  // just project navigation.
+  // The header's title goes home.
   const handleGoHome = () => {
     dispatch(clearCurrentProject());
     navigate('/');
@@ -46,36 +42,20 @@ function DefaultLayoutInner() {
         {/* Stays put, only .dashboard-container below minimizes -- same pattern as
             Spellcast-Client/Spectra-Client's header bar. */}
         <div className="header-app">
-          {/* Left section: the app's own brand icon, in its own inner slot (same fixed
-              width as LateralTab's .container -- the rail below) so it sits centered
-              directly above the rail, at the start of this outer (1fr) column. It opens
-              Nhexa's apps; without them, it goes home. */}
-          <span className="header-left">
-            <span className="streamby-brand-slot">
-              {APP_SWITCHER_URL
-                ? <AppSwitcher />
-                : (
-                  <img
-                    className="streamby-brand-icon"
-                    onClick={handleGoHome}
-                    src={streambyIcon}
-                    alt="StreamBy"
-                    height={18}
-                  />
-                )}
-            </span>
-          </span>
-          {/* Center section: the title (the current project, or StreamBy), which goes home;
+          {/* Left section: empty, as wide as the right one, so the title stays centered. */}
+          <span className="header-left" />
+          {/* Center section: the title (the current project, or StreamBy with its mark), which goes home;
               centered on the header's real width regardless of how wide header-left/
               header-right end up being. */}
           <span className="title-container">
             <AppTitle projectName={name} projectImage={image} onClick={handleGoHome} />
           </span>
-          {/* Right section: user action icons, at the end of this outer (1fr) column. */}
+          {/* Right section: user action icons, at the end of this outer (1fr) column; Nhexa's
+              apps open from the last one. */}
           <span className="header-right">
             <span className='info-buttons'>
               <NotificationsInfoButton />
-              <IntegrationsInfoButton />
+              {APP_SWITCHER_URL && <AppSwitcher />}
             </span>
           </span>
         </div>
