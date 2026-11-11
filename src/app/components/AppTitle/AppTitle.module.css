@@ -54,7 +54,7 @@
 /* StreamBy's own mark: as it is, not cropped round as the header's images are. */
 .title .brandIcon {
   width: auto;
-  height: 14px;
+  height: var(--nhexa-desktop-title-mark);
   aspect-ratio: auto;
   border-radius: 0;
 }

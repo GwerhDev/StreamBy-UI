@@ -6,12 +6,12 @@
   cursor: pointer;
   align-items: center;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--nhexa-desktop-icon);
   transition: color 0.15s ease;
 }
 
 .trigger:hover {
-  color: var(--color-text-bright);
+  color: var(--nhexa-desktop-icon-hover);
   background: transparent;
 }
 

@@ -14,17 +14,17 @@
   cursor: pointer;
   align-items: center;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--nhexa-desktop-icon);
   transition: color 0.15s ease;
 }
 
 .notifButton:hover {
-  color: var(--color-text-bright);
+  color: var(--nhexa-desktop-icon-hover);
   background: transparent;
 }
 
 .icon {
-  font-size: 0.95rem;
+  font-size: var(--nhexa-desktop-icon-size);
 }
 
 /* ── Unread badge ────────────────────────── */
