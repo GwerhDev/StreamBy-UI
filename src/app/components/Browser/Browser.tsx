@@ -8,6 +8,7 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { ActionButton } from '../Buttons/ActionButton';
 import { ModeToggle } from '../ModeToggle/ModeToggle';
+import { IntegrationsInfoButton } from '../IntegrationsInfo/IntegrationsInfoButton';
 import { acceptInvitation, rejectInvitation } from '../../../services/members';
 import { setMembership } from '../../../store/currentProjectSlice';
 import { reloadProjects } from '../../../store/projectsSlice';
@@ -138,9 +139,11 @@ export const Browser = (props: BrowserProps) => {
 
               </>
             }
-            {/* The workspace's mode, at the end of where the user is. */}
+            {/* At the end of where the user is: the workspace's mode, and the project's
+                integrations (in a project) after it. */}
             <span className={s.locationActions}>
               <ModeToggle />
+              {env !== 'notification' && currentProject && <IntegrationsInfoButton />}
             </span>
           </section>
           :

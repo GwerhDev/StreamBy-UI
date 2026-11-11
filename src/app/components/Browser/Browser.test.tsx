@@ -81,7 +81,8 @@ describe('Browser', () => {
 
   describe('its crumbs, for the ids in the route', () => {
     const ASSET = '5d1efdae-ce1e-4aec-9d0b-2f1c3e4a5b6c';
-    const spinners = () => document.querySelectorAll('.fa-spinner');
+    // The crumbs' own (the project's integrations, by the mode, have theirs while it loads).
+    const spinners = () => [...document.querySelectorAll('.fa-spinner')].filter(el => !el.closest('[data-testid="project-integrations-button"]'));
 
     it("never wait forever: an id nothing names is shown as a short id", () => {
       renderBrowser({}, `/project/p1/storage/c-builtin/3d-models/${ASSET}`);

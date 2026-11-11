@@ -1,24 +1,31 @@
 import s from './IntegrationsInfo.module.css';
 import React, { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { IntegrationPoolEntry } from '../../../interfaces';
-import { fetchIntegrations } from '../../../store/managementSlice';
-import { AppDispatch } from '../../../store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate, faDatabase, faCloud, faCircle, faPlug } from '@fortawesome/free-solid-svg-icons';
 import { LockedIntegrationBadge } from '../Integrations/LockedIntegrationBadge';
 import streambyIcon from '../../../assets/streamby-icon.svg';
 
+// One of the project's connections, as listed here.
+export interface IntegrationInfoEntry {
+  id: string;
+  name: string;
+  provider: string;
+  builtin: boolean;
+  // A built-in the project's plan no longer reaches: listed, locked.
+  available: boolean;
+  requiredPlan?: string;
+}
+
 interface IntegrationsInfoModalProps {
-  databases: IntegrationPoolEntry[];
-  storages: IntegrationPoolEntry[];
-  services: IntegrationPoolEntry[];
+  databases: IntegrationInfoEntry[];
+  storages: IntegrationInfoEntry[];
+  services: IntegrationInfoEntry[];
+  onRefresh: () => void;
   onClose: () => void;
 }
 
-export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ databases, storages, services, onClose }) => {
+export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ databases, storages, services, onRefresh, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -28,15 +35,11 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
-  const handleRefresh = () => {
-    dispatch(fetchIntegrations());
-  };
-
   return (
     <div className={s.modal} ref={modalRef}>
       <div className={s.modalHeader}>
         <span className={s.modalTitle}>Integrations</span>
-        <button type="button" className={s.refreshBtn} title="Refresh" onClick={handleRefresh}>
+        <button type="button" className={s.refreshBtn} title="Refresh" onClick={onRefresh}>
           <FontAwesomeIcon icon={faArrowsRotate} />
         </button>
       </div>
@@ -56,7 +59,7 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
                 <FontAwesomeIcon icon={faCircle} className={s.dot} />
                 <span className={s.itemName}>{db.name}</span>
                 <span className={s.itemValue}>{db.provider}</span>
-                {db.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                {db.builtin && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
                 {!db.available && <LockedIntegrationBadge requiredPlan={db.requiredPlan} />}
               </li>
             ))}
@@ -81,7 +84,7 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
                 <FontAwesomeIcon icon={faCircle} className={s.dot} />
                 <span className={s.itemName}>{st.name}</span>
                 <span className={s.itemValue}>{st.provider}</span>
-                {st.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                {st.builtin && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
                 {!st.available && <LockedIntegrationBadge requiredPlan={st.requiredPlan} />}
               </li>
             ))}
@@ -105,7 +108,7 @@ export const IntegrationsInfoModal: React.FC<IntegrationsInfoModalProps> = ({ da
                   <FontAwesomeIcon icon={faCircle} className={s.dot} />
                   <span className={s.itemName}>{svc.name}</span>
                   <span className={s.itemValue}>{svc.provider}</span>
-                  {svc.source === 'builtin' && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
+                  {svc.builtin && <img src={streambyIcon} alt="Built-in" className={s.builtinIcon} title="Built-in" />}
                   {!svc.available && <LockedIntegrationBadge requiredPlan={svc.requiredPlan} />}
                 </li>
               ))}

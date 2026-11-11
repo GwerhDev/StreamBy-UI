@@ -1,32 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import { IntegrationsInfoModal } from './IntegrationsInfoModal';
-import { IntegrationPoolEntry } from '../../../interfaces';
-
-const makeStore = () =>
-  configureStore({
-    reducer: {
-      management: () => ({ integrations: [], loading: false, error: null }),
-    },
-  });
+import { IntegrationInfoEntry, IntegrationsInfoModal } from './IntegrationsInfoModal';
 
 const renderModal = (
-  databases: IntegrationPoolEntry[] = [],
-  storages: IntegrationPoolEntry[] = [],
-  services: IntegrationPoolEntry[] = [],
+  databases: IntegrationInfoEntry[] = [],
+  storages: IntegrationInfoEntry[] = [],
+  services: IntegrationInfoEntry[] = [],
   onClose = vi.fn(),
-) =>
-  render(
-    <Provider store={makeStore()}>
-      <IntegrationsInfoModal databases={databases} storages={storages} services={services} onClose={onClose} />
-    </Provider>
-  );
+  onRefresh = vi.fn(),
+) => render(<IntegrationsInfoModal databases={databases} storages={storages} services={services} onRefresh={onRefresh} onClose={onClose} />);
 
-const db: IntegrationPoolEntry = { id: 'db1', kind: 'database', name: 'Postgres', provider: 'postgresql', source: 'builtin', available: true };
-const lockedStorage: IntegrationPoolEntry = { id: 'st1', kind: 'storage', name: 'S3', provider: 's3', source: 'builtin', available: false, requiredPlan: 'Subscriber' };
-const svc: IntegrationPoolEntry = { id: 'svc1', kind: 'service', name: 'Claude', provider: 'claude', source: 'integration', available: true };
+const db: IntegrationInfoEntry = { id: 'db1', name: 'Postgres', provider: 'postgresql', builtin: true, available: true };
+const lockedStorage: IntegrationInfoEntry = { id: 'st1', name: 'S3', provider: 's3', builtin: true, available: false, requiredPlan: 'Subscriber' };
+const svc: IntegrationInfoEntry = { id: 'svc1', name: 'Claude', provider: 'claude', builtin: false, available: true };
 
 describe('IntegrationsInfoModal', () => {
   it('renders without crashing', () => {
@@ -41,12 +27,11 @@ describe('IntegrationsInfoModal', () => {
     expect(screen.getByText('Claude')).toBeInTheDocument();
   });
 
-  it('handles user interaction', async () => {
-    const onClose = vi.fn();
-    renderModal([db], [], [], onClose);
-    const user = userEvent.setup();
-    await user.click(screen.getByTitle('Refresh'));
-    expect(screen.getByText('Integrations')).toBeInTheDocument();
+  it('asks for a refresh', async () => {
+    const onRefresh = vi.fn();
+    renderModal([db], [], [], vi.fn(), onRefresh);
+    await userEvent.setup().click(screen.getByTitle('Refresh'));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('shows loading state', () => {

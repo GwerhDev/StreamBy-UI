@@ -9,7 +9,6 @@
 /* ── Trigger button ──────────────────────── */
 .dbInfoButton {
   padding: 0;
-  margin-right: 1rem;
   border: none;
   display: flex;
   cursor: pointer;
@@ -40,7 +39,6 @@
 .modal {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0.75rem;
   z-index: 100;
   width: 280px;
   background: var(--color-surface-sunken);
