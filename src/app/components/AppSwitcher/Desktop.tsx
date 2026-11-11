@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { AppLaunch, splashOf, type SplashKind } from '../AppLaunch/AppLaunch';
 import { motion, AnimatePresence } from 'framer-motion';
 import s from './Desktop.module.css';
 import { SwitcherApp, SwitcherCategory } from '../../../interfaces';
@@ -31,12 +32,19 @@ export const Desktop = () => {
   const allApps = categories.flatMap(c => c.apps);
   const currentApp = allApps.find(sameHost) ?? allApps.find(looksLikeStreamby);
 
-  const handleClick = (app: SwitcherApp) => {
+  // Choosing another app: one whose splash is known opens out of its hexagon into it first (see
+  // AppLaunch), the rest are opened at once.
+  const [launch, setLaunch] = useState<{ app: SwitcherApp; kind: SplashKind; from: { x: number; y: number } } | null>(null);
+  const handleClick = (app: SwitcherApp, e: React.MouseEvent<HTMLElement>) => {
+    if (launch) return;
     if (app === currentApp) {
       setMinimized(false);
-    } else {
-      window.location.href = app.url;
+      return;
     }
+    const kind = splashOf(app.label);
+    if (!kind) { window.location.href = app.url; return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    setLaunch({ app, kind, from: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
   };
 
   const launcherContent = categories.length === 0
@@ -61,7 +69,8 @@ export const Desktop = () => {
                     type="button"
                     className={`${s.item} ${current ? s.current : ''}`}
                     style={{ '--app-color': app.color ?? 'var(--color-accent)' } as React.CSSProperties}
-                    onClick={() => handleClick(app)}
+                    onClick={e => handleClick(app, e)}
+                              data-launching={launch?.app === app || undefined}
                   >
                     <span className={s.face}>
                       <img src={app.icon} alt="" className={s.appIcon} />
@@ -97,6 +106,7 @@ export const Desktop = () => {
           {minimized && (
             <motion.div
               className={s.launcher}
+            data-launching={!!launch || undefined}
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
@@ -107,6 +117,7 @@ export const Desktop = () => {
           )}
         </AnimatePresence>
       </div>
+      {launch && <AppLaunch kind={launch.kind} url={launch.app.url} from={launch.from} onDone={() => { window.location.href = launch.app.url; }} />}
     </>
   );
 };
