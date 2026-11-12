@@ -8,13 +8,15 @@
 }
 
 .header {
-  gap: 3rem;
+  gap: 2.5rem;
   width: 100%;
-  padding: 1rem;
+  /* The panel spans the page; what's in it lines up with the column below (.stats). */
+  padding: 1.5rem max(1.5rem, calc((100% - 1024px) / 2));
   border-radius: 1rem;
   background-color: var(--color-surface);
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .stats {
@@ -29,26 +31,30 @@
 .buttonContainer {
   gap: 1rem;
   width: 100%;
+  min-width: 300px;
   max-width: 300px;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 0.5rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
 }
 
 .details {
-  gap: 0;
-  min-width: 350px;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
 }
 
 .details li {
-  text-align: center;
+  max-width: 100%;
+  text-align: left;
 }
 
 .imgContainer {
+  flex-shrink: 0;
   width: 10rem;
   height: 10rem;
   padding: .2rem;
@@ -95,6 +101,13 @@
   aspect-ratio: 1/1;
 }
 
+.title h1 {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .title {
   margin: 0;
   padding: 0;
@@ -106,9 +119,10 @@
   position: relative;
 }
 
-.subtitle {
-  margin: 0;
-  padding: 0;
+.details .subtitle {
+  /* A comfortable line to read, however wide the panel. */
+  max-width: 70ch;
+  align-items: flex-start;
   color: var(--color-text-muted);
 }
 
@@ -175,6 +189,11 @@
     width: 100%;
     text-align: center;
     justify-content: center;
+  }
+
+  .details .subtitle {
+    margin-inline: auto;
+    align-items: center;
   }
 
   .buttonContainer {

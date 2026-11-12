@@ -11,6 +11,7 @@ import { ProjectStats } from '../ProjectStats/ProjectStats';
 import { ProjectCharts } from '../ProjectCharts/ProjectCharts';
 import { WorkflowPreview } from '../WorkflowPreview/WorkflowPreview';
 import { useOpenForm } from '../../../hooks/useFormRoute';
+import { ClampedText } from '../ClampedText/ClampedText';
 
 interface ProjectPresentationProps {
   preview?: boolean;
@@ -47,7 +48,7 @@ export const ProjectPresentation = ({ preview = false }: ProjectPresentationProp
           </li>
 
           <li>
-            {!loading && <p className={s.subtitle}>{description}</p>}
+            {!loading && description && <ClampedText text={description} className={s.subtitle} />}
           </li>
 
           {!preview && (
