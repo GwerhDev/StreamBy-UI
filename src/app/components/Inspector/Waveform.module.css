@@ -1,0 +1,20 @@
+.waveform {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  outline: none;
+}
+
+.waveform:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-accent-subtle-border);
+  border-radius: 6px;
+}
+
+.rest {
+  fill: var(--color-text-muted);
+  opacity: 0.55;
+}
+
+.played {
+  fill: var(--color-accent);
+}

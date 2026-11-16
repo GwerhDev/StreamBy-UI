@@ -2,6 +2,23 @@
   width: min(720px, 92vw);
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.section > ul {
+  align-self: stretch;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-text-bright);
+}
+
 .hint {
   margin: 0 0 0.75rem;
   font-size: 0.75rem;
@@ -17,9 +34,11 @@
   list-style: none;
 }
 
-.profile {
+.profiles .profile {
   display: flex;
   flex-direction: column;
+  /* Its fields as wide as it: not centered, as a list item is elsewhere. */
+  align-items: stretch;
   gap: 0.6rem;
   padding: 0.75rem;
   border-radius: 8px;

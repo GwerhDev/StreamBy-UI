@@ -9,24 +9,28 @@ import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { nameCrumb } from '../../../store/crumbNamesSlice';
 import { useRoleCan } from '../../../hooks/useRoleCan';
 import {
-  AssetBudgets, AssetVersionSummary, getAssetBudgets, getAssetVersions, getMeasurements, saveAssetBudgets, saveMeasurements,
-  setBudgetProfile, VersionMeasurements,
+  AssetBudgets, AssetVersionSummary, getAssetBudgets, getAssetVersions, getMeasurements, kindOfProfile, MeasuredKind, Measurements,
+  saveAssetBudgets, saveMeasurements, setBudgetProfile, VersionMeasurements,
 } from '../../../services/assetMeasurements';
 import { getAssetDownloadUrl } from '../../../services/deliverables';
 import { measureGltf, sameMeasurements } from '../../../utils/measureGltf';
+import { decodeAudioFile } from '../../../utils/audioFile';
+import { measureAudioOffThread } from '../../../utils/measureAudioOffThread';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { DropdownInput } from '../Inputs/DropdownInput';
 import { SecondaryButton } from '../Buttons/SecondaryButton';
 import { InspectorViewport, LoadedModel } from './InspectorViewport';
+import { AudioStage } from './AudioStage';
 import { MeasurementsPanel } from './MeasurementsPanel';
 import { BudgetProfilesModal } from './BudgetProfilesModal';
 
 const errorText = (err: unknown, fallback: string) => (err instanceof Error && err.message ? err.message : fallback);
 
-// A 3D asset, inspected: one of its versions, to orbit around (in wireframe, its animations
-// playing), and what it measures against the project's budgets. Opened by someone who can edit
-// assets, the version is measured here (in the browser) and its measurements kept with it.
-export function AssetInspector() {
+// An asset inspected: one of its versions (a 3D model to orbit around, in wireframe, its
+// animations playing; or an audio file's waveform, to play), and what it measures against the
+// project's budgets of its kind. Opened by someone who can edit assets, the version is measured
+// here (in the browser) and its measurements kept with it.
+export function AssetInspector({ kind = 'model' }: { kind?: MeasuredKind }) {
   const { id: projectId = '', assetId = '' } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -38,9 +42,14 @@ export function AssetInspector() {
   const [versions, setVersions] = useState<AssetVersionSummary[]>([]);
   const [versionId, setVersionId] = useState<string | null>(null);
   const [state, setState] = useState<VersionMeasurements | null>(null);
-  const [budgets, setBudgets] = useState<AssetBudgets>({ profiles: [], defaultProfileId: null });
+  const [budgets, setBudgets] = useState<AssetBudgets>({ profiles: [], defaultProfileId: null, defaultAudioProfileId: null });
   const [url, setUrl] = useState<string | null>(null);
   const [model, setModel] = useState<LoadedModel | null>(null);
+  // An audio file: its bytes, to play, and its waveform.
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [peaks, setPeaks] = useState<{ min: number; max: number }[] | null>(null);
+  // What the version measures, as measured here.
+  const [measured, setMeasured] = useState<Measurements | null>(null);
   const [measuring, setMeasuring] = useState(false);
   const [wireframe, setWireframe] = useState(false);
   const [animation, setAnimation] = useState<string | null>(null);
@@ -75,6 +84,8 @@ export function AssetInspector() {
     let cancelled = false;
     setModel(null);
     setAnimation(null);
+    setMeasured(null);
+    setPeaks(null);
     (async () => {
       try {
         const [measured, fileUrl] = await Promise.all([
@@ -92,10 +103,42 @@ export function AssetInspector() {
     //eslint-disable-next-line
   }, [projectId, assetId, versionId]);
 
-  // Loaded: measured, and kept with the version when it's new or it measures otherwise now.
+  // A model, loaded: measured.
+  useEffect(() => { if (model) setMeasured(measureGltf(model)); }, [model]);
+
+  // An audio file: its bytes downloaded once (played from them), decoded at its own rate, and
+  // measured off the page's thread, with its waveform.
   useEffect(() => {
-    if (!model || !state || !canMeasure) return;
-    const measured = measureGltf(model);
+    if (kind !== 'audio' || !url) return;
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Couldn't download the audio file");
+        const bytes = await res.arrayBuffer();
+        if (cancelled) return;
+        const contentType = res.headers.get('content-type');
+        objectUrl = URL.createObjectURL(new Blob([bytes], { type: contentType ?? 'audio/*' }));
+        setAudioUrl(objectUrl);
+        const result = await measureAudioOffThread(await decodeAudioFile(bytes, contentType));
+        if (cancelled) return;
+        setPeaks(result.peaks);
+        setMeasured(result.measurements);
+      } catch (err) {
+        if (!cancelled) setFailed(errorText(err, "Couldn't read the audio file"));
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      setAudioUrl(null);
+    };
+  }, [kind, url]);
+
+  // Measured: kept with the version when it's new or it measures otherwise now.
+  useEffect(() => {
+    if (!measured || !state || !canMeasure) return;
     if (sameMeasurements(state.measurements, measured)) return;
     let cancelled = false;
     setMeasuring(true);
@@ -105,7 +148,7 @@ export function AssetInspector() {
       .finally(() => { if (!cancelled) setMeasuring(false); });
     return () => { cancelled = true; };
     //eslint-disable-next-line
-  }, [model, canMeasure, state?.versionId]);
+  }, [measured, canMeasure, state?.versionId]);
 
   const chooseProfile = async (profileId: string | null) => {
     try {
@@ -129,6 +172,8 @@ export function AssetInspector() {
     }
   };
 
+  const profiles = budgets.profiles.filter(p => kindOfProfile(p) === kind);
+  const defaultProfileId = (kind === 'audio' ? budgets.defaultAudioProfileId : budgets.defaultProfileId) ?? null;
   const current = versions.find(v => v.versionId === versionId);
   const title = current?.fileName ?? versions[0]?.fileName ?? 'Asset';
   // Its name in the breadcrumbs, in place of its id.
@@ -151,9 +196,11 @@ export function AssetInspector() {
                 options={versions.map(v => ({ value: v.versionId, label: `v${v.version}${v.measurements ? '' : ' · unmeasured'}` }))}
               />
             )}
-            <button type="button" className={`${s.toggle} ${wireframe ? s.toggleOn : ''}`} aria-pressed={wireframe} onClick={() => setWireframe(w => !w)}>
-              <FontAwesomeIcon icon={faCube} /> Wireframe
-            </button>
+            {kind === 'model' && (
+              <button type="button" className={`${s.toggle} ${wireframe ? s.toggleOn : ''}`} aria-pressed={wireframe} onClick={() => setWireframe(w => !w)}>
+                <FontAwesomeIcon icon={faCube} /> Wireframe
+              </button>
+            )}
             {canEditBudgets && <SecondaryButton icon={faScaleBalanced} text="Budgets" onClick={() => setEditingBudgets(true)} />}
           </div>
         }
@@ -164,7 +211,9 @@ export function AssetInspector() {
       ) : (
         <div className={s.body}>
           <div className={s.stage}>
-            {url ? (
+            {kind === 'audio' && audioUrl ? (
+              <AudioStage url={audioUrl} peaks={peaks} />
+            ) : kind === 'model' && url ? (
               <InspectorViewport url={url} wireframe={wireframe} animation={animation} onLoaded={setModel} />
             ) : (
               // Its version and file on their way, before the viewer.
@@ -190,12 +239,12 @@ export function AssetInspector() {
           </div>
           <MeasurementsPanel
             measurements={state?.measurements ?? null}
-            measuring={measuring || (canMeasure && !!url && !model)}
+            measuring={measuring || (canMeasure && !!url && !measured)}
             profile={state?.profile ?? null}
             exceeded={state?.exceeded ?? []}
-            profiles={budgets.profiles}
+            profiles={profiles}
             profileId={state?.profileId ?? null}
-            defaultProfileId={budgets.defaultProfileId}
+            defaultProfileId={defaultProfileId}
             canChooseProfile={canMeasure}
             onChooseProfile={chooseProfile}
             unmeasuredNote={canMeasure ? undefined : "Unmeasured: it's measured when someone who can edit the project's assets opens it here"}

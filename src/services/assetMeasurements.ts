@@ -1,13 +1,16 @@
 import { API_BASE } from '../config/api';
 
-// What a 3D asset's version measures, measured in the browser by the inspector and kept with
-// the version, and the project's budgets it's checked against (StreamBy-Package's
+// What a 3D or audio asset's version measures, measured in the browser by the inspector and
+// kept with the version, and the project's budgets it's checked against (StreamBy-Package's
 // services/assetMeasurements).
+
+export type MeasuredKind = 'model' | 'audio';
 
 export interface MeasuredTexture { name: string | null; width: number; height: number; format: string | null }
 export interface MeasuredAnimation { name: string | null; duration: number }
 
-export interface Measurements {
+export interface ModelMeasurements {
+  kind?: 'model';
   triangles: number;
   vertices: number;
   meshes: number;
@@ -19,30 +22,64 @@ export interface Measurements {
   tool?: string | null;
 }
 
+// Loudness in LUFS (ITU-R BS.1770), true peak in dBTP, RMS in dBFS, loudness range in LU; a
+// level is null for silence.
+export interface AudioMeasurements {
+  kind: 'audio';
+  duration: number;
+  sampleRate: number;
+  channels: number;
+  bitDepth: number | null;
+  format: string | null;
+  integratedLufs: number | null;
+  shortTermLufsMax: number | null;
+  truePeak: number | null;
+  rms: number | null;
+  lra: number | null;
+  measuredAt?: string;
+  measuredBy?: string;
+  tool?: string | null;
+}
+
+export type Measurements = ModelMeasurements | AudioMeasurements;
+export const isAudio = (m: Measurements | null | undefined): m is AudioMeasurements => m?.kind === 'audio';
+
 export interface BudgetProfile {
   id: string;
   name: string;
+  // 3D if not set.
+  kind?: MeasuredKind;
   maxTriangles?: number;
   maxMaterials?: number;
   maxTextures?: number;
   maxTextureSize?: number;
   textureFormats?: string[];
   maxAnimations?: number;
+  targetLufs?: number;
+  lufsTolerance?: number;
+  maxTruePeak?: number;
+  audioFormats?: string[];
+  sampleRates?: number[];
 }
 
-export interface AssetBudgets { profiles: BudgetProfile[]; defaultProfileId: string | null }
+export const kindOfProfile = (p: BudgetProfile): MeasuredKind => p.kind ?? 'model';
+
+export interface AssetBudgets { profiles: BudgetProfile[]; defaultProfileId: string | null; defaultAudioProfileId?: string | null }
 
 export interface Exceeded {
-  metric: 'triangles' | 'materials' | 'textures' | 'textureSize' | 'textureFormat' | 'animations';
-  limit: number | string[];
+  metric: 'triangles' | 'materials' | 'textures' | 'textureSize' | 'textureFormat' | 'animations'
+    | 'loudness' | 'truePeak' | 'audioFormat' | 'sampleRate';
+  limit: number | string[] | number[];
   value: number | string;
   texture?: string | null;
+  tolerance?: number;
 }
 
 export interface VersionMeasurements {
   assetId: string;
   versionId: string;
   version: number;
+  kind?: MeasuredKind;
   measurements: Measurements | null;
   profile: BudgetProfile | null;
   profileId: string | null;

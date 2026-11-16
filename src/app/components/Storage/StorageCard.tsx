@@ -9,7 +9,7 @@ import {
 import { StorageFile, StorageCategory } from '../../../interfaces';
 import { ReplaceModal } from '../Modals/ReplaceModal';
 import { assetReference } from '../../../utils/assetReference';
-import { inspectorPath } from '../../../utils/inspectorPath';
+import { inspectorPath, isInspected } from '../../../utils/inspectorPath';
 
 const ModelViewer = lazy(() => import('./ModelViewer').then(m => ({ default: m.ModelViewer })));
 const ModelThumbnail = lazy(() => import('./ModelThumbnail').then(m => ({ default: m.ModelThumbnail })));
@@ -312,9 +312,9 @@ export function StorageCard({ file, category, onDelete, onRename, onReplace, onM
             )}
 
             <div className={s.previewActions}>
-              {category === '3d-models' && projectId && (
+              {isInspected(category) && projectId && (
                 // The inspector: its own page, with what it measures against the budgets.
-                <Link className={`${s.previewActionBtn} ${s.previewInspectBtn}`} to={inspectorPath(projectId, connId, file.id)} data-testid="inspect-asset">
+                <Link className={`${s.previewActionBtn} ${s.previewInspectBtn}`} to={inspectorPath(projectId, connId, file.id, category)} data-testid="inspect-asset">
                   <FontAwesomeIcon icon={faMagnifyingGlassChart} />
                   Inspect
                 </Link>

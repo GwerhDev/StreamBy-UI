@@ -1,5 +1,5 @@
 import type { AnimationClip, Material, Object3D, Texture } from 'three';
-import type { Measurements, MeasuredTexture } from '../services/assetMeasurements';
+import type { Measurements, MeasuredTexture, ModelMeasurements } from '../services/assetMeasurements';
 
 // What a loaded glTF measures, as the inspector sends it: its meshes' triangles and vertices
 // (an instanced mesh counted once per instance), its materials and the textures they use, each
@@ -20,7 +20,7 @@ function textureOf(texture: Texture): MeasuredTexture {
   };
 }
 
-export function measureGltf(gltf: Loaded, tool = 'streamby-inspector'): Measurements {
+export function measureGltf(gltf: Loaded, tool = 'streamby-inspector'): ModelMeasurements {
   let triangles = 0;
   let vertices = 0;
   let meshes = 0;
@@ -44,6 +44,7 @@ export function measureGltf(gltf: Loaded, tool = 'streamby-inspector'): Measurem
     for (const value of Object.values(material)) if (isTexture(value)) textures.set(value.uuid, value);
   }
   return {
+    kind: 'model',
     triangles, vertices, meshes,
     materials: materials.size,
     textures: [...textures.values()].map(textureOf),
@@ -52,8 +53,9 @@ export function measureGltf(gltf: Loaded, tool = 'streamby-inspector'): Measurem
   };
 }
 
-/** Whether two measurements are of the same thing (when, by whom and with what aside). */
+/** Whether two measurements (3D or audio) are of the same thing (when, by whom and with what aside). */
 export function sameMeasurements(a: Measurements | null | undefined, b: Measurements | null | undefined): boolean {
-  const core = (m: Measurements) => JSON.stringify([m.triangles, m.vertices, m.meshes, m.materials, m.textures, m.animations]);
+  const aside = new Set(['kind', 'measuredAt', 'measuredBy', 'tool']);
+  const core = (m: Measurements) => JSON.stringify(Object.entries(m).filter(([k]) => !aside.has(k)).sort(([x], [y]) => x.localeCompare(y)));
   return !!a && !!b && core(a) === core(b);
 }

@@ -163,6 +163,7 @@ function App() {
                   <Route path="/project/:id/storage/:connId" element={<StorageDrive />} />
                   <Route path="/project/:id/storage/:connId/:segment" element={<StorageDrive />} />
                   <Route path="/project/:id/storage/:connId/3d-models/:assetId" element={<AssetInspectorPage />} />
+                  <Route path="/project/:id/storage/:connId/audios/:assetId" element={<AssetInspectorPage kind="audio" />} />
 
                   <Route path="/project/:id/database" element={<DatabaseConnections />} />
                   <Route path="/project/:id/database/:connId/:tableName" element={<DatabaseRecords />} />

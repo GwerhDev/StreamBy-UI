@@ -16,7 +16,7 @@ import { AssetJobs } from '../Jobs/AssetJobs';
 import { getAssetMetadata, getAssetRights, putAssetRights } from '../../../services/storage';
 import { assetReference } from '../../../utils/assetReference';
 import { ModelThumbnail } from './ModelThumbnail';
-import { inspectorPath } from '../../../utils/inspectorPath';
+import { inspectorPath, isInspected } from '../../../utils/inspectorPath';
 
 interface FileDetailPanelProps {
   file: StorageFile;
@@ -344,9 +344,9 @@ export function FileDetailPanel({ file, category, onClose, onDelete, onUpdate, o
           </div>
         )}
 
-        {category === '3d-models' && projectId && (
+        {isInspected(category) && projectId && (
           // The inspector: its own page (a link to share), with what it measures against the budgets.
-          <Link className={s.inspectBtn} to={inspectorPath(projectId, connId, file.id)} data-testid="inspect-asset">
+          <Link className={s.inspectBtn} to={inspectorPath(projectId, connId, file.id, category)} data-testid="inspect-asset">
             <FontAwesomeIcon icon={faMagnifyingGlassChart} /> Inspect
           </Link>
         )}

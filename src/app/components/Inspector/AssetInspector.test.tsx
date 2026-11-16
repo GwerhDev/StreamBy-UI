@@ -29,11 +29,25 @@ vi.mock('./InspectorViewport', () => ({
   },
 }));
 
+// Decoding needs the Web Audio API, and measuring a worker: here a WAV of the soundtrack
+// "decodes" and "measures" at once.
+const THEME = {
+  kind: 'audio' as const, duration: 92.48, sampleRate: 48_000, channels: 2, bitDepth: 24, format: 'audio/wav',
+  integratedLufs: -14.4, shortTermLufsMax: -10.2, truePeak: -0.3, rms: -17.9, lra: 6.1, tool: 'streamby-inspector',
+};
+vi.mock('../../../utils/audioFile', () => ({
+  decodeAudioFile: vi.fn(async (_bytes: ArrayBuffer, contentType: string | null) => ({ audio: { sampleRate: 48_000, channels: [] }, bitDepth: 24, format: contentType })),
+}));
+vi.mock('../../../utils/measureAudioOffThread', () => ({
+  measureAudioOffThread: vi.fn(async () => ({ measurements: THEME, peaks: [{ min: -0.5, max: 0.6 }, { min: -0.9, max: 0.8 }] })),
+}));
+
 const CHARACTER = { id: 'character', name: 'Character', maxTriangles: 10, maxTextureSize: 1024 };
 const BUDGETS = { profiles: [CHARACTER, { id: 'prop', name: 'Prop' }], defaultProfileId: 'character' };
 const unmeasured = { assetId: 'a1', versionId: 'v2', version: 2, measurements: null, profile: CHARACTER, profileId: null, exceeded: [] };
 
-const renderInspector = (role = 'admin') => {
+const renderInspector = (role = 'admin', kind: 'model' | 'audio' = 'model') => {
+  const category = kind === 'audio' ? 'audios' : '3d-models';
   const store = configureStore({
     reducer: {
       session: () => ({ logged: true, loader: false, username: 'ada', userId: 'u1' }),
@@ -43,8 +57,8 @@ const renderInspector = (role = 'admin') => {
   });
   render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/project/p1/storage/c-builtin/3d-models/a1']}>
-        <Routes><Route path="/project/:id/storage/:connId/3d-models/:assetId" element={<AssetInspector />} /></Routes>
+      <MemoryRouter initialEntries={[`/project/p1/storage/c-builtin/${category}/a1`]}>
+        <Routes><Route path={`/project/:id/storage/:connId/${category}/:assetId`} element={<AssetInspector kind={kind} />} /></Routes>
       </MemoryRouter>
     </Provider>,
   );
@@ -132,6 +146,45 @@ describe('AssetInspector', () => {
   });
 });
 
+describe('AssetInspector, an audio file', () => {
+  const MUSIC = { id: 'music', name: 'Music', kind: 'audio' as const, targetLufs: -14, lufsTolerance: 1, maxTruePeak: -1 };
+  beforeEach(() => {
+    vi.spyOn(measurementsService, 'getAssetVersions').mockResolvedValue([{ versionId: 'v2', version: 2, fileName: 'theme.wav', createdAt: '' }]);
+    vi.spyOn(measurementsService, 'getMeasurements').mockResolvedValue({ ...unmeasured, kind: 'audio', profile: MUSIC });
+    vi.spyOn(measurementsService, 'getAssetBudgets').mockResolvedValue({ profiles: [...BUDGETS.profiles, MUSIC], defaultProfileId: 'character', defaultAudioProfileId: 'music' });
+    vi.spyOn(deliverables, 'getAssetDownloadUrl').mockResolvedValue('https://signed.test/theme.wav');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array([1, 2, 3]), { headers: { 'Content-Type': 'audio/wav' } }));
+    URL.createObjectURL = vi.fn(() => 'blob:theme');
+    URL.revokeObjectURL = vi.fn();
+  });
+
+  it('shows its waveform to play, measures it, and marks its true peak over its profile', async () => {
+    const save = vi.spyOn(measurementsService, 'saveMeasurements').mockImplementation(async (_p, _a, _v, measurements) => ({
+      measurements, profile: MUSIC, exceeded: [{ metric: 'truePeak', limit: -1, value: -0.3 }],
+    }));
+    renderInspector('admin', 'audio');
+    expect(await screen.findByTestId('waveform')).toBeInTheDocument();
+    expect(screen.getByTestId('audio-player')).toHaveAttribute('src', 'blob:theme');
+    expect(screen.queryByRole('button', { name: /Wireframe/ })).not.toBeInTheDocument();
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    expect(save.mock.calls[0][3]).toMatchObject({ kind: 'audio', integratedLufs: -14.4, truePeak: -0.3, format: 'audio/wav' });
+    expect(await screen.findByTestId('verdict')).toHaveTextContent('1 over its budget');
+    expect(screen.getByTestId('metric-truePeak')).toHaveTextContent('-0.3 dBTP');
+    expect(screen.getByTestId('metric-truePeak')).toHaveTextContent('≤ -1');
+    expect(screen.getByTestId('metric-truePeak').className).toMatch(/over/);
+    expect(screen.getByTestId('metric-integrated').className).not.toMatch(/over/);
+  });
+
+  it('offers only the audio profiles to choose from', async () => {
+    vi.spyOn(measurementsService, 'saveMeasurements').mockImplementation(async (_p, _a, _v, measurements) => ({ measurements, profile: MUSIC, exceeded: [] }));
+    renderInspector('admin', 'audio');
+    await screen.findByTestId('waveform');
+    const panel = screen.getByTestId('measurements');
+    expect(within(panel).getByText('Project default (Music)')).toBeInTheDocument();
+    expect(within(panel).queryByText('Character')).not.toBeInTheDocument();
+  });
+});
+
 describe('MeasurementsPanel', () => {
   const measurements = {
     triangles: 18_400, vertices: 9_900, meshes: 3, materials: 2,
@@ -172,7 +225,7 @@ describe('BudgetProfilesModal', () => {
     const onSave = vi.fn();
     render(<BudgetProfilesModal budgets={{ profiles: [], defaultProfileId: null }} saving={false} onSave={onSave} onClose={vi.fn()} />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Add a profile/ }));
+    await user.click(screen.getByRole('button', { name: /Add a 3D profile/ }));
     await user.type(screen.getByLabelText('Name'), 'Character');
     await user.type(screen.getByLabelText('Triangles'), '15000');
     await user.type(screen.getByLabelText('Texture formats'), 'ktx2, image/webp');
@@ -181,6 +234,32 @@ describe('BudgetProfilesModal', () => {
     const saved = onSave.mock.calls[0][0];
     expect(saved.profiles).toEqual([{ id: expect.any(String), name: 'Character', maxTriangles: 15000, textureFormats: ['image/ktx2', 'image/webp'] }]);
     expect(saved.defaultProfileId).toBe(saved.profiles[0].id);
+  });
+
+  it('saves an audio profile: its loudness target and peak, formats as MIME types, sample rates, its own default', async () => {
+    const onSave = vi.fn();
+    render(<BudgetProfilesModal budgets={{ profiles: [CHARACTER], defaultProfileId: 'character' }} saving={false} onSave={onSave} onClose={vi.fn()} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /Add an audio profile/ }));
+    const audio = within(screen.getByTestId('budgets-audio'));
+    await user.type(audio.getByLabelText('Name'), 'Music');
+    await user.type(audio.getByLabelText('Target (LUFS)'), '-14');
+    await user.type(audio.getByLabelText('Max true peak (dBTP)'), '-1.5');
+    await user.type(audio.getByLabelText('Formats'), 'wav, ogg');
+    await user.type(audio.getByLabelText('Sample rates (Hz)'), '48000');
+    await user.click(audio.getByLabelText("The project's default"));
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    const saved = onSave.mock.calls[0][0];
+    const music = saved.profiles.find((p: { name: string }) => p.name === 'Music');
+    expect(music).toEqual({ id: expect.any(String), kind: 'audio', name: 'Music', targetLufs: -14, maxTruePeak: -1.5, audioFormats: ['audio/wav', 'audio/ogg'], sampleRates: [48000] });
+    expect(saved).toMatchObject({ defaultProfileId: 'character', defaultAudioProfileId: music.id });
+  });
+
+  it("can't save an audio profile with a level or a rate that isn't a number", async () => {
+    render(<BudgetProfilesModal budgets={{ profiles: [{ id: 'm', name: 'Music', kind: 'audio' }], defaultProfileId: null }} saving={false} onSave={vi.fn()} onClose={vi.fn()} />);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('Target (LUFS)'), 'loud');
+    expect(screen.getByRole('button', { name: /^Save$/ })).toBeDisabled();
   });
 
   it("can't save a profile without a name, or a limit that isn't a count", async () => {
