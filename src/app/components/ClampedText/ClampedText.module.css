@@ -31,6 +31,8 @@
 
 .toggle:hover,
 .toggle:focus-visible {
+  /* Not the global button:hover fill: it stays a link. */
+  background: none;
   color: var(--color-accent-hover);
   text-decoration: underline;
 }
