@@ -921,12 +921,19 @@ export interface Annotation {
   authorId: string;
   authorUsername: string;
   type: AnnotationType;
+  // A timecoded note's time: an instant (seconds from the file's start) or a range, to
+  // endSeconds; timecode is it as it's read (1:23, or 1:23–1:40).
+  startSeconds?: number;
+  endSeconds?: number;
   timecode?: string;
   position3d?: { x: number; y: number; z: number };
   regionRect?: { x: number; y: number; width: number; height: number };
   text: string;
   resolved: boolean;
   resolvedBy?: string;
+  // The task it became, of the asset's card (shot).
+  taskId?: string;
+  shotId?: string;
   createdAt: string;
 }
 

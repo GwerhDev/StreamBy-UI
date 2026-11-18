@@ -18,3 +18,30 @@
 .played {
   fill: var(--color-accent);
 }
+
+/* A range being chosen, or chosen (a note on it to come). */
+.selection {
+  fill: var(--color-accent-subtle);
+  stroke: var(--color-accent-subtle-border);
+  stroke-width: 0;
+}
+
+/* A review note: an instant is a line, a range a band over it; resolved ones fade. */
+.mark {
+  fill: var(--color-warning);
+  pointer-events: none;
+}
+
+.range {
+  fill: var(--color-warning);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.mark.muted {
+  opacity: 0.35;
+}
+
+.range.muted {
+  opacity: 0.07;
+}

@@ -2,7 +2,7 @@ import { API_BASE } from '../config/api';
 import { store } from '../store';
 import { addNotification, fetchNotifications } from '../store/notificationsSlice';
 import { upsertJob } from '../store/currentJobSlice';
-import { handleReviewEvent } from '../store/currentReviewSlice';
+import { handleReviewEvent, annotationEventReceived } from '../store/currentReviewSlice';
 import { documentEventReceived } from '../store/documentsSlice';
 import { assetRightsEventReceived } from '../store/creditsSheetsSlice';
 import { deliverableGatesEventReceived } from '../store/deliverableGatesSlice';
@@ -42,6 +42,8 @@ function handleMessage(event: MessageEvent) {
       store.dispatch(upsertJob(msg.data));
     } else if (msg.type === 'reviewEvent') {
       store.dispatch(handleReviewEvent(msg.data));
+    } else if (msg.type === 'annotationEvent') {
+      store.dispatch(annotationEventReceived(msg.data));
     } else if (msg.type === 'documentEvent') {
       store.dispatch(documentEventReceived(msg.data));
     } else if (msg.type === 'assetRightsEvent') {

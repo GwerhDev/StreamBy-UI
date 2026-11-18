@@ -86,7 +86,7 @@ export interface VersionMeasurements {
   exceeded: Exceeded[];
 }
 
-export interface AssetVersionSummary { versionId: string; version: number; fileName: string | null; createdAt: string; measurements?: Measurements | null }
+export interface AssetVersionSummary { versionId: string; version: number; fileName: string | null; contentType?: string | null; createdAt: string; measurements?: Measurements | null }
 
 const errorOf = async (res: Response, fallback: string) => {
   try { return new Error((await res.json()).message || fallback); } catch { return new Error(fallback); }

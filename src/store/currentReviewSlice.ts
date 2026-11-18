@@ -6,6 +6,9 @@ interface CurrentReviewState {
   annotations: Annotation[];
   loading: boolean;
   error: string | null;
+  // The last version whose notes changed (a note added, resolved, made a task; an agent's by
+  // MCP too): a review of it reads them again.
+  notesChanged: { assetVersionId: string; at: number } | null;
 }
 
 const initialState: CurrentReviewState = {
@@ -13,6 +16,7 @@ const initialState: CurrentReviewState = {
   annotations: [],
   loading: false,
   error: null,
+  notesChanged: null,
 };
 
 export const fetchReviewSession = createAsyncThunk(
@@ -84,6 +88,9 @@ const currentReviewSlice = createSlice({
       const a = state.annotations.find(x => x.id === action.payload);
       if (a) a.resolved = true;
     },
+    annotationEventReceived(state, action: PayloadAction<{ assetVersionId: string }>) {
+      state.notesChanged = { assetVersionId: action.payload.assetVersionId, at: Date.now() };
+    },
     handleReviewEvent(state, action: PayloadAction<Partial<ReviewSession>>) {
       if (state.session && action.payload.id === state.session.id) {
         Object.assign(state.session, action.payload);
@@ -110,5 +117,5 @@ const currentReviewSlice = createSlice({
   },
 });
 
-export const { clearReview, addAnnotation, resolveAnnotation, handleReviewEvent } = currentReviewSlice.actions;
+export const { clearReview, addAnnotation, resolveAnnotation, handleReviewEvent, annotationEventReceived } = currentReviewSlice.actions;
 export default currentReviewSlice.reducer;

@@ -140,3 +140,18 @@
   color: var(--color-danger-text, #f87171);
   font-size: 0.85rem;
 }
+
+/* A phone: the player over its details (side by side, the player had no room). */
+@media (max-width: 768px) {
+  .body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar {
+    width: auto;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-y: visible;
+  }
+}

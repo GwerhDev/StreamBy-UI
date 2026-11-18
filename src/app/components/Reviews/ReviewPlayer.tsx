@@ -1,11 +1,17 @@
 import s from './ReviewPlayer.module.css';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComments, faCircleCheck, faCircleXmark, faClock, faHourglass, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { getProjectReviews } from '../../../services/exports';
+import { getReview } from '../../../services/reviews';
+import { AssetVersionSummary, getAssetVersions } from '../../../services/assetMeasurements';
 import { ReviewSession } from '../../../interfaces';
+import { RootState } from '../../../store';
+import { useRoleCan } from '../../../hooks/useRoleCan';
+import { AudioReview } from './AudioReview';
+import { isAudioVersion } from '../../../utils/audioVersion';
 
 const STATUS_ICON = {
   open: faHourglass,
@@ -17,21 +23,31 @@ const STATUS_ICON = {
 export function ReviewPlayer() {
   const { id: projectId, sessionId } = useParams<{ id: string; sessionId: string }>();
   const [session, setSession] = useState<ReviewSession | null>(null);
+  const [versions, setVersions] = useState<AssetVersionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const myRole = useSelector((state: RootState) =>
+    state.currentProject?.data?.members?.find(m => m.userId === state.session?.userId)?.role);
+  const canNote = useRoleCan(projectId, myRole, 'assets:write');
+  const canMakeTasks = useRoleCan(projectId, myRole, 'production:write');
 
   useEffect(() => {
     if (!projectId || !sessionId) return;
     let cancelled = false;
-    getProjectReviews(projectId)
-      .then((data: ReviewSession[]) => {
+    (async () => {
+      try {
+        const found = await getReview(projectId, sessionId);
+        // Its asset's versions: what it is (audio is reviewed on its waveform), and what it's compared with.
+        const list = await getAssetVersions(projectId, found.assetId).catch(() => [] as AssetVersionSummary[]);
         if (cancelled) return;
-        const found = data.find((r: ReviewSession) => r.id === sessionId) ?? null;
-        if (!found) setError('Review session not found.');
-        else setSession(found);
-      })
-      .catch((err: Error) => { if (!cancelled) setError(err.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+        setSession(found);
+        setVersions(list);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Review session not found.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
     return () => { cancelled = true; };
   }, [projectId, sessionId]);
 
@@ -67,11 +83,15 @@ export function ReviewPlayer() {
       </div>
 
       <div className={s.body}>
-        <div className={s.playerPlaceholder}>
-          <FontAwesomeIcon icon={icon} className={s.placeholderIcon} />
-          <p className={s.placeholderText}>Asset player coming soon</p>
-          <p className={s.placeholderSub}>Asset ID: <code>{session.assetId}</code></p>
-        </div>
+        {isAudioVersion(versions.find(v => v.versionId === session.assetVersionId)) ? (
+          <AudioReview projectId={projectId!} session={session} versions={versions} canNote={canNote} canMakeTasks={canMakeTasks} />
+        ) : (
+          <div className={s.playerPlaceholder}>
+            <FontAwesomeIcon icon={icon} className={s.placeholderIcon} />
+            <p className={s.placeholderText}>Asset player coming soon</p>
+            <p className={s.placeholderSub}>Asset ID: <code>{session.assetId}</code></p>
+          </div>
+        )}
 
         <div className={s.sidebar}>
           <div className={s.sidebarSection}>
