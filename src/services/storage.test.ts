@@ -47,6 +47,29 @@ describe('storage service', () => {
     expect(init).toMatchObject({ method: 'PUT', headers });
   });
 
+  it('says the upload is done once its bytes are sent (a new version, by its id), for its pipelines to start', async () => {
+    const fetchMock = answer(200, { url: 'https://upload.test/y', storageKey: 'k', fileId: 'a1', versionId: 'v2' });
+    vi.stubGlobal('fetch', fetchMock);
+    await replaceStorageFile('p1', 'builtin', 'a1', rock());
+    const [, [put], [done, init]] = calls(fetchMock);
+    expect(put).toBe('https://upload.test/y');
+    expect(new URL(done).pathname).toMatch(/\/streamby\/projects\/p1\/assets\/a1\/uploaded$/);
+    expect(init).toMatchObject({ method: 'POST', body: JSON.stringify({ versionId: 'v2' }) });
+
+    fetchMock.mockClear();
+    await uploadStorageFile('p1', 'builtin', '3d-models', rock());
+    expect(new URL(calls(fetchMock)[2][0]).pathname).toMatch(/\/assets\/a1\/uploaded$/);
+  });
+
+  it("an upload whose pipelines couldn't be told is still uploaded", async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchMock = vi.fn(async (url: string) => (url.endsWith('/uploaded')
+      ? { ok: false, status: 409, json: async () => ({ message: "The file isn't in the storage yet" }) }
+      : { ok: true, status: 200, json: async () => ({ url: 'https://upload.test/x', fileId: 'a1' }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(uploadStorageFile('p1', 'builtin', '3d-models', rock())).resolves.toMatchObject({ fileId: 'a1' });
+  });
+
   // A browser gives most 3D files no type: a .glb comes as ''.
   const untypedGlb = () => new File(['rock'], 'rock.glb', { type: '' });
 

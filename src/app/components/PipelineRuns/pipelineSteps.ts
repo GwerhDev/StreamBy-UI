@@ -1,4 +1,4 @@
-import { Member, PipelineTrigger, StepCompletedBy, Team } from '../../../interfaces';
+import { Member, PipelineTrigger, StepCompletedBy, StorageCategory, Team } from '../../../interfaces';
 
 // What a pipeline's node is as a step, as the API reads it: done by people (a Meeting, Tasks, a
 // Review Gate), by a worker (a process node set to one), a Deliverable, or one that passes.
@@ -31,6 +31,14 @@ export const TRIGGER_OPTIONS: { value: PipelineTrigger; label: string }[] = [
   { value: 'card_linked', label: 'A card is linked to it' },
   { value: 'card_done', label: 'A card is done' },
   { value: 'deliverable_marked', label: "An asset is marked as a card's deliverable" },
+  { value: 'version_uploaded', label: "A new version of a card's asset is uploaded" },
+];
+
+export const UPLOAD_CATEGORY_OPTIONS: { value: StorageCategory; label: string }[] = [
+  { value: 'audios', label: 'Audio' },
+  { value: 'images', label: 'Images' },
+  { value: 'videos', label: 'Videos' },
+  { value: '3d-models', label: '3D Models' },
 ];
 
 /** Who completes a step, as it's read: its people and teams by name, or its worker. */

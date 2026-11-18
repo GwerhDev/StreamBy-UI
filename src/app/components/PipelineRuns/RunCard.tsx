@@ -5,6 +5,7 @@ import { RunSteps } from './RunSteps';
 
 const TRIGGERS: Record<PipelineRun['trigger'], string> = {
   manual: 'Started by hand', card_linked: 'Started when linked', card_done: 'Started when done', deliverable_marked: 'Started when delivered',
+  version_uploaded: 'Started when a version was uploaded',
 };
 
 interface Props {

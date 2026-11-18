@@ -7,7 +7,8 @@ import { PipelineRunsView } from './PipelineRunsView';
 import pipelineRunsReducer, { pipelineRunEventReceived } from '../../../store/pipelineRunsSlice';
 import * as pipelines from '../../../services/pipelines';
 import * as teams from '../../../services/teams';
-import { Pipeline, PipelineRun } from '../../../interfaces';
+import * as storage from '../../../services/storage';
+import { Pipeline, PipelineRun, StorageFolder } from '../../../interfaces';
 
 const PIPELINE: Pipeline = { id: 'pl1', projectId: 'p1', name: 'Props', order: 0, triggers: ['card_linked'], createdBy: 'u1', createdAt: '', updatedAt: '' };
 const run = (id: string, card: string): PipelineRun => ({
@@ -15,7 +16,7 @@ const run = (id: string, card: string): PipelineRun => ({
   card: { id, name: card, key: `WOG-${id}` }, current: [], steps: [], createdAt: '', updatedAt: '',
 });
 
-const renderView = (canEdit = true) => {
+const renderView = (canEdit = true, pipeline: Pipeline = PIPELINE) => {
   const store = configureStore({
     reducer: {
       pipelineRuns: pipelineRunsReducer,
@@ -25,7 +26,7 @@ const renderView = (canEdit = true) => {
         (action.type === 'apiResponses/addApiResponse' ? { responses: [...state.responses, action.payload!] } : state),
     },
   });
-  render(<Provider store={store}><PipelineRunsView projectId="p1" pipeline={PIPELINE} canEdit={canEdit} /></Provider>);
+  render(<Provider store={store}><PipelineRunsView projectId="p1" pipeline={pipeline} canEdit={canEdit} /></Provider>);
   return store;
 };
 
@@ -67,6 +68,28 @@ describe('PipelineRunsView', () => {
     await waitFor(() => expect(store.getState().apiResponses.responses).toContainEqual({ message: 'Nope', type: 'error' }));
     expect(screen.getByLabelText('A card is linked to it')).toBeChecked();
     expect(screen.getByLabelText('A card is done')).toBeChecked();
+  });
+
+  it('on a new version uploaded, takes the categories and folders chosen (a folder by where it is)', async () => {
+    vi.spyOn(pipelines, 'listPipelineRuns').mockResolvedValue([]);
+    const folder = (id: string, name: string, parentId: string | null) => ({ id, name, parentId, projectId: 'p1', createdBy: 'u1', createdAt: '' }) as StorageFolder;
+    const folders = vi.spyOn(storage, 'getStorageFolders').mockImplementation(async (_p, _c, parentId) =>
+      (parentId === null ? [folder('renders', 'Renders', null)] : parentId === 'renders' ? [folder('mixes', 'Mixes', 'renders')] : []));
+    const update = vi.spyOn(pipelines, 'updatePipeline').mockImplementation(async (_p, _id, payload) => ({ ...PIPELINE, triggers: ['version_uploaded'], uploadFilter: { categories: [], folderIds: [], ...payload.uploadFilter } }));
+    renderView(true, { ...PIPELINE, triggers: [] });
+    const user = userEvent.setup();
+    // Only once it starts on uploads.
+    expect(screen.queryByTestId('upload-filter')).not.toBeInTheDocument();
+    expect(folders).not.toHaveBeenCalled();
+    await user.click(screen.getByLabelText("A new version of a card's asset is uploaded"));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('p1', 'pl1', { triggers: ['version_uploaded'] }));
+
+    await user.click(screen.getByLabelText('Audio'));
+    await waitFor(() => expect(update).toHaveBeenLastCalledWith('p1', 'pl1', { uploadFilter: { categories: ['audios'], folderIds: [] } }));
+    await user.click(await screen.findByLabelText('Renders / Mixes'));
+    await waitFor(() => expect(update).toHaveBeenLastCalledWith('p1', 'pl1', { uploadFilter: { categories: ['audios'], folderIds: ['mixes'] } }));
+    expect(screen.getByLabelText('Renders')).not.toBeChecked();
+    expect(screen.getByLabelText('Renders / Mixes')).toBeChecked();
   });
 
   it("doesn't let its triggers change for whoever can't change the workflow", async () => {

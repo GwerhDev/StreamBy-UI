@@ -77,6 +77,34 @@ export async function uploadToPresignedUrl(url: string, file: File, contentType:
   return true;
 }
 
+/** What saying an upload is done answered: the version, and each pipeline run it started (or found going). */
+export interface UploadDone {
+  assetId: string;
+  versionId: string;
+  version: number;
+  uploadedAt: string | null;
+  runs: { shotId: string; pipelineId: string; started: boolean; runId: string | null; reason: string | null }[];
+}
+
+/**
+ * Says an upload is done (the storage never tells StreamBy): its bytes are checked, and the
+ * pipelines set to start on a new version of the asset start their cards' runs.
+ */
+export async function completeUpload(projectId: string, assetId: string, versionId?: string): Promise<UploadDone> {
+  const res = await fetch(`${API_BASE}/streamby/projects/${projectId}/assets/${assetId}/uploaded`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(versionId ? { versionId } : {}),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || 'Failed to complete the upload');
+  return res.json();
+}
+
+// The file is uploaded either way: a pipeline that didn't start because of it is told, not the upload failed.
+const sayUploaded = (projectId: string, assetId: string, versionId?: string) =>
+  completeUpload(projectId, assetId, versionId).catch(err => { console.warn('The upload was done, but its pipelines may not have started:', err); });
+
 /**
  * Uploads a new asset, its SHA-256 declared with it, with its content type resolved from its
  * extension when the browser has none for it. What its upload URL was answered with.
@@ -89,6 +117,7 @@ export async function uploadStorageFile(
   const sha256 = await fileSha256(file);
   const answer = await getStorageUploadUrl(projectId, connId, category, file.name, contentType, license, sha256);
   await uploadToPresignedUrl(answer.url, file, contentType, answer.headers);
+  await sayUploaded(projectId, answer.fileId);
   return answer;
 }
 
@@ -96,8 +125,9 @@ export async function uploadStorageFile(
 export async function replaceStorageFile(projectId: string, connId: string, fileId: string, file: File): Promise<void> {
   const contentType = resolveContentType(file);
   const sha256 = await fileSha256(file);
-  const { url, headers } = await getStorageReplaceUrl(projectId, connId, fileId, contentType, file.name, sha256);
+  const { url, headers, versionId } = await getStorageReplaceUrl(projectId, connId, fileId, contentType, file.name, sha256);
   await uploadToPresignedUrl(url, file, contentType, headers);
+  await sayUploaded(projectId, fileId, versionId);
 }
 
 export async function renameStorageFile(projectId: string, connId: string, fileId: string, displayName: string) {
@@ -122,7 +152,7 @@ export async function getStorageReplaceUrl(
   contentType: string,
   fileName: string,
   sha256?: string,
-): Promise<{ url: string; storageKey: string; fileId: string; headers?: Record<string, string> }> {
+): Promise<{ url: string; storageKey: string; fileId: string; versionId?: string; version?: number; headers?: Record<string, string> }> {
   const params = new URLSearchParams({ contentType, fileName, ...(sha256 ? { sha256 } : {}) });
   const res = await fetch(`${CONN_BASE(projectId, connId)}/files/${fileId}/replace-url?${params}`, {
     method: 'GET',

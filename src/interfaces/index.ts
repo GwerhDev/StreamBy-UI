@@ -72,6 +72,7 @@ export interface Pipeline {
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
   // What starts a card's run of it by itself (none: only by hand).
   triggers?: PipelineTrigger[];
+  uploadFilter?: PipelineUploadFilter;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -80,7 +81,12 @@ export interface Pipeline {
 // ── Pipeline runs ──
 // Each card linked to a pipeline goes through its steps in a run of its own.
 
-export type PipelineTrigger = 'card_linked' | 'card_done' | 'deliverable_marked';
+export type PipelineTrigger = 'card_linked' | 'card_done' | 'deliverable_marked' | 'version_uploaded';
+// What a version_uploaded trigger takes: assets of these categories, in these Storage folders or inside them (none: any).
+export interface PipelineUploadFilter {
+  categories: StorageCategory[];
+  folderIds: string[];
+}
 export type RunStatus = 'running' | 'completed' | 'failed' | 'cancelled';
 export type StepStatus = 'waiting' | 'active' | 'running' | 'done' | 'failed';
 export type StepKind = 'meeting' | 'tasks' | 'review' | 'credits' | 'worker' | 'deliverable' | 'pass';
@@ -127,6 +133,7 @@ export interface PipelinePayload {
   name?: string;
   description?: string;
   triggers?: PipelineTrigger[];
+  uploadFilter?: PipelineUploadFilter | null;
   nodeSchema?: { nodes: object[]; edges: object[] } | null;
   order?: number;
 }

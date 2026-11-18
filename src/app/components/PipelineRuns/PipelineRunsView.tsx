@@ -5,12 +5,15 @@ import { AppDispatch, RootState } from '../../../store';
 import { addApiResponse } from '../../../store/apiResponsesSlice';
 import { setCurrentPipeline } from '../../../store/currentPipelineSlice';
 import { listPipelineRuns, updatePipeline } from '../../../services/pipelines';
-import { Pipeline, PipelineRun, PipelineTrigger } from '../../../interfaces';
+import { Pipeline, PipelineRun, PipelineTrigger, PipelineUploadFilter } from '../../../interfaces';
 import { Spinner } from '../Spinner';
 import { EmptyBackground } from '../Backgrounds/EmptyBackground';
 import { PipelineTriggers } from './PipelineTriggers';
 import { RunCard } from './RunCard';
 import { usePipelineRunPeople } from './usePipelineRunPeople';
+import { useStorageFolderPaths } from './useStorageFolderPaths';
+
+const ANY_UPLOAD: PipelineUploadFilter = { categories: [], folderIds: [] };
 
 interface Props {
   projectId: string;
@@ -19,7 +22,7 @@ interface Props {
 }
 
 // A pipeline's runs (each card going through it), read again on each change the websocket
-// tells; and its triggers, each change saved by itself.
+// tells; and its triggers (with what a new version uploaded starts it on), each change saved by itself.
 export function PipelineRunsView({ projectId, pipeline, canEdit }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const changes = useSelector((state: RootState) => state.pipelineRuns?.eventSeq ?? 0);
@@ -28,6 +31,9 @@ export function PipelineRunsView({ projectId, pipeline, canEdit }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [triggers, setTriggers] = useState<PipelineTrigger[]>(pipeline.triggers ?? []);
   const saved = useRef<PipelineTrigger[]>(pipeline.triggers ?? []);
+  const [uploadFilter, setUploadFilter] = useState<PipelineUploadFilter>(pipeline.uploadFilter ?? ANY_UPLOAD);
+  const savedFilter = useRef<PipelineUploadFilter>(pipeline.uploadFilter ?? ANY_UPLOAD);
+  const folders = useStorageFolderPaths(projectId, triggers.includes('version_uploaded'));
 
   useEffect(() => {
     let cancelled = false;
@@ -52,10 +58,26 @@ export function PipelineRunsView({ projectId, pipeline, canEdit }: Props) {
     }
   };
 
+  const changeFilter = async (next: PipelineUploadFilter) => {
+    setUploadFilter(next);
+    try {
+      const updated = await updatePipeline(projectId, pipeline.id, { uploadFilter: next });
+      savedFilter.current = updated.uploadFilter ?? next;
+      dispatch(setCurrentPipeline(updated));
+      dispatch(addApiResponse({ message: 'Triggers saved.', type: 'success' }));
+    } catch (err) {
+      setUploadFilter(savedFilter.current);
+      dispatch(addApiResponse({ message: err instanceof Error ? err.message : 'Failed to save its triggers.', type: 'error' }));
+    }
+  };
+
   return (
     <div className={s.container}>
       <section className={s.section}>
-        <PipelineTriggers triggers={triggers} disabled={!canEdit} onToggle={toggle} />
+        <PipelineTriggers
+          triggers={triggers} disabled={!canEdit} onToggle={toggle}
+          uploadFilter={uploadFilter} folders={folders} onFilterChange={changeFilter}
+        />
       </section>
       <section className={s.section} aria-label="Runs">
         {runs === null ? <Spinner bg={false} isLoading /> : runs.length === 0 ? (
